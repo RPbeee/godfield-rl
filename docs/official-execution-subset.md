@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v3
+# 現行公式データによる限定実行器 v4
 
-この実行器の `official-execution-subset-v3` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:148-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v4` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:156-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
-v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319。v3はさらに魔法遮断8種と武器遮断の奇跡233を加えた148モデル/重み328。末尾のv1/v2計測・検証記録は各版の歴史的な証拠として残し、v3の速度や一致結果へ読み替えない。
+v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。末尾のv1〜v3計測・検証記録は各版の歴史的な証拠として残し、v4の速度や一致結果へ読み替えない。
 
 一次根拠があるものと、動かすためにこの実行器が定義する規約を分ける。
 
@@ -17,7 +17,7 @@ v1は132モデル/重み308、v2は物理反射6種と属性消去189を加え�
 
 ## 対象モデルと拒否する機能
 
-[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv3の対象を定義する。対象は148モデル、正のgiftRateの合計328。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
+[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv4の対象を定義する。対象は156モデル、正のgiftRateの合計337。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
 
 v1の基礎集合は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかという条件である。固定済みの現行台帳に対するこの基礎条件が132モデル/重み308を作り、v2はさらに後述7モデルを加える。属性は省略属性を含む全7種類を扱う。確率攻撃や、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
 
@@ -47,9 +47,22 @@ v3では次の9モデルを追加する。v2と重複せず、全てgiftRate1・
 | 179 | angel-armor | blockMiracle | DEF15 | 0 |
 | 233 | wall | blockWeapon | 主動作不可の防御奇跡 | 6 |
 
+v4では次の8モデルを加える。204のみgiftRate2、残りは各1で、v3と重複しない。
+
+| 現行ID | 画像識別子 | 能力 | 通常の値/属性 | MP |
+| ---: | --- | --- | --- | ---: |
+| 46 | spiritual-staff | cutCost | 無属性ATK12、単独武器可 | 0 |
+| 66 | wand-of-ignition | setElement | 火ATK2・追加ATK2 | 0 |
+| 83 | wand-of-mystic-water | setElement | 水ATK5・追加ATK5 | 0 |
+| 143 | spiritual-socks | cutCost | 無属性DEF6 | 0 |
+| 163 | spiritual-hood | cutCost | 無属性DEF9 | 0 |
+| 173 | spiritual-sash | cutCost | 無属性DEF12 | 0 |
+| 204 | spiritual-doll | cutCost | 雑貨、単独主動作不可 | 0 |
+| 231 | aura | doubleAtk | 無属性・追加専用奇跡、累積ATK×2 | 6 |
+
 全プレイヤーのraw手札を含め、実行状態に未対応モデル、fake、災い、守護神、混乱、終末設定等があれば拒否する。本人に見えない他者の未対応カードでも、この実行器が将来通常品へ誤変換して進めることはない。`MatchError` の `unsupported` と、不正な入力を示す `invalid` は区別する。
 
-霧・夢・病気・閃光・暗雲・守護神・反撃・bounce・233以外の反応奇跡・FREE・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
+霧・夢・病気・閃光・暗雲・守護神・反撃・bounce・233以外の反応奇跡・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
 
 ## 初期化と入力状態
 
@@ -107,7 +120,7 @@ discardのitemsは擬似モデル「捨てる」自身を含めず、捨てる�
 
 `reflectWeapon` は無属性の武器、`reflectMiracle` は属性を問わず奇跡、`reflectAnything` は全categoryへの反応として公開clientの `e1` が判定する。v2で入力できるpayloadは対応範囲の武器・奇跡・単純回復に限るため、万能反射の台帳説明を理由に未対応counter等を通さない。
 
-matchingする反応品を普通DEFとして選ぶopt-outは無い。非matchingの反応付き防具は通常のDEFを使える。普通DEFの後にmatching反射を追加する列は現行clientのappendで不受理であり、反射の前置として認めるのは先頭から連続した属性消去だけである。属性消去→普通DEFは許されるが、その普通DEFの後へ反射を継ぎ足すことはできない。matching反射の後に普通品を追加するsuffixも許さない。防御奇跡→FREEという別のUI経路はv3でも対象外。
+matchingする反応品を普通DEFとして選ぶopt-outは無い。非matchingの反応付き防具は通常のDEFを使える。普通DEFの後にmatching反射を追加する列は現行clientのappendで不受理であり、反射の前置として認めるのは先頭から連続した属性消去だけである。属性消去→普通DEFは許されるが、その普通DEFの後へ反射を継ぎ足すことはできない。matching物理反射の後にFREE等の普通品を追加するsuffixも許さない。防御奇跡233→FREEという別のUI経路はv4から扱う。
 
 属性消去は現在の攻撃属性を無属性へ変更し、その後に反射しても無属性のまま維持する。元category、power、ability、amountは変えない。例えば有色武器を消去してから武器反射で返せるが、奇跡を武器へ変換するわけではない。消去だけで防御値を加算することもない。
 
@@ -123,13 +136,41 @@ matchingする反応品を普通DEFとして選ぶopt-outは無い。非matching
 
 選択は反射と同じく、空列または先頭から連続したfilterの直後だけ。普通DEF→遮断は禁止し、matching遮断を普通DEFへopt-outしない。blockMiracleの防具を非matchingの武器へ使う場合は、その属性に適合する普通DEFを保つ。武器42/50/55/56の通常ATK、56の保証命中武器への追加ATK15も保つ。
 
-233は主動作の単独playや攻撃追加では使えず、防御応答として本人のinstance tokenを選ぶ。初使用は6MPを払い、そのtokenをusedとして保持する。再使用も6MPで、取得を重ねて別の保持品を作る処理ではない。総枠と予約済み補充に空きがあれば補充予定1、満杯なら0。MP不足は実行前に拒否し、FREEで無料化する経路はまだ受理しない。
+233は主動作の単独playや攻撃追加では使えず、防御応答として本人のinstance tokenを選ぶ。FREE無しの初使用は6MPを払い、そのtokenをusedとして保持する。再使用も6MPで、取得を重ねて別の保持品を作る処理ではない。総枠と予約済み補充に空きがあれば補充予定1、満杯なら0。v4では直後のFREEで費用を0にでき、MP不足の判定も完成列の最終費用を使う。
 
 matching遮断は現在のpayload全体を取消し、ATK被害・闇即死・HP/MP/CP回復等の元効果を適用しない。反射連鎖の途中から遮断してもその時点で終了する。原発奇跡のMPを再課金せず、既に支払ったMPや消費・保持も巻き戻さない。遮断応答の品は通常どおり消費またはused保持し、MPを払い、補充を予約する。完了後は自然終局を優先し、未終局かつ打切りでない場合だけ全員分をまとめて配り、元ownerから次手番へ巡回する。
 
 遮断は終端応答なので `ReflectionFrame` ledgerへ保存しない。反射履歴にblock応答を含めたpending snapshotは拒否する。一方、元攻撃モデル列でblockMiracle武器を普通ATKとして使うこととは区別する。
 
 この取消・補充・owner進行は明示した実験規約である。公式JSの `block` handler（11058–11067行）は `dE` を呼ぶだけで、`dE`（9765–9772行）も音・表示用 `aZ` の後に戻る。matching条件と演出は一次で確認できるが、権威的serverが元payloadをどの順で取り消し、消費・死亡・補充を発行するかを証明するコードではない。
+
+## v4のFREE・属性付替・倍化
+
+### 完成列のMPと無料化
+
+`la` は選択列中の各MCについて、直後がcutCostならそのMCの費用だけを免除する。複数のMC→FREEペアがあれば全て免除し、旧Flashの「最初のFREEだけ」を採らない。MCとFREEの間に通常boostがある場合は免除されず、先頭FREEが後続MCを無料にすることもない。
+
+公開clientの `ev/kM/ip`（9464–9520行）は構造上の選択を判断し、MP残高を参照しない。MP不足検査はsubmit先頭（9596行付近）で完成列の `la` と本人のMPを比較する。したがってMP0でも、壁233を先に選び、直後へ未使用のFREE物理品を足して完成費用0にすれば送信可能な列になる。実行器も各prefixで費用を拒否せず、構造を通した後に最終費用を検証する。
+
+ローカルsamplerもMC+FREEを2品の初期proposalとし、追加時に単品では支払えないMCでも、未使用のFREEとatomic pairで追加できるようにする。これは方策側の候補生成であり、ゲーム用RNGやサーバーの抽選規則ではない。
+
+### ATK・属性・通常role
+
+FREEを追加品として使うと、`tw/l9` はその品のATKと攻撃属性を完全にskipする。FREE武器46をMC直後へ使ってもATK12を足さない。一方、先頭46は通常武器としてATK12を持つ。FREE防具143/163/173を普通防御へ使うとDEF6/9/12を保ち、防御属性 `tx` はFREEも通常どおり合成する。FREE雑貨204は単独主動作として使えない。
+
+setter66/83は単独の火ATK2/水ATK5武器として使え、追加時もそのATKを加算して属性を上書きする。倍化231は単独主動作不可、保証命中の武器への追加専用MC。累積ATKをその位置で2倍にし、属性は無属性との通常合成になるので、それまで有色なら無属性へ変わる。後続setterで再び色を付けることはできる。順序は単なる選択集合へ圧縮しない。
+
+たとえば無属性ATK1→火setter2→倍化はATK6/無属性、無属性ATK1→倍化→火setter2はATK4/火になる。どちらも倍化の基本費用6で、倍化直後へFREEを置けばその6だけを免除する。使用できるかどうかは本人の別token・手札・完成列MP等を別途検査する。
+
+### 壁→FREEの消費
+
+responseの `ev` は「直前がMCで次がcutCost」を通常の反応後suffix制約より先に許す。壁233→FREEは、MP0も含め最終費用0で使える。matching物理反射→FREEは直前がMCではないので不可。壁→FREE→2個目FREEも不可で、次のMCが別に構造上追加できるときの複数ペアと混同しない。
+
+壁をused保持し、FREEは物理品として消費する。最終費用0、補充は通常の物理消費・MC保持の予約と総枠上限で計算する。FREEが防具でも、matchingblockの後へそのDEFを足して被害を減らす処理ではない。受信 `useDefenseItems` は全itemsをloop後に費用を処理し、submitの `ee(null)` も全選択を消費予告する。v4はこの全消費の表示構造を参考にし、旧版の「特殊後FREE未消費suffix」は採用しない。サーバーの最終消費・補充発行順を独立に検証したという意味ではない。
+
+元攻撃のMPは最初の完成列で一度だけ支払う。反射してもその無料化・倍化・付替後payloadを保ち、元MCを再課金・新sourceへ取得させない。保持MCは同じtokenで再利用できるが、1コマンド内で同じtokenを重複選択することは認めない。
+
+MCを追加した武器のcategoryはweaponsのままである。FREEやsetter、Auraがcategoryをmiraclesへ変えることはなく、魔法遮断と武器遮断の判定も元のcategoryを使う。MP連動武器58や全体化232等、この8種追加に含まれない能力は引き続き対象外。
 
 ## 死亡・次手番・終局・報酬
 
@@ -143,7 +184,7 @@ matching遮断は現在のpayload全体を取消し、ATK被害・闇即死・HP
 
 ## APIと再現性の境界
 
-`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v3の `MatchSnapshot` はversion3を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
+`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v4の `MatchSnapshot` はversion4を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2/3を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
 
 応答待ちsnapshotには主動作で選んだtokenと、各反射応答者のモデル/token列を来歴として保存する。主動作のモデル列と同じ長さ・重複なし、普通品のtokenは既に消費済み、奇跡tokenは原発者の同モデルのused保持品、待機威力/能力は元モデル列と一致、という整合を検査する。反射前後のsource/target、初期target、消去後属性、反射者ごとの消費、各人の正確な補充予定をledgerから検証する。v1の「owner以外の補充予定は必ず0」という条件は、反応者も品を消費するv2には適用しない。token来歴は特権snapshot専用で、公開pending表示に出さない。
 
@@ -151,17 +192,43 @@ raw snapshotには他人の手札や将来のローカル乱数状態がある�
 
 [official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。raw scene/checkpointのimport・restoreはこのC/Python公開APIへ追加していない。
 
-v3の `observe` は公開構造を追加しないためschema `official-execution-view-v2` を継続し、C ABIも1を維持する。rulesetとscopeはv3/148モデルへ更新する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に公開反射回数を返す。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
+v4の `observe` は公開構造を追加しないためschema `official-execution-view-v2` を継続し、C ABIも1を維持する。rulesetとscopeはv4/156モデルへ更新する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に公開反射回数を返す。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
 
 実行例は `python3 python/official_match.py`。ライブラリパスを別に指定する場合は同スクリプトの引数へ渡す。これは初期化してローカルに進める例であり、公式対局traceの取得ではない。
 
-旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、bounce/counter/FREE等の未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
+旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、bounce/counter等の未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
 
 ## 検証と計測
 
-以下のv1/v2記録は過去のモデル集合・実装に対する証拠であり、148モデルのv3を同じコマンドで実行して同じchecksumや速度を得るという意味ではない。
+以下のv1〜v3記録は過去のモデル集合・実装に対する証拠であり、156モデルのv4を同じコマンドで実行して同じchecksumや速度を得るという意味ではない。
 
-### v3の検証と集計
+### v4の検証と集計
+
+v4（156モデル/重み337）は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各suiteの `-j4` 同時実行）。Python Match suiteは11ケース。公式assetsの再取得SHA-256と296モデルfactsは固定済み資料と一致。
+
+全体検証後、513個のpolicy seed（0〜512）で、0MPの追加Auraと既走査の未使用FREEをatomic pairとして2組まで選べる専用native局面を追加した。対象をRelease1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
+
+`./build/godfield_official_bench GAMES PLAYERS 42 WORKERS` のv4集計:
+
+| 人数 | 試合数 | 意思決定数 | 勝数 | draw | 打切り | checksum |
+| ---: | ---: | ---: | --- | ---: | ---: | --- |
+| 2 | 100,000 | 3,858,925 | 49,579 / 50,421 | 0 | 0 | `626852514698712269` |
+| 9 | 10,000 | 2,776,530 | 1,095 / 1,147 / 1,121 / 1,102 / 1,089 / 1,128 / 1,113 / 1,085 / 1,107 | 0 | 13 | `11822269879695662487` |
+
+| 人数 | FREE品使用 main / response | 免除MP合計 | Aura使用 | setter使用 | 遮断 | 反射 | 属性消去 | 観測最大反射深度 |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2 | 21,576 / 22,484 | 73,916 | 11,505 | 25,211 | 12,681 | 25,231 | 22,678 | 3 |
+| 9 | 22,596 / 19,373 | 96,103 | 14,610 | 17,719 | 16,370 | 22,460 | 21,568 | 3 |
+
+FREE品使用数はcutCost能力のある品を実際に使った数であり、46を通常ATKで使う場合や143/163/173を普通防具で使う場合も含む。無料化が発動した回数とは異なり、直後MCの実費用免除量は `waived_mp`（免除MP合計）が表す。
+
+1 worker/4 workersで時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。観測最大深度3は機能上の連鎖上限ではない。表は決定的集計だけを示し、他のsuiteと競合していた計測の秒数をv4の独立速度として使わない。
+
+競合を避けたRelease・1 workerの再計測は、2人100,000試合が1.91505秒（2,015,060意思決定/秒）、9人10,000試合が2.23955秒（1,239,770意思決定/秒）。時間以外の全fieldは上表と一致した。合法手sampler、実行、reset、各試合の終了snapshot検証を含む。合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。プールとsamplerがv3と異なるため、版間の速度比を改善率として主張しない。
+
+Release/SANのseed42・2人/9人各1,000試合でも、時間以外の全fieldが一致した。checksumは2人 `1841161691979893053`、9人 `14516418235990999296`。
+
+### v3の過去の検証と集計
 
 v3（148モデル/重み328）の全Release CTest129件/19.71秒、ASan/UBSan89件/51.45秒が通過した。全ソースの最終freeze後の全体検証で、Release/SAN各suiteを `-j4` で同時実行した値である。性能計測には使わない。Python Match suiteは10ケース。
 

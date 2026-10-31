@@ -24,13 +24,14 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 148 && gfo_match_gift_weight() == 328 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 156 && gfo_match_gift_weight() == 337 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v3"
-        && std::string(gfo_match_scope()) == "experimental:148-models;not-official-server-equivalence", "explicit v3 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v4"
+        && std::string(gfo_match_scope()) == "experimental:156-models;not-official-server-equivalence", "explicit v4 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {21, 34, 46, 95, 234}) check(!gfo_match_supported(id), "remaining reaction/chance/FREE unsupported");
+    for (auto id : {21, 34, 95, 234}) check(!gfo_match_supported(id), "remaining bounce/chance unsupported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
+    for (auto id : {46, 66, 83, 143, 163, 173, 204, 231}) check(gfo_match_supported(id), "added composition membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -142,6 +143,74 @@ int main() {
     check(gfo_match_legal(blocked_match, &wall, &legal) == 0 && !legal, "retained Wall is not a main action");
     check(gfo_match_step(blocked_match, &wall, &result) == -2 && equal(result, blocked_status)
         && observe(blocked_match, 1, 77) == blocked, "main Wall rejection preserves outputs and frame");
+    found = false; fixture_seed = 0; uint64_t spring_token = 0, free_token = 0;
+    for (; fixture_seed < 8192 && !found; ++fixture_seed) {
+        fixture.reset(setup, fixture_seed); bool spring = false, free = false;
+        for (const auto& item : fixture.snapshot().state.players[0].items) {
+            if (item.model == 235) { spring = true; spring_token = item.token; }
+            if (item.model == 204) { free = true; free_token = item.token; }
+        }
+        found = spring && free;
+    }
+    check(found, "zero-MP Spring/FREE fixture reachable"); --fixture_seed;
+    cfg.initial_hp = 40; cfg.initial_mp = 0;
+    gfo_match* free_match = nullptr; gfo_match* free_replay = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, fixture_seed, &free_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, fixture_seed, &free_replay) == 0, "zero-MP FREE create");
+    const auto unsampled = observe(free_match);
+    bool pair_sampled = false;
+    for (uint64_t policy_seed = 0; policy_seed < 4096 && !pair_sampled; ++policy_seed) {
+        uint64_t policy = policy_seed, same_policy = policy_seed; gfo_match_command candidate{}, replay{};
+        check(gfo_match_sample_action(free_match, &policy, &candidate) == 0
+            && gfo_match_sample_action(free_match, &same_policy, &replay) == 0
+            && policy == same_policy && equal(candidate, replay), "zero-MP sampler deterministic policy stream");
+        check(gfo_match_legal(free_match, &candidate, &legal) == 0 && legal, "every sampled zero-MP action legal");
+        pair_sampled = candidate.kind == 0 && candidate.item_count == 2
+            && candidate.items[0] == spring_token && candidate.items[1] == free_token;
+    }
+    check(pair_sampled && observe(free_match) == unsampled, "zero-MP sampler reaches miracle+FREE without changing observation");
+    gfo_match_command free_cast{}; free_cast.actor = 0; free_cast.has_target = 1; free_cast.target = 0;
+    free_cast.item_count = 2; free_cast.items[0] = spring_token; free_cast.items[1] = free_token;
+    gfo_match_status free_result{}, replay_result{};
+    check(gfo_match_step(free_match, &free_cast, &free_result) == 0 && gfo_match_step(free_replay, &free_cast, &replay_result) == 0
+        && equal(free_result, replay_result) && observe(free_match) == observe(free_replay), "sampling preserves private RNG including next replacement gift");
+    const auto free_observation = observe(free_match);
+    check(free_observation.find("\"hp\":50,\"mp\":0") != std::string::npos
+        && free_observation.find("\"token\":" + std::to_string(free_token) + ",") == std::string::npos
+        && free_observation.find("\"token\":" + std::to_string(spring_token) + ",\"face\":235,\"reference\":235,\"disguised\":false,\"used\":true") != std::string::npos,
+        "zero-MP FREE heal consumes carrier and retains miracle");
+    std::size_t hand_count = 0, offset = 0;
+    while ((offset = free_observation.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 18, "FREE replacement gifts respect retained full-hand cap");
+    gfo_match_destroy(free_match); gfo_match_destroy(free_replay);
+    found = false; fixture_seed = 0;
+    for (; fixture_seed < 8192 && !found; ++fixture_seed) {
+        fixture.reset(setup, fixture_seed); bool weapon = false, wall_found = false, free = false;
+        for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon = true; weapon_token = item.token; }
+        for (const auto& item : fixture.snapshot().state.players[1].items) {
+            if (item.model == 233) { wall_found = true; wall_token = item.token; }
+            if (item.model == 204) { free = true; free_token = item.token; }
+        }
+        found = weapon && wall_found && free;
+    }
+    check(found, "zero-MP Wall/FREE fixture reachable"); --fixture_seed;
+    gfo_match* free_wall = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, fixture_seed, &free_wall) == 0, "zero-MP Wall create");
+    attack.items[0] = weapon_token;
+    check(gfo_match_step(free_wall, &attack, &result) == 0 && result.phase == 1, "zero-MP Wall incoming attack");
+    wall.kind = 1; wall.has_target = 0; wall.target = 0; wall.item_count = 2; wall.items[0] = wall_token; wall.items[1] = free_token;
+    check(gfo_match_legal(free_wall, &wall, &legal) == 0 && legal, "zero-MP Wall+FREE response legal");
+    check(gfo_match_step(free_wall, &wall, &result) == 0 && result.phase == 0 && result.actor == 77, "free Wall completes payload");
+    const auto free_wall_observation = observe(free_wall, 1, 77);
+    check(free_wall_observation.find("\"hp\":40,\"mp\":0") != std::string::npos
+        && free_wall_observation.find("\"pending\":null") != std::string::npos
+        && free_wall_observation.find("\"token\":" + std::to_string(free_token) + ",") == std::string::npos
+        && free_wall_observation.find("\"token\":" + std::to_string(wall_token) + ",\"face\":233,\"reference\":233,\"disguised\":false,\"used\":true") != std::string::npos,
+        "free response consumes physical carrier and retains same Wall token");
+    hand_count = 0; offset = 0;
+    while ((offset = free_wall_observation.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 18, "free response refill clipped at hand cap");
+    gfo_match_destroy(free_wall);
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);

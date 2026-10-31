@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 328>& gift_tickets() {
+const std::array<CardId, 337>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 328> values{};
+        std::array<CardId, 337> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 328>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 148) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 156) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -319,7 +319,8 @@ bool match_supported(CardId id) noexcept {
     return c && c->gift_rate > 0 && !c->hit_rate && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
-            || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle);
+            || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
+            || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -402,22 +403,37 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     auto rng = policy_rng;
     const auto actor = *data_.actor;
     const auto& own = data_.state.players[index(data_, actor)];
-    struct Proposal { CommandKind kind; std::optional<ItemToken> item; std::optional<PlayerId> target; };
-    std::array<Proposal, 1 + visible_hand_capacity * (1 + player_capacity)> proposals{};
+    struct Proposal { ItemToken first, second; PlayerId target; CommandKind kind; std::uint8_t items; bool has_target; };
+    // A miracle and a FREE are disjoint instances: at most floor(H*H/4)
+    // initial pairs, each with at most P live targets. Do not value-initialize
+    // this POD buffer; only the written prefix is ever read.
+    constexpr auto pair_limit = visible_hand_capacity * visible_hand_capacity / 4;
+    std::array<Proposal, 1 + visible_hand_capacity * (1 + player_capacity) + pair_limit * player_capacity> proposals;
     std::size_t count = 0;
     const auto cost = [](const Card& c) { return c.category == Category::miracles ? c.cost : 0; };
-    const auto add = [&](CommandKind kind, std::optional<ItemToken> token, std::optional<PlayerId> target) {
+    const auto add = [&](CommandKind kind, std::optional<ItemToken> token, std::optional<PlayerId> target, std::optional<ItemToken> free = {}) {
         if (count == proposals.size()) throw std::logic_error("scoped sampler capacity exceeded");
-        proposals[count++] = {kind, token, target};
+        proposals[count++] = {token.value_or(0), free.value_or(0), target.value_or(0), kind,
+            static_cast<std::uint8_t>(token ? (free ? 2 : 1) : 0), target.has_value()};
     };
     std::optional<ResponseContext> context;
+    const auto append = [&](std::span<const VisibleSelection> prefix, VisibleSelection next) {
+        return context ? can_append_response(prefix, next, *context) : can_append_main(prefix, next);
+    };
+    const auto add_usable = [&](CommandKind kind, const ItemInstance& item, std::optional<PlayerId> target) {
+        const auto& c = *find_card(item.model);
+        if (cost(c) <= own.mp) add(kind, item.token, target);
+        if (c.category == Category::miracles) {
+            const std::array<VisibleSelection, 1> prefix{{{item.model, item.used}}};
+            for (const auto& free : own.items) if (find_card(free.model)->ability == Ability::cut_cost
+                && append(prefix, {free.model, free.used})) add(kind, item.token, target, free.token);
+        }
+    };
     if (data_.phase == MatchPhase::response) {
         context = response_context(data_);
         add(CommandKind::defend, {}, {});
         for (const auto& item : own.items) {
-            const auto& c = *find_card(item.model);
-            if (cost(c) <= own.mp && can_append_response({}, {item.model, item.used}, *context))
-                add(CommandKind::defend, item.token, {});
+            if (can_append_response({}, {item.model, item.used}, *context)) add_usable(CommandKind::defend, item, {});
         }
     } else {
         const auto weapon = std::any_of(own.items.begin(), own.items.end(), [](const auto& item) { return find_card(item.model)->category == Category::weapons; });
@@ -425,27 +441,45 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         for (const auto& item : own.items) {
             const auto& c = *find_card(item.model);
             if (c.category != Category::weapons) add(CommandKind::discard, item.token, {});
-            if (cost(c) <= own.mp && can_start_main(item.model))
-                for (const auto& target : data_.state.players) if (!target.dead) add(CommandKind::play, item.token, target.id);
+            if (can_start_main(item.model))
+                for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
         }
     }
     require(count != 0, "no scoped action available");
     const auto proposal = proposals[bounded(rng, count)];
-    Command selected{actor, proposal.kind, {}, proposal.target};
-    if (proposal.item) selected.items.push_back(*proposal.item);
-    if (proposal.item && (selected.kind == CommandKind::play || selected.kind == CommandKind::defend)) {
-        const auto* base = instance(own, *proposal.item);
+    Command selected{actor, proposal.kind, {}, proposal.has_target ? std::optional<PlayerId>{proposal.target} : std::nullopt};
+    if (proposal.items) selected.items.push_back(proposal.first);
+    if (proposal.items == 2) selected.items.push_back(proposal.second);
+    if (proposal.items && (selected.kind == CommandKind::play || selected.kind == CommandKind::defend)) {
+        const auto* base = instance(own, proposal.first);
         std::vector<VisibleSelection> prefix{{base->model, base->used}};
         prefix.reserve(own.items.size()); selected.items.reserve(own.items.size());
-        auto spent = cost(*find_card(base->model));
+        auto spent = proposal.items == 2 ? 0 : cost(*find_card(base->model));
+        if (proposal.items == 2) { const auto* free = instance(own, proposal.second); prefix.push_back({free->model, free->used}); }
         for (const auto& extra : own.items) if (bounded(rng, 2)) {
             if (std::find(selected.items.begin(), selected.items.end(), extra.token) != selected.items.end()) continue;
             const auto& c = *find_card(extra.model);
-            if (spent + cost(c) > own.mp) continue;
             const VisibleSelection visible{extra.model, extra.used};
-            if (context ? can_append_response(prefix, visible, *context) : can_append_main(prefix, visible)) {
-                selected.items.push_back(extra.token); prefix.push_back(visible); spent += cost(c);
+            if (!append(prefix, visible)) continue;
+            auto next_spent = spent + cost(c);
+            if (c.ability == Ability::cut_cost) next_spent -= cost(*find_card(prefix.back().model));
+            const ItemInstance* discount = nullptr;
+            if (next_spent > own.mp) {
+                if (c.category != Category::miracles) continue;
+                // MP readiness applies to the completed column. Pair an
+                // unaffordable extra miracle with an unused FREE atomically.
+                std::array<const ItemInstance*, visible_hand_capacity> free_items;
+                std::size_t free_count = 0;
+                prefix.push_back(visible);
+                for (const auto& free : own.items) if (find_card(free.model)->ability == Ability::cut_cost
+                    && std::find(selected.items.begin(), selected.items.end(), free.token) == selected.items.end()
+                    && append(prefix, {free.model, free.used})) free_items[free_count++] = &free;
+                prefix.pop_back();
+                if (!free_count) continue;
+                discount = free_items[bounded(rng, free_count)]; next_spent -= cost(c);
             }
+            selected.items.push_back(extra.token); prefix.push_back(visible); spent = next_spent;
+            if (discount) { selected.items.push_back(discount->token); prefix.push_back({discount->model, discount->used}); }
         }
     }
     policy_rng = rng;

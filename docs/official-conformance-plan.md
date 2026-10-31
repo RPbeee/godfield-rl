@@ -121,7 +121,8 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 `official_match.hpp` / `official_match.cpp` はv1の132モデル・配布重み308、
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
-遮断9種を加えた148モデル・配布重み328の `official-execution-subset-v3` へ拡張した。
+遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
+156モデル・配布重み337の `official-execution-subset-v4` へ拡張した。
 2〜9人/チームで通常行動から応答、反射連鎖/遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
 別policy乱数、プログラム内snapshot再開、C/Python実行APIを持つ。
@@ -133,17 +134,22 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 反射は現在source/targetを交換し元のpayloadとownerを保ち、消去後の無属性を維持する。
 原発奇跡を再課金・新sourceへ取得させず、応答者ごとの消費と補充予定をledgerへ記録する。
-Snapshot version3はその特権的token来歴を検査し、旧version1/2を拒否する。公開observeへtokenや未来RNGを出さない。
+Snapshot version4はその特権的token来歴を検査し、旧version1/2/3を拒否する。公開observeへtokenや未来RNGを出さない。
 自己反射もresponseを継続するのは明示したローカル規約であり、clientの自己target表示だけからserver規則を確定しない。
 
 v3の魔法遮断8種は現行の回復奇跡HP235/CP236も止め、武器遮断233は無属性武器にmatchingする。
 MP増加奇跡は現行台帳に無く、categoryで判定する一般predicateからMP回復雑貨の遮断を導かない。
-＜壁＞は初回/再使用ともMP6、初回はused保持し、補充は空き次第で1または0。
+＜壁＞単品は初回/再使用ともMP6、初回はused保持し、補充は空き次第で1または0。v4は直後FREEによる費用0も許可する。
 blockは現在payload全取消の終端応答とし、reflection ledgerへ保持しない。各選択の消費・費用・予約を処理後、
 未終局/未打切りの場合だけまとめて配布して元ownerから巡回する。この全体順はclientのblock演出だけで証明できず、実験規約である。
-公開構造を追加しないためofficial-execution-view-v2とC ABI1を維持するが、実行ruleset/scopeはv3へ更新する。
+公開構造を追加しないためofficial-execution-view-v2とC ABI1を維持するが、実行ruleset/scopeはv4へ更新する。
 
-全効果の一般キュー、bounce/counter/FREE・売買・確率・霧/夢の実効果・守護神・終末と、
+v4の無料化は各MCの即後FREEペア全てを免除し、MP不足prefixではなく完成列の最終費用を検証する。
+壁→FREEは全選択を消費/used保持する契約で、旧版の未消費suffixは採らない。
+追加FREEのATK/攻撃属性はskipし、通常DEFと先頭46のATK12は保つ。setterはATK加算と色上書き、倍化は累積×2/NE合成で順序を維持する。
+samplerもMC+FREE pairをatomicに提案し、途中のMP不足だけで完成可能な無料列を除外しない。
+
+全効果の一般キュー、bounce/counter・売買・確率・霧/夢の実効果・守護神・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
-v1の132モデル、v2の139モデルの計測・checksumは過去の証拠として保持し、現行v3の148モデルの結果とは分ける。
+v1の132モデル、v2の139モデル、v3の148モデルの計測・checksumは過去の証拠として保持し、現行v4の156モデルの結果とは分ける。

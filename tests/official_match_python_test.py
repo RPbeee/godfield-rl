@@ -12,8 +12,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v3"); self.assertIn("148-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
-        self.assertEqual((len(match.supported_models), match.gift_weight), (148, 328))
+        self.assertEqual(match.ruleset, "official-execution-subset-v4"); self.assertIn("156-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual((len(match.supported_models), match.gift_weight), (156, 337))
         self.assertIn(212, match.supported_models); self.assertNotIn(112, match.supported_models); self.assertNotIn(14, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
@@ -29,8 +29,8 @@ class MatchTests(unittest.TestCase):
         added = {38, 39, 156, 167, 174, 189, 190}
         match = self.match(config=Config(initial_hand=18, initial_hp=99))
         self.assertTrue(added <= set(match.supported_models))
-        # Bounce reactions, chance and FREE remain explicitly outside v3.
-        self.assertTrue({21, 34, 46, 95, 234}.isdisjoint(match.supported_models))
+        # Bounce reactions and chance remain explicitly outside v4.
+        self.assertTrue({21, 34, 95, 234}.isdisjoint(match.supported_models))
         seen = set(); fixture = None
         for seed in range(4096):
             match.reset(seed)
@@ -101,6 +101,79 @@ class MatchTests(unittest.TestCase):
         self.assertFalse(match.legal(command))
         with self.assertRaises(InvalidMatchError): match.step(command)
         self.assertEqual((match.observe(1), match.status), (before, status))
+
+    def test_composition_pool_zero_mp_free_and_plain_weapon_role(self):
+        added = {46, 66, 83, 143, 163, 173, 204, 231}
+        config = Config(initial_hand=18, initial_mp=0)
+        match = self.match(config=config)
+        self.assertTrue(added <= set(match.supported_models))
+        seen = set(); main_fixture = None; wall_fixture = None; roles = {}
+        for seed in range(8192):
+            match.reset(seed)
+            own = match.observe(0)["board"]["hand"]
+            other = match.observe(1)["board"]["hand"]
+            seen.update(item["face"] for item in own + other)
+            self.assertTrue(seen <= set(match.supported_models))
+            by_model = {item["face"]: item["token"] for item in own}
+            enemy = {item["face"]: item["token"] for item in other}
+            if main_fixture is None and {235, 204} <= by_model.keys():
+                main_fixture = (seed, by_model[235], by_model[204])
+            if wall_fixture is None and 6 in by_model and {233, 204} <= enemy.keys():
+                wall_fixture = (seed, by_model[6], enemy[233], enemy[204])
+            for id in (46, 204, 231):
+                if id in by_model and id not in roles: roles[id] = (seed, by_model[id])
+            if added <= seen and main_fixture is not None and wall_fixture is not None and len(roles) == 3: break
+        self.assertTrue(added <= seen, "all eight composition models must actually be gifted")
+        self.assertIsNotNone(main_fixture); self.assertIsNotNone(wall_fixture); self.assertEqual(len(roles), 3)
+        for id in (204, 231):
+            seed, token = roles[id]; match.reset(seed)
+            command = Command(0, "play", (token,), 0)
+            self.assertFalse(match.legal(command))
+            before = match.observe(0)
+            with self.assertRaises(InvalidMatchError): match.step(command)
+            self.assertEqual(match.observe(0), before)
+        seed, token = roles[46]; match.reset(seed)
+        match.step(Command(0, "play", (token,), 1))
+        self.assertEqual((match.observe()["pending"]["power"], match.observe()["pending"]["models"]), (12, [46]))
+        seed, spring, free = main_fixture; match.reset(seed)
+        reference = self.match(config=config, seed=seed)
+        command = Command(0, "play", (spring, free), 0)
+        self.assertTrue(match.legal(command))
+        before = match.observe(0); before_status = match.status; sampled_pair = False
+        for policy_seed in range(4096):
+            sampled, rng = match.sample_action(policy_seed)
+            self.assertTrue(match.legal(sampled))
+            self.assertEqual((sampled, rng), match.sample_action(policy_seed))
+            if sampled.kind == "play" and sampled.items == (spring, free):
+                sampled_pair = True; break
+        self.assertTrue(sampled_pair, "zero-MP sampler must reach miracle+FREE pair")
+        self.assertEqual((match.observe(0), match.status), (before, before_status))
+        self.assertEqual(match.step(command), reference.step(command))
+        # Includes the deferred replacement draw, proving sampling left game RNG untouched.
+        self.assertEqual(match.observe(0), reference.observe(0))
+        hand = match.observe(0)["board"]["hand"]
+        self.assertEqual(len(hand), 18)
+        self.assertNotIn(free, {item["token"] for item in hand})
+        self.assertTrue(next(item for item in hand if item["token"] == spring)["used"])
+        self.assertEqual(match.observe()["board"]["players"][0]["status"]["hp"], 50)
+        self.assertEqual(match.observe()["board"]["players"][0]["status"]["mp"], 0)
+        seed, weapon, wall, free = wall_fixture; match.reset(seed)
+        match.step(Command(0, "play", (weapon,), 1))
+        defense = Command(1, "defend", (wall, free))
+        self.assertTrue(match.legal(defense)); sampled_pair = False
+        for policy_seed in range(4096):
+            sampled, unused = match.sample_action(policy_seed)
+            self.assertTrue(match.legal(sampled))
+            if sampled == defense: sampled_pair = True; break
+        self.assertTrue(sampled_pair, "zero-MP sampler must reach retained-wall+FREE response")
+        result = match.step(defense)
+        self.assertEqual((result.phase, result.actor, result.owner), ("main", 1, 1))
+        hand = match.observe(1)["board"]["hand"]
+        self.assertEqual(len(hand), 18); self.assertNotIn(free, {item["token"] for item in hand})
+        self.assertTrue(next(item for item in hand if item["token"] == wall)["used"])
+        players = match.observe()["board"]["players"]
+        self.assertEqual([p["status"]["hp"] for p in players], [40, 40])
+        self.assertEqual([p["status"]["mp"] for p in players], [0, 0])
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

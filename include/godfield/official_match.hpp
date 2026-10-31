@@ -9,9 +9,9 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v3";
-inline constexpr const char* match_scope = "experimental:148-models;not-official-server-equivalence";
-inline constexpr std::uint32_t match_snapshot_version = 3;
+inline constexpr const char* match_ruleset = "official-execution-subset-v4";
+inline constexpr const char* match_scope = "experimental:156-models;not-official-server-equivalence";
+inline constexpr std::uint32_t match_snapshot_version = 4;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;

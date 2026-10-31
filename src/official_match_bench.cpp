@@ -27,6 +27,7 @@ struct Stats {
     std::uint64_t prayers = 0, discarded = 0, self_attacks = 0, dark_responses = 0, full_hands = 0;
     std::uint64_t reflections = 0, filters = 0, max_reflection_depth = 0;
     std::uint64_t blocks = 0, wall_first_uses = 0, wall_recasts = 0;
+    std::uint64_t free_main = 0, free_responses = 0, waived_mp = 0, doublings = 0, element_setters = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -35,6 +36,8 @@ struct Stats {
         dark_responses += s.dark_responses; full_hands += s.full_hands;
         reflections += s.reflections; filters += s.filters; max_reflection_depth = std::max(max_reflection_depth, s.max_reflection_depth);
         blocks += s.blocks; wall_first_uses += s.wall_first_uses; wall_recasts += s.wall_recasts;
+        free_main += s.free_main; free_responses += s.free_responses; waived_mp += s.waived_mp;
+        doublings += s.doublings; element_setters += s.element_setters;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -73,10 +76,19 @@ int main(int argc, char** argv) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == command.items[0]; });
                             if (find_card(item->model)->atk > 0) ++stats.self_attacks;
                         }
+                        int preceding_miracle_cost = 0;
                         if (command.kind == CommandKind::play || command.kind == CommandKind::defend) for (auto token : command.items) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
-                            if (find_card(item->model)->category == Category::miracles) { if (item->used) ++stats.recasts; else ++stats.first_uses; }
+                            const auto& card = *find_card(item->model);
+                            if (card.category == Category::miracles) { if (item->used) ++stats.recasts; else ++stats.first_uses; }
                             else ++stats.physical;
+                            if (card.ability == Ability::cut_cost) {
+                                if (command.kind == CommandKind::play) ++stats.free_main; else ++stats.free_responses;
+                                stats.waived_mp += preceding_miracle_cost;
+                            }
+                            preceding_miracle_cost = card.category == Category::miracles ? card.cost : 0;
+                            if (card.ability == Ability::double_atk) ++stats.doublings;
+                            if (card.ability == Ability::set_element) ++stats.element_setters;
                             if (command.kind == CommandKind::defend) {
                                 if (find_card(item->model)->ability == Ability::filter_atk_element) { ++stats.filters; incoming_element.reset(); }
                                 const auto reaction = reaction_for(item->model, before.queue.front().category, incoming_element);
@@ -121,6 +133,8 @@ int main(int argc, char** argv) {
             << "\ndark_responses=" << stats.dark_responses << "\nfull_hand_actions=" << stats.full_hands << "\nchecksum=" << stats.checksum
             << "\nreflections=" << stats.reflections << "\nfilters=" << stats.filters << "\nmax_reflection_depth=" << stats.max_reflection_depth
             << "\nblocks=" << stats.blocks << "\nwall_first_uses=" << stats.wall_first_uses << "\nwall_recasts=" << stats.wall_recasts
+            << "\nfree_main_used=" << stats.free_main << "\nfree_response_used=" << stats.free_responses << "\nwaived_mp=" << stats.waived_mp
+            << "\ndoublings=" << stats.doublings << "\nelement_setters=" << stats.element_setters
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
