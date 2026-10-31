@@ -113,14 +113,15 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 同じ可視情報のviewと選択照会が変わらないことを独立したnative/Python検査で確かめる。
 観測の範囲・18枠の描画域・未投影の攻撃/rating/履歴は[表示契約](official-state-view.md)に固定する。
 
-これは対局状態機械の完了ではない。actor/phase、target/取引配分、サーバー受理、
-配布・効果queue・病気tick・脱落・守護神・終末は次の実装と照合対象として残る。
-9人のstate/view対応と、9人対局の実行・勝敗対応を同じ完了項目として数えない。
+このread-only API自体は対局状態機械ではない。次節の限定実行器とは分け、
+取引配分・サーバー受理、一般effect queue・病気tick・守護神・終末等は引き続き実装と照合対象とする。
+9人のstate/view対応、限定対局の実行、公式サーバー同等性を同じ完了項目として数えない。
 
 ## 限定実行器の段階
 
-`official_match.hpp` / `official_match.cpp` は132モデル・配布重み308に絞った
-`official-execution-subset-v1` を追加し、2〜9人/チームで通常行動から応答、効果適用、
+`official_match.hpp` / `official_match.cpp` はv1の132モデル・配布重み308から、
+物理反射6種と属性消去189を加えた139モデル・配布重み319の `official-execution-subset-v2` へ拡張した。
+2〜9人/チームで通常行動から応答、反射連鎖、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
 別policy乱数、プログラム内snapshot再開、C/Python実行APIを持つ。
 
@@ -129,6 +130,12 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 それらを明示したローカル規約は[限定実行器の契約](official-execution-subset.md)へ固定する。
 未対応モデル/状態は拒否し、通常攻撃へのfallbackや237全配布での実行は行わない。
 
-全効果の一般キュー、反射/反撃・売買・確率・霧/夢の実効果・守護神・終末と、
+反射は現在source/targetを交換し元のpayloadとownerを保ち、消去後の無属性を維持する。
+原発奇跡を再課金・新sourceへ取得させず、応答者ごとの消費と補充予定をledgerへ記録する。
+Snapshot version2はその特権的token来歴を検査し、公開observeへtokenや未来RNGを出さない。
+自己反射もresponseを継続するのは明示したローカル規約であり、clientの自己target表示だけからserver規則を確定しない。
+
+全効果の一般キュー、bounce/block/counter/FREE・売買・確率・霧/夢の実効果・守護神・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
+v1の132モデルの計測・checksumは過去の証拠として保持し、v2の139モデルの検証結果とは分ける。

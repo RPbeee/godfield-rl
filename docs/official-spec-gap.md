@@ -33,23 +33,25 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v1` / `godfield::official::Match` | 132モデル/重み308、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v2` / `godfield::official::Match` | 139モデル/重み319、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・物理反射/属性消去の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI1 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
-限定した132モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
-配布・死亡・手番の権威的serverとの同等性、一般effect queue、確率攻撃、反射/反撃、取引、病気・霧・夢、
+限定した139モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
+配布・死亡・手番の権威的serverとの同等性、一般effect queue、確率攻撃、bounce/block/counter/FREE、取引、病気・霧・夢、
 守護神、終末/悪魔/超常現象等は未対応である。未対応局面を黙って通常効果へ置き換えず拒否する。
 read-only viewにはactive攻撃/購入表示・モード依存rating欄・増分履歴を投影していない。
 実行器のobserveには、このsubsetが既に公開した待機effectとphase/owner/actorを追加している。
 公開説明・client関数・実対局/権威的serverの結果を別の証拠として管理し、未観測の順序を旧実装で埋めない。
 学習器と学習済みモデルは削除済みのまま、この対応範囲へ含めない。
 
-限定実行器を含む全体検証: 通常CTest129件（21.83秒）・ASan/UBSan89件（50.47秒）が通過した。
-最後に資源更新だけではHP0でもdeadを立てないassertを追加し、通常/SANの資源テスト各1件を再検証した。coreの追加変更はない。
+v2全Release CTest129件（60.39秒）・ASan/UBSan89件（91.53秒）が通過した。両suiteは同時実行。
+その後、35反射連鎖・Snapshot v1拒否のnative検証を追加し、Release/SANの対象各1件も通過した（0.33/0.65秒）。coreの追加変更はない。
+v1の結果は[過去の記録](official-execution-subset.md#v1の過去の検証と計測)として残す。
 公式296 factsと旧37台帳hash、generator、候補crosswalk、実client由来の計算/選択50,270件、
 状態helper/抽出分岐22,140件、実client資源更新7,898件のgolden vectorが一致した。
-Pythonは台帳15件・状態9件・新Match8件、C ABI合成4,878ケース、native C ABI境界と非干渉を検証した。
+Pythonは台帳15件・状態9件・Match9件、C ABI合成4,878ケース、native C ABI境界と非干渉を検証した。
+今回再取得した公式assetのhashと296モデルのfactsも一致した。
 限定実行器は48seedの各stepでsnapshot/restore、後段の更新カウンター/token枯渇失敗で完全rollbackを確認した。
 [状態oracle metadata](../data/official-v1/state-vectors.manifest.json)のとおり、
 実関数に加え抽出分岐・tooltip等の描画stubを含む。実アプリの全画面操作を完走したという意味ではない。
@@ -80,8 +82,8 @@ Pythonは台帳15件・状態9件・新Match8件、C ABI合成4,878ケース、n
 ### 限定実行器と公式同等性の境界
 
 [限定実行器の契約](official-execution-subset.md)に、公式から確認した算術とローカル実験規約を分けた。
-`Match` では主動作→response→効果解決→死亡確定→自然終局判定を行い、未終局なら生存者への補充→次ownerへ進む。
-自己攻撃もresponse、単純回復は自己なら即時・他人なら空応答待ち。奇跡はusedとして保持し、空きがある場合だけ補充を予約する。
+`Match` では主動作→response（反射なら再response）→効果解決→死亡確定→自然終局判定を行い、未終局なら生存者への補充→次ownerへ進む。
+自己攻撃もresponse、単純回復は自己なら即時・他人なら空応答またはmatching反射を待つ。奇跡はusedとして保持し、空きがある場合だけ補充を予約する。
 捨てるの補充は0。これらのうち、実消費とplaceholderのclient表示に根拠がある箇所と、
 サーバー側の発行順が未取得な配布・死亡・次手番の規約を混同しない。
 
@@ -91,15 +93,33 @@ Pythonは台帳15件・状態9件・新Match8件、C ABI合成4,878ケース、n
 未対応モデル・fake・災い・守護神・混乱・終末をraw局面へ含めた場合は明示的に拒否する。
 旧37profileと既存ABIを保持し、学習器は追加しない。
 
+v2は38/39/156/167/174/190の物理反射6種と属性消去189を追加する。反射では現在のsource/targetを交換し、
+元power/category/abilityとownerを維持。消去後のNEは反射後も維持し、原発奇跡を再課金・新sourceへ取得させない。
+普通DEFの後に反射を追加する旧server受理を流用せず、現行clientの「空選択または直前filter」条件を使う。
+反応者ごとの消費・補充来歴をSnapshot version2 ledgerで検査し、公開observeからtoken来歴と未来RNGを除く。
+自己反射もresponse継続という規約は、server trace未取得の実験条件として分ける。
+
 Pythonの実行例は `python3 python/official_match.py`。ベンチマークは
 `./build/godfield_official_bench GAMES PLAYERS SEED WORKERS`（既定 `10000 2 42 1`）。
 この限定プールの実行速度と、公式全体の正しさ・全配布対応・対局trace適合は別の検証である。
 
+以下の数値は **v1・132モデル/重み308** の過去の検証・計測であり、現行v2の139モデルの証拠ではない。
 seed42・1 workerの競合させないRelease再計測は、2人100,000試合/3,918,160意思決定を2.48432秒（1,577,160意思決定/秒）、
 9人10,000試合/2,838,305意思決定を2.48806秒（1,140,770意思決定/秒）。合法手samplerと終了snapshot検証を含む。
 1/4 workersで全決定的集計とchecksumが一致し、各試合の終了snapshot restoreも成功した。
 2人はdraw0/打切り0・checksum `92948246955144686`、9人はdraw0/打切り29・checksum `997021765811772519`。
 SANでも2人/9人各1,000試合の全集計がReleaseと一致した。詳細は[限定実行器の検証記録](official-execution-subset.md#検証と計測)を参照。
+
+v2（139モデル/重み319、seed42）では、2人100,000試合で3,949,983意思決定・勝数49,709/50,291・draw0/trunc0、
+反射27,346/消去24,118・checksum `17327277230250071888`。
+9人10,000試合で2,862,579意思決定・勝数1,120/1,135/1,128/1,093/1,107/1,098/1,090/1,151/1,056・draw0/trunc22、
+反射24,214/消去23,344・checksum `13034266850202749327`。
+1/4 workersで時間以外の全集計が一致し、全終了snapshotをrestoreできた。両条件の観測最大反射深度は3であり、機能上の連鎖上限ではない。
+v2を競合させずにRelease・1 workerで再計測すると、2人100,000試合は2.51205秒（1,572,410意思決定/秒）、
+9人10,000試合は2.52802秒（1,132,340意思決定/秒）で、上記全決定的fieldを維持した。
+合法手sampler・実行・終了snapshot検証を含む。SAN/Release各1,000試合の時間以外のfieldも一致し、
+checksumは2人 `9045870663897908326`、9人 `15249773347321244157`。
+これをv1の速度・checksumと同じ実行条件、公式全モデル、学習速度の証拠として扱わない。
 
 ## 差分表作成後の実装進捗
 
@@ -300,7 +320,7 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 | ローカル箇所 | 主な差分 |
 | --- | --- |
 | [official_state.hpp](../include/godfield/official_state.hpp)、[official_state.cpp](../src/official_state.cpp) | 現行公式decoded frameとfresh部分view、本人の表示モデル/token選択照会。D20/D23/D25の表示側を部分対応し、対局進行は未実装 |
-| [official_match.hpp](../include/godfield/official_match.hpp)、[official_match.cpp](../src/official_match.cpp)、[official_match.py](../python/official_match.py) | 実験規約で動かす132モデルの2〜9人/チーム部分実行器。D09/D10/D14/D16/D23等の限定範囲を進行するが、公式serverとの同等性は未検証 |
+| [official_match.hpp](../include/godfield/official_match.hpp)、[official_match.cpp](../src/official_match.cpp)、[official_match.py](../python/official_match.py) | 実験規約で動かす139モデルの2〜9人/チーム部分実行器。D09/D10/D14/D16/D17/D23等の限定範囲と物理反射/消去を進行するが、公式serverとの同等性は未検証 |
 | [official_c_api.h](../include/godfield/official_c_api.h)、[official_state_c_api.h](../include/godfield/official_state_c_api.h)、[official_state.py](../python/official_state.py) | 現行公式の台帳・計算APIと入力stateのimport/view照会。旧版Envとは別の部分対応接口 |
 | [env.hpp: Card / cards / Player / State](../include/godfield/env.hpp) | D01〜D03、D06、D11、D15〜D23。神器・プレイヤー・解決中状態を拡張 |
 | [env.cpp: reset / refill](../src/env.cpp) | D02〜D04、D10。初期化と神器獲得を区別 |
@@ -312,8 +332,8 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 ## 着手順と完了条件
 
-現行対応では132モデルを進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
-一般effect queue、確率・反射/反撃・取引・状態変化・霧/夢・守護神・終末等への拡張である。
+現行対応では139モデルと物理反射/属性消去を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
+一般effect queue、bounce/block/counter/FREE・確率・取引・状態変化・霧/夢・守護神・終末等への拡張である。
 9人state/view、限定した9人playable、公式全体への適合は別段階として検証し、学習器は現在の対象に追加しない。
 以下の番号付き手順は、差分表作成時の計画記録として読む。
 

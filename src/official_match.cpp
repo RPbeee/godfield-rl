@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 308>& gift_tickets() {
+const std::array<CardId, 319>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 308> values{};
+        std::array<CardId, 319> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 308>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 132) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 139) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -167,7 +167,22 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
 }
 EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target, const std::vector<ItemToken>& tokens) {
     const auto& base = *find_card(models.front());
-    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value};
+    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, {}};
+}
+struct ResponseResult { std::int64_t defense = 0; bool reflected = false; };
+// Composition is validated separately by the public-client append predicate.
+// A filter belongs to the incoming payload; a reflector never contributes ATK/DEF.
+ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> models) {
+    ResponseResult result;
+    for (auto id : models) {
+        const auto& c = *find_card(id);
+        if (c.ability == Ability::filter_atk_element) effect.element.reset();
+        if (reaction_for(id, effect.category, effect.element) == Reaction::reflect) {
+            std::swap(effect.source, effect.target);
+            result.reflected = true;
+        } else result.defense += c.defense;
+    }
+    return result;
 }
 void resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) {
     auto& target = s.state.players[index(s, effect.target)];
@@ -234,38 +249,72 @@ void validate_snapshot(const MatchSnapshot& s) {
     }
     require(s.phase == MatchPhase::response && s.queue.size() == 1, "invalid match phase/queue");
     const auto& effect = s.queue.front();
-    require(effect.origin == s.owner && effect.source == s.owner && *s.actor == effect.target
+    require(effect.origin == s.owner && *s.actor == effect.target
         && !s.state.players[index(s, s.owner)].dead && s.decisions > 0 && !effect.models.empty() && effect.models.size() <= s.config.hand_limit && effect.tokens.size() == effect.models.size(), "invalid effect origin/actor");
     std::vector<VisibleSelection> prefix;
     for (auto id : effect.models) {
         if (!match_supported(id)) unsupported("unsupported queued model");
         require(can_append_main(prefix, {id, false}), "invalid queued composition"); prefix.push_back({id, false});
     }
-    require(effect == effect_for(s, effect.models, effect.target, effect.tokens), "queued payload does not match source models");
-    require(damaging(effect) || effect.target != s.owner, "self boost cannot wait for a response");
-    const auto owner_seat = index(s, s.owner);
-    const auto& owner = s.state.players[owner_seat];
-    std::unordered_set<ItemToken> origin_tokens;
-    std::size_t physical_count = 0;
-    for (std::size_t i = 0; i < effect.tokens.size(); ++i) {
-        const auto token = effect.tokens[i];
-        require(token < s.next_token && token <= max_wire_integer && origin_tokens.insert(token).second, "invalid queued instance evidence");
-        const auto* retained = instance(owner, token);
-        if (find_card(effect.models[i])->category == Category::miracles)
-            require(retained && retained->used && retained->model == effect.models[i], "queued miracle has no retained instance");
-        else { ++physical_count; require(!retained, "consumed physical item still present"); }
+    auto replay = effect_for(s, effect.models, effect.initial_target, effect.tokens);
+    require(!s.state.players[index(s, effect.initial_target)].dead, "initial effect target is dead");
+    require(damaging(replay) || replay.target != s.owner, "self boost cannot wait for a response");
+    // Every reflected response consumes at least one physical item, before any
+    // gifts are dealt. Bound the ledger before inspecting adversarial entries.
+    require(effect.reflections.size() <= n * s.config.hand_limit && effect.reflections.size() < s.decisions, "impossible reflection history length");
+    std::array<std::unordered_set<ItemToken>, player_capacity> spent;
+    std::array<std::size_t, player_capacity> physical{}, uses{};
+    std::array<std::int64_t, player_capacity> costs{};
+    const auto evidence = [&](PlayerId player, std::span<const CardId> models, std::span<const ItemToken> tokens) {
+        const auto seat = index(s, player);
+        const auto& own = s.state.players[seat];
+        require(!own.dead && !models.empty() && models.size() <= s.config.hand_limit && models.size() == tokens.size(), "invalid consumption evidence shape");
+        std::unordered_set<ItemToken> selected;
+        for (std::size_t i = 0; i < tokens.size(); ++i) {
+            const auto token = tokens[i];
+            require(token < s.next_token && token <= max_wire_integer && selected.insert(token).second, "invalid queued instance evidence");
+            const auto* retained = instance(own, token);
+            if (find_card(models[i])->category == Category::miracles)
+                require(retained && retained->used && retained->model == models[i] && !spent[seat].contains(token), "queued miracle has no retained instance");
+            else {
+                ++physical[seat];
+                require(!retained && spent[seat].insert(token).second, "physical item present or consumed twice in reflection history");
+            }
+        }
+        uses[seat] += models.size(); costs[seat] += magic_cost(models);
+    };
+    evidence(s.owner, effect.models, effect.tokens);
+    for (const auto& reflection : effect.reflections) {
+        require(reflection.defender == replay.target, "reflection has wrong responder");
+        require(!reflection.models.empty() && reflection.models.size() <= s.config.hand_limit && reflection.models.size() == reflection.tokens.size(), "invalid reflection evidence shape");
+        std::vector<VisibleSelection> defense_prefix;
+        const ResponseContext context{false, replay.category, replay.element, damaging(replay)};
+        for (auto id : reflection.models) {
+            if (!match_supported(id)) unsupported("unsupported reflection model");
+            require(can_append_response(defense_prefix, {id, false}, context), "invalid reflection composition");
+            defense_prefix.push_back({id, false});
+        }
+        evidence(reflection.defender, reflection.models, reflection.tokens);
+        require(apply_response(replay, reflection.models).reflected, "history entry has no matching reflection");
     }
-    require(owner.items.size() + physical_count <= s.config.hand_limit, "queued consumption cannot originate from a valid hand");
-    const auto requests = std::min<std::size_t>(effect.models.size(), s.config.hand_limit - owner.items.size());
-    for (std::size_t i = 0; i < n; ++i) require(s.gifts[i] == (i == owner_seat ? requests : 0), "pending gifts do not match origin consumption");
-    require(owner.mp + magic_cost(effect.models) <= 99, "queued MP payment has no valid origin");
+    replay.reflections = effect.reflections;
+    require(effect == replay, "queued payload does not match original models and reflection history");
+    for (std::size_t i = 0; i < n; ++i) {
+        const auto& own = s.state.players[i];
+        require(own.items.size() + physical[i] <= s.config.hand_limit, "consumption history cannot originate from a valid hand");
+        const auto requests = std::min<std::size_t>(uses[i], s.config.hand_limit - own.items.size());
+        require(s.gifts[i] == requests, "pending gifts do not match participant consumption");
+        require(own.mp + costs[i] <= 99, "queued MP payments have no valid origin");
+    }
 }
 MatchStep result(const MatchSnapshot& s) { return {s.phase, s.actor, s.terminated, s.truncated, s.decisions, s.rewards, s.winners}; }
 }
 bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
     return c && c->gift_rate > 0 && !c->hit_rate && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
-        && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp);
+        && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
+            || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
+            || c->ability == Ability::filter_atk_element);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -314,10 +363,13 @@ MatchStep Match::step(const Command& command) {
     const auto models = prepare(data_, command); auto s = data_; const auto seat = index(s, command.actor);
     bool completed = false;
     if (s.phase == MatchPhase::response) {
-        const auto effect = s.queue.front();
-        std::int64_t defense = 0; for (auto id : models) defense += find_card(id)->defense;
+        auto& effect = s.queue.front();
+        const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
-        consume(s, seat, command.items, false); resolve(s, effect, defense); s.queue.clear(); completed = true;
+        consume(s, seat, command.items, false);
+        if (response.reflected) {
+            effect.reflections.push_back({command.actor, models, command.items}); s.actor = effect.target;
+        } else { resolve(s, effect, response.defense); s.queue.clear(); completed = true; }
     } else if (command.kind == CommandKind::discard) {
         consume(s, seat, command.items, true); completed = true;
     } else if (command.kind == CommandKind::pray) {
@@ -393,7 +445,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v1\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v2\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
@@ -408,6 +460,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         bool first = true; for (auto id : e.models) { if (!first) out += ','; first = false; out += std::to_string(id); }
         out += "],\"category\":\""; out += category_name(e.category); out += "\",\"element\":";
         if (e.element) { out += '"'; out += element_name(*e.element); out += '"'; } else out += "null";
+        out += ",\"reflections\":" + std::to_string(e.reflections.size());
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }

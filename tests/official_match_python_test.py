@@ -12,18 +12,59 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertTrue(match.scope.startswith("experimental:")); self.assertIn("not-official-server-equivalence", match.scope)
-        self.assertEqual((len(match.supported_models), match.gift_weight), (132, 308))
+        self.assertEqual(match.ruleset, "official-execution-subset-v2"); self.assertIn("139-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual((len(match.supported_models), match.gift_weight), (139, 319))
         self.assertIn(212, match.supported_models); self.assertNotIn(112, match.supported_models); self.assertNotIn(14, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v1")
+        self.assertEqual(own["schema"], "official-execution-view-v2")
         self.assertEqual(own["board"]["players"][0]["name"], "A\0B")
         self.assertEqual(len(own["board"]["hand"]), 9); self.assertEqual(spectator["board"]["hand"], [])
         self.assertIsNone(own["pending"])
         for key in ("rng", "gifts", "next_token", "queue"):
             self.assertNotIn(key, own); self.assertNotIn(key, own["board"])
         self.assertNotIn("items", own["board"]["players"][1])
+
+    def test_reaction_pool_reset_and_reflection_continuation(self):
+        added = {38, 39, 156, 167, 174, 189, 190}
+        match = self.match(config=Config(initial_hand=18, initial_hp=99))
+        self.assertTrue(added <= set(match.supported_models))
+        # Other reaction families, chance and FREE remain explicitly outside v2.
+        self.assertTrue({21, 34, 46, 95, 233, 234}.isdisjoint(match.supported_models))
+        seen = set(); fixture = None
+        for seed in range(4096):
+            match.reset(seed)
+            own = match.observe(0)["board"]["hand"]
+            other = match.observe(1)["board"]["hand"]
+            seen.update(item["face"] for item in own + other)
+            self.assertTrue(seen <= set(match.supported_models))
+            weapon = next((item for item in own if item["face"] == 6), None)
+            mirror = next((item for item in other if item["face"] == 38), None)
+            if fixture is None and weapon is not None and mirror is not None:
+                fixture = (seed, weapon["token"], mirror["token"])
+            if added <= seen and fixture is not None: break
+        self.assertTrue(added <= seen, "all seven added models must actually be gifted")
+        self.assertIsNotNone(fixture, "seeded reset must expose a public reflection fixture")
+        seed, weapon, mirror = fixture
+        match.reset(seed)
+        first = match.step(Command(0, "play", (weapon,), 1))
+        self.assertEqual((first.phase, first.actor, first.owner), ("response", 1, 0))
+        pending = match.observe()["pending"]
+        before_mp = [p["status"]["mp"] for p in match.observe()["board"]["players"]]
+        reflected = match.step(Command(1, "defend", (mirror,)))
+        self.assertEqual((reflected.phase, reflected.actor, reflected.owner), ("response", 0, 0))
+        after = match.observe()["pending"]
+        self.assertEqual((after["origin"], after["source"], after["target"]), (0, 1, 0))
+        self.assertEqual((after["power"], after["models"]), (pending["power"], pending["models"]))
+        self.assertEqual([p["status"]["mp"] for p in match.observe()["board"]["players"]], before_mp)
+        own_before = match.observe(0); status = match.status
+        with self.assertRaises(InvalidMatchError): match.step(Command(1, "defend"))
+        self.assertEqual((match.observe(0), match.status), (own_before, status))
+        resolved = match.step(Command(0, "defend"))
+        self.assertEqual((resolved.phase, resolved.actor, resolved.owner), ("main", 1, 1))
+        self.assertIsNone(match.observe()["pending"])
+        players = match.observe()["board"]["players"]
+        self.assertEqual([p["status"]["hp"] for p in players], [98, 99])
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

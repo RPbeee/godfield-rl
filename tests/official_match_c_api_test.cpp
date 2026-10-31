@@ -1,4 +1,5 @@
 #include "godfield/official_match_c_api.h"
+#include "godfield/official_match.hpp"
 #include <array>
 #include <cstdlib>
 #include <cstring>
@@ -23,9 +24,12 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 132 && gfo_match_gift_weight() == 308 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 139 && gfo_match_gift_weight() == 319 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_scope()).find("experimental:") == 0, "explicit scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v2"
+        && std::string(gfo_match_scope()) == "experimental:139-models;not-official-server-equivalence", "explicit v2 scope");
+    for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
+    for (auto id : {21, 34, 46, 95, 233, 234}) check(!gfo_match_supported(id), "remaining reaction/chance/FREE unsupported");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -82,6 +86,37 @@ int main() {
         && !result.has_actor && result.rewards[0] == 0 && result.rewards[1] == 0, "fixed-seat truncation");
     rng = 98; sample.kind = 77; const auto stale = sample;
     check(gfo_match_sample_action(short_match, &rng, &sample) == -2 && rng == 98 && equal(sample, stale), "finished sampler atomic failure");
+    // Discover tokens with the same public seeded reset contract; all actions
+    // and their continuation below cross the opaque C boundary, not load_scene.
+    namespace official = godfield::official;
+    official::MatchConfig reflection_config; reflection_config.initial_hand = 18; reflection_config.initial_hp = 99;
+    official::Match fixture(reflection_config);
+    const std::array<official::PlayerSetup, 2> setup{{{0, official::Team::solo, "A"}, {77, official::Team::solo, "B"}}};
+    bool found = false; uint64_t fixture_seed = 0, weapon_token = 0, mirror_token = 0;
+    for (; fixture_seed < 4096 && !found; ++fixture_seed) {
+        fixture.reset(setup, fixture_seed);
+        bool weapon = false, mirror = false;
+        for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon = true; weapon_token = item.token; }
+        for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 38) { mirror = true; mirror_token = item.token; }
+        found = weapon && mirror;
+    }
+    check(found, "seeded reflection fixture is reachable from supported gift pool"); --fixture_seed;
+    cfg.max_decisions = 512; cfg.initial_hand = 18; cfg.initial_hp = 99;
+    gfo_match* reflected_match = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, fixture_seed, &reflected_match) == 0, "reflection create");
+    gfo_match_command attack{}; attack.actor = 0; attack.has_target = 1; attack.target = 77; attack.item_count = 1; attack.items[0] = weapon_token;
+    check(gfo_match_step(reflected_match, &attack, &result) == 0 && result.phase == 1 && result.actor == 77 && result.owner == 0, "attack opens response via C ABI");
+    gfo_match_command reflect{}; reflect.actor = 77; reflect.kind = 1; reflect.item_count = 1; reflect.items[0] = mirror_token;
+    check(gfo_match_step(reflected_match, &reflect, &result) == 0 && result.phase == 1 && result.actor == 0 && result.owner == 0, "reflection returns response to attacker");
+    const auto returned = observe(reflected_match, 0, 0);
+    check(returned.find("\"origin\":0,\"source\":77,\"target\":0") != std::string::npos, "reflection public origin/current-source separation");
+    const auto reflected_status = result;
+    check(gfo_match_step(reflected_match, &reflect, &result) == -2 && equal(result, reflected_status)
+        && observe(reflected_match, 0, 0) == returned, "wrong-actor continuation is atomic");
+    gfo_match_command accept{}; accept.actor = 0; accept.kind = 1;
+    check(gfo_match_step(reflected_match, &accept, &result) == 0 && result.phase == 0 && result.actor == 77 && result.owner == 77,
+        "reflected item resolves once then normal next turn");
+    gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);
     std::cout << "official match C API passed\n";
 }

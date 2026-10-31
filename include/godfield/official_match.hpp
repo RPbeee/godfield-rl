@@ -9,9 +9,9 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v1";
-inline constexpr const char* match_scope = "experimental:132-models;not-official-server-equivalence";
-inline constexpr std::uint32_t match_snapshot_version = 1;
+inline constexpr const char* match_ruleset = "official-execution-subset-v2";
+inline constexpr const char* match_scope = "experimental:139-models;not-official-server-equivalence";
+inline constexpr std::uint32_t match_snapshot_version = 2;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -35,6 +35,12 @@ struct Command {
     std::optional<PlayerId> target;
     bool operator==(const Command&) const = default;
 };
+struct ReflectionFrame {
+    PlayerId defender = 0;
+    std::vector<CardId> models;
+    std::vector<ItemToken> tokens; // Privileged consumption evidence for this response.
+    bool operator==(const ReflectionFrame&) const = default;
+};
 struct EffectFrame {
     PlayerId origin = 0, source = 0, target = 0;
     std::vector<CardId> models;
@@ -44,6 +50,8 @@ struct EffectFrame {
     std::int64_t power = 0;
     Ability ability = Ability::none;
     int amount = 0;
+    PlayerId initial_target = 0;
+    std::vector<ReflectionFrame> reflections;
     bool operator==(const EffectFrame&) const = default;
 };
 struct MatchSnapshot {
@@ -53,7 +61,7 @@ struct MatchSnapshot {
     PlayerId owner = 0;
     std::optional<PlayerId> actor;
     MatchPhase phase = MatchPhase::finished;
-    std::vector<EffectFrame> queue; // v1 has at most one item waiting for its response.
+    std::vector<EffectFrame> queue; // One payload; reflections transfer it without cloning/recasting.
     std::vector<std::uint32_t> gifts;
     std::uint64_t rng = 0, decisions = 0, next_token = 0;
     bool terminated = false, truncated = false;

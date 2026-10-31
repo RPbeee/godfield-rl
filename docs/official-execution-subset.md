@@ -1,6 +1,8 @@
-# 現行公式データによる限定実行器 v1
+# 現行公式データによる限定実行器 v2
 
-この実行器の `official-execution-subset-v1` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:132-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v2` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:139-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+
+v2はv1の132モデル/重み308へ、物理反射6種と属性消去189を追加した139モデル/重み319。末尾のv1計測・検証記録は、当時の132モデルに対する歴史的な証拠として残し、v2の速度や一致結果へ読み替えない。
 
 一次根拠があるものと、動かすためにこの実行器が定義する規約を分ける。
 
@@ -15,13 +17,25 @@
 
 ## 対象モデルと拒否する機能
 
-[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv1の対象を定義する。対象は132モデル、正のgiftRateの合計308。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
+[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv2の対象を定義する。対象は139モデル、正のgiftRateの合計319。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
 
-判定条件は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかである。固定済みの現行台帳に対するこの条件が132モデル/重み308を作る。属性は省略属性を含む全7種類を扱う。確率攻撃や、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
+v1の基礎集合は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかという条件である。固定済みの現行台帳に対するこの基礎条件が132モデル/重み308を作り、v2はさらに後述7モデルを加える。属性は省略属性を含む全7種類を扱う。確率攻撃や、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
+
+上記のv1集合へ、次の7モデルを追加する。これらは反応時だけの断片的なモデルではなく、武器の通常ATKや非matching時の防具DEFも扱う。
+
+| 現行ID | 画像識別子 | 能力 | 通常の値 | giftRate |
+| ---: | --- | --- | --- | ---: |
+| 38 | reflection-sword | reflectWeapon | 無属性ATK10 | 3 |
+| 39 | moonlight-axe | reflectMiracle | 無属性ATK10 | 1 |
+| 156 | moonlight-helm | reflectMiracle | 無属性DEF8 | 1 |
+| 167 | moonlight-shield | reflectMiracle | 無属性DEF10 | 1 |
+| 174 | moonlight-armor | reflectMiracle | 無属性DEF12 | 1 |
+| 190 | super-mirror | reflectAnything | DEF0 | 1 |
+| 189 | rainbow-curtain | filterAtkElement | DEF0 | 3 |
 
 全プレイヤーのraw手札を含め、実行状態に未対応モデル、fake、災い、守護神、混乱、終末設定等があれば拒否する。本人に見えない他者の未対応カードでも、この実行器が将来通常品へ誤変換して進めることはない。`MatchError` の `unsupported` と、不正な入力を示す `invalid` は区別する。
 
-霧・夢・病気・閃光・暗雲・守護神・反撃・特殊反応・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
+霧・夢・病気・閃光・暗雲・守護神・反撃・bounce/block・防御奇跡・FREE・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
 
 ## 初期化と入力状態
 
@@ -45,9 +59,9 @@ resetでは先頭プレイヤーをowner、GFを1にし、入力プレイヤー�
 
 通常のplayは生存targetを明示し、owner/actor/phaseと本人の所有品を検査する。表示モデルの選択・MP・category制約には公開クライアント由来の関数を使う。既存 `official_state` のappend照会だけで済ませず、実行器の現在phaseも検証する。
 
-武器やATK奇跡は、自己対象でも解決待ちのeffectとresponse phaseを作る。応答者はそのtargetであり、ownerとactorが同じ人でもphaseを分離する。普通防御では適合する品の選択順・合成と所有権を検証する。この段階には反射・跳ね返し・遮断等の特殊反応を含めない。旧版の自己攻撃時の応答省略を暗黙に流用しない。
+武器やATK奇跡は、自己対象でも解決待ちのeffectとresponse phaseを作る。応答者はそのtargetであり、ownerとactorが同じ人でもphaseを分離する。普通防御では適合する品の選択順・合成と所有権を検証する。v2は物理反射と属性消去も扱い、跳ね返し・遮断等は含めない。旧版の自己攻撃時の応答省略を暗黙に流用しない。
 
-HP/MP/CPを増やす品は、自己対象なら即時解決する。他人を対象にした場合には応答待ちを作るが、v1では受け入れる空応答だけを許し、普通防具で回復量を減らさない。これは対象外の特殊応答や複雑な回復処理を実装した主張ではない。
+HP/MP/CPを増やす品は、自己対象なら即時解決する。他人を対象にした場合には応答待ちを作る。v1では空応答だけだったが、v2では適合する物理反射も許し、普通防具で回復量を減らさない。非攻撃の回復へ属性消去を前置することはUIのincoming_is_attack制約により許さない。
 
 prayは本人の手札に武器がなく、補充を受ける空きがあるときだけ許可する。discardは対象の制限を検査して捨て、補充予定を付けない。旧Flashの「捨て枚数に応じた配布」を公式ルールとして移さない。
 
@@ -71,13 +85,27 @@ discardのitemsは擬似モデル「捨てる」自身を含めず、捨てる�
 
 この資源更新だけでは自動的にdeadを立てない。公開クライアントもHPの更新と `die` を別イベントとして扱う。
 
-v1の通常攻撃は、合成したraw威力から普通防御の値を引き、`max(0, raw−DEF)` を残余とする。闇属性で残余が正なら対象HPを0にし、残余0なら即死させない。他属性では残余を通常HP被害として適用する。属性適合と合成は確認済みclient計算を使うが、**残余式・effect適用と死亡処理の接合はローカル実験規約**であり、権威的serverの解決traceとの一致は未検証である。
+通常攻撃は、合成したraw威力から普通防御の値を引き、`max(0, raw−DEF)` を残余とする。闇属性で残余が正なら対象HPを0にし、残余0なら即死させない。他属性では残余を通常HP被害として適用する。属性適合と合成は確認済みclient計算を使うが、**残余式・effect適用と死亡処理の接合はローカル実験規約**であり、権威的serverの解決traceとの一致は未検証である。
 
-効果は `EffectFrame` にorigin/source/target、順序付きモデル列、category、属性、威力・能力を保持する。v1では応答を待つeffectは最大1個であり、一般の多段反撃・守護神・全体攻撃queueを実装したものではない。
+効果は `EffectFrame` にorigin/source/target、順序付きモデル列、category、属性、威力・能力を保持する。応答を待つpayloadは最大1個であり、反射はそれを移動して応答を続ける。複製や新しい奇跡の再発動ではなく、一般の多段反撃・守護神・全体攻撃queueを実装したものでもない。
+
+## v2の反射・属性消去
+
+`reflectWeapon` は無属性の武器、`reflectMiracle` は属性を問わず奇跡、`reflectAnything` は全categoryへの反応として公開clientの `e1` が判定する。v2で入力できるpayloadは対応範囲の武器・奇跡・単純回復に限るため、万能反射の台帳説明を理由に未対応counter等を通さない。
+
+matchingする反応品を普通DEFとして選ぶopt-outは無い。非matchingの反応付き防具は通常のDEFを使える。普通DEFの後にmatching反射を追加する列は現行clientのappendで不受理であり、反射の前置として認めるのは先頭から連続した属性消去だけである。属性消去→普通DEFは許されるが、その普通DEFの後へ反射を継ぎ足すことはできない。matching反射の後に普通品を追加するsuffixも許さない。防御奇跡→FREEという別のUI経路はv2の対象外。
+
+属性消去は現在の攻撃属性を無属性へ変更し、その後に反射しても無属性のまま維持する。元category、power、ability、amountは変えない。例えば有色武器を消去してから武器反射で返せるが、奇跡を武器へ変換するわけではない。消去だけで防御値を加算することもない。
+
+反射では現在のsourceとtargetを交換し、新targetが次の応答actorになる。originと元の主手番ownerは変えず、元の威力・回復量・category・能力を保つ。原発奇跡のMPを再請求したり、新sourceへ奇跡を取得させたりしない。各応答で使用した物理品はその応答者から消費し、その人の補充予定へ記録する。連鎖中は配らず、最終解決後の自然終局判定が済むまで遅延する。
+
+自己反射もresponseを継続する。これはv1の自己攻撃時と同じ**実験規約**である。現行clientは自己がtargetの場合に別の防御者paneを作らないが、それだけでサーバーの自己反射の解決・応答省略を確定することはできない。旧版の自己省略をこの実行器へ暗黙に移さない。
+
+全反応が物理品を消費し、連鎖中に補充しないため、反射のたびに残り反応品が減る。固定9人×18枠の範囲に収まり、任意の旧32連鎖上限へ切り詰めない。ただし意思決定上限のtruncationは別に適用する。
 
 ## 死亡・次手番・終局・報酬
 
-効果を解決してから、v1が定義する順に脱落を確定し、補充・次ownerへ進む。deadの人は以後の主手番や生存対象から除く。病気tick、蘇生、死に際攻撃、守護神等をこの間へ推測で追加しない。HP0→脱落→次手番の具体的scheduleはサーバー未検証の実験規約である。
+効果を解決してから、このsubsetが定義する順に脱落を確定し、補充・次ownerへ進む。反射しても次ownerの巡回起点は元の主手番ownerのまま。deadの人は以後の主手番や生存対象から除く。病気tick、蘇生、死に際攻撃、守護神等をこの間へ推測で追加しない。HP0→脱落→次手番の具体的scheduleはサーバー未検証の実験規約である。
 
 生存者が0人ならdraw、1人ならその人が勝者になる。複数生存者が全員同じ非Soloチームならチーム終局とする。勝利チームのwinnerリストには、先にdeadになった同チームの人も含む。後者はクライアントのending表示 `h7.lV` の集合規則を参考にするが、それ自体をサーバーの勝敗判定器とみなさない。
 
@@ -87,21 +115,44 @@ v1の通常攻撃は、合成したraw威力から普通防御の値を引き、
 
 ## APIと再現性の境界
 
-`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。`MatchSnapshot` はversion1を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
+`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v2の `MatchSnapshot` はversion2を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。version1を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
 
-応答待ちsnapshotには主動作で選んだtokenの来歴も保存する。モデル列と同じ長さ・重複なし、普通品のtokenは既に消費済み、奇跡tokenは同じモデルでused保持済み、待機威力/属性はモデル列から一致、という条件を検査する。主動作前の手札上限・MP支払可能性、owner以外の補充予定0、ownerの消費数と空きに対応する正確な補充予定、自己boostを待機させないこと、応答待ちが受理コマンド1回以上の後であることも検査する。token来歴は特権snapshot専用で、公開pending表示に出さない。
+応答待ちsnapshotには主動作で選んだtokenと、各反射応答者のモデル/token列を来歴として保存する。主動作のモデル列と同じ長さ・重複なし、普通品のtokenは既に消費済み、奇跡tokenは原発者の同モデルのused保持品、待機威力/能力は元モデル列と一致、という整合を検査する。反射前後のsource/target、初期target、消去後属性、反射者ごとの消費、各人の正確な補充予定をledgerから検証する。v1の「owner以外の補充予定は必ず0」という条件は、反応者も品を消費するv2には適用しない。token来歴は特権snapshot専用で、公開pending表示に出さない。
 
 raw snapshotには他人の手札や将来のローカル乱数状態があるため、ポリシーの観測として渡さない。表示は `observe(viewer)` などの投影経路から取得する。snapshotはデバッグ・再現用の特権状態であり、公式の通信スナップショットと同じ形式でも、バージョンをまたぐ永続checkpointでもない。
 
 [official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。raw scene/checkpointのimport・restoreはこのC/Python公開APIへ追加していない。
 
-`observe` は実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、既に公開した待機effectのモデル/威力等を返す。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
+v2の `observe` はschema `official-execution-view-v2`。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に公開反射回数を返す。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
 
 実行例は `python3 python/official_match.py`。ライブラリパスを別に指定する場合は同スクリプトの引数へ渡す。これは初期化してローカルに進める例であり、公式対局traceの取得ではない。
 
-旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
+旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、bounce/block/counter/FREE等の未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
 
 ## 検証と計測
+
+### v2の検証と集計
+
+v2（139モデル/重み319）の全Release CTest129件/60.39秒、ASan/UBSan89件/91.53秒が通過した。両suiteを同時実行した値であり、独立した速度測定に流用しない。その後、nativeの35反射連鎖・Snapshot v1拒否ケースを追加し、対象をRelease/SAN各1件再検証した（0.33/0.65秒）。coreの追加変更はない。
+
+PythonのMatch suiteは9ケース。既存の計算/選択50,270件、state helper/抽出分岐22,140件、実client資源計算7,898件のgolden一致を維持し、再取得した公式assetのhash・296モデルfactsも一致した。これらは権威的serverとの対局trace適合を意味しない。
+
+`./build/godfield_official_bench GAMES PLAYERS 42 WORKERS` のv2集計:
+
+| 人数 | 試合数 | 意思決定数 | 勝数 | draw | 打切り | 反射 | 消去 | checksum |
+| ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- |
+| 2 | 100,000 | 3,949,983 | 49,709 / 50,291 | 0 | 0 | 27,346 | 24,118 | `17327277230250071888` |
+| 9 | 10,000 | 2,862,579 | 1,120 / 1,135 / 1,128 / 1,093 / 1,107 / 1,098 / 1,090 / 1,151 / 1,056 | 0 | 22 | 24,214 | 23,344 | `13034266850202749327` |
+
+各条件で1 worker/4 workersの時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。観測された最大反射深度は両方3だが、これはベンチマーク内の出現結果であり、実行器が3で打ち切るという意味ではない。別のnative局面で35反射を検証している。
+
+競合を避けたRelease・1 workerの再計測は、2人100,000試合が2.51205秒（1,572,410意思決定/秒）、9人10,000試合が2.52802秒（1,132,340意思決定/秒）で、上表の時間以外の全fieldを維持した。合法手sampler、実行、reset、各試合の終了snapshot検証を含み、合成関数単体、Python経由の学習、モデル推論・最適化、公式全モデルの速度ではない。
+
+SAN/Releaseの2人・9人各1,000試合も時間以外の全集計が一致し、checksumは2人 `9045870663897908326`、9人 `15249773347321244157`。v1のプールやchecksumと混同しない。
+
+### v1の過去の検証と計測
+
+以下は **v1・132モデル/重み308時点** の検証と計測記録である。v2・139モデルの結果ではなく、現在のv2プールを同じコマンドで再実行して同じchecksumを得られるという意味でもない。
 
 全Release CTestは129件/21.83秒、ASan/UBSanは89件/50.47秒が通過した。その後、資源primitive単独ではHP0になってもdeadを立てないことを確認するassertを追加し、資源ターゲットをRelease/SAN各1件再検証した。coreの追加変更はない。
 
