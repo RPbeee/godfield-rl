@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。現行の[限定実行器v11](official-execution-subset.md)は暗雲付与/反撃3種を加えた204モデル/重み407。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。現行の[限定実行器v12](official-execution-subset.md)は除去2種を加えた206モデル/重み409。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -161,6 +161,18 @@ v11はpercent初期対象と181counterの活性化時に暗雲なら無drawforce
 公開darkcloud_ruleは `experimental:force-percent-hit-without-draw-at-target-activation;redirects-no-recheck;idempotent-until-all-cure;no-tick`、chance/counter_ruleへdarkcloud-forces-without-drawを加える。実draw成功hitsとforcedを分離し、miss=rolls−hitsを維持する。Snapshot11のanchor/現在frameまで完全replayしてRNG非消費を検査し、累計forcedや未来journalを公開viewへ出さない。病気・霧/夢・他curseは未対応として拒否する。
 
 v10検証範囲の訂正：専用native Flash2関数がmainへ未登録だったため、そのcounter FIFO/canonical偽造/late rollback等をv10実行済みとした範囲は撤回する。CTest件数・C API/Python18ケース・大規模benchの記録値は維持し、v11で登録を修正して初実行し、全source/test最終freeze後の検証でもfixture修正無しでRelease/SANとも通過した。 GNU/Clangではofficial_match native test targetに `-Wunused-function -Werror=unused-function` を追加し、同様の未使用テスト関数をcompile errorにする。
+
+## 手札・使用済み奇跡の除去：現行数値とv12規約
+
+公式JA/ENの205夜空のホウキは「神器を三個掃き飛ばす」/“Sweep away 3 artifacts”、206女神の石けんは「起こした奇跡を二個洗い流す」/“Wash away 2 performed miracles”。usedMiraclesNoteは起こした奇跡を売買と夜空のホウキの対象外と明記する。両品はsundries/無属性/ATKDEFMP0・価格10・giftRate1。v12は206モデル/重み409（95武器/74防具/13雑貨/24奇跡）。モデルabilityValueは0で、効果上限3/2は現行説明から派生し、旧版の1枚除去と混同しない。
+
+removeItems（11495–11517行）とremoveUsedMiracles（11518–11544行）はserver指定event.itemsを `ds/kr`（11801行付近）で順に表示する。`kY` はid/modelId/fakeModelId/usedをdecodeし、本人対象だけ手札からidを探して消去する。他者対象でもカード表示は行い、fake時には `cA/bZ` で真modelへのflipも表示する。206はusedモデル欄の同モデルコピーを1個ずつ消す。抽選slot/populationや候補生成・RNGはこのhandlerに無い。dsの経路は除去自身の補充placeholderを作らないが、serverの独立gift発行scheduleは未確定である。
+
+v12は205をused除外の現在手札（未使用MC含む）最大3、206をusedMCコピー最大2へ限定する。毎回inventory順にeligibleを再構築→有界一様抽選→stable eraseを繰り返すwithout replacement、empty0draw/sole1drawとする。自己は使用品消費後に即時、他者はsundry nonattackとして190だけが適合する明示response。これらの抽選・自己順・gift規約はserver未確認の実験条件である。
+
+pending.amount=3/2は実除去数でなく上限。除去gift0でも使用品/190の既予約giftは維持し、empty-no-drawは通常完了gift RNGまで0にしない。206でused223を失ってもDarkCloudを解除せず、既払い費用や使用を巻き戻さない。removal_ruleは `experimental:unused-hand-max3;used-miracles-max2;uniform-without-replacement-in-inventory-order;bounded-draw-per-removal;empty-no-draw;no-removal-gifts`。
+
+最終bodyはatomicで除去途中snapshot無し。pending replayは除去前の消費/反射/RNG/payload上限を検査し、完了後任意rawstateの公式到達履歴を証明しない。決定的replayではbody抽選と後続giftの一致を検証する。公開remove event表示に対し、Match.observeの履歴投影は未対応として残し、他者unused削除model/slot/RNGを観測へ追加しない。本人手札と公開used_modelsの現状態だけを反映する。
 
 ## 病気・閃光・暗雲
 

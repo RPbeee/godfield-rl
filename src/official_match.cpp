@@ -1,6 +1,7 @@
 #include "godfield/official_match.hpp"
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <limits>
 #include <unordered_set>
 
@@ -88,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 407>& gift_tickets() {
+const std::array<CardId, 409>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 407> values{};
+        std::array<CardId, 409> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -99,7 +100,7 @@ const std::array<CardId, 407>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 204) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 206) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -190,7 +191,9 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
 }
 EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target, const std::vector<ItemToken>& tokens) {
     const auto& base = *find_card(models.front());
-    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, s.rng, {}, base.hit_rate};
+    const auto amount = base.ability == Ability::remove_items ? 3
+        : base.ability == Ability::remove_used_miracles ? 2 : base.ability_value;
+    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, amount, target, s.rng, {}, base.hit_rate};
 }
 PlayerId sample_bounce_target(const MatchSnapshot& s, std::uint64_t& rng) {
     std::array<PlayerId, player_capacity> alive;
@@ -220,6 +223,22 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
         } else result.defense += c.defense;
     }
     return result;
+}
+void remove_items(MatchSnapshot& s, PlayerState& target, Ability ability, int count) {
+    for (int removed = 0; removed < count; ++removed) {
+        std::array<std::size_t, visible_hand_capacity> candidates;
+        std::size_t size = 0;
+        for (std::size_t i = 0; i < target.items.size(); ++i) {
+            const auto& item = target.items[i];
+            const auto eligible = ability == Ability::remove_items ? !item.used
+                : item.used && find_card(item.model)->category == Category::miracles;
+            if (eligible) candidates[size++] = i;
+        }
+        if (!size) break;
+        const auto selected = candidates[bounded(s.rng, size)];
+        // Stable inventory order and physical-copy identity are part of the local RNG contract.
+        target.items.erase(target.items.begin() + static_cast<std::ptrdiff_t>(selected));
+    }
 }
 // Counter generation uses the target damage stage, rather than the net HP
 // change across source healing/self-damage when source and target alias.
@@ -254,6 +273,9 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             std::erase(target.curses, Curse::flash);
             break;
         case Ability::remove_all_curses: target.curses.clear(); break;
+        case Ability::remove_items: case Ability::remove_used_miracles:
+            remove_items(s, target, effect.ability, effect.amount);
+            break;
         default: unsupported("effect has no scoped resolver");
         }
     }
@@ -478,7 +500,8 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
-            || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses);
+            || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
+            || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -618,7 +641,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v9\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v10\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -626,7 +649,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"resource_counter_rule\":\""; out += resource_counter_rule;
     out += "\",\"damage_effect_rule\":\""; out += damage_effect_rule;
     out += "\",\"flash_rule\":\""; out += flash_rule;
-    out += "\",\"darkcloud_rule\":\""; out += darkcloud_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"darkcloud_rule\":\""; out += darkcloud_rule;
+    out += "\",\"removal_rule\":\""; out += removal_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

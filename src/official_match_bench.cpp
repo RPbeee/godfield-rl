@@ -36,6 +36,7 @@ struct Stats {
     std::uint64_t self_damage_positive_resolutions = 0, self_damage_nominal_hp = 0;
     std::uint64_t flash_added = 0, flash_removed = 0, flash_response_commands = 0;
     std::uint64_t darkcloud_added = 0, darkcloud_removed = 0, chance_forced_hits = 0, counter_forced_hits = 0;
+    std::uint64_t hand_removal_resolved = 0, hand_items_removed = 0, used_removal_resolved = 0, used_miracles_removed = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -57,6 +58,8 @@ struct Stats {
         flash_added += s.flash_added; flash_removed += s.flash_removed; flash_response_commands += s.flash_response_commands;
         darkcloud_added += s.darkcloud_added; darkcloud_removed += s.darkcloud_removed;
         chance_forced_hits += s.chance_forced_hits; counter_forced_hits += s.counter_forced_hits;
+        hand_removal_resolved += s.hand_removal_resolved; hand_items_removed += s.hand_items_removed;
+        used_removal_resolved += s.used_removal_resolved; used_miracles_removed += s.used_miracles_removed;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -114,6 +117,29 @@ int main(int argc, char** argv) {
                         if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
                         const auto& own = *find_player(before.state, command.actor);
+                        std::optional<PlayerId> removal_target;
+                        Ability removal_ability = Ability::none;
+                        if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()) {
+                            removal_ability = before.queue.front().ability;
+                            removal_target = before.queue.front().target;
+                        } else if (command.kind == CommandKind::play && command.target == command.actor && !command.items.empty()) {
+                            const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == command.items.front(); });
+                            removal_ability = find_card(item->model)->ability;
+                            removal_target = command.actor;
+                        }
+                        std::array<ItemToken, visible_hand_capacity> removal_tokens;
+                        std::size_t removal_token_count = 0;
+                        if (removal_ability == Ability::remove_items || removal_ability == Ability::remove_used_miracles) {
+                            const auto& target = *find_player(before.state, *removal_target);
+                            for (const auto& item : target.items) {
+                                const auto eligible = removal_ability == Ability::remove_items ? !item.used
+                                    : item.used && find_card(item.model)->category == Category::miracles;
+                                // A self-used physical artifact is consumed before removal, not by removal.
+                                const auto consumed = command.kind == CommandKind::play && command.actor == target.id
+                                    && std::find(command.items.begin(), command.items.end(), item.token) != command.items.end();
+                                if (eligible && !consumed) removal_tokens[removal_token_count++] = item.token;
+                            }
+                        } else removal_target.reset();
                         if (own.items.size() == before.config.hand_limit) ++stats.full_hands;
                         if (command.kind == CommandKind::pray) ++stats.prayers;
                         if (command.kind == CommandKind::discard) stats.discarded += command.items.size();
@@ -167,6 +193,14 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        if (removal_target) {
+                            const auto& after = *find_player(match.snapshot().state, *removal_target);
+                            std::uint64_t removed = 0;
+                            for (std::size_t i = 0; i < removal_token_count; ++i)
+                                if (std::none_of(after.items.begin(), after.items.end(), [&](const auto& item) { return item.token == removal_tokens[i]; })) ++removed;
+                            if (removal_ability == Ability::remove_items) { ++stats.hand_removal_resolved; stats.hand_items_removed += removed; }
+                            else { ++stats.used_removal_resolved; stats.used_miracles_removed += removed; }
+                        }
                         for (std::size_t seat = 0; seat < count; ++seat) {
                             const auto& curses = match.snapshot().state.players[seat].curses;
                             const auto flashed = std::find(curses.begin(), curses.end(), Curse::flash) != curses.end();
@@ -212,6 +246,7 @@ int main(int argc, char** argv) {
             << "\ndamage_effect_rule=" << damage_effect_rule
             << "\nflash_rule=" << flash_rule
             << "\ndarkcloud_rule=" << darkcloud_rule
+            << "\nremoval_rule=" << removal_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -235,6 +270,8 @@ int main(int argc, char** argv) {
             << "\nflash_added=" << stats.flash_added << "\nflash_removed=" << stats.flash_removed << "\nflash_response_commands=" << stats.flash_response_commands
             << "\ndarkcloud_added=" << stats.darkcloud_added << "\ndarkcloud_removed=" << stats.darkcloud_removed
             << "\nchance_forced_hits=" << stats.chance_forced_hits << "\ncounter_forced_hits=" << stats.counter_forced_hits
+            << "\nhand_removal_resolved=" << stats.hand_removal_resolved << "\nhand_items_removed=" << stats.hand_items_removed
+            << "\nused_removal_resolved=" << stats.used_removal_resolved << "\nused_miracles_removed=" << stats.used_miracles_removed
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
