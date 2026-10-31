@@ -24,16 +24,17 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 185 && gfo_match_gift_weight() == 372 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 187 && gfo_match_gift_weight() == 374 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v6"
-        && std::string(gfo_match_scope()) == "experimental:185-models;not-official-server-equivalence", "explicit v6 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v7"
+        && std::string(gfo_match_scope()) == "experimental:187-models;not-official-server-equivalence", "explicit v7 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {112, 181, 184}) check(!gfo_match_supported(id), "death-passive chance and counter unsupported");
+    for (auto id : {112, 182, 187, 188}) check(!gfo_match_supported(id), "death-passive chance, curse/resource counters unsupported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
     for (auto id : {46, 66, 83, 143, 163, 173, 204, 231}) check(gfo_match_supported(id), "added composition membership");
     for (auto id : {21, 34, 114, 125, 137, 151, 164, 234}) check(gfo_match_supported(id), "added bounce membership");
     for (auto id : {95, 96, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 225, 226, 227, 228, 229, 230}) check(gfo_match_supported(id), "added pure chance membership");
+    for (auto id : {181, 184}) check(gfo_match_supported(id), "damage counter membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -214,21 +215,21 @@ int main() {
     check(hand_count == 18, "free response refill clipped at hand cap");
     gfo_match_destroy(free_wall);
     // Public seeded reset contains Spring+FREE and Turbulence+FREE at MP0.
-    fixture.reset(setup, 921);
+    fixture.reset(setup, 789);
     bool got_spring = false, got_cast_free = false, got_bounce = false, got_bounce_free = false;
     uint64_t cast_free_token = 0, bounce_token = 0, bounce_free_token = 0;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 235) { got_spring = true; spring_token = item.token; }
-        if (item.model == 173) { got_cast_free = true; cast_free_token = item.token; }
+        if (item.model == 163) { got_cast_free = true; cast_free_token = item.token; }
     }
     for (const auto& item : fixture.snapshot().state.players[1].items) {
         if (item.model == 234) { got_bounce = true; bounce_token = item.token; }
-        if (item.model == 143) { got_bounce_free = true; bounce_free_token = item.token; }
+        if (item.model == 204) { got_bounce_free = true; bounce_free_token = item.token; }
     }
     check(got_spring && got_cast_free && got_bounce && got_bounce_free, "public reset zero-MP bounce fixture");
     gfo_match* bounce_match = nullptr; gfo_match* bounce_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 921, &bounce_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 921, &bounce_replay) == 0, "bounce fixture create");
+    check(gfo_match_create(&cfg, players.data(), 2, 789, &bounce_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 789, &bounce_replay) == 0, "bounce fixture create");
     free_cast.target = 77; free_cast.items[0] = spring_token; free_cast.items[1] = cast_free_token;
     check(gfo_match_step(bounce_match, &free_cast, &free_result) == 0
         && gfo_match_step(bounce_replay, &free_cast, &replay_result) == 0 && equal(free_result, replay_result), "incoming recovery miracle opens bounce response");
@@ -253,7 +254,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v4\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v5\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -285,12 +286,12 @@ int main() {
     for (std::size_t i = 0; i < chance_players.size(); ++i) {
         chance_players[i].id = chance_setup[i].id; chance_players[i].team = static_cast<uint8_t>(chance_setup[i].team);
     }
-    fixture.reset(chance_setup, 12); uint64_t chance_token = 0; bool found_chance = false;
+    fixture.reset(chance_setup, 169); uint64_t chance_token = 0; bool found_chance = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
     check(found_chance, "public reset multi-target chance fixture");
     gfo_match* chance_match = nullptr; gfo_match* chance_replay = nullptr;
-    check(gfo_match_create(&cfg, chance_players.data(), 4, 12, &chance_match) == 0
-        && gfo_match_create(&cfg, chance_players.data(), 4, 12, &chance_replay) == 0, "chance create");
+    check(gfo_match_create(&cfg, chance_players.data(), 4, 169, &chance_match) == 0
+        && gfo_match_create(&cfg, chance_players.data(), 4, 169, &chance_replay) == 0, "chance create");
     gfo_match_command chance_command{}; chance_command.item_count = 1; chance_command.items[0] = chance_token;
     auto explicit_target = chance_command; explicit_target.has_target = 1; explicit_target.target = 99;
     const auto chance_before = observe(chance_match); result = status(chance_match); const auto chance_status = result;
@@ -326,15 +327,15 @@ int main() {
     while ((offset = complete_chance.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
     check(hand_count == 18, "chance launch replacement counted once");
     gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
-    fixture.reset(setup, 92); found_chance = false;
+    fixture.reset(setup, 211); found_chance = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
-    check(found_chance && gfo_match_create(&cfg, players.data(), 2, 92, &chance_match) == 0, "all-miss fixture create");
+    check(found_chance && gfo_match_create(&cfg, players.data(), 2, 211, &chance_match) == 0, "all-miss fixture create");
     chance_command.items[0] = chance_token;
     check(gfo_match_step(chance_match, &chance_command, &result) == 0 && result.decisions == 1 && result.phase == 0
         && result.actor == 77 && result.owner == 77 && observe(chance_match).find("\"pending\":null") != std::string::npos,
         "all misses complete without any defense decision");
     gfo_match_destroy(chance_match);
-    fixture.reset(setup, 2054);
+    fixture.reset(setup, 2269);
     bool got_chance_mc = false; got_cast_free = false; bool got_reflector = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 225) { got_chance_mc = true; spring_token = item.token; }
@@ -342,8 +343,8 @@ int main() {
     }
     for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 39) { got_reflector = true; mirror_token = item.token; }
     check(got_chance_mc && got_cast_free && got_reflector
-        && gfo_match_create(&cfg, players.data(), 2, 2054, &chance_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 2054, &chance_replay) == 0, "zero-MP chance miracle/FREE fixture create");
+        && gfo_match_create(&cfg, players.data(), 2, 2269, &chance_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 2269, &chance_replay) == 0, "zero-MP chance miracle/FREE fixture create");
     chance_command.item_count = 2; chance_command.items[0] = spring_token; chance_command.items[1] = cast_free_token;
     chance_sampled = false;
     for (uint64_t policy_seed = 0; policy_seed < 4096 && !chance_sampled; ++policy_seed) {
@@ -371,6 +372,79 @@ int main() {
         && retained_chance.find("\"token\":" + std::to_string(cast_free_token) + ",") == std::string::npos,
         "chance miracle learned once and physical FREE consumed once");
     gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
+    // Ordinary DEF reduces HP loss before the selected counters enter FIFO.
+    fixture.reset(setup, 534);
+    uint64_t armor_token = 0, mars_token = 0, saturn_token = 0;
+    bool got_attack = false, got_armor = false, got_mars = false, got_saturn = false;
+    for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 32) { weapon_token = item.token; got_attack = true; }
+    for (const auto& item : fixture.snapshot().state.players[1].items) {
+        if (item.model == 118) { armor_token = item.token; got_armor = true; }
+        if (item.model == 181) { mars_token = item.token; got_mars = true; }
+        if (item.model == 184) { saturn_token = item.token; got_saturn = true; }
+    }
+    check(got_attack && got_armor && got_mars && got_saturn, "public reset mixed-counter fixture");
+    gfo_match* counter_match = nullptr; gfo_match* counter_replay = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, 534, &counter_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 534, &counter_replay) == 0, "counter fixture create");
+    attack.items[0] = weapon_token;
+    check(gfo_match_step(counter_match, &attack, &free_result) == 0 && gfo_match_step(counter_replay, &attack, &replay_result) == 0
+        && equal(free_result, replay_result), "ordinary incoming damage for counters");
+    const auto before_counters = observe(counter_match, 1, 77);
+    for (uint64_t policy_seed = 0; policy_seed < 64; ++policy_seed) {
+        uint64_t policy = policy_seed, same_policy = policy_seed; gfo_match_command candidate{}, duplicate{};
+        check(gfo_match_sample_action(counter_match, &policy, &candidate) == 0
+            && gfo_match_sample_action(counter_match, &same_policy, &duplicate) == 0 && policy == same_policy && equal(candidate, duplicate)
+            && gfo_match_legal(counter_match, &candidate, &legal) == 0 && legal, "counter-context sampler legal and reproducible");
+    }
+    check(observe(counter_match, 1, 77) == before_counters, "counter-context policy sampling leaves match unchanged");
+    gfo_match_command defend_counters{}; defend_counters.actor = 77; defend_counters.kind = 1; defend_counters.item_count = 3;
+    defend_counters.items[0] = armor_token; defend_counters.items[1] = mars_token; defend_counters.items[2] = saturn_token;
+    check(gfo_match_step(counter_match, &defend_counters, &free_result) == 0
+        && gfo_match_step(counter_replay, &defend_counters, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 1 && free_result.actor == 0 && free_result.owner == 0, "counter FIFO begins before turn completion");
+    const auto mars_view = observe(counter_match, 1, 77);
+    check(mars_view.find("\"counter_rule\":\"experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-source-target;roll-before-response;redirects-no-reroll\"") != std::string::npos
+        && mars_view.find("\"origin\":77,\"source\":77,\"target\":0") != std::string::npos
+        && mars_view.find("\"counter\":true") != std::string::npos && mars_view.find("\"models\":[181]") != std::string::npos
+        && mars_view.find("\"power\":7") != std::string::npos && mars_view.find("\"hit_rate\":75") != std::string::npos,
+        "Mars uses actual seven HP loss after DEF2 instead of original ATK9");
+    check(mars_view.find("\"hp\":33,\"mp\":0") != std::string::npos, "surviving defender paid real HP loss");
+    hand_count = 0; offset = 0;
+    while ((offset = mars_view.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 15, "three selected physical defense cards consumed once before deferred refill");
+    for (const auto* key : {"\"batch\":", "\"counters\":", "\"counter_created\":", "\"counter_started\":", "\"counter_rolls\":", "\"counter_hits\":", "\"responses\":", "\"initial_state\":"})
+        check(mars_view.find(key) == std::string::npos, "future reserved counters and replay journal stay private");
+    accept.actor = 0;
+    check(gfo_match_step(counter_match, &accept, &free_result) == 0 && gfo_match_step(counter_replay, &accept, &replay_result) == 0
+        && equal(free_result, replay_result) && free_result.phase == 1 && free_result.actor == 0 && free_result.owner == 0,
+        "first counter resolves then second FIFO counter opens response");
+    const auto saturn_view = observe(counter_match, 0, 0);
+    check(saturn_view.find("\"counter\":true") != std::string::npos && saturn_view.find("\"models\":[184]") != std::string::npos
+        && saturn_view.find("\"power\":14") != std::string::npos && saturn_view.find("\"hit_rate\":0") != std::string::npos,
+        "Saturn doubles actual HP loss and follows Mars selection order");
+    check(gfo_match_step(counter_match, &accept, &free_result) == 0 && gfo_match_step(counter_replay, &accept, &replay_result) == 0
+        && equal(free_result, replay_result) && free_result.phase == 0 && free_result.actor == 77 && free_result.owner == 77,
+        "all counters complete before ordinary next owner");
+    check(observe(counter_match, 1, 0) == observe(counter_replay, 1, 0)
+        && observe(counter_match, 1, 77) == observe(counter_replay, 1, 77), "policy queries preserve counter roll and future gift RNG");
+    const auto complete_counter = observe(counter_match, 1, 77);
+    check(complete_counter.find("\"hp\":19,\"mp\":0") != std::string::npos && complete_counter.find("\"hp\":33,\"mp\":0") != std::string::npos
+        && complete_counter.find("\"pending\":null") != std::string::npos, "counter FIFO final resource deltas");
+    hand_count = 0; offset = 0;
+    while ((offset = complete_counter.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 18, "counter defenses refill only after full action");
+    gfo_match_destroy(counter_match); gfo_match_destroy(counter_replay);
+    fixture.reset(setup, 576); got_attack = false; got_mars = false;
+    for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon_token = item.token; got_attack = true; }
+    for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 181) { mars_token = item.token; got_mars = true; }
+    check(got_attack && got_mars && gfo_match_create(&cfg, players.data(), 2, 576, &counter_match) == 0, "Mars-miss fixture create");
+    attack.items[0] = weapon_token; defend_counters.item_count = 1; defend_counters.items[0] = mars_token;
+    defend_counters.items[1] = 0; defend_counters.items[2] = 0;
+    check(gfo_match_step(counter_match, &attack, &result) == 0
+        && gfo_match_step(counter_match, &defend_counters, &result) == 0 && result.decisions == 2 && result.phase == 0
+        && result.actor == 77 && result.owner == 77 && observe(counter_match).find("\"pending\":null") != std::string::npos,
+        "missed Mars counter consumes no extra response decision");
+    gfo_match_destroy(counter_match);
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);

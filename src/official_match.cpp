@@ -70,16 +70,16 @@ Outcome outcome(const SnapshotState& state) {
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     s.terminated = true; s.truncated = false; s.state.is_over = true;
-    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.chance.reset();
+    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
     s.winners = result.winners;
     s.rewards.assign(s.state.players.size(), 0);
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 372>& gift_tickets() {
+const std::array<CardId, 374>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 372> values{};
+        std::array<CardId, 374> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 372>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 185) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 187) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -245,28 +245,58 @@ void advance(MatchSnapshot& s) {
     }
     throw std::logic_error("no alive next owner without a terminal outcome");
 }
-bool next_chance_target(MatchSnapshot& s) {
-    auto& batch = *s.chance;
+bool next_action_effect(MatchSnapshot& s) {
+    auto& batch = *s.batch;
+    if (s.state.players[index(s, batch.owner)].dead) batch.cursor = batch.targets.size();
+    while (!s.counters.empty()) {
+        auto effect = std::move(s.counters.front()); s.counters.erase(s.counters.begin());
+        if (s.state.players[index(s, effect.source)].dead || s.state.players[index(s, effect.target)].dead) continue;
+        if (effect.hit_rate) {
+            ++s.counter_rolls;
+            if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(effect.hit_rate)) continue;
+            ++s.counter_hits;
+        }
+        ++s.counter_started; effect.redirect_rng = s.rng;
+        s.actor = effect.target; s.phase = MatchPhase::response; s.queue.push_back(std::move(effect));
+        return true;
+    }
     const auto rate = find_card(batch.models.front())->hit_rate;
     while (batch.cursor < batch.targets.size()) {
         const auto target = batch.targets[batch.cursor++];
         if (s.state.players[index(s, target)].dead) continue;
-        ++s.chance_rolls;
-        if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(rate)) continue;
-        ++s.chance_hits;
+        if (batch.chance) {
+            ++s.chance_rolls;
+            if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(rate)) continue;
+            ++s.chance_hits;
+        }
         s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items));
         s.actor = target; s.phase = MatchPhase::response;
         return true;
     }
-    s.chance.reset();
+    s.batch.reset();
     return false;
+}
+void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Command& response,
+                      std::span<const CardId> models, std::int64_t damage) {
+    if (damage <= 0 || s.state.players[index(s, response.actor)].dead) return;
+    for (std::size_t i = 0; i < models.size(); ++i) {
+        const auto& card = *find_card(models[i]);
+        if (card.ability != Ability::counter_atk && card.ability != Ability::counter2x_atk) continue;
+        EffectFrame effect;
+        effect.origin = response.actor; effect.source = response.actor; effect.target = incoming.source;
+        effect.models = {card.id}; effect.tokens = {response.items[i]}; effect.category = Category::armor;
+        effect.element = card.element; effect.power = damage * (card.ability == Ability::counter2x_atk ? 2 : 1);
+        effect.ability = card.ability; effect.initial_target = effect.target; effect.hit_rate = card.hit_rate;
+        effect.is_counter = true;
+        s.counters.push_back(std::move(effect)); ++s.counter_created; ++s.batch->counters_created;
+    }
 }
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
     bool completed = false;
     if (s.phase == MatchPhase::response) {
-        if (s.chance) s.chance->responses.push_back(command);
+        s.batch->responses.push_back(command);
         auto& effect = s.queue.front();
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
@@ -275,7 +305,11 @@ void execute(MatchSnapshot& s, const Command& command) {
             if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
             effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
         } else {
-            if (response.reaction == Reaction::none) resolve(s, effect, response.defense);
+            if (response.reaction == Reaction::none) {
+                const auto hp = s.state.players[seat].hp;
+                resolve(s, effect, response.defense);
+                reserve_counters(s, effect, command, models, hp - s.state.players[seat].hp);
+            }
             s.queue.clear(); completed = true;
         }
     } else if (command.kind == CommandKind::discard) {
@@ -283,31 +317,31 @@ void execute(MatchSnapshot& s, const Command& command) {
     } else if (command.kind == CommandKind::pray) {
         request_gift(s, seat); completed = true;
     } else {
-        if (find_card(models.front())->hit_rate) {
-            ChanceBatch batch;
+        const auto original = effect_for(s, models, command.target.value_or(s.owner), command.items);
+        if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
+            ActionBatch batch;
             batch.initial_state = s.state; batch.owner = s.owner; batch.rng = s.rng;
             batch.decisions = s.decisions; batch.next_token = s.next_token;
             batch.chance_rolls = s.chance_rolls; batch.chance_hits = s.chance_hits;
-            batch.attack = command; batch.models = models; batch.targets = chance_targets(s);
-            s.chance = std::move(batch);
+            batch.counter_created = s.counter_created; batch.counter_started = s.counter_started;
+            batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
+            batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
+            batch.targets = batch.chance ? chance_targets(s) : std::vector<PlayerId>{*command.target};
+            s.batch = std::move(batch);
             change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
-            completed = !next_chance_target(s);
+            completed = !next_action_effect(s);
         } else {
-            const auto effect = effect_for(s, models, *command.target, command.items);
             change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
-            if (damaging(effect) || effect.target != s.owner) {
-                s.queue.push_back(effect); s.actor = effect.target; s.phase = MatchPhase::response;
-            } else { resolve(s, effect, 0); completed = true; }
+            resolve(s, original, 0); completed = true;
         }
     }
     ++s.decisions; require(s.state.update_count < max_wire_integer, "update counter exhausted"); ++s.state.update_count;
     const auto natural = outcome(s.state);
     if (natural.terminal) finish(s, natural);
     else if (s.decisions == s.config.max_decisions) {
-        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.chance.reset(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
+        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
     } else if (completed) {
-        if (s.chance && s.state.players[index(s, s.owner)].dead) s.chance.reset();
-        if (!s.chance || !next_chance_target(s)) advance(s);
+        if (!s.batch || !next_action_effect(s)) advance(s);
     }
 }
 void validate_snapshot(const MatchSnapshot& s) {
@@ -315,6 +349,9 @@ void validate_snapshot(const MatchSnapshot& s) {
     const auto n = s.state.players.size();
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
     require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= player_capacity * s.decisions, "invalid chance attempt counters");
+    require(s.counter_hits <= s.counter_rolls && s.counter_rolls <= s.counter_created
+        && s.counter_hits <= s.counter_started && s.counter_started <= s.counter_created
+        && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
     for (std::size_t i = 0; i < n; ++i) {
@@ -323,7 +360,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     }
     const auto natural = outcome(s.state);
     if (s.phase == MatchPhase::finished) {
-        require(!s.actor && s.queue.empty() && !s.chance && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
+        require(!s.actor && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
         require(s.terminated != s.truncated && s.state.is_over == s.terminated, "invalid episode boundary");
         if (s.terminated) {
             require(natural.terminal && s.winners == natural.winners, "invalid natural outcome");
@@ -336,113 +373,52 @@ void validate_snapshot(const MatchSnapshot& s) {
         && std::all_of(s.rewards.begin(), s.rewards.end(), [](auto v) { return v == 0; }), "invalid running match");
     require(s.actor && !s.state.players[index(s, *s.actor)].dead, "missing live actor");
     if (s.phase == MatchPhase::main) {
-        require(*s.actor == s.owner && s.queue.empty() && !s.chance && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
+        require(*s.actor == s.owner && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
         return;
     }
     require(s.phase == MatchPhase::response && s.queue.size() == 1, "invalid match phase/queue");
-    if (s.chance) {
-        const auto& batch = *s.chance;
+    {
+        require(s.batch.has_value(), "pending effect is missing its launch journal");
+        const auto& batch = *s.batch;
         require(batch.owner == s.owner && batch.initial_state.players.size() == n && !batch.models.empty()
             && batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()
-            && batch.targets.size() <= n && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid chance batch shape");
+            && batch.targets.size() <= n && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid action batch shape");
+        require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
+            && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
         require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
-            && batch.responses.size() <= n * (s.config.hand_limit + 99 / 5) + batch.targets.size(), "invalid chance journal length");
-        for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized chance response");
+            && batch.responses.size() <= n * (2 * s.config.hand_limit + 99 / 5) + batch.targets.size(), "invalid action journal length");
+        for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
         MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
         replay.owner = batch.owner; replay.actor = batch.owner; replay.phase = MatchPhase::main;
         replay.rng = batch.rng; replay.decisions = batch.decisions; replay.next_token = batch.next_token;
         replay.chance_rolls = batch.chance_rolls; replay.chance_hits = batch.chance_hits;
+        replay.counter_created = batch.counter_created; replay.counter_started = batch.counter_started;
+        replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
-        require(batch.attack.kind == CommandKind::play && !batch.attack.target && find_card(batch.models.front())
-            && find_card(batch.models.front())->hit_rate > 0, "chance journal has no chance launch");
+        require(batch.attack.kind == CommandKind::play && find_card(batch.models.front()), "action journal has no valid launch");
         execute(replay, batch.attack);
         for (const auto& response : batch.responses) {
-            require(replay.chance.has_value(), "chance journal continues after its batch ended");
+            require(replay.batch.has_value(), "action journal continues after its batch ended");
             execute(replay, response);
         }
-        require(replay == s, "chance journal does not reproduce full snapshot");
+        require(replay == s, "action journal does not reproduce full snapshot");
         return;
     }
-    const auto& effect = s.queue.front();
-    require(effect.origin == s.owner && *s.actor == effect.target
-        && !s.state.players[index(s, s.owner)].dead && s.decisions > 0 && !effect.models.empty() && effect.models.size() <= s.config.hand_limit && effect.tokens.size() == effect.models.size(), "invalid effect origin/actor");
-    std::vector<VisibleSelection> prefix;
-    for (auto id : effect.models) {
-        if (!match_supported(id)) unsupported("unsupported queued model");
-        require(can_append_main(prefix, {id, false}), "invalid queued composition"); prefix.push_back({id, false});
-    }
-    require(!find_card(effect.models.front())->hit_rate && !effect.hit_rate, "chance frame is missing its launch journal");
-    auto replay = effect_for(s, effect.models, effect.initial_target, effect.tokens);
-    replay.redirect_rng = effect.redirect_rng;
-    auto replay_rng = effect.redirect_rng;
-    require(!s.state.players[index(s, effect.initial_target)].dead, "initial effect target is dead");
-    require(damaging(replay) || replay.target != s.owner, "self boost cannot wait for a response");
-    // Every redirect spends a physical item (including FREE) or pays at least
-    // 5 MP for retained Turbulence. No gifts/resource recovery happen mid-chain.
-    // This resource bound permits repeated retained casts, unlike the old
-    // physical-only bound, and is independent of the decision cutoff.
-    require(effect.redirects.size() <= n * (s.config.hand_limit + 99 / 5) && effect.redirects.size() < s.decisions, "impossible redirect history length");
-    std::array<std::unordered_set<ItemToken>, player_capacity> spent;
-    std::array<std::size_t, player_capacity> physical{}, uses{};
-    std::array<std::int64_t, player_capacity> costs{};
-    const auto evidence = [&](PlayerId player, std::span<const CardId> models, std::span<const ItemToken> tokens) {
-        const auto seat = index(s, player);
-        const auto& own = s.state.players[seat];
-        require(!own.dead && !models.empty() && models.size() <= s.config.hand_limit && models.size() == tokens.size(), "invalid consumption evidence shape");
-        std::unordered_set<ItemToken> selected;
-        for (std::size_t i = 0; i < tokens.size(); ++i) {
-            const auto token = tokens[i];
-            require(token < s.next_token && token <= max_wire_integer && selected.insert(token).second, "invalid queued instance evidence");
-            const auto* retained = instance(own, token);
-            if (find_card(models[i])->category == Category::miracles)
-                require(retained && retained->used && retained->model == models[i] && !spent[seat].contains(token), "queued miracle has no retained instance");
-            else {
-                ++physical[seat];
-                require(!retained && spent[seat].insert(token).second, "physical item present or consumed twice in redirect history");
-            }
-        }
-        uses[seat] += models.size(); costs[seat] += magic_cost(models);
-    };
-    evidence(s.owner, effect.models, effect.tokens);
-    for (const auto& redirect : effect.redirects) {
-        require(redirect.defender == replay.target, "redirect has wrong responder");
-        require(!redirect.models.empty() && redirect.models.size() <= s.config.hand_limit && redirect.models.size() == redirect.tokens.size(), "invalid redirect evidence shape");
-        std::vector<VisibleSelection> defense_prefix;
-        const ResponseContext context{false, replay.category, replay.element, damaging(replay)};
-        for (auto id : redirect.models) {
-            if (!match_supported(id)) unsupported("unsupported redirect model");
-            require(can_append_response(defense_prefix, {id, false}, context), "invalid redirect composition");
-            defense_prefix.push_back({id, false});
-        }
-        evidence(redirect.defender, redirect.models, redirect.tokens);
-        const auto reaction = apply_response(replay, redirect.models).reaction;
-        require(reaction == Reaction::reflect || reaction == Reaction::bounce, "history entry has no matching redirect");
-        if (reaction == Reaction::bounce) replay.target = sample_bounce_target(s, replay_rng);
-        require(redirect.target == replay.target, "recorded redirect target disagrees with replay");
-    }
-    replay.redirects = effect.redirects;
-    require(replay_rng == s.rng, "environment RNG disagrees with redirect replay");
-    require(effect == replay, "queued payload does not match original models and redirect history");
-    for (std::size_t i = 0; i < n; ++i) {
-        const auto& own = s.state.players[i];
-        require(own.items.size() + physical[i] <= s.config.hand_limit, "consumption history cannot originate from a valid hand");
-        const auto requests = std::min<std::size_t>(uses[i], s.config.hand_limit - own.items.size());
-        require(s.gifts[i] == requests, "pending gifts do not match participant consumption");
-        require(own.mp + costs[i] <= 99, "queued MP payments have no valid origin");
-    }
+
 }
 MatchStep result(const MatchSnapshot& s) { return {s.phase, s.actor, s.terminated, s.truncated, s.decisions, s.rewards, s.winners}; }
 }
 bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
             || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk
-            || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle);
+            || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle
+            || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -582,10 +558,11 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v4\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v5\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
-    out += "\",\"chance_rule\":\""; out += chance_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"chance_rule\":\""; out += chance_rule;
+    out += "\",\"counter_rule\":\""; out += counter_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -609,6 +586,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"reflections\":" + std::to_string(e.redirects.size() - bounces);
         out += ",\"bounces\":" + std::to_string(bounces);
         out += ",\"hit_rate\":" + std::to_string(e.hit_rate);
+        out += ",\"counter\":"; out += e.is_counter ? "true" : "false";
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }

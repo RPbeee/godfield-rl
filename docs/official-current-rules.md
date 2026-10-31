@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。現行の[限定実行器v6](official-execution-subset.md)は単純確率攻撃21種を加えた185モデル/重み372。counterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。現行の[限定実行器v7](official-execution-subset.md)は攻撃反撃181/184を加えた187モデル/重み374。資源/災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -94,6 +94,20 @@ v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含め
 
 204と231は主動作単独不可、setter66/83は普通の武器基底としても使える。反射はこの順序付き計算後のpayloadを維持し、原発MCを再課金・再取得しない。これらの公開計算・選択と、ローカル実行器のターン・補充・死亡順を同じ確定度として扱わない。
 
+## 攻撃反撃：一次で確認した範囲とv7規約
+
+原典の非災い反撃は181（火/75%/counterAtk）、184（土/counter2xAtk）、187（counterBoost2xMP）、188（counterTakeCP）の4種。全てcategory armor、通常ATK/DEF/MP0・価格10・giftRate1。v7はこのうち181/184の2種だけを追加し、資源反撃187/188は対象外にする。
+
+`fv`（12115–12143行）は181/184に受信attack.atk、187にattack.mp、188にattack.cpを動的表示として渡す。`gf3`（12293–12295行）は動的ATK>0ならincoming_is_attackを認めるが、187/188の非ATK payloadは認めない。反撃のcategoryをweaponsへ置換する処理は無く、`e1/ev` から181/184への普通属性防御/filter・190万能反射が適合し、武器/奇跡専用反応は適合しないことを確認できる。
+
+教典は181を「攻{ダメージ}」、184を「攻{ダメージ×2}」と説明する。`counterAttack` は指定indexの選択品を点滅させ、`nextAttack` はserverから受け取ったattackを表示する。実HP損失かraw残余か、被害0/死亡/反射/遮断時の生成、FIFOや命中抽選・死者skip・補充順を決めるコードではない。187のMPは現在targetへ加算するhandler、188のtakeCPは現在targetから先に全額請求し現在sourceへ同額加算するhandlerまで分かるが、187の対象方向を決めるserver処理は未確定である。
+
+v7は実HP減少>0かつ生存した防御者だけが、選択181/184の順で各1counterを生成する規約を採る。181は実HP減少1倍/火/75%、184は2倍/土/必中、生成powerは198以下。被害を与えた現在source一人へ向かい、counter生成者originを保つ。counter FIFOを次の初期chance対象より先に処理し、childcounterは末尾へ追加、開始時source/target死亡は無draw skipとする。181はsingle targetの開始時に1回命中抽選し、redirect後再抽選はしない。
+
+command末尾の自然終局→cutoffを優先し、元owner死亡なら残り初期chance対象を取消すが、既予約counterは生存条件を満たせば続ける。全action後だけalive補充/次ownerへ進む。これらのtrigger/実HP基準/順序/deathskip等は**公式server未検証の実験規約**で、公開 `counter_rule='experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-source-target;roll-before-response;redirects-no-reroll'` に明示する。
+
+全pending playを非再帰ActionBatchへ統一し、launch前state/RNG/counters/原発command+response journalから同じexecutorで完全再生して現在frame/FIFOまで比較する。将来FIFO/journal/RNGやnativecounter集計は公開viewへ出さない。旧版のraw残余×2・死者source実行・固定32等を現行の確定ルールとして移さない。
+
 ## 単純確率攻撃：確認範囲とv6の規約
 
 公式JSONでgiftRate>0・hitRate>0・ability noneの神器は21種/重み21。武器15種（95/96/99〜111）と奇跡6種（225〜230）で、全てgiftRate1、命中率は25/50/75。108は木ATK8・75%だけでなく通常DEF6を持つ。状態付与・吸収等の固有効果付き確率攻撃はこの21種に含めない。
@@ -106,7 +120,7 @@ v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含め
 
 v6はtarget無しのplayだけを受理し、launch時aliveの敵を入力順に固定する。自己と同非Soloチームを除き、処理時deadなら無draw skip、生存者へ有界100抽選1回の `roll < hit_rate` を適用する。miss応答無し、hitだけresponse、redirect再抽選無しとし、原発消費/MC費用/used保持は1回。自然終局→cutoffは受理コマンド末尾で判定し、自動miss/skipはdecisionを増やさない。launchは最初hitまたは全missまでdrain後に判定し、response完了後は未打切りの場合だけ次対象を抽選する。origin死亡なら残り取消、補充はbatch全完了後とする。これらは**公式server未確認の実験規約**で、top-level `chance_rule='experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death'` に明示する。
 
-`e1` はhitRateを条件にしないため、属性消去でNEになった命中済み確率武器には21/38/233がmatchingする。旧版の％武器への反射制限を流用しない。v6のrestoreはlaunch前state/RNG/counters/commandと受理response journalから内部executorを再生し、途中でHP/deadが変わるbatchも検査する。将来roster/cursor/anchor/journal/RNGは公開観測へ出さない。
+`e1` はhitRateを条件にしないため、属性消去でNEになった命中済み確率武器には21/38/233がmatchingする。旧版の％武器への反射制限を流用しない。このv6のchance専用restoreはv7で全pending play用ActionBatchへ統一し、launch前state/RNG/counters/commandと受理response journalから内部executorを再生して、途中でHP/deadが変わるbatchやcounterも検査する。将来roster/cursor/anchor/journal/RNGは公開観測へ出さない。
 
 ## 病気・閃光・暗雲
 
