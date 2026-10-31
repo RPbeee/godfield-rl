@@ -57,7 +57,7 @@ void metadata_and_profile() {
         check(threw, "defensive miracles require offensive profile and reflection semantics");
     }
     auto env = fixture({210,215}, {120});
-    check(std::string_view(env.profile()) == defensive_miracles_ruleset && env.snapshot().version == 35
+    check(std::string_view(env.profile()) == defensive_miracles_ruleset && env.snapshot().version == 36
         && env.state().players[0].abilities.size() == main_ability_capacity && env.state().players[0].defensive_abilities.size() == 2,
         "new profile/schema preserves old fifteen kinds and separate defensive pair");
     check(env.options().utility_slots == 0 && env.options().ability_slots == 0

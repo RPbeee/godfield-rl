@@ -58,10 +58,10 @@ MP台帳は追加ATK・倍化・全体化・57自身の最終消費を分け、�
 
 `Config::wide_miracles` はデフォルトfalseでadditive_miraclesを必要とする。doubling_miraclesは任意。
 `State::attack_composition.initial_wide` に合成開始時の保持数も記録し、復元時に列を再実行する。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`gt_*` は先頭945次元。v22では末尾372特徴が0。旧 `gq_*` は924、gp以前も従来の出力幅を維持する。
-v21では末尾393特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
+共通C++観測は1345次元、`gt_*` は先頭945次元。v22では末尾400特徴が0。旧 `gq_*` は924、gp以前も従来の出力幅を維持する。
+v21では末尾421特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
 
 | 位置 | 内容 |
 | --- | --- |

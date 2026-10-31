@@ -44,7 +44,7 @@ void metadata_minimum_and_rng() {
     for (CardId id : {CardId{0},CardId{241},CardId{245},CardId{249},CardId{65535}}) check(!find_item_removal_card(id), "no implicit mortar/creature/other utility inclusion");
     Config minimum; minimum.item_removal = true; auto empty = fixture({240},{120},minimum); draws(empty); ticket(empty,123);
     auto s = empty.snapshot(); s.state.players[0].mp = 0; check(empty.restore(s), "minimum configuration allows0MP use"); const auto before = empty.snapshot();
-    check(std::string_view(empty.profile()) == item_removal_ruleset && empty.snapshot().version == 35
+    check(std::string_view(empty.profile()) == item_removal_ruleset && empty.snapshot().version == 36
         && empty.options().item_removal_slots == 1 && empty.options().utility_slots == 1
         && empty.options().discard_slots == 1 && empty.options().pray, "independent gate exposes utility/discard without weapon/MP restrictions");
     const auto result = empty.step(use(0));

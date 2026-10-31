@@ -49,7 +49,7 @@ void metadata_roles_learning_and_masks() {
         && find_doubling_miracle(214)->element == Element::neutral && !find_doubling_miracle(209),
         "214 is the single neutral6MP modifier catalog");
     auto env = fixture({5,214}, {120},12);
-    check(std::string_view(env.profile()) == doubling_miracles_ruleset && env.snapshot().version == 35
+    check(std::string_view(env.profile()) == doubling_miracles_ruleset && env.snapshot().version == 36
         && env.options().doubling_slots == 2 && !env.options().doubling_ability_slots
         && !(env.options().utility_slots & 2) && !(env.options().boost_slots & 2),
         "214 is a modifier-only hand role, not standalone utility or free boost");

@@ -55,7 +55,7 @@ void metadata_and_all_weapon_attributes() {
     for (CardId id : {CardId{0},CardId{39},CardId{40},CardId{195},CardId{210},CardId{65535}})
         check(!find_any_reflection_card(id), "no fallback to category-specific or removal effects");
     auto main = fixture({196}, {120});
-    check(std::string_view(main.profile()) == any_reflection_ruleset && main.snapshot().version == 35
+    check(std::string_view(main.profile()) == any_reflection_ruleset && main.snapshot().version == 36
         && main.options().discard_slots == 1 && !main.options().weapon_bases && !main.options().utility_slots,
         "new profile/schema and discard-only main role"); reject(main,use());
     for (CardId id : {CardId{5},CardId{58},CardId{59},CardId{60},CardId{69},CardId{62},CardId{63},CardId{100}}) {

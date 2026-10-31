@@ -66,10 +66,10 @@ CLIの `additive-miracles` と `gp_*` は全拡張を有効にし、197種・旧
 `Config::additive_miracles` はデフォルトfalseで、miraclesとcelestialを必要とする。
 `State::attack_composition` に基底ID・開始MP・順序付きID・保持由来mask・開始保持数を記録し、復元時に合成を再実行する。
 元所有者と現在source、元item type、費用・学習・保持由来を、反射・counter派生と区別する。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`gp_*` は先頭903次元。v20では末尾414特徴が0。旧 `gw_*` は先頭750、gv以前も従来の幅を維持する。
-v19では末尾567特徴が0。相手の未使用手札、非公開の保持数、未来の抽選・乱数状態・fixture prefixは含めない。
+共通C++観測は1345次元、`gp_*` は先頭903次元。v20では末尾442特徴が0。旧 `gw_*` は先頭750、gv以前も従来の幅を維持する。
+v19では末尾595特徴が0。相手の未使用手札、非公開の保持数、未来の抽選・乱数状態・fixture prefixは含めない。
 表示済み攻撃の合成記録は、反射後も公開済みの来歴として返す。
 
 | 位置 | 内容 |

@@ -58,7 +58,7 @@ void metadata_standalone_and_local_masks() {
         check(card.id == (i ? 217 : 197) && card.amount == (i ? 10 : 2) && card.cost == (i ? 7 : 2)
             && card.weight == 1 && card.element == (i ? Element::light : Element::fire), "exact additive data");
         auto env = fixture({card.id}, {196}); gifts(env);
-        check(std::string_view(env.profile()) == additive_miracles_ruleset && env.snapshot().version == 35
+        check(std::string_view(env.profile()) == additive_miracles_ruleset && env.snapshot().version == 36
             && env.options().additive_slots == 1 && !env.options().boost_slots && !env.options().additive_ability_slots,
             "new hand/additional ability masks stay separate from ordinary boost and old main masks");
         check(env.observe()[750] == 1.f && env.observe()[751] == (i+1)/2.f,

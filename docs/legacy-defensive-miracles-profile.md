@@ -76,7 +76,7 @@ env.reset(42);
 新しい `Player::defensive_abilities[2]` と `Options::defensive_ability_slots` はlocal index順。
 手札の防御奇跡は既存のreaction_slotsに含める。
 defense_slotsには210のprefix用の不適合防具も含み得るので、maskから構成した行動は `legal()` で検証する。
-Snapshotの共通versionは35。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshotの共通versionは36。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
 
 `StepResult::defensive_first_use/defensive_recast/magic_bounced/weapon_blocked` を追加。
 既存spell_first_use/recastは防御を含む全17種の使用を表す。
@@ -84,8 +84,8 @@ Snapshotの共通versionは35。同じビルド・設定のfixture用で、旧�
 遮断のLastReactionはID215・kind=block・source=target=防御者とする。
 これは本C++環境の公開イベント表現で、元の攻撃のsource/targetを遮断で入れ替える規則ではない。
 
-共通C++観測は1317次元、`gb_*` ABI 10は先頭356次元を返す。
-v10では末尾961個が0になる。追加部分は[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭334個は[攻撃奇跡profile](legacy-offensive-miracles-profile.md)を継承する。
+共通C++観測は1345次元、`gb_*` ABI 10は先頭356次元を返す。
+v10では末尾989個が0になる。追加部分は[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭334個は[攻撃奇跡profile](legacy-offensive-miracles-profile.md)を継承する。
 
 | 位置 | 内容 |
 | --- | --- |

@@ -48,7 +48,7 @@ void metadata_minimum_and_all_physical_products() {
         && sale_price(245) == 0 && sale_price(216) == 15 && sale_price(220) == 25 && sale_price(221) == 15
         && sale_price(4) == -1 && sale_price(65535) == -1 && !find_selling_card(4), "complete separate price metadata distinguishes zero from unsupported BUY4");
     Config minimum; minimum.selling = true; auto env = fixture({3,56},{120},minimum); draws(env);
-    check(std::string_view(env.profile()) == selling_ruleset && env.snapshot().version == 35 && env.options().sell_slots == 1
+    check(std::string_view(env.profile()) == selling_ruleset && env.snapshot().version == 36 && env.options().sell_slots == 1
         && env.options().sale_item_slots == 3 && env.options().discard_slots == 1 && !env.options().utility_slots,
         "minimum SELL profile exposes base/product masks without unrelated dependencies");
     const auto used = env.step(sell()); check(used.sale_used && !used.sale_resolved && env.state().pending.kind == Effect::sell

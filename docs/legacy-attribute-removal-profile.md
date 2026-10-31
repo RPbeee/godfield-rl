@@ -67,15 +67,15 @@ trueなら現在属性は必ずNE。元のmiracle・hit_rate・attribute_card・
 未解決snapshotでは原子的なprefix＋特殊を経ているので、連鎖回数1以上・総配布予定が連鎖回数+2以上を要求する。
 `StepResult::attribute_removed/attribute_removals/removed_from` は当該応答での使用有無・枚数・最初の消去前属性を返す。
 既NEへの使用も使用数へ含める。
-Snapshotの共通versionは35。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshotの共通versionは36。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
 
 `Options::removal_slots` は使用可能な195の手札位置mask。
 195所持時は、組み合わせ次第で使える不適合防具・反射・遮断も候補へ含める。
 maskだけで合法性を判断せず、構成したActionを `legal()` で検証する。
 ランダム方策も必要な195を実際に選び、Gloryの枚数制限を守る。
 
-共通C++観測は1317次元、`gn_*` ABI 12は先頭393次元を返す。
-v12では末尾924個が0になる。追加部分は[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭375個は[属性付け替えprofile](legacy-attribute-change-profile.md)を継承する。
+共通C++観測は1345次元、`gn_*` ABI 12は先頭393次元を返す。
+v12では末尾952個が0になる。追加部分は[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭375個は[属性付け替えprofile](legacy-attribute-change-profile.md)を継承する。
 
 | 位置 | 内容 |
 | --- | --- |

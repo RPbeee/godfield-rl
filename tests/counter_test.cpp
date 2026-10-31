@@ -53,7 +53,7 @@ void metadata_and_profile() {
     for (CardId id : {CardId{0},CardId{184},CardId{185},CardId{187},CardId{188},CardId{189},CardId{191},CardId{192},CardId{194},CardId{65535}})
         check(!find_counter_card(id), "other seven counter types and unknown IDs excluded");
     auto env = fixture({190}, {120});
-    check(std::string_view(env.profile()) == counter_ruleset && env.snapshot().version == 35
+    check(std::string_view(env.profile()) == counter_ruleset && env.snapshot().version == 36
         && counter_queue_capacity == 32 && counter_damage_limit == (std::int64_t{480}<<32),
         "counter profile, schema and mathematically derived capacity/bound");
     check(env.options().weapon_bases == 0 && env.options().discard_slots == 1 && !env.state().players[0].dead,

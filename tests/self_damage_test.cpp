@@ -45,7 +45,7 @@ void metadata_minimum_zero_and_clipping() {
     for (CardId id : {CardId{0},CardId{26},CardId{42},CardId{57},CardId{221},CardId{65535}}) check(!find_self_damage_card(id), "no implicit absorption/MAGICAL or other inclusion");
     Config minimum; minimum.self_damage = true; auto env = fixture({53},{145},minimum); auto s = env.snapshot(); s.state.players[0].mp = 0;
     check(env.restore(s), "restore minimum independent0MP weapon"); draws(env);
-    check(std::string_view(env.profile()) == self_damage_ruleset && env.snapshot().version == 35 && env.options().self_damage_slots == 1
+    check(std::string_view(env.profile()) == self_damage_ruleset && env.snapshot().version == 36 && env.options().self_damage_slots == 1
         && env.options().weapon_bases == 1 && !env.options().utility_slots && !env.options().boost_slots
         && !env.options().discard_slots && !env.options().pray, "minimum profile needs no dependencies and retains WEAPON/prayer roles");
     reject(env,{ActionKind::use,0,0,1}); reject(env,{ActionKind::discard,no_slot,1,no_slot});

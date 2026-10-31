@@ -81,7 +81,7 @@ counter起動 = 外部効果解決 + 自動解決 + 死亡先返却取消 + curr
 counterの生成は両者の手札消費以内なので、queue32枠とint64の威力上限を維持する。
 反射そのものは倍率を増やさない。新しいcounter予約だけが既存の威力倍率を適用する。
 
-Snapshot共通versionは35。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshot共通versionは36。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
 未起動queueはsource=originのまま、current counterはoriginと反射回数の偶奇からsourceを検証する。
 currentの187命中記録は現在sourceでなく、起動時のorigin/元targetと照合する。
 current193を復元可能にはしない。
@@ -92,7 +92,7 @@ counterの消費予算をoriginへ課金し、現在項目の196使用枚数を�
 
 ## 観測・API
 
-共通C++観測は1317次元、gu出力は先頭713次元。v17では末尾604特徴が0。gzは先頭696、gy以前も従来の幅を維持する。
+共通C++観測は1345次元、gu出力は先頭713次元。v17では末尾632特徴が0。gzは先頭696、gy以前も従来の幅を維持する。
 既存の反応履歴、反射回数、current counterのorigin、命中記録の位置を維持する。
 
 | 位置 | 内容 |

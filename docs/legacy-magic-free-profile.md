@@ -84,10 +84,10 @@ FREE無効の旧profileでは従来の上限49を維持する。これは旧serv
 `AttackComposition` は65番目のIDと `held_tail` を追加し、先頭64件の保持maskはuint64のままにする。
 `FreeCastComposition` に元奇跡・開始MP・保持由来・FREE16件の列を記録する。
 Pending/LastReactionにもFREE来歴を持ち、復元時に順序と免除・消費を再検証する。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`gi_*` は先頭993次元。v23では末尾324特徴が0。旧 `gt_*` は945、gq以前も従来の出力幅を維持する。
-v22では末尾372特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
+共通C++観測は1345次元、`gi_*` は先頭993次元。v23では末尾352特徴が0。旧 `gt_*` は945、gq以前も従来の出力幅を維持する。
+v22では末尾400特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
 
 | 位置 | 内容 |
 | --- | --- |

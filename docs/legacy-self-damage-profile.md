@@ -53,10 +53,10 @@ prefix消費・病気・195の属性消去は残し、特殊反応時の普通DE
 最小構成でも両HP0を勝者なし終局として認める。deadの確定追跡は従来どおりcountersまたはrevival有効時に行う。
 台帳は `SelfDamageCard{Card card;}`、local0=53。保持配列や奇跡indexを増やさない。
 `Pending::self_damage_card` は元53の来歴、`LastSelfDamage` は現在source/target・r・両実損失を表す。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`g29_*` は先頭1135次元。v29では末尾182特徴が0。旧 `g28_*` は1110、g27以前も従来の出力幅を維持する。
-v28では末尾207特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
+共通C++観測は1345次元、`g29_*` は先頭1135次元。v29では末尾210特徴が0。旧 `g28_*` は1110、g27以前も従来の出力幅を維持する。
+v28では末尾235特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
 
 | 位置 | 内容 |
 | --- | --- |

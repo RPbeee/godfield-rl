@@ -77,13 +77,13 @@ godfield::legacy::Env elements_only({512, 10, false, true});
 手札容量・資源・通常手番・消費と配布の処理は既存の旧版profileを引き継ぐ。
 
 `Pending::element` に未解決攻撃の属性を保持する。回復・所持金増加等では無属性に限る。
-Snapshotの共通形式は反撃拡張後のversion35。異なるprofile・古い形式・未対応ID・不正な属性enumを拒否する。
+Snapshotの共通形式は反撃拡張後のversion36。異なるprofile・古い形式・未対応ID・不正な属性enumを拒否する。
 属性無効のprofileへ、同じ設定を装って色付き神器や攻撃を入れることも拒否する。
 
 ## 観測とABI
 
-C++の `Env::observe()` は反撃拡張後の1317次元で、`ge_*` ABI v3は先頭186次元を返す。
-この属性profileでは末尾1131個は0。定義は[確率profile](legacy-chance-profile.md)、
+C++の `Env::observe()` は反撃拡張後の1345次元で、`ge_*` ABI v3は先頭186次元を返す。
+この属性profileでは末尾1159個は0。定義は[確率profile](legacy-chance-profile.md)、
 [反応profile](legacy-reflection-profile.md)、[病気profile](legacy-disease-profile.md)、[harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
 既存 `gl_*` は128次元、`gm_*` は164次元の出力を維持する。
 先頭の既存特徴を移動せず、末尾に属性情報を追加した。

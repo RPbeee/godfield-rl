@@ -99,6 +99,7 @@ struct alignas(64) Stats {
     std::array<std::uint64_t, 6> magic_card_bounces_by_id{};
     std::uint64_t sundry_boost_attacks = 0, sundry_boost_cards_used = 0, sundry_boost_plain_attacks = 0, sundry_boost_ordered_attacks = 0, sundry_boost_mana_attacks = 0, sundry_boost_mana_resets = 0, sundry_boost_resets_after_boost = 0, sundry_boost_double_attacks = 0, sundry_boost_wide_attacks = 0, sundry_boost_reaction_steps = 0, sundry_boost_counters_queued = 0, sundry_boost_discarded_cards = 0, sundry_boost_sold_cards = 0, sundry_boost_bought_cards = 0, sundry_boost_removed_cards = 0, sundry_boost_raw_max = 0, sundry_boost_raw_checked = 0, sundry_boost_self_attacks = 0;
     std::array<std::uint64_t, 7> sundry_boost_elements{};
+    std::uint64_t status_first_uses = 0, status_recasts = 0, status_mp_spent = 0, status_learned = 0, status_casts = 0, status_resolutions = 0, status_self_resolutions = 0, status_lower_cures = 0, status_all_cures = 0, status_dark_cloud_applications = 0, status_cold_applications = 0, status_heaven_applications = 0, status_heaven_falls = 0, status_disease_changes = 0, status_diseases_removed = 0, status_glory_cleared = 0, status_dark_cloud_cleared = 0, status_dark_cloud_new = 0, status_hp_lost = 0, status_free_uses = 0, status_reflections = 0, status_bounces = 0, status_blocks = 0, status_held_resolutions = 0, forgetting_status_miracles = 0, status_retained_inventory = 0, sold_status_miracles = 0, bought_status_miracles = 0, removed_status_miracles = 0;
     std::uint64_t checksum = 0;
     std::exception_ptr error;
 };
@@ -200,11 +201,14 @@ struct SpellView {
     godfield::legacy::Effect effect = godfield::legacy::Effect::none;
     godfield::legacy::Element element = godfield::legacy::Element::neutral;
     int amount = 0, cost = 0, hit_rate = 0;
-    bool defensive = false, additive = false, hp_absorption = false;
+    bool defensive = false, additive = false, hp_absorption = false, status = false;
 };
 
 SpellView spell_view(godfield::legacy::CardId id) noexcept {
     using namespace godfield::legacy;
+    if (const auto* status = find_status_miracle(id))
+        return {id, status_miracle_index(id), Effect::status, status->element,
+                0, status->cost, 0, false, false, false, true};
     if (const auto* absorption = find_hp_absorption_miracle(id))
         return {id, hp_absorption_ability_index, Effect::damage, absorption->element,
                 absorption->amount, absorption->cost, 0, false, false, true};
@@ -232,6 +236,7 @@ godfield::legacy::CardId spell_id_at(int index) noexcept {
 
 std::uint64_t retained_count(const godfield::legacy::Player& player, godfield::legacy::CardId id) noexcept {
     using namespace godfield::legacy;
+    if (const auto index = status_miracle_index(id); index >= 0) return player.status_abilities[index];
     if (find_hp_absorption_miracle(id)) return player.abilities[hp_absorption_ability_index];
     if (const auto index = miracle_index(id); index >= 0) return player.abilities[index];
     if (const auto index = offensive_miracle_index(id); index >= 0) return player.abilities[miracle_count + index];
@@ -241,7 +246,8 @@ std::uint64_t retained_count(const godfield::legacy::Player& player, godfield::l
     if (wide_miracle_index(id) >= 0) return player.wide_ability;
     return 0;
 }
-std::span<const godfield::legacy::CardId> retained_ids(bool absorption) noexcept {
+std::span<const godfield::legacy::CardId> retained_ids(bool absorption, bool status) noexcept {
+    if (status) return godfield::legacy::status_retained_type_ids;
     if (absorption) return godfield::legacy::hp_absorption_retained_type_ids;
     return godfield::legacy::retained_type_ids;
 }
@@ -261,15 +267,15 @@ int main(int argc, char** argv) {
         const std::uint64_t threads = argc > 2 ? number(argv[2]) : 1;
         const std::uint64_t seed = argc > 3 ? number(argv[3]) : 42;
         const std::string_view selected_profile = argc > 4 ? argv[4] : "neutral";
-        constexpr std::array<std::string_view, 35> profiles{
-            "neutral", "miracles", "elements", "chance", "reflection", "disease", "harms", "celestial", "offensive-miracles", "defensive-miracles", "attribute-change", "attribute-removal", "counter", "counter-extensions", "money-counter", "magic-reflection", "any-reflection", "mana-weapon", "magic-block", "additive-miracles", "doubling-miracles", "wide-miracles", "magic-free", "forgetting", "exchange", "revival", "item-removal", "hp-absorption", "self-damage", "pestle-mortar", "selling", "buying", "hp-gamble", "magic-bounce", "sundry-boost"};
+        constexpr std::array<std::string_view, 36> profiles{
+            "neutral", "miracles", "elements", "chance", "reflection", "disease", "harms", "celestial", "offensive-miracles", "defensive-miracles", "attribute-change", "attribute-removal", "counter", "counter-extensions", "money-counter", "magic-reflection", "any-reflection", "mana-weapon", "magic-block", "additive-miracles", "doubling-miracles", "wide-miracles", "magic-free", "forgetting", "exchange", "revival", "item-removal", "hp-absorption", "self-damage", "pestle-mortar", "selling", "buying", "hp-gamble", "magic-bounce", "sundry-boost", "status-miracles"};
         const auto position = std::find(profiles.begin(), profiles.end(), selected_profile);
         if (position == profiles.end())
-            throw std::invalid_argument("profile must be neutral, miracles, elements, chance, reflection, disease, harms, celestial, offensive-miracles, defensive-miracles, attribute-change, attribute-removal, counter, counter-extensions, money-counter, magic-reflection, any-reflection, mana-weapon, magic-block, additive-miracles, doubling-miracles, wide-miracles, magic-free, forgetting, exchange, revival, item-removal, hp-absorption, self-damage, pestle-mortar, selling, buying, hp-gamble, magic-bounce, or sundry-boost");
+            throw std::invalid_argument("profile must be neutral, miracles, elements, chance, reflection, disease, harms, celestial, offensive-miracles, defensive-miracles, attribute-change, attribute-removal, counter, counter-extensions, money-counter, magic-reflection, any-reflection, mana-weapon, magic-block, additive-miracles, doubling-miracles, wide-miracles, magic-free, forgetting, exchange, revival, item-removal, hp-absorption, self-damage, pestle-mortar, selling, buying, hp-gamble, magic-bounce, sundry-boost, or status-miracles");
         const auto level = position - profiles.begin();
         const godfield::legacy::Config config{512, 10, level >= 1, level >= 2,
-            level >= 3, level >= 4, level >= 5, level >= 6, level >= 7, level >= 8, level >= 9, level >= 10, level >= 11, level >= 12, level >= 13, level >= 14, level >= 15, level >= 16, level >= 17, level >= 18, level >= 19, level >= 20, level >= 21, level >= 22, level >= 23, level >= 24, level >= 25, level >= 26, level >= 27, level >= 28, level >= 29, level >= 30, level >= 31, level >= 32, level >= 33, level >= 34};
-        const auto retained_order = retained_ids(config.hp_absorption);
+            level >= 3, level >= 4, level >= 5, level >= 6, level >= 7, level >= 8, level >= 9, level >= 10, level >= 11, level >= 12, level >= 13, level >= 14, level >= 15, level >= 16, level >= 17, level >= 18, level >= 19, level >= 20, level >= 21, level >= 22, level >= 23, level >= 24, level >= 25, level >= 26, level >= 27, level >= 28, level >= 29, level >= 30, level >= 31, level >= 32, level >= 33, level >= 34, level >= 35};
+        const auto retained_order = retained_ids(config.hp_absorption, config.status_miracles);
         const std::string_view ruleset_name = godfield::legacy::Env(config).profile();
         int catalog_weight = 0;
         for (const auto& card : godfield::legacy::catalog()) catalog_weight += card.weight;
@@ -313,7 +319,9 @@ int main(int argc, char** argv) {
         if (config.hp_gamble) for (const auto& card : godfield::legacy::hp_gamble_catalog()) catalog_weight += card.card.weight;
         if (config.magic_bounce) for (const auto& card : godfield::legacy::magic_bounce_catalog()) catalog_weight += card.card.weight;
         if (config.sundry_boost) for (const auto& card : godfield::legacy::sundry_boost_catalog()) catalog_weight += card.card.weight;
+        if (config.status_miracles) for (const auto& card : godfield::legacy::status_miracles()) catalog_weight += card.weight;
         const auto trade_price = [&config](godfield::legacy::CardId id) noexcept {
+            if (config.status_miracles) if (const auto* card = godfield::legacy::find_status_miracle(id)) return card->price;
             if (config.sundry_boost) if (const auto* card = godfield::legacy::find_sundry_boost_card(id)) return card->card.price;
             if (config.magic_bounce) if (const auto* card = godfield::legacy::find_magic_bounce_card(id)) return card->card.price;
             if (config.hp_gamble) if (const auto* card = godfield::legacy::find_hp_gamble_card(id)) return card->card.price;
@@ -372,7 +380,7 @@ int main(int argc, char** argv) {
                         std::array<float, 2> terminal_rewards{};
                         const auto learned_at_start = output.miracle_first_uses;
                         const auto forgotten_at_start = output.forgetting_removed;
-                        std::uint64_t forgetting_digest = 0, exchange_digest = 0, revival_digest = 0, item_removal_digest = 0, hp_absorption_digest = 0, self_damage_digest = 0, pestle_digest = 0, sale_digest = 0, buy_digest = 0, hp_gamble_digest = 0, magic_card_bounce_digest = 0, sundry_boost_digest = 0;
+                        std::uint64_t forgetting_digest = 0, exchange_digest = 0, revival_digest = 0, item_removal_digest = 0, hp_absorption_digest = 0, self_damage_digest = 0, pestle_digest = 0, sale_digest = 0, buy_digest = 0, hp_gamble_digest = 0, magic_card_bounce_digest = 0, sundry_boost_digest = 0, status_digest = 0;
                         bool sundry_boost_pending = false;
                         std::uint64_t counter_order_digest = 0;
                         std::uint64_t magic_reflection_digest = 0, game_magic_reflections = 0;
@@ -469,7 +477,7 @@ int main(int argc, char** argv) {
                             const auto incoming_forget = before.pending.forget_card;
                             const auto forget_source = incoming_forget ? before.pending.source : actor;
                             const auto forget_target = incoming_forget ? before.pending.target : action.target;
-                            std::array<std::uint64_t, godfield::legacy::hp_absorption_retained_type_ids.size()> forget_counts_before{};
+                            std::array<std::uint64_t, godfield::legacy::status_retained_type_ids.size()> forget_counts_before{};
                             if ((incoming_forget || forget_use) && forget_target < 2)
                                 for (std::size_t i = 0; i < retained_order.size(); ++i)
                                     forget_counts_before[i] = retained_count(before.players[forget_target], retained_order[i]);
@@ -533,15 +541,19 @@ int main(int argc, char** argv) {
                             }
                             const bool additive_recast = action.kind == godfield::legacy::ActionKind::cast_additive;
                             const bool defensive_recast = action.kind == godfield::legacy::ActionKind::defend_cast;
+                            const bool status_recast = action.kind == godfield::legacy::ActionKind::cast_status;
                             const bool free_cast_held = free_cast_action && action.base >= 16;
                             const bool recast = action.kind == godfield::legacy::ActionKind::cast || defensive_recast
-                                || additive_recast || free_cast_held || ordered_defensive_held;
+                                || additive_recast || status_recast || free_cast_held || ordered_defensive_held;
                             const auto free_cast_id = !free_cast_action ? 0
                                 : action.base < player.hand_count ? player.hand[action.base]
                                 : action.base == 16 || action.base == 17 ? godfield::legacy::additive_miracles()[action.base - 16].id
+                                : action.base >= 48 && action.base < 48 + godfield::legacy::status_miracle_count
+                                    ? godfield::legacy::status_miracles()[action.base - 48].id
                                 : action.base >= 32 ? spell_id_at(action.base - 32) : 0;
                             const auto used_miracle = spell_view(free_cast_action ? free_cast_id
                                 : ordered_defense ? ordered_defensive_id
+                                : status_recast ? godfield::legacy::status_miracles()[action.base].id
                                 : additive_recast ? godfield::legacy::additive_miracles()[action.base].id
                                 : defensive_recast ? godfield::legacy::defensive_miracles()[action.base].id
                                 : recast ? spell_id_at(action.base)
@@ -552,7 +564,8 @@ int main(int argc, char** argv) {
                             const bool offensive_cast = damage_cast && !used_miracle.additive && !used_miracle.hp_absorption;
                             const int mana_before = player.mp;
                             const int ability_slot = used_miracle.index;
-                            const auto known_before = ability_slot < 0 || used_miracle.additive ? 0 : used_miracle.defensive
+                            const auto known_before = ability_slot < 0 || used_miracle.additive ? 0 : used_miracle.status
+                                ? player.status_abilities[ability_slot] : used_miracle.defensive
                                 ? player.defensive_abilities[ability_slot] : player.abilities[ability_slot];
                             const auto wide_known_before = player.wide_ability;
                             const auto doubling_known_before = player.doubling_ability;
@@ -566,6 +579,7 @@ int main(int argc, char** argv) {
                             const auto incoming_element = before.pending.element;
                             const auto incoming_miracle = before.pending.miracle;
                             const auto incoming_magic_free = before.pending.free_card;
+                            const auto* incoming_status = godfield::legacy::find_status_miracle(incoming_miracle);
                             const auto incoming_absorption = before.pending.hp_absorption_card;
                             const auto incoming_self_damage = before.pending.self_damage_card;
                             const auto incoming_pestle = before.pending.pestle_card;
@@ -726,6 +740,9 @@ int main(int argc, char** argv) {
                                 if (replayed_mana_left < 0 || replayed_boost_raw < 0)
                                     throw std::runtime_error("invalid replayed SUNDRY boost resource state");
                             }
+                            const auto status_before = before.players;
+                            std::uint64_t status_known_before = 0;
+                            if (config.status_miracles) for (const auto count : player.status_abilities) status_known_before += count;
                             const auto result = env.step(action);
                             if (!result.valid)
                                 throw std::runtime_error("sample_action generated an illegal action");
@@ -951,6 +968,7 @@ int main(int argc, char** argv) {
                                 output.forgetting_doubling += godfield::legacy::find_doubling_miracle(result.forgotten_miracle) != nullptr;
                                 output.forgetting_wide += godfield::legacy::find_wide_miracle(result.forgotten_miracle) != nullptr;
                                 output.forgetting_hp_absorption += godfield::legacy::find_hp_absorption_miracle(result.forgotten_miracle) != nullptr;
+                                output.forgetting_status_miracles += godfield::legacy::find_status_miracle(result.forgotten_miracle) != nullptr;
                             }
                             if (config.forgetting && (forget_use || incoming_forget)) {
                                 forgetting_digest = mix(forgetting_digest ^ after.decisions
@@ -987,6 +1005,7 @@ int main(int argc, char** argv) {
                                 output.item_removed_revivals += godfield::legacy::find_revival_card(result.removed_item) != nullptr;
                                 output.item_removed_mortars += godfield::legacy::find_mortar_card(result.removed_item) != nullptr;
                                 output.sundry_boost_removed_cards += godfield::legacy::find_sundry_boost_card(result.removed_item) != nullptr;
+                                output.removed_status_miracles += godfield::legacy::find_status_miracle(result.removed_item) != nullptr;
                             }
                             if (config.item_removal && (item_removal_use || incoming_item_removal)) {
                                 item_removal_digest = mix(item_removal_digest ^ after.decisions
@@ -1174,6 +1193,7 @@ int main(int argc, char** argv) {
                                 output.sold_hp_gambles += godfield::legacy::find_hp_gamble_card(sold_item) != nullptr;
                                 output.sold_magic_bounce_cards += godfield::legacy::find_magic_bounce_card(sold_item) != nullptr;
                                 output.sundry_boost_sold_cards += godfield::legacy::find_sundry_boost_card(sold_item) != nullptr;
+                                output.sold_status_miracles += godfield::legacy::find_status_miracle(sold_item) != nullptr;
                                 output.sale_delivered += result.sale_delivered;
                                 output.sale_delivery_failures += !result.sale_delivered;
                                 output.sale_self_resolutions += sale_source == sale_target;
@@ -1267,6 +1287,7 @@ int main(int argc, char** argv) {
                                     output.bought_hp_gambles += godfield::legacy::find_hp_gamble_card(result.buy_item) != nullptr;
                                     output.bought_magic_bounce_cards += godfield::legacy::find_magic_bounce_card(result.buy_item) != nullptr;
                                     output.sundry_boost_bought_cards += godfield::legacy::find_sundry_boost_card(result.buy_item) != nullptr;
+                                    output.bought_status_miracles += godfield::legacy::find_status_miracle(result.buy_item) != nullptr;
                                     output.buy_delivered += result.buy_delivered;
                                     output.buy_delivery_failures += !result.buy_delivered;
                                     output.buy_money_spent += result.buy_money_lost;
@@ -1420,6 +1441,108 @@ int main(int argc, char** argv) {
                             if (weapon_attack || incoming_sundry_boost)
                                 sundry_boost_pending = (selected_sundry_boosts || incoming_sundry_boost)
                                     && after.phase == godfield::legacy::Phase::response && !after.pending.counter_card;
+                            std::uint64_t status_known_after = 0;
+                            if (config.status_miracles) for (const auto count : after.players[actor].status_abilities) status_known_after += count;
+                            const auto status_lost = actor_forgot && godfield::legacy::find_status_miracle(result.forgotten_miracle) ? 1u : 0u;
+                            if (result.status_first_use != (used_miracle.status && !recast)
+                                || result.status_recast != (used_miracle.status && recast)
+                                || status_known_after + status_lost < status_known_before
+                                || status_known_after + status_lost - status_known_before != result.status_first_use)
+                                throw std::runtime_error("status miracle learning or cast index mismatch");
+                            output.status_first_uses += result.status_first_use;
+                            output.status_recasts += result.status_recast;
+                            output.status_casts += result.status_first_use || result.status_recast;
+                            output.status_free_uses += used_miracle.status && free_cast_action;
+                            output.status_reflections += incoming_status && result.reflected;
+                            output.status_bounces += incoming_status && result.magic_bounced;
+                            output.status_blocks += incoming_status && result.magic_blocked;
+                            const bool expected_status_resolution = (used_miracle.status && action.target == actor)
+                                || (incoming_status && !result.reflected && !result.magic_blocked && (!result.magic_bounced || result.bounce_self));
+                            if (result.status_resolved != expected_status_resolution)
+                                throw std::runtime_error("status miracle resolution classification mismatch");
+                            if (result.status_resolved) {
+                                const auto* status = godfield::legacy::find_status_miracle(result.status_miracle_card);
+                                const auto target = incoming_status ? incoming_money_target : action.target;
+                                const auto source = result.bounce_self ? actor : incoming_status ? incoming_money_source : actor;
+                                if (!config.status_miracles || !status || result.status_target != target || result.status_source != source
+                                    || status->id != (incoming_status ? incoming_status->id : used_miracle.id) || target > 1 || source > 1)
+                                    throw std::runtime_error("status miracle current endpoints mismatch");
+                                auto disease = status_before[target].disease;
+                                int worse = status_before[target].worse_chance, hp = status_before[target].hp;
+                                bool glory = status_before[target].glory, cloud = status_before[target].dark_cloud;
+                                // Ordinary prefix disease effects happen before a
+                                // reflected/self-bounced MAGIC resolves. Replay them
+                                // separately from the new pure status effect.
+                                if (incoming_status) for (int slot = 0; slot < status_before[actor].hand_count; ++slot) {
+                                    if (!(response_slots & (1u << slot))) continue;
+                                    const auto* prefix = godfield::legacy::find_disease_card(status_before[actor].hand[slot]);
+                                    if (!prefix || !prefix->on_defense) continue;
+                                    if (disease == godfield::legacy::Disease::heaven) hp = 0;
+                                    else if (disease == godfield::legacy::Disease::none) disease = prefix->disease;
+                                    else disease = static_cast<godfield::legacy::Disease>(std::max(static_cast<int>(prefix->disease), static_cast<int>(disease) + 1));
+                                    worse = 0;
+                                }
+                                const auto previous_disease = disease;
+                                const bool previous_glory = glory, previous_cloud = cloud;
+                                const bool heaven_fall = disease == godfield::legacy::Disease::heaven
+                                    && (status->disease != godfield::legacy::Disease::none || status->harm != godfield::legacy::Harm::none);
+                                if (status->cure != godfield::legacy::Cure::none) {
+                                    glory = false;
+                                    if (status->cure == godfield::legacy::Cure::all) cloud = false;
+                                    if (status->cure == godfield::legacy::Cure::all
+                                        || disease == godfield::legacy::Disease::cold || disease == godfield::legacy::Disease::fever) {
+                                        disease = godfield::legacy::Disease::none; worse = 0;
+                                    }
+                                } else if (heaven_fall) {
+                                    output.status_hp_lost += hp;
+                                    hp = 0; worse = 0;
+                                } else if (status->disease != godfield::legacy::Disease::none) {
+                                    disease = disease == godfield::legacy::Disease::none ? status->disease
+                                        : static_cast<godfield::legacy::Disease>(std::max(static_cast<int>(status->disease), static_cast<int>(disease) + 1));
+                                    worse = 0;
+                                } else cloud = true;
+                                ++output.status_resolutions;
+                                output.status_self_resolutions += source == target;
+                                output.status_lower_cures += status->cure == godfield::legacy::Cure::lower;
+                                output.status_all_cures += status->cure == godfield::legacy::Cure::all;
+                                output.status_dark_cloud_applications += status->harm == godfield::legacy::Harm::dark_cloud;
+                                output.status_cold_applications += status->disease == godfield::legacy::Disease::cold;
+                                output.status_heaven_applications += status->disease == godfield::legacy::Disease::heaven;
+                                output.status_heaven_falls += heaven_fall;
+                                output.status_disease_changes += disease != previous_disease;
+                                output.status_diseases_removed += previous_disease != godfield::legacy::Disease::none && disease == godfield::legacy::Disease::none;
+                                output.status_glory_cleared += previous_glory && !glory;
+                                output.status_dark_cloud_cleared += previous_cloud && !cloud;
+                                output.status_dark_cloud_new += !previous_cloud && cloud;
+                                output.status_held_resolutions += incoming_status ? incoming_from_ability : recast;
+                                auto final_disease = disease;
+                                if (result.disease_tick && after.last_tick.seat == target) {
+                                    if (after.last_tick.before != disease)
+                                        throw std::runtime_error("status effect was not applied before owner disease tick");
+                                    final_disease = after.last_tick.after;
+                                    worse = result.disease_worsened ? 0 : worse + 1;
+                                    hp += result.disease_healing - result.disease_damage;
+                                }
+                                hp += 10 * result.revivals[target];
+                                if (after.players[target].disease != final_disease || after.players[target].worse_chance != worse
+                                    || after.players[target].glory != glory || after.players[target].dark_cloud != cloud || after.players[target].hp != hp)
+                                    throw std::runtime_error("status effect, owner tick or revival accounting mismatch");
+                            }
+                            if (config.status_miracles && (used_miracle.status || incoming_status)) {
+                                status_digest = mix(status_digest ^ after.decisions ^ result.status_miracle_card
+                                    ^ (static_cast<std::uint64_t>(result.status_first_use) << 16)
+                                    ^ (static_cast<std::uint64_t>(result.status_recast) << 17)
+                                    ^ (static_cast<std::uint64_t>(result.status_resolved) << 18)
+                                    ^ (static_cast<std::uint64_t>(result.status_source) << 24)
+                                    ^ (static_cast<std::uint64_t>(result.status_target) << 32)
+                                    ^ (static_cast<std::uint64_t>(result.spell_mp_spent) << 40));
+                                status_digest = mix(status_digest ^ static_cast<std::uint64_t>(action.kind)
+                                    ^ (static_cast<std::uint64_t>(action.base) << 8) ^ (static_cast<std::uint64_t>(action.target) << 16)
+                                    ^ (static_cast<std::uint64_t>(result.magic_free_cards) << 24)
+                                    ^ (static_cast<std::uint64_t>(result.reflected) << 32)
+                                    ^ (static_cast<std::uint64_t>(result.magic_bounced) << 33)
+                                    ^ (static_cast<std::uint64_t>(result.magic_blocked) << 34));
+                            }
                             const auto revival_count = result.revivals[0] + result.revivals[1];
                             auto revival_budget = revival_cards_before;
                             revival_budget[actor] -= discarded_revival_cards;
@@ -1820,11 +1943,18 @@ int main(int argc, char** argv) {
                                     : config.counter_extensions ? used_miracle.cost
                                     : std::max(0, mana_before - after.players[actor].mp);
                                 output.miracle_mp_spent += mana_spent;
-                                const auto learned = ability_slot < 0 ? 0 : used_miracle.defensive
+                                const auto learned = ability_slot < 0 ? 0 : used_miracle.status
+                                    ? after.players[actor].status_abilities[ability_slot]
+                                        + (actor_forgot && result.forgotten_miracle == used_miracle.id ? 1u : 0u) - known_before
+                                    : used_miracle.defensive
                                     ? after.players[actor].defensive_abilities[ability_slot] - known_before
                                     : after.players[actor].abilities[ability_slot] - known_before;
                                 if (ability_slot >= 0)
                                     output.learned_miracles += learned;
+                                if (used_miracle.status) {
+                                    output.status_mp_spent += mana_spent;
+                                    output.status_learned += learned;
+                                }
                                 if (used_miracle.defensive) {
                                     if (recast) ++output.defensive_miracle_recasts;
                                     else ++output.defensive_miracle_first_uses;
@@ -1910,6 +2040,8 @@ int main(int argc, char** argv) {
                                 throw std::runtime_error("retained inventory balance mismatch");
                             output.retained_inventory += inventory;
                         }
+                        if (config.status_miracles) for (const auto& player : state.players)
+                            for (const auto count : player.status_abilities) output.status_retained_inventory += count;
                         // Addition intentionally wraps modulo 2^64, so the digest
                         // is independent of partitioning and worker completion order.
                         auto digest = mix(game_seed
@@ -2242,6 +2374,13 @@ int main(int argc, char** argv) {
                                 if (state.attack_composition.items[i] == 238)
                                     digest = mix(digest ^ 238 ^ (static_cast<std::uint64_t>(i) << 16));
                         }
+                        if (config.status_miracles) {
+                            digest = mix(digest ^ 0x7374617475736d36ULL ^ status_digest);
+                            for (const auto& player : state.players) for (const auto count : player.status_abilities) digest = mix(digest ^ count);
+                            digest = mix(digest ^ state.pending.miracle ^ (static_cast<std::uint64_t>(state.pending.kind) << 16)
+                                ^ (static_cast<std::uint64_t>(state.pending.disease) << 24) ^ (static_cast<std::uint64_t>(state.pending.cure) << 32)
+                                ^ (static_cast<std::uint64_t>(state.pending.harm) << 40) ^ (static_cast<std::uint64_t>(state.pending.from_ability) << 48));
+                        }
                         output.checksum += digest;
                     }
                 } catch (...) {
@@ -2497,6 +2636,35 @@ int main(int argc, char** argv) {
             total.sundry_boost_raw_checked += output.sundry_boost_raw_checked;
             total.sundry_boost_self_attacks += output.sundry_boost_self_attacks;
             total.sundry_boost_raw_max = std::max(total.sundry_boost_raw_max, output.sundry_boost_raw_max);
+            total.status_first_uses += output.status_first_uses;
+            total.status_recasts += output.status_recasts;
+            total.status_mp_spent += output.status_mp_spent;
+            total.status_learned += output.status_learned;
+            total.status_casts += output.status_casts;
+            total.status_resolutions += output.status_resolutions;
+            total.status_self_resolutions += output.status_self_resolutions;
+            total.status_lower_cures += output.status_lower_cures;
+            total.status_all_cures += output.status_all_cures;
+            total.status_dark_cloud_applications += output.status_dark_cloud_applications;
+            total.status_cold_applications += output.status_cold_applications;
+            total.status_heaven_applications += output.status_heaven_applications;
+            total.status_heaven_falls += output.status_heaven_falls;
+            total.status_disease_changes += output.status_disease_changes;
+            total.status_diseases_removed += output.status_diseases_removed;
+            total.status_glory_cleared += output.status_glory_cleared;
+            total.status_dark_cloud_cleared += output.status_dark_cloud_cleared;
+            total.status_dark_cloud_new += output.status_dark_cloud_new;
+            total.status_hp_lost += output.status_hp_lost;
+            total.status_free_uses += output.status_free_uses;
+            total.status_reflections += output.status_reflections;
+            total.status_bounces += output.status_bounces;
+            total.status_blocks += output.status_blocks;
+            total.status_held_resolutions += output.status_held_resolutions;
+            total.forgetting_status_miracles += output.forgetting_status_miracles;
+            total.status_retained_inventory += output.status_retained_inventory;
+            total.sold_status_miracles += output.sold_status_miracles;
+            total.bought_status_miracles += output.bought_status_miracles;
+            total.removed_status_miracles += output.removed_status_miracles;
             for (std::size_t i = 0; i < total.sundry_boost_elements.size(); ++i)
                 total.sundry_boost_elements[i] += output.sundry_boost_elements[i];
             for (std::size_t i = 0; i < total.magic_card_bounces_by_id.size(); ++i)
@@ -2682,7 +2850,7 @@ int main(int argc, char** argv) {
         if (total.forgetting_removed + total.forgetting_empty != total.forgetting_attempts
             || total.forgetting_self_targets + total.forgetting_opponent_targets != total.forgetting_attempts
             || total.forgetting_utility + total.forgetting_offensive + total.forgetting_defensive
-                + total.forgetting_additive + total.forgetting_doubling + total.forgetting_wide + total.forgetting_hp_absorption != total.forgetting_removed
+                + total.forgetting_additive + total.forgetting_doubling + total.forgetting_wide + total.forgetting_hp_absorption + total.forgetting_status_miracles != total.forgetting_removed
             || (config.forgetting && total.retained_inventory + total.forgetting_removed != total.learned_miracles))
             throw std::runtime_error("forgetting inventory accounting mismatch");
         if (total.exchange_noops > total.exchanges || total.exchange_suicides > total.exchanges
@@ -2702,6 +2870,16 @@ int main(int argc, char** argv) {
             || total.item_removed_weapons + total.item_removed_armor + total.item_removed_miracles + total.item_removed_other != total.items_removed
             || total.item_removed_revivals > total.item_removed_other)
             throw std::runtime_error("item removal accounting mismatch");
+        if (total.status_first_uses + total.status_recasts != total.status_casts || total.status_learned != total.status_first_uses
+            || total.status_lower_cures + total.status_all_cures + total.status_dark_cloud_applications
+                + total.status_cold_applications + total.status_heaven_applications != total.status_resolutions
+            || total.status_resolutions > total.status_casts || total.status_self_resolutions > total.status_resolutions
+            || total.status_held_resolutions > total.status_resolutions || total.status_free_uses > total.status_casts
+            || total.status_retained_inventory + total.forgetting_status_miracles != total.status_learned
+            || total.status_heaven_falls > total.status_resolutions || total.status_hp_lost > 99 * total.status_heaven_falls
+            || total.sold_status_miracles > total.sale_resolutions || total.bought_status_miracles > total.buy_purchases
+            || total.removed_status_miracles > total.items_removed)
+            throw std::runtime_error("status miracle accounting mismatch");
         std::uint64_t sundry_element_total = 0;
         for (const auto count : total.sundry_boost_elements) sundry_element_total += count;
         if (total.sundry_boost_plain_attacks + total.sundry_boost_ordered_attacks != total.sundry_boost_attacks
@@ -2835,6 +3013,7 @@ int main(int argc, char** argv) {
                 + (config.hp_gamble ? godfield::legacy::hp_gamble_catalog().size() : 0)
                 + (config.magic_bounce ? godfield::legacy::magic_bounce_catalog().size() : 0)
                 + (config.sundry_boost ? godfield::legacy::sundry_boost_catalog().size() : 0)
+                + (config.status_miracles ? godfield::legacy::status_miracles().size() : 0)
             << "\ncatalog_weight=" << catalog_weight
             << "\ninitial_hand=" << static_cast<int>(config.initial_hand)
             << " max_decisions=" << config.max_decisions
@@ -3187,12 +3366,41 @@ int main(int argc, char** argv) {
             << " sundry_boost_element_stone=" << total.sundry_boost_elements[4]
             << " sundry_boost_element_light=" << total.sundry_boost_elements[5]
             << " sundry_boost_element_dark=" << total.sundry_boost_elements[6]
-            << "\nchecksum_version=" << (config.sundry_boost ? 35 : config.magic_bounce ? 34 : config.hp_gamble ? 33 : config.buying ? 32 : config.selling ? 31 : config.pestle_mortar ? 30 : config.self_damage ? 29 : config.hp_absorption ? 28 : config.item_removal ? 27 : config.revival ? 26 : config.exchanges ? 25 : config.forgetting ? 24 : config.magic_free ? 23 : config.wide_miracles ? 22 : config.doubling_miracles ? 21 : config.additive_miracles ? 20 : config.magic_block ? 19 : config.mana_weapon ? 18 : config.any_reflection ? 17 : config.magic_reflection ? 16 : config.money_counter ? 15 : config.counter_extensions ? 14 : config.counters ? 13 : config.attribute_removal ? 12 : config.attribute_change ? 11 : config.defensive_miracles ? 10 : config.offensive_miracles ? 9 : config.celestial ? 8 : config.harms ? 7 : config.disease ? 6 : config.reflection ? 5 : config.chance ? 4 : config.elements ? 3 : 2)
+            << "\nstatus_first_uses=" << total.status_first_uses
+<< " status_recasts=" << total.status_recasts
+<< " status_mp_spent=" << total.status_mp_spent
+<< " status_learned=" << total.status_learned
+<< " status_casts=" << total.status_casts
+<< " status_resolutions=" << total.status_resolutions
+<< " status_self_resolutions=" << total.status_self_resolutions
+<< " status_lower_cures=" << total.status_lower_cures
+<< " status_all_cures=" << total.status_all_cures
+<< " status_dark_cloud_applications=" << total.status_dark_cloud_applications
+<< " status_cold_applications=" << total.status_cold_applications
+<< " status_heaven_applications=" << total.status_heaven_applications
+<< " status_heaven_falls=" << total.status_heaven_falls
+<< " status_disease_changes=" << total.status_disease_changes
+<< " status_diseases_removed=" << total.status_diseases_removed
+<< " status_glory_cleared=" << total.status_glory_cleared
+<< " status_dark_cloud_cleared=" << total.status_dark_cloud_cleared
+<< " status_dark_cloud_new=" << total.status_dark_cloud_new
+<< " status_hp_lost=" << total.status_hp_lost
+<< " status_free_uses=" << total.status_free_uses
+<< " status_reflections=" << total.status_reflections
+<< " status_bounces=" << total.status_bounces
+<< " status_blocks=" << total.status_blocks
+<< " status_held_resolutions=" << total.status_held_resolutions
+<< " forgetting_status_miracles=" << total.forgetting_status_miracles
+<< " status_retained_inventory=" << total.status_retained_inventory
+<< " sold_status_miracles=" << total.sold_status_miracles
+<< " bought_status_miracles=" << total.bought_status_miracles
+<< " removed_status_miracles=" << total.removed_status_miracles
+            << "\nchecksum_version=" << (config.status_miracles ? 36 : config.sundry_boost ? 35 : config.magic_bounce ? 34 : config.hp_gamble ? 33 : config.buying ? 32 : config.selling ? 31 : config.pestle_mortar ? 30 : config.self_damage ? 29 : config.hp_absorption ? 28 : config.item_removal ? 27 : config.revival ? 26 : config.exchanges ? 25 : config.forgetting ? 24 : config.magic_free ? 23 : config.wide_miracles ? 22 : config.doubling_miracles ? 21 : config.additive_miracles ? 20 : config.magic_block ? 19 : config.mana_weapon ? 18 : config.any_reflection ? 17 : config.magic_reflection ? 16 : config.money_counter ? 15 : config.counter_extensions ? 14 : config.counters ? 13 : config.attribute_removal ? 12 : config.attribute_change ? 11 : config.defensive_miracles ? 10 : config.offensive_miracles ? 9 : config.celestial ? 8 : config.harms ? 7 : config.disease ? 6 : config.reflection ? 5 : config.chance ? 4 : config.elements ? 3 : 2)
             << "\nchecksum=" << total.checksum << '\n';
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what()
-            << "\nUsage: godfield_legacy_bench [games=100000] [threads=1] [seed=42] [profile=neutral|miracles|elements|chance|reflection|disease|harms|celestial|offensive-miracles|defensive-miracles|attribute-change|attribute-removal|counter|counter-extensions|money-counter|magic-reflection|any-reflection|mana-weapon|magic-block|additive-miracles|doubling-miracles|wide-miracles|magic-free|forgetting|exchange|revival|item-removal|hp-absorption|self-damage|pestle-mortar|selling|buying|hp-gamble|magic-bounce|sundry-boost]\n";
+            << "\nUsage: godfield_legacy_bench [games=100000] [threads=1] [seed=42] [profile=neutral|miracles|elements|chance|reflection|disease|harms|celestial|offensive-miracles|defensive-miracles|attribute-change|attribute-removal|counter|counter-extensions|money-counter|magic-reflection|any-reflection|mana-weapon|magic-block|additive-miracles|doubling-miracles|wide-miracles|magic-free|forgetting|exchange|revival|item-removal|hp-absorption|self-damage|pestle-mortar|selling|buying|hp-gamble|magic-bounce|sundry-boost|status-miracles]\n";
         return 1;
     }
 }

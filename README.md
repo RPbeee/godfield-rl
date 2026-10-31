@@ -3,10 +3,11 @@
 God Fieldを強化学習で扱うための、C++20製ローカルシミュレーターです。
 描画・通信・外部ライブラリに依存せず、自己対戦を高速に回すための基盤を用意しています。
 
-**旧Flash版を参考に、全7属性・回復/攻撃/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
+**旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
 
 | ルールセット | 用途 | 神器・接口 |
 | --- | --- | --- |
+| `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
 | `legacy-magic-bounce-subset-v34` | MAGICを跳ね返す物理6種と、21のATK/boost・5防具の普通DEFを加えた旧版の部分実装 | 224種、1300特徴、88byte行動、`g34_*` |
 | `legacy-hp-gamble-subset-v33` | 237の使用時±10抽選・公開符号・反射後の現在targetへの実HP変化を加えた旧版の部分実装 | 218種、1278特徴、88byte行動、`g33_*` |
@@ -48,8 +49,8 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 ここで学習した方策が本家でも強いとは主張できません。
 まだ学習器・学習済みモデルはなく、ランダム合法手による実行・ベンチマークができます。
 
-旧版系のC++コアは共通1317特徴・Snapshot version35です。既存ABIの出力幅は変更せず、
-`gl_*` / `gm_*` / `ge_*` / `gc_*` / `gr_*` / `gd_*` / `gh_*` / `gs_*` / `go_*` / `gb_*` / `ga_*` / `gn_*` / `gk_*` / `gx_*` / `gy_*` / `gz_*` / `gu_*` / `gv_*` / `gw_*` / `gp_*` / `gq_*` / `gt_*` / `gi_*` / `gj_*` / `gg_*` / `g26_*` / `g27_*` / `g28_*` / `g29_*` / `g30_*` / `g31_*` / `g32_*` / `g33_*` / `g34_*` は128 / 164 / 186 / 210 / 236 / 258 / 283 / 301 / 334 / 356 / 375 / 393 / 515 / 661 / 679 / 696 / 713 / 732 / 750 / 903 / 924 / 945 / 993 / 1017 / 1043 / 1062 / 1085 / 1110 / 1135 / 1175 / 1221 / 1251 / 1278 / 1300特徴を維持します。
+旧版系のC++コアは共通1345特徴・Snapshot version36です。既存ABIの出力幅は変更せず、
+`gl_*` / `gm_*` / `ge_*` / `gc_*` / `gr_*` / `gd_*` / `gh_*` / `gs_*` / `go_*` / `gb_*` / `ga_*` / `gn_*` / `gk_*` / `gx_*` / `gy_*` / `gz_*` / `gu_*` / `gv_*` / `gw_*` / `gp_*` / `gq_*` / `gt_*` / `gi_*` / `gj_*` / `gg_*` / `g26_*` / `g27_*` / `g28_*` / `g29_*` / `g30_*` / `g31_*` / `g32_*` / `g33_*` / `g34_*` / `g35_*` は128 / 164 / 186 / 210 / 236 / 258 / 283 / 301 / 334 / 356 / 375 / 393 / 515 / 661 / 679 / 696 / 713 / 732 / 750 / 903 / 924 / 945 / 993 / 1017 / 1043 / 1062 / 1085 / 1110 / 1135 / 1175 / 1221 / 1251 / 1278 / 1300 / 1317特徴を維持します。
 各profileで無効な拡張の末尾は0になり、旧ABIは対応する先頭部分だけを返します。
 Snapshotは同じビルド・Config内のfixture用であり、旧形式を自動移行する永続checkpointではありません。
 
@@ -61,8 +62,8 @@ macOS/Linux、CMake 3.20以上、C++20コンパイラーが必要です。パッ
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 4
 ctest --test-dir build --output-on-failure
-./build/godfield_legacy_bench 100000 4 42 sundry-boost
-python3 python/sundry_boost_env.py
+./build/godfield_legacy_bench 100000 4 42 status-miracles
+python3 python/status_miracles_env.py
 ./build/godfield_legacy_bench 100000 4 42 item-removal
 python3 python/item_removal_env.py
 ./build/godfield_legacy_bench 100000 4 42 revival
@@ -125,7 +126,7 @@ python3 python/godfield_env.py
 
 旧版ベンチマーク引数は `試合数 スレッド数 seed [profile]`。profileは省略時neutralで、
 miracles / elements / chance / reflection / disease / harms / celestial / offensive-miracles /
-defensive-miracles / attribute-change / attribute-removal / counter / counter-extensions / money-counter / magic-reflection / any-reflection / mana-weapon / magic-block / additive-miracles / doubling-miracles / wide-miracles / magic-free / forgetting / exchange / revival / item-removal / hp-absorption / self-damage / pestle-mortar / selling / buying / hp-gamble / magic-bounce / sundry-boostも選べます。
+defensive-miracles / attribute-change / attribute-removal / counter / counter-extensions / money-counter / magic-reflection / any-reflection / mana-weapon / magic-block / additive-miracles / doubling-miracles / wide-miracles / magic-free / forgetting / exchange / revival / item-removal / hp-absorption / self-damage / pestle-mortar / selling / buying / hp-gamble / magic-bounce / sundry-boost / status-miraclesも選べます。
 初期のsyntheticベンチマークは従来どおり3引数です。
 同じ試合数・seedなら、スレッド数を変えても結果・checksumは一致します。
 各ワーカーが独立した環境を持ち、ホットパスにロックはありません。
@@ -141,6 +142,12 @@ ctest --test-dir build-sanitize --output-on-failure
 ```
 
 ## 旧版を参考にした中立ルールセット
+
+状態・解除奇跡profileでは202/208/211/212/224を追加し、MP付き初取得/保持cast・FREE・状態付与/解除とHeaven転落を扱います。
+[状態・解除奇跡profileの仕様とAPI](docs/legacy-status-miracles-profile.md)を参照してください。
+旧22保持とindexを固定し、新5配列と忘却27種を分け、効果直後と自然tick/244を検算します。
+`g36_*`は88byte行動・40mask・CAST_STATUS kind19、FREE保持base48〜52を使います。
+固定commitの全364行を取得し、新5行と旧225種のfactを[新しい出典証拠](data/legacy-status-miracles-v1/immutable-comparison.json)で照合しました。過去台帳の出典記録は当時のまま保持します。
 
 物理追加ATK profileではSUNDRY238を追加し、MP/保持化なしのboost10として通常/順序付き武器攻撃へ加えます。
 [物理追加ATK profileの仕様とAPI](docs/legacy-sundry-boost-profile.md)を参照してください。

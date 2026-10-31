@@ -56,7 +56,7 @@ void minimum_gate_ability_slot_and_pool() {
     auto env = fixture({221},{120},minimum); auto s = env.snapshot(); s.state.players[0].abilities[hp_absorption_ability_index] = 1;
     check(env.restore(s), "221 retained index15 is independent of old offensive profile");
     check(total_miracle_count == 15 && total_retained_miracle_count == 17 && main_ability_capacity == 16
-        && hp_absorption_ability_index == 15 && std::string_view(env.profile()) == hp_absorption_ruleset && env.snapshot().version == 35,
+        && hp_absorption_ability_index == 15 && std::string_view(env.profile()) == hp_absorption_ruleset && env.snapshot().version == 36,
         "old15/17 constants frozen; new221 gets appended index15 and dedicated profile");
     check(env.options().ability_slots == (1u<<15) && env.options().hp_absorption_slots == 1 && env.options().utility_slots == 1,
         "bit15 and hand221 utility work with offensive_miracles disabled");

@@ -52,7 +52,7 @@ void metadata_minimum_and_target_selection() {
     for (std::uint8_t chosen = 0; chosen < 2; ++chosen) for (std::uint8_t requested = 0; requested < 2; ++requested) {
         auto env = fixture({99},{120},minimum()); auto s = env.snapshot(); s.state.players[0].mp = 0; check(env.restore(s), "restore no-cost minimum pestle");
         draws(env); destination(env,chosen); const auto rng = env.snapshot().rng_state;
-        check(std::string_view(env.profile()) == pestle_mortar_ruleset && env.snapshot().version == 35
+        check(std::string_view(env.profile()) == pestle_mortar_ruleset && env.snapshot().version == 36
             && env.options().weapon_bases == 1 && env.options().pestle_slots == 1 && !env.options().boost_slots && !env.options().pray,
             "minimum profile exposes standalone weapon without a miracle dependency");
         const auto r = env.step(attack(requested)); check(r.pestle_attack && r.pestle_target == chosen && !r.pestle_mortar && r.pestle_damage == 30

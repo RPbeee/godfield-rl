@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "verified_on": "2026-11-01",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "path": "server-src/ItemData.CSV",
+  "retrieval": "Root gh api contents endpoint with ref pinned to commit and Accept application/vnd.github.raw+json; child verified provided raw bytes.",
+  "immutable_source_sha256": "a6b6892d6234656c40d5171b042ce7aeefcd309ae1abcd6c3fa61e55c552f8b1",
+  "immutable_rows": 364,
+  "cached_web_master_reconstructed_sha256": "a6b6892d6234656c40d5171b042ce7aeefcd309ae1abcd6c3fa61e55c552f8b1",
+  "all_cached_master_rows_match": true,
+  "new_status_ids": [
+    202,
+    208,
+    211,
+    212,
+    224
+  ],
+  "older_catalogs": 35,
+  "older_catalog_ids": 225,
+  "older_numeric_field_checks": 1531,
+  "older_source_column_checks": 4169,
+  "older_provenance_unchanged": true,
+  "limits": [
+    "This records a new immutable-content comparison; older manifests keep their original retrieval history and false immutable-verification flags.",
+    "Matching numeric/source rows does not establish exact simulator semantics, current official names/values, or byte-identical live master content at another date."
+  ]
+}

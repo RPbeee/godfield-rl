@@ -71,7 +71,7 @@ void metadata_and_order_validation() {
     for (CardId id : {CardId{0},CardId{188},CardId{189},CardId{190},CardId{194},CardId{65535}})
         check(!find_counter_extension_card(id), "fog, illusion, absorption and old190 excluded from new lookup");
     auto env = fixture({5}, {187,190,191,192,193,120});
-    check(std::string_view(env.profile()) == counter_extensions_ruleset && env.snapshot().version == 35,
+    check(std::string_view(env.profile()) == counter_extensions_ruleset && env.snapshot().version == 36,
         "new extended-order profile and schema identified");
     auto malformed = attack(); malformed.counter_count = 1; reject(env,malformed);
     env.step(attack());

@@ -54,7 +54,7 @@ void metadata_and_profile() {
     for (CardId id : {CardId{0},CardId{65},CardId{85},CardId{118},CardId{196},CardId{210},CardId{65535}})
         check(!find_attribute_removal_card(id), "no fallback to setter, zero-defense armor, ANY or magic");
     auto env = fixture({195}, {120});
-    check(std::string_view(env.profile()) == attribute_removal_ruleset && env.snapshot().version == 35
+    check(std::string_view(env.profile()) == attribute_removal_ruleset && env.snapshot().version == 36
         && env.options().weapon_bases == 0 && env.options().boost_slots == 0 && env.options().attribute_slots == 0
         && env.options().utility_slots == 0 && env.options().discard_slots == 1,
         "removal profile identifies separate response-only role and permits ordinary discard");

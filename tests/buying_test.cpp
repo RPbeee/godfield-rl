@@ -48,7 +48,7 @@ void metadata_minimum_and_yes_no() {
     Config minimum; minimum.buying = true;
     for (bool yes : {false,true}) {
         auto env = fixture({4},{120,177},minimum); draws(env); ticket(env,1);
-        check(std::string_view(env.profile()) == buying_ruleset && env.snapshot().version == 35 && env.options().buy_slots == 1
+        check(std::string_view(env.profile()) == buying_ruleset && env.snapshot().version == 36 && env.options().buy_slots == 1
             && !env.options().purchase_choices && env.options().discard_slots == 1 && env.options().pray, "minimum independent BUY role and stable profile");
         check(env.step(buy()).buy_used && env.state().pending.kind == Effect::buy && env.state().pending.buy_card == 4
             && env.state().pending.element == Element::none && env.state().actor == 1 && env.state().players[0].pending_deals == 1,

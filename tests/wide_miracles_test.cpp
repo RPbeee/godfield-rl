@@ -41,7 +41,7 @@ void metadata_learning_and_minimum_profile() {
         && find_wide_miracle(209)->element == Element::neutral && find_wide_miracle(209)->weight == 1,
         "209 has positive-weight neutral5MP WIDE100 role");
     auto env = fixture({5,209}, {120});
-    check(std::string_view(env.profile()) == wide_miracles_ruleset && env.snapshot().version == 35
+    check(std::string_view(env.profile()) == wide_miracles_ruleset && env.snapshot().version == 36
         && env.options().wide_slots == 2 && !env.options().wide_ability_slots && !(env.options().utility_slots & 2),
         "hand WIDE is extra-only and uses independent masks"); reject(env,{ActionKind::use,1,0,1}); reject(env,{ActionKind::cast_additive,3,0,1});
     rolls(env); const auto result = env.step(ordered({1,19},0));

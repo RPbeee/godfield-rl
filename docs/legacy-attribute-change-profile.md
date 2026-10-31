@@ -77,10 +77,10 @@ CLIとC APIは全拡張有効。再現にはprofile名だけでなく全Config�
 `Options::attribute_slots` は追加使用できる上書き部品の位置maskで、boost_slotsとは分ける。
 先頭武器としてはweapon_basesにも載る。各構成要素のmaskだけでは3結果の合法性は表せないので `legal()` でも検証する。
 `StepResult::attribute_attack/attribute_cards_used/attribute_element` は上書き部品を追加した攻撃を記録する。
-Snapshotの共通versionは35。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshotの共通versionは36。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
 
-共通C++観測は1317次元、`ga_*` ABI 11は先頭375次元を返す。
-v11では末尾942個が0になる。追加部分は[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭356個は[防御奇跡profile](legacy-defensive-miracles-profile.md)を継承する。
+共通C++観測は1345次元、`ga_*` ABI 11は先頭375次元を返す。
+v11では末尾970個が0になる。追加部分は[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭356個は[防御奇跡profile](legacy-defensive-miracles-profile.md)を継承する。
 
 | 位置 | 内容 |
 | --- | --- |

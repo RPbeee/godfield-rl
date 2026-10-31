@@ -63,7 +63,7 @@ MPをもう一度支払ったり、反射者の保持奇跡へ加えたりしな
 current57が未解決の間、元のturn_ownerのMPは0。このプールに、応答前置で元ownerのMPを回復する部品はない。
 193等が元ownerのMPを増やす時点では、current57は既に終わり、この来歴を持たない別のcounter項目になっている。
 
-Snapshot共通versionは35。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshot共通versionは36。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
 57・damage・MP0の元owner・支払0〜99・元属性/setter・非MAGICを検証し、
 `2*mana_spent <= amount <= 2*mana_spent+225` を要求する。
 setterなしの有色化、奇跡・状態・命中・counter来歴との混在、counterへの支払来歴コピーを拒否する。
@@ -71,7 +71,7 @@ setterなしの有色化、奇跡・状態・命中・counter来歴との混在�
 
 ## 観測・API
 
-共通C++観測は1317次元、gv出力は先頭732次元。v18では末尾585特徴が0。guは先頭713、gz以前も従来の幅を維持する。
+共通C++観測は1345次元、gv出力は先頭732次元。v18では末尾613特徴が0。guは先頭713、gz以前も従来の幅を維持する。
 自分の手札の既存ATK欄は、57の場合だけ現在MP×2/30を返す。他のカードの特徴は変更しない。
 同じ手札に残した別の57も、MPの増減に合わせてこの表示値が変わる。
 

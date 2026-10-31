@@ -70,7 +70,7 @@ baseをslotsへ重複させたり、slotsへ別の特殊反応を混ぜたりは
 `StepResult::reflected/bounced/bounce_self` は、そのstepで実行した反応だけを返す。
 統計では持続する最後の記録を毎step再計上しない。
 
-Snapshotは反撃拡張と共通のversion35。現在の連鎖、両者の配布予定、現在source/target、通常手番順、
+Snapshotは反撃拡張と共通のversion36。現在の連鎖、両者の配布予定、現在source/target、通常手番順、
 公開記録、ゲーム乱数と検証用prefixを保存する。
 反応の回数と消費予算、sourceの交代、最後の反応との整合も検証する。
 反応を持たないprofileへの手札や連鎖状態の持ち込みは拒否する。
@@ -94,8 +94,8 @@ env.reset(42);
 v5の識別名は共通なので、再現のためにはConfigの全flagも保存する。
 CLIと `gr_create` はv5までの機能を有効にし、病気・harmsは無効の構成を生成する。
 
-C++の共通観測は反撃拡張後の1317次元で、`gr_*` ABI 5は先頭236次元を返す。
-この反応profileでは末尾1081個は0。[病気profile](legacy-disease-profile.md)と[harms profile](legacy-harms-profile.md)も参照。
+C++の共通観測は反撃拡張後の1345次元で、`gr_*` ABI 5は先頭236次元を返す。
+この反応profileでは末尾1109個は0。[病気profile](legacy-disease-profile.md)と[harms profile](legacy-harms-profile.md)も参照。
 構成要素maskは7種類。
 従来6種の末尾へ反応スロットmaskを追加した。maskだけでなく `legal()` も検証する。
 既存 `gl_*` / `gm_*` / `ge_*` / `gc_*` は128 / 164 / 186 / 210次元を維持する。

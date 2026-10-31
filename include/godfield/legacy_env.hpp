@@ -34,6 +34,7 @@
 #include "godfield/hp_gamble.hpp"
 #include "godfield/magic_bounce.hpp"
 #include "godfield/sundry_boost.hpp"
+#include "godfield/status_miracles.hpp"
 #include <array>
 #include <cstdint>
 #include <span>
@@ -76,6 +77,7 @@ inline constexpr const char* buying_ruleset = "legacy-buying-subset-v32";
 inline constexpr const char* hp_gamble_ruleset = "legacy-hp-gamble-subset-v33";
 inline constexpr const char* magic_bounce_ruleset = "legacy-magic-bounce-subset-v34";
 inline constexpr const char* sundry_boost_ruleset = "legacy-sundry-boost-subset-v35";
+inline constexpr const char* status_miracles_ruleset = "legacy-status-miracles-subset-v36";
 // Main-turn slots remain stable. Defensive kinds have their own local indices.
 inline constexpr int total_miracle_count = miracle_count + offensive_miracle_count;
 inline constexpr int total_retained_miracle_count = total_miracle_count + defensive_miracle_count;
@@ -123,16 +125,17 @@ inline constexpr int selling_observation_size = 1221;
 inline constexpr int buying_observation_size = 1251;
 inline constexpr int hp_gamble_observation_size = 1278;
 inline constexpr int magic_bounce_observation_size = 1300;
-inline constexpr int observation_size = 1317;
+inline constexpr int sundry_boost_observation_size = 1317;
+inline constexpr int observation_size = 1345;
 inline constexpr int legacy_attack_extra_capacity = 64;
 inline constexpr int attack_extra_capacity = 65;
 inline constexpr std::uint8_t no_slot = 255;
 enum class ActionKind : std::uint8_t {
     pray, attack, defend, use, discard, cast, defend_cast,
-    attack_set_fire, attack_set_water, attack_set_neutral, cast_additive, attack_ordered, cast_ordered, defend_ordered, exchange, sell, buy, buy_decline, buy_accept
+    attack_set_fire, attack_set_water, attack_set_neutral, cast_additive, attack_ordered, cast_ordered, defend_ordered, exchange, sell, buy, buy_decline, buy_accept, cast_status
 };
 enum class Phase : std::uint8_t { main, response, purchase };
-enum class Effect : std::uint8_t { none, damage, heal, mana, money, cure, harm, absorb_money, forget, remove_item, sell, buy, hp_gamble };
+enum class Effect : std::uint8_t { none, damage, heal, mana, money, cure, harm, absorb_money, forget, remove_item, sell, buy, hp_gamble, status };
 struct Config {
     std::uint32_t max_decisions = 512;
     std::uint8_t initial_hand = 10;
@@ -170,6 +173,7 @@ struct Config {
     bool hp_gamble = false;
     bool magic_bounce = false;
     bool sundry_boost = false;
+    bool status_miracles = false;
     bool operator==(const Config&) const = default;
 };
 struct Action {
@@ -190,6 +194,7 @@ struct Player {
     std::uint64_t pending_deals = 0;
     std::array<std::uint32_t, main_ability_capacity> abilities{};
     std::array<std::uint32_t, defensive_miracle_count> defensive_abilities{};
+    std::array<std::uint32_t, status_miracle_count> status_abilities{};
     std::array<std::uint64_t, additive_miracle_count> additive_abilities{};
     std::uint64_t doubling_ability = 0;
     std::uint64_t wide_ability = 0;
@@ -381,7 +386,7 @@ struct State {
 };
 struct Snapshot {
     std::uint64_t format_tag = 0x67666c6567616379ULL; // gflegacy; in-process fixture format.
-    std::uint32_t version = 35;
+    std::uint32_t version = 36;
     Config config{};
     State state{};
     std::uint64_t rng_state = 0;
@@ -430,6 +435,7 @@ struct Options {
     std::uint16_t hp_gamble_slots = 0;
     std::uint16_t magic_bounce_slots = 0; // Hand membership in active main/response; consult reaction_slots and legal().
     std::uint16_t sundry_boost_slots = 0; // Main-hand238 membership, also in ordinary boost_slots.
+    std::uint16_t status_slots = 0, status_ability_slots = 0, free_status_ability_slots = 0;
     bool pray = false;
     std::uint8_t defense_limit = 0;
     bool operator==(const Options&) const = default;
@@ -489,6 +495,9 @@ struct StepResult {
     std::uint8_t actor = 0;
     std::array<float, 2> rewards{};
     bool terminated = false, truncated = false;
+    bool status_first_use = false, status_recast = false, status_resolved = false;
+    CardId status_miracle_card = 0;
+    std::uint8_t status_source = no_slot, status_target = no_slot;
     bool chance_attempt = false, chance_hit = false;
     bool chance_forced = false;
     bool reflected = false, bounced = false, bounce_self = false;
@@ -531,6 +540,7 @@ public:
     void reset(std::uint64_t seed) noexcept;
     const State& state() const noexcept { return snapshot_.state; }
     const char* profile() const noexcept {
+        if (snapshot_.config.status_miracles) return status_miracles_ruleset;
         if (snapshot_.config.sundry_boost) return sundry_boost_ruleset;
         if (snapshot_.config.magic_bounce) return magic_bounce_ruleset;
         if (snapshot_.config.hp_gamble) return hp_gamble_ruleset;

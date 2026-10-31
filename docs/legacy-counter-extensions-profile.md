@@ -91,11 +91,11 @@ celestialにはelements/chance/harmsも必要。他の既存拡張は個別に�
 193がMPを増やすのは元MAGIC連鎖の終了後で、以後のcounterはMAGICではないため、
 現scopeでは保持防御奇跡の配布上限20を維持できる。[根拠](legacy-counter-extensions-rules.md#mp回復とretained_deals上限20)を参照。
 
-Snapshot共通versionは35。同じビルド・Config内のfixture用で、永続checkpointの自動移行はしない。
+Snapshot共通versionは36。同じビルド・Config内のfixture用で、永続checkpointの自動移行はしない。
 各counterのkind/ID/属性/率/harm/対象方針・威力倍率・生成予算を検証する。
 193は自動解決なので未解決current193を拒否し、未解決187は公開済み命中イベントとの整合も検証する。
 
-共通C++観測は1317次元、gx出力は先頭661次元。v14では末尾656特徴が0。先頭515個はv13の位置を維持し、
+共通C++観測は1345次元、gx出力は先頭661次元。v14では末尾684特徴が0。先頭515個はv13の位置を維持し、
 手札counter特徴394〜409は5種全てを認識する。追加146特徴は旧profileでは0。
 
 | 位置 | 内容 |

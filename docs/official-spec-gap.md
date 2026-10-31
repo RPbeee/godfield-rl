@@ -41,10 +41,11 @@
 [購入確認を加えたv32](legacy-buying-profile.md)、
 [HP増減賭けを加えたv33](legacy-hp-gamble-profile.md)、
 [物理品の魔法跳ね返しを加えたv34](legacy-magic-bounce-profile.md)、
-[物理追加ATK238を加えたv35](legacy-sundry-boost-profile.md)を参照。
+[物理追加ATK238を加えたv35](legacy-sundry-boost-profile.md)、
+[状態・解除奇跡を加えたv36](legacy-status-miracles-profile.md)を参照。
 現行公式との直接照合を完了した項目はまだない。
 各行の「残る条件」は、その行のprofile時点での範囲を示す。後続profileで実装した機能も含むため、
-最新の全体範囲はv35の行と各profileの仕様を参照する。
+最新の全体範囲はv36の行と各profileの仕様を参照する。
 
 | 対象ID | 追加した実装 | 残る条件 |
 | --- | --- | --- |
@@ -87,7 +88,8 @@
 | D12・D13・D14・D18・D24 | v33でINCREASE_OR_DECREASE_HP237を加え218種へ。launch時に±10を1回抽選/公開し、単独USE・属性None・196反射後も符号を保持。current targetへの0/99でclipした実変化を244/自然tickと分離し、商品価格1だけfallbackへ加える | raw武器/属性被害やcounterではなく、MYSTERY243等の複合乱数効果は未対応。g33は88byte/35mask/1278特徴で既存kind3を使用、旧32台帳/216価格表/ABI/RNG/297項目を固定。現行公式との動的照合は未完了 |
 | D05・D11・D13・D14・D17・D24 | v34でFLICK_MAGIC21/119/121/127/134/140を加え224種へ。MAGIC応答で物理品を消費し、MP/保持化なしに生存対象を選び直す。元payload/命中/保持由来/MP支払を維持しselfは即解決。21のbase/boost5とarmor DEF0〜4、最小構成でのheld gift予算も扱う | 210保持castと物理6種を別eventで数える。共用bounce tape/既存Action・Effectを使い、g34は88byte/36mask/1300特徴。旧33台帳/216価格表/ABI/RNG/315項目を固定。現行公式との動的照合は未完了 |
 | D05・D11・D13・D14・D24 | v35でSUNDRY INCREASE_ATK238を加え225種へ。baseATK0/boost10/MP0・保持無しで通常/順序付き武器へ追加し、57有料MAGICのreset/DOUBLE/WIDE/属性/FREEの位置を保持。価格15をfallbackに追加し、消費枚数と最終rawを分離 | canonical防御はDEF無し238を除外。旧server弱いguardはNE/特殊prefixのzeroDEF消費を受理し、応答時手札交換に戦略的意味があり得るが、公式UI未照合で今回は採らない。g35は88byte/37mask/1317特徴、旧34台帳/216価格表/ABI/RNG/333項目を固定 |
-| D24〜D27 | 意味的Action、128/gl・164/gm・186/ge・210/gc・236/gr・258/gd・283/gh・301/gs・334/go・356/gb・375/ga・393/gn・515/gk・661/gx・679/gy・696/gz・713/gu・732/gv・750/gw・903/gp・924/gq・945/gt・993/gi・1017/gj・1043/gg・1062/g26・1085/g27・1110/g28・1135/g29・1175/g30・1221/g31・1251/g32・1278/g33・1300/g34・1317/g35のC ABI/Python。v10で応答kind6/8番目mask、v11で属性kind7〜9/9番目mask、v12で消去の10番目mask、v13で反撃の11番目mask、v14で順序count+4bit列を追加。gl〜gkは6byteを維持し、gx/gy/gz/gu/gv/gwは順序付き16byte、gpは保持参照64件付き88byte・13mask、gqは同じ88byte・15maskと保持214参照18、gtは17maskと保持209参照19、giは23maskと65番目tail/無料cast・防御列、gjは24maskと忘却ticket fixture、ggは25maskと資源配分kind14、g26は同mask/actionと自動蘇生、g27は26maskと手札除去ticket fixture、g28は27maskと221の末尾保持bit15、g29は28maskと自己被害来歴、g30は30maskと杵/臼の選択履歴、g31は32maskと売却kind15・商品価格/配送履歴、g32は34maskと購入kind16〜18・確認phase、g33は35maskと公開HP符号/実変化、g34は36maskと物理MAGIC跳ね返し、g35は37maskと物理SUNDRY boost。共通Snapshot35、旧ABI幅は固定。snapshotと各抽選prefix、出典由来の局面テスト | 永続checkpoint、全効果の行動表現、旧版Pythonとの自動差分実行、現行公式との照合は未完了 |
+| D11・D13・D14・D19・D24 | v36で解除202/211・DarkCloud208・Cold212・Heaven224を加え230種へ。独立5保持、CAST_STATUS19/FREE48〜52、忘却27種、純statusの反応/Heaven転落/解除・prefix→効果→244/tick順を実装。固定commitの全364行と旧225factを新証拠で照合 | 非防御MAGICのzeroDEF応答でMP支払/保持取得する旧weakguard入力は、手札交換/学習の戦略性があり得るが従来canonical同様に除外。g36は88byte/40mask/1345特徴、旧35台帳/21・22保持順/216価格表/ABI/RNG/358項目を固定。現行公式との動的照合は未完了 |
+| D24〜D27 | 意味的Action、128/gl・164/gm・186/ge・210/gc・236/gr・258/gd・283/gh・301/gs・334/go・356/gb・375/ga・393/gn・515/gk・661/gx・679/gy・696/gz・713/gu・732/gv・750/gw・903/gp・924/gq・945/gt・993/gi・1017/gj・1043/gg・1062/g26・1085/g27・1110/g28・1135/g29・1175/g30・1221/g31・1251/g32・1278/g33・1300/g34・1317/g35・1345/g36のC ABI/Python。v10で応答kind6/8番目mask、v11で属性kind7〜9/9番目mask、v12で消去の10番目mask、v13で反撃の11番目mask、v14で順序count+4bit列を追加。gl〜gkは6byteを維持し、gx/gy/gz/gu/gv/gwは順序付き16byte、gpは保持参照64件付き88byte・13mask、gqは同じ88byte・15maskと保持214参照18、gtは17maskと保持209参照19、giは23maskと65番目tail/無料cast・防御列、gjは24maskと忘却ticket fixture、ggは25maskと資源配分kind14、g26は同mask/actionと自動蘇生、g27は26maskと手札除去ticket fixture、g28は27maskと221の末尾保持bit15、g29は28maskと自己被害来歴、g30は30maskと杵/臼の選択履歴、g31は32maskと売却kind15・商品価格/配送履歴、g32は34maskと購入kind16〜18・確認phase、g33は35maskと公開HP符号/実変化、g34は36maskと物理MAGIC跳ね返し、g35は37maskと物理SUNDRY boost、g36は40maskとstatus保持5種/cast19。共通Snapshot36、旧ABI幅は固定。snapshotと各抽選prefix、出典由来の局面テスト | 永続checkpoint、全効果の行動表現、旧版Pythonとの自動差分実行、現行公式との照合は未完了 |
 | D16〜D23・D28 | 各限定profileで終局と学習用打ち切りを扱い、病気・反撃による0生存終局も区別 | 旧版の未対応効果（霧/幻覚等のharms・守護神・終末）と複数人戦、現行公式の蘇生との差異は未照合。旧244自動蘇生はv26で対応済み。衝突C01/C02も未解消 |
 
 ## 比較資料と確度

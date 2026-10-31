@@ -44,8 +44,12 @@ struct Spell {
     Element element = Element::neutral;
     int amount = 0, cost = 0, hit_rate = 0;
     Harm harm = Harm::none;
+    Disease disease = Disease::none;
+    Cure cure = Cure::none;
 };
 Spell spell(CardId id) noexcept {
+    if (const auto* m = find_status_miracle(id))
+        return {m->id, Effect::status, m->element, 0, m->cost, 0, m->harm, m->disease, m->cure};
     if (const auto* m = find_miracle(id))
         return {m->id, m->effect == MiracleEffect::heal ? Effect::heal : Effect::money,
                 Element::neutral, m->amount, m->cost, 0, Harm::none};
@@ -78,6 +82,7 @@ std::uint64_t bounded64(std::uint64_t& state, std::uint64_t bound) noexcept {
     for (;;) { const auto x = random(state); if (x >= threshold) return x % bound; }
 }
 std::uint64_t retained_count(const Player& player, CardId id) noexcept {
+    if (const int i = status_miracle_index(id); i >= 0) return player.status_abilities[i];
     if (const int i = spell_index(id); i >= 0) return player.abilities[i];
     if (const int i = defensive_miracle_index(id); i >= 0) return player.defensive_abilities[i];
     if (const int i = additive_miracle_index(id); i >= 0) return player.additive_abilities[i];
@@ -87,11 +92,12 @@ std::uint64_t retained_count(const Player& player, CardId id) noexcept {
 }
 std::uint64_t retained_total(const Player& player) noexcept {
     std::uint64_t total = 0;
-    for (const auto id : hp_absorption_retained_type_ids) total += retained_count(player, id);
+    for (const auto id : status_retained_type_ids) total += retained_count(player, id);
     return total;
 }
 void remove_retained(Player& player, CardId id) noexcept {
-    if (const int i = spell_index(id); i >= 0) --player.abilities[i];
+    if (const int i = status_miracle_index(id); i >= 0) --player.status_abilities[i];
+    else if (const int i = spell_index(id); i >= 0) --player.abilities[i];
     else if (const int i = defensive_miracle_index(id); i >= 0) --player.defensive_abilities[i];
     else if (const int i = additive_miracle_index(id); i >= 0) --player.additive_abilities[i];
     else if (find_doubling_miracle(id)) --player.doubling_ability;
@@ -110,7 +116,7 @@ bool can_special(const Pending& pending, DefensiveMiracleKind kind) noexcept {
     return pending.kind == Effect::damage && !pending.miracle && pending.element == Element::neutral;
 }
 bool tracks_retained_deals(const Config& config) noexcept {
-    return config.defensive_miracles || config.magic_reflection || config.any_reflection || config.magic_block || config.additive_miracles || config.magic_bounce;
+    return config.defensive_miracles || config.magic_reflection || config.any_reflection || config.magic_block || config.additive_miracles || config.magic_bounce || config.status_miracles;
 }
 bool is_magic_item(const Pending& pending) noexcept {
     return pending.miracle != 0 && !pending.counter_card;
@@ -160,6 +166,7 @@ Env::Env(Config config) {
         || (config.money_counter && !config.counter_extensions)
         || (config.magic_reflection && (!config.reflection || !config.miracles))
         || (config.magic_bounce && (!config.reflection || !config.miracles))
+        || (config.status_miracles && (!config.miracles || !config.disease || !config.celestial))
         || (config.any_reflection && !config.reflection)
         || (config.additive_miracles && (!config.miracles || !config.celestial))
         || (config.doubling_miracles && !config.additive_miracles)
@@ -206,7 +213,8 @@ bool Env::supported(CardId id) const noexcept {
         || (snapshot_.config.buying && find_buying_card(id))
         || (snapshot_.config.hp_gamble && find_hp_gamble_card(id))
         || (snapshot_.config.magic_bounce && find_magic_bounce_card(id))
-        || (snapshot_.config.sundry_boost && find_sundry_boost_card(id));
+        || (snapshot_.config.sundry_boost && find_sundry_boost_card(id))
+        || (snapshot_.config.status_miracles && find_status_miracle(id));
 }
 const Card* Env::artifact(CardId id) const noexcept {
     if (const auto* card = find_card(id)) return card;
@@ -242,6 +250,7 @@ const Card* Env::artifact(CardId id) const noexcept {
     return nullptr;
 }
 int Env::trade_price(CardId id) const noexcept {
+    if (snapshot_.config.status_miracles) if (const auto* m = find_status_miracle(id)) return m->price;
     if (snapshot_.config.sundry_boost) if (const auto* card = find_sundry_boost_card(id)) return card->card.price;
     if (snapshot_.config.magic_bounce) if (const auto* card = find_magic_bounce_card(id)) return card->card.price;
     if (snapshot_.config.hp_gamble) if (const auto* card = find_hp_gamble_card(id)) return card->card.price;
@@ -395,6 +404,8 @@ CardId Env::draw() noexcept {
         for (const auto& c : magic_bounce_catalog()) total_weight += c.card.weight;
     if (snapshot_.config.sundry_boost)
         for (const auto& c : sundry_boost_catalog()) total_weight += c.card.weight;
+    if (snapshot_.config.status_miracles)
+        for (const auto& m : status_miracles()) total_weight += m.weight;
     auto ticket = bounded(snapshot_.rng_state, total_weight);
     for (const auto& c : catalog()) {
         if (ticket < static_cast<unsigned>(c.weight)) return c.id;
@@ -547,6 +558,10 @@ CardId Env::draw() noexcept {
     if (snapshot_.config.sundry_boost) for (const auto& c : sundry_boost_catalog()) {
         if (ticket < static_cast<unsigned>(c.card.weight)) return c.card.id;
         ticket -= c.card.weight;
+    }
+    if (snapshot_.config.status_miracles) for (const auto& m : status_miracles()) {
+        if (ticket < static_cast<unsigned>(m.weight)) return m.id;
+        ticket -= m.weight;
     }
     return catalog().back().id;
 }
@@ -770,9 +785,12 @@ bool Env::prepare_free_cast(Action a, FreeCastPlan& plan) const noexcept {
     } else if (a.base >= 32 && a.base < 32 + main_ability_capacity) {
         if (!p.abilities[a.base - 32]) return false;
         id = spell_id(a.base - 32); held = true;
+    } else if (snapshot_.config.status_miracles && a.base >= 48 && a.base < 48 + status_miracle_count) {
+        if (!p.status_abilities[a.base - 48]) return false;
+        id = status_miracles()[a.base - 48].id; held = true;
     } else return false;
     const auto m = spell(id);
-    if (!supported(id) || !m.id || (m.effect != Effect::damage && m.effect != Effect::heal && m.effect != Effect::money)) return false;
+    if (!supported(id) || !m.id || (m.effect != Effect::damage && m.effect != Effect::heal && m.effect != Effect::money && m.effect != Effect::status)) return false;
     if (!held) {
         if (find_additive_miracle(id)) {
             if (p.additive_abilities[0] + p.additive_abilities[1] + p.doubling_ability + p.wide_ability >= 15ULL * snapshot_.config.max_decisions) return false;
@@ -780,6 +798,7 @@ bool Env::prepare_free_cast(Action a, FreeCastPlan& plan) const noexcept {
             std::uint64_t acquired = 0;
             for (const auto n : p.abilities) acquired += n;
             for (const auto n : p.defensive_abilities) acquired += n;
+            for (const auto n : p.status_abilities) acquired += n;
             if (acquired >= snapshot_.config.max_decisions) return false;
         }
     }
@@ -922,6 +941,13 @@ bool Env::restore(const Snapshot& next) noexcept {
     for (std::size_t i = 0; i < next.scripted_hp_gambles.size(); ++i)
         if (i < next.hp_gamble_count ? next.scripted_hp_gambles[i] > 1 : next.scripted_hp_gambles[i] != 0) return false;
     const auto& s = next.state;
+    const auto* status_magic = next.config.status_miracles ? find_status_miracle(s.pending.miracle) : nullptr;
+    const bool status_payload = s.pending.kind == Effect::status;
+    if (status_payload ? !status_magic : status_magic != nullptr) return false;
+    if (status_payload && (s.phase != Phase::response || s.pending.amount || s.pending.status_card || s.pending.harm_card
+        || s.pending.counter_card || s.pending.mana_weapon || s.pending.mana_spent || s.pending.wide_miracle || s.pending.hit_rate
+        || s.pending.hp_absorption_card || s.pending.self_damage_card || s.pending.pestle_card || s.pending.mortar_card
+        || s.pending.disease != status_magic->disease || s.pending.cure != status_magic->cure || s.pending.harm != status_magic->harm)) return false;
     if (!s.last_hp_gamble.id) {
         if (s.last_hp_gamble != LastHPGamble{}) return false;
     } else {
@@ -1033,7 +1059,7 @@ bool Env::restore(const Snapshot& next) noexcept {
             || s.last_forget.population > 16ULL * next.config.max_decisions
             || ((s.last_forget.population == 0) != (s.last_forget.removed == 0))) return false;
         if (s.last_forget.removed && (!supported(s.last_forget.removed)
-            || std::find(hp_absorption_retained_type_ids.begin(), hp_absorption_retained_type_ids.end(), s.last_forget.removed) == hp_absorption_retained_type_ids.end())) return false;
+            || std::find(status_retained_type_ids.begin(), status_retained_type_ids.end(), s.last_forget.removed) == status_retained_type_ids.end())) return false;
     }
     if (s.last_tick.seat == no_slot) {
         if (s.last_tick != State::LastDiseaseTick{}) return false;
@@ -1199,6 +1225,7 @@ bool Env::restore(const Snapshot& next) noexcept {
         const auto* m = next.config.offensive_miracles ? find_offensive_miracle(s.pending.miracle) : nullptr;
         const auto c = counter_info(s.pending.counter_card);
         if ((!m || s.pending.harm != m->harm)
+            && !(status_payload && s.pending.harm == status_magic->harm)
             && !(next.config.counter_extensions && c.id && c.effect == Effect::harm && s.pending.harm == c.harm)) return false;
     }
     if (s.pending.status_card) {
@@ -1213,7 +1240,7 @@ bool Env::restore(const Snapshot& next) noexcept {
             if (s.pending.kind != Effect::damage || s.pending.amount < c->card.attack
                 || (!s.attack_composition.base && !s.pending.attribute_card && s.pending.element != Element::neutral && s.pending.element != c->element)) return false;
         } else return false;
-    } else if (s.pending.disease != Disease::none || s.pending.cure != Cure::none || s.pending.kind == Effect::cure) return false;
+    } else if (!status_payload && (s.pending.disease != Disease::none || s.pending.cure != Cure::none || s.pending.kind == Effect::cure)) return false;
     if (s.last_reaction.id == 0) {
         if (s.last_reaction != State::LastReaction{}) return false;
     } else {
@@ -1263,7 +1290,8 @@ bool Env::restore(const Snapshot& next) noexcept {
     if ((!untyped_payload && static_cast<unsigned>(s.pending.element) > static_cast<unsigned>(next.config.celestial ? Element::dark : Element::stone))
         || (!untyped_payload && !next.config.elements && s.pending.element != Element::neutral)
         || (!untyped_payload && s.pending.kind != Effect::damage && s.pending.element != Element::neutral
-            && !(next.config.counter_extensions && s.pending.counter_card && s.pending.kind == Effect::harm))) return false;
+            && !(next.config.counter_extensions && s.pending.counter_card && s.pending.kind == Effect::harm)
+            && !status_payload)) return false;
     if ((!next.config.chance && s.pending.hit_rate != 0)
         || (s.pending.kind != Effect::damage && s.pending.hit_rate != 0)) return false;
     if (s.actor > 1 || s.turn_owner > 1 || s.order_index > 1 || s.order[0] > 1 || s.order[1] > 1
@@ -1301,6 +1329,10 @@ bool Env::restore(const Snapshot& next) noexcept {
             if (i < p.hand_count ? !supported(p.hand[i]) : p.hand[i] != 0) return false;
         std::uint64_t acquired = 0;
         for (auto count : p.abilities) acquired += count;
+        for (auto count : p.status_abilities) {
+            if (!next.config.status_miracles && count) return false;
+            acquired += count;
+        }
         for (auto count : p.defensive_abilities) {
             if (!next.config.defensive_miracles && count) return false;
             acquired += count;
@@ -1403,7 +1435,7 @@ bool Env::restore(const Snapshot& next) noexcept {
             if (p.hp > 0 && (p.pending_deals != 0 || p.retained_deals != 0)) return false;
     } else if (s.phase == Phase::response) {
         if (s.pending.source > 1 || s.pending.target != s.actor || s.pending.source == s.actor
-            || (!gamble_payload && ((s.pending.kind == Effect::cure || s.pending.kind == Effect::harm || (untyped_payload && !sale_payload))
+            || (!gamble_payload && ((s.pending.kind == Effect::cure || s.pending.kind == Effect::harm || status_payload || (untyped_payload && !sale_payload))
                 ? s.pending.amount != 0 : (s.pending.amount < 0 || (!s.pending.amount && !s.pending.mana_weapon && !sale_payload))))) return false;
         if (death_tracking && s.players[s.actor].dead) return false;
         if (s.pending.counter_card) {
@@ -1456,12 +1488,15 @@ bool Env::restore(const Snapshot& next) noexcept {
             const auto m = spell(s.pending.miracle);
             const auto index = spell_index(m.id);
             const auto ai = additive_miracle_index(m.id);
-            const bool owned = ai >= 0 ? original.additive_abilities[ai] != 0 : (index >= 0 && original.abilities[index] != 0);
+            const auto si = status_miracle_index(m.id);
+            const bool owned = si >= 0 ? original.status_abilities[si] != 0
+                : (ai >= 0 ? original.additive_abilities[ai] != 0 : (index >= 0 && original.abilities[index] != 0));
             if (!next.config.miracles || !m.id || !supported(m.id) || !owned
                 || ((!tracks_retained_deals(next.config) || !s.reaction_count) && !s.free_cast.magic && original.pending_deals != 1)
                 || s.pending.amount != m.amount || s.pending.kind != m.effect
                 || s.pending.element != (s.pending.attribute_removed ? Element::neutral : m.element)
                 || s.pending.hit_rate != m.hit_rate || s.pending.harm != m.harm
+                || s.pending.disease != m.disease || s.pending.cure != m.cure
                 || s.pending.harm_card || s.pending.status_card) return false;
         } else if (s.pending.from_ability || s.pending.kind == Effect::money) return false;
         if (s.pending.wide_miracle) {
@@ -1483,7 +1518,7 @@ bool Env::restore(const Snapshot& next) noexcept {
         if (s.pending.kind == Effect::damage) { if (s.pending.amount > (s.attack_composition.base ? (next.config.magic_free ? magic_free_damage_limit : (next.config.doubling_miracles ? doubling_damage_limit : std::int64_t{480})) : std::int64_t{s.pending.pestle_card ? 999 : 480})) return false; }
         else if (s.pending.kind == Effect::heal || s.pending.kind == Effect::mana || s.pending.kind == Effect::money) {
             if (s.pending.amount > 20) return false;
-        } else if (s.pending.kind != Effect::cure && !untyped_payload) return false;
+        } else if (s.pending.kind != Effect::cure && !untyped_payload && !status_payload) return false;
         }
     } else return false;
     if (s.attack_composition.base) {
@@ -1526,7 +1561,7 @@ bool Env::restore(const Snapshot& next) noexcept {
             || !record.count || record.count > hand_capacity || (!record.from_ability && record.count == hand_capacity)
             || record.initial_mp > 99 || record.magic != s.pending.miracle || record.from_ability != s.pending.from_ability
             || record.items[0] != s.pending.free_card || s.attack_composition.base
-            || (m.effect != Effect::heal && m.effect != Effect::damage && m.effect != Effect::money)) return false;
+            || (m.effect != Effect::heal && m.effect != Effect::damage && m.effect != Effect::money && m.effect != Effect::status)) return false;
         const auto& owner = s.players[s.turn_owner];
         if (owner.pending_deals < record.count + 1u || owner.mp > record.initial_mp
             || (!s.reaction_count && (owner.mp != record.initial_mp || owner.pending_deals != record.count + 1u))) return false;
@@ -1695,6 +1730,7 @@ Options Env::options() const noexcept {
     for (int i = 0; i < active_miracles; ++i) acquired += p.abilities[i];
     if (snapshot_.config.defensive_miracles)
         for (auto count : p.defensive_abilities) acquired += count;
+    for (auto count : p.status_abilities) acquired += count;
     for (int i = 0; i < p.hand_count; ++i) {
         const auto bit = static_cast<std::uint16_t>(1u << i);
         if (snapshot_.config.magic_bounce && find_magic_bounce_card(p.hand[i])) out.magic_bounce_slots |= bit;
@@ -1712,6 +1748,7 @@ Options Env::options() const noexcept {
         if (s.phase == Phase::main && snapshot_.config.self_damage && find_self_damage_card(p.hand[i])) out.self_damage_slots |= bit;
         if (s.phase == Phase::main && snapshot_.config.hp_absorption
             && (find_hp_absorption_card(p.hand[i]) || find_hp_absorption_miracle(p.hand[i]))) out.hp_absorption_slots |= bit;
+        if (s.phase == Phase::main && snapshot_.config.status_miracles && find_status_miracle(p.hand[i])) out.status_slots |= bit;
         const auto* card = artifact(p.hand[i]);
         if (!card) {
             const auto m = spell(p.hand[i]);
@@ -1790,7 +1827,7 @@ Options Env::options() const noexcept {
             if (c.kind == Kind::heal || c.kind == Kind::mana) out.utility_slots |= bit;
             if (c.discardable || (snapshot_.config.pestle_mortar && find_mortar_card(c.id))) out.discard_slots |= bit;
         } else if ((s.pending.kind == Effect::damage || snapshot_.config.defensive_miracles
-                    || snapshot_.config.attribute_removal || snapshot_.config.counters || snapshot_.config.magic_reflection || snapshot_.config.any_reflection || snapshot_.config.magic_block || snapshot_.config.magic_bounce)
+                    || snapshot_.config.attribute_removal || snapshot_.config.counters || snapshot_.config.magic_reflection || snapshot_.config.any_reflection || snapshot_.config.magic_block || snapshot_.config.magic_bounce || snapshot_.config.status_miracles)
                    && !magic_special && !any_special && !block_special && (c.kind == Kind::armor || c.defense > 0 || free_carrier)
                    && can_defend(s.pending.element, element_of(c.id))) {
             out.defense_slots |= bit;
@@ -1801,6 +1838,9 @@ Options Env::options() const noexcept {
     if (s.phase == Phase::main && snapshot_.config.miracles)
         for (int i = 0; i < active_miracles; ++i)
             if (p.abilities[i] && p.mp >= spell(spell_id(i)).cost) out.ability_slots |= 1u << i;
+    if (s.phase == Phase::main && snapshot_.config.status_miracles)
+        for (int i = 0; i < status_miracle_count; ++i)
+            if (p.status_abilities[i] && p.mp >= status_miracles()[i].cost) out.status_ability_slots |= 1u << i;
     if (s.phase == Phase::main && snapshot_.config.additive_miracles)
         for (int i = 0; i < additive_miracle_count; ++i)
             if (p.additive_abilities[i] && p.mp >= additive_miracles()[i].cost) out.additive_ability_slots |= 1u << i;
@@ -1817,6 +1857,8 @@ Options Env::options() const noexcept {
     if (carrier_available) {
         if (s.phase == Phase::main) {
             for (int i = 0; i < active_miracles; ++i) if (p.abilities[i]) out.free_ability_slots |= 1u << i;
+            if (snapshot_.config.status_miracles) for (int i = 0; i < status_miracle_count; ++i)
+                if (p.status_abilities[i]) out.free_status_ability_slots |= 1u << i;
             for (int i = 0; i < additive_miracle_count; ++i) if (p.additive_abilities[i]) out.free_additive_ability_slots |= 1u << i;
         } else if (snapshot_.config.defensive_miracles) {
             for (int i = 0; i < defensive_miracle_count; ++i)
@@ -1938,6 +1980,9 @@ bool Env::legal(Action a) const noexcept {
         return a.base < p.hand_count && a.target < 2 && !a.slots && (opts.buy_slots & (1u << a.base));
     case ActionKind::use:
         return a.base < p.hand_count && a.target < 2 && a.slots == 0 && (opts.utility_slots & (1u << a.base));
+    case ActionKind::cast_status:
+        return snapshot_.config.status_miracles && a.base < status_miracle_count && a.target < 2 && !a.slots
+            && (opts.status_ability_slots & (1u << a.base));
     case ActionKind::cast:
         return a.base < main_ability_capacity && a.target < 2 && a.slots == 0 && (opts.ability_slots & (1u << a.base));
     case ActionKind::cast_additive:
@@ -2192,7 +2237,7 @@ void Env::forget_one(StepResult& result) noexcept {
     if (!total) return;
     auto ticket = snapshot_.forget_index < snapshot_.forget_count
         ? snapshot_.scripted_forgets[snapshot_.forget_index++] % total : bounded64(snapshot_.rng_state, total);
-    for (const auto id : hp_absorption_retained_type_ids) {
+    for (const auto id : status_retained_type_ids) {
         const auto weight = retained_count(player, id);
         if (ticket < weight) {
             remove_retained(player, id);
@@ -2269,6 +2314,15 @@ void Env::resolve(int defense, StepResult& result) noexcept {
         apply_disease(s.pending.target, s.pending.disease);
         break;
     case Effect::money: p.money = static_cast<int>(std::min<std::int64_t>(99, p.money + s.pending.amount)); break;
+    case Effect::status:
+        if (s.pending.cure != Cure::none) cure_disease(s.pending.target, s.pending.cure);
+        else if (s.pending.disease != Disease::none) apply_disease(s.pending.target, s.pending.disease);
+        else apply_harm(s.pending.target, s.pending.harm, result);
+        result.status_resolved = true;
+        result.status_miracle_card = s.pending.miracle;
+        result.status_source = s.pending.source;
+        result.status_target = s.pending.target;
+        break;
     case Effect::cure: cure_disease(s.pending.target, s.pending.cure); break;
     case Effect::absorb_money: {
         // ABSORB_YEN credits the full requested amount before charging the
@@ -2614,7 +2668,8 @@ StepResult Env::step(Action a) noexcept {
         const auto m = spell(record.magic);
         const bool held = record.from_ability;
         if (!held) {
-            if (const auto ai = additive_miracle_index(m.id); ai >= 0) ++p.additive_abilities[ai];
+            if (const auto si = status_miracle_index(m.id); si >= 0) ++p.status_abilities[si];
+            else if (const auto ai = additive_miracle_index(m.id); ai >= 0) ++p.additive_abilities[ai];
             else ++p.abilities[spell_index(m.id)];
         }
         if (find_additive_miracle(m.id)) {
@@ -2623,6 +2678,10 @@ StepResult Env::step(Action a) noexcept {
         } else {
             result.spell_first_use = !held;
             result.spell_recast = held;
+        }
+        if (find_status_miracle(m.id)) {
+            result.status_first_use = !held; result.status_recast = held;
+            result.status_miracle_card = m.id; result.status_source = s.actor; result.status_target = a.target;
         }
         result.free_cast = true;
         result.magic_free_cards = record.count;
@@ -2634,6 +2693,8 @@ StepResult Env::step(Action a) noexcept {
         s.pending = Pending{m.effect, s.actor, a.target, m.amount, m.id, held};
         s.pending.element = m.element;
         s.pending.harm = m.harm;
+        s.pending.disease = m.disease;
+        s.pending.cure = m.cure;
         s.pending.hp_absorption_card = find_hp_absorption_miracle(m.id) ? m.id : 0;
         s.pending.free_card = record.items[0];
         launch_pending(m.id, result);
@@ -2736,13 +2797,15 @@ StepResult Env::step(Action a) noexcept {
         s.pending.element = Element::none;
         s.pending.forget_card = id;
         launch_pending(id, result);
-    } else if (a.kind == ActionKind::cast || a.kind == ActionKind::cast_additive || !artifact(p.hand[a.base])) {
-        const bool from_ability = a.kind == ActionKind::cast || a.kind == ActionKind::cast_additive;
-        const auto m = spell(a.kind == ActionKind::cast_additive ? additive_miracles()[a.base].id
-            : (from_ability ? spell_id(a.base) : p.hand[a.base]));
+    } else if (a.kind == ActionKind::cast || a.kind == ActionKind::cast_additive || a.kind == ActionKind::cast_status || !artifact(p.hand[a.base])) {
+        const bool from_ability = a.kind == ActionKind::cast || a.kind == ActionKind::cast_additive || a.kind == ActionKind::cast_status;
+        const auto m = spell(a.kind == ActionKind::cast_status ? status_miracles()[a.base].id
+            : (a.kind == ActionKind::cast_additive ? additive_miracles()[a.base].id
+                : (from_ability ? spell_id(a.base) : p.hand[a.base])));
         p.mp -= m.cost;
         if (!from_ability) {
-            if (const auto ai = additive_miracle_index(m.id); ai >= 0) ++p.additive_abilities[ai];
+            if (const auto si = status_miracle_index(m.id); si >= 0) ++p.status_abilities[si];
+            else if (const auto ai = additive_miracle_index(m.id); ai >= 0) ++p.additive_abilities[ai];
             else ++p.abilities[spell_index(m.id)];
             consume(s.actor, static_cast<std::uint16_t>(1u << a.base));
         }
@@ -2755,11 +2818,17 @@ StepResult Env::step(Action a) noexcept {
             result.spell_recast = from_ability;
             result.spell_mp_spent = static_cast<std::uint16_t>(m.cost);
         }
+        if (find_status_miracle(m.id)) {
+            result.status_first_use = !from_ability; result.status_recast = from_ability;
+            result.status_miracle_card = m.id; result.status_source = s.actor; result.status_target = a.target;
+        }
         ++p.pending_deals;
         if (from_ability && tracks_retained_deals(snapshot_.config)) ++p.retained_deals;
         s.pending = Pending{m.effect, s.actor, a.target, m.amount, m.id, from_ability};
         s.pending.element = m.element;
         s.pending.harm = m.harm;
+        s.pending.disease = m.disease;
+        s.pending.cure = m.cure;
         s.pending.hp_absorption_card = find_hp_absorption_miracle(m.id) ? m.id : 0;
         launch_pending(m.id, result);
     } else {
@@ -3045,6 +3114,21 @@ Observation Env::observe() const noexcept {
                 total += s.last_exchange.after[i];
             }
             obs[1042] = total / 297.f;
+        }
+    }
+    if (snapshot_.config.status_miracles) {
+        obs[1317] = 1.f;
+        for (int i = 0; i < me.hand_count; ++i) {
+            const auto index = status_miracle_index(me.hand[i]);
+            if (index >= 0) obs[1318 + i] = (index + 1) / 5.f;
+        }
+        for (int i = 0; i < status_miracle_count; ++i) obs[1334 + i] = static_cast<float>(me.status_abilities[i]) / snapshot_.config.max_decisions;
+        if (s.pending.kind == Effect::status) {
+            obs[1339] = 1.f; obs[1340] = (status_miracle_index(s.pending.miracle) + 1) / 5.f;
+            obs[1341] = static_cast<int>(s.pending.disease) / 4.f;
+            obs[1342] = static_cast<int>(s.pending.cure) / 2.f;
+            obs[1343] = static_cast<int>(s.pending.harm) / 2.f;
+            obs[1344] = s.pending.from_ability;
         }
     }
     if (snapshot_.config.sundry_boost) {
@@ -3337,7 +3421,7 @@ Action Env::sample_action(std::uint64_t& policy_rng) const noexcept {
         }
         return complete_response({ActionKind::defend, no_slot, static_cast<std::uint16_t>(random(policy_rng) & ordinary_slots), no_slot});
     }
-    std::array<ActionKind, 10> kinds{};
+    std::array<ActionKind, 11> kinds{};
     unsigned count = 0;
     if (opts.weapon_bases) kinds[count++] = ActionKind::attack;
     if (opts.utility_slots) kinds[count++] = ActionKind::use;
@@ -3346,7 +3430,8 @@ Action Env::sample_action(std::uint64_t& policy_rng) const noexcept {
     if (opts.buy_slots) kinds[count++] = ActionKind::buy;
     if (opts.ability_slots) kinds[count++] = ActionKind::cast;
     if (opts.additive_ability_slots) kinds[count++] = ActionKind::cast_additive;
-    if (opts.magic_free_slots && (opts.free_cast_slots || opts.free_ability_slots || opts.free_additive_ability_slots)) kinds[count++] = ActionKind::cast_ordered;
+    if (opts.status_ability_slots) kinds[count++] = ActionKind::cast_status;
+    if (opts.magic_free_slots && (opts.free_cast_slots || opts.free_ability_slots || opts.free_additive_ability_slots || opts.free_status_ability_slots)) kinds[count++] = ActionKind::cast_ordered;
     if (opts.discard_slots) kinds[count++] = ActionKind::discard;
     if (opts.pray) kinds[count++] = ActionKind::pray;
     const auto kind = kinds[bounded(policy_rng, count)];
@@ -3460,15 +3545,18 @@ Action Env::sample_action(std::uint64_t& policy_rng) const noexcept {
         return action;
     }
     if (kind == ActionKind::cast_ordered) {
-        std::array<std::uint8_t, hand_capacity + main_ability_capacity + additive_miracle_count> bases{};
+        std::array<std::uint8_t, hand_capacity + main_ability_capacity + additive_miracle_count + status_miracle_count> bases{};
         unsigned count = 0;
         for (int i = 0; i < 16; ++i) if (opts.free_cast_slots & (1u << i)) bases[count++] = static_cast<std::uint8_t>(i);
         for (int i = 0; i < additive_miracle_count; ++i) if (opts.free_additive_ability_slots & (1u << i)) bases[count++] = static_cast<std::uint8_t>(16 + i);
         for (int i = 0; i < main_ability_capacity; ++i) if (opts.free_ability_slots & (1u << i)) bases[count++] = static_cast<std::uint8_t>(32 + i);
+        for (int i = 0; i < status_miracle_count; ++i) if (opts.free_status_ability_slots & (1u << i)) bases[count++] = static_cast<std::uint8_t>(48 + i);
         Action action{kind, bases[bounded(policy_rng, count)], 0, state().actor};
         const auto id = action.base < 16 ? state().players[state().actor].hand[action.base]
-            : action.base < 18 ? additive_miracles()[action.base - 16].id : spell_id(action.base - 32);
-        if (spell(id).effect == Effect::damage) action.target = static_cast<std::uint8_t>(1 - state().actor);
+            : action.base < 18 ? additive_miracles()[action.base - 16].id
+            : action.base >= 48 ? status_miracles()[action.base - 48].id : spell_id(action.base - 32);
+        if (spell(id).effect == Effect::damage || (find_status_miracle(id) && spell(id).cure == Cure::none))
+            action.target = static_cast<std::uint8_t>(1 - state().actor);
         action.extra_count = 1;
         action.extras[0] = pick(opts.magic_free_slots, policy_rng);
         return action;
@@ -3478,6 +3566,7 @@ Action Env::sample_action(std::uint64_t& policy_rng) const noexcept {
         if (snapshot_.config.hp_gamble && find_hp_gamble_card(state().players[state().actor].hand[slot]))
             return {kind, slot, 0, static_cast<std::uint8_t>(bounded(policy_rng, 2))};
         const auto target = (spell(state().players[state().actor].hand[slot]).effect == Effect::damage
+            || (find_status_miracle(state().players[state().actor].hand[slot]) && spell(state().players[state().actor].hand[slot]).cure == Cure::none)
             || find_forgetting_card(state().players[state().actor].hand[slot])
             || find_item_removal_card(state().players[state().actor].hand[slot])) ? 1 - state().actor : state().actor;
         return {kind, slot, 0, static_cast<std::uint8_t>(target)};
@@ -3486,6 +3575,10 @@ Action Env::sample_action(std::uint64_t& policy_rng) const noexcept {
         const auto slot = pick(opts.ability_slots, policy_rng);
         const auto target = spell(spell_id(slot)).effect == Effect::damage ? 1 - state().actor : state().actor;
         return {kind, slot, 0, static_cast<std::uint8_t>(target)};
+    }
+    if (kind == ActionKind::cast_status) {
+        const auto slot = pick(opts.status_ability_slots, policy_rng);
+        return {kind, slot, 0, static_cast<std::uint8_t>(status_miracles()[slot].cure == Cure::none ? 1 - state().actor : state().actor)};
     }
     if (kind == ActionKind::cast_additive)
         return {kind, pick(opts.additive_ability_slots, policy_rng), 0, static_cast<std::uint8_t>(1 - state().actor)};

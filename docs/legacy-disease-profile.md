@@ -108,14 +108,14 @@ Playerは病気と内部悪化率、Pendingは元の病気神器ID・付与病�
 指定分はゲーム乱数を進めず、使い切ったらseed付き抽選へ戻る。
 病気なし・tick対象がHP0・解除済みなら抽選しない。無効profileは空prefixのクリアだけを許す。
 
-Snapshotは反撃拡張と共通のversion35。病気・悪化率・保留効果・暫定HP0連鎖・抽選prefix・過去記録を検証する。
+Snapshotは反撃拡張と共通のversion36。病気・悪化率・保留効果・暫定HP0連鎖・抽選prefix・過去記録を検証する。
 旧versionを黙って移行せず、不正入力は状態・乱数を変えず拒否する。
 永続checkpointや、旧版と同じseedの再現を保証する形式ではない。
 
 ## 観測とABI
 
-C++の共通観測は1317次元、`gd_*` ABI 6は先頭258次元を返し、構成要素maskは7種類。
-このv6 profileでは末尾1059個は0。追加部分は[harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
+C++の共通観測は1345次元、`gd_*` ABI 6は先頭258次元を返し、構成要素maskは7種類。
+このv6 profileでは末尾1087個は0。追加部分は[harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
 `gl_*` / `gm_*` / `ge_*` / `gc_*` / `gr_*` は128 / 164 / 186 / 210 / 236次元を維持する。
 
 | 位置 | 内容 |

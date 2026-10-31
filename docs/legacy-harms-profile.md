@@ -55,7 +55,7 @@ env.reset(42);
 
 `Config::harms` はデフォルトfalse。他のflagとは独立で、harms単独構成も可能。
 再現にはprofile名だけでなく全Configを保存する。上の構成とCLI・C APIはv7までの拡張有効。
-Snapshotの共通versionは35。異なる設定・旧version、不正なharm・無効設定中の状態flagなどを拒否する。
+Snapshotの共通versionは36。異なる設定・旧version、不正なharm・無効設定中の状態flagなどを拒否する。
 これは同じビルド内のfixture形式で、永続checkpointの互換形式ではない。
 
 Playerは公開状態の `glory/dark_cloud`、Pendingは `harm_card/harm` を持つ。
@@ -64,7 +64,7 @@ Playerは公開状態の `glory/dark_cloud`、Pendingは `harm_card/harm` を持
 `StepResult` は当該stepの `chance_forced`、harm付与試行数・新規flag数・Heaven転落数、
 Glory中の応答だったかを返す。
 
-共通C++観測は1317次元、`gh_*` ABI 7は先頭283次元を返す。v7では末尾1034個が0になる。
+共通C++観測は1345次元、`gh_*` ABI 7は先頭283次元を返す。v7では末尾1062個が0になる。
 追加部分は[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭258個は[病気観測](legacy-disease-profile.md)を維持する。
 
 | 位置 | 内容 |

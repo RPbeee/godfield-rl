@@ -98,7 +98,7 @@ void metadata_and_compression_proof() {
     std::uint64_t checked = 0; enumerate_multisets(0,8,0,checked);
     check(checked == 125125, "complete bounded abstract multiset exploration includes duplicates and all seven base attributes");
     auto env = fixture({65,85}, {120});
-    check(std::string_view(env.profile()) == attribute_change_ruleset && env.snapshot().version == 35,
+    check(std::string_view(env.profile()) == attribute_change_ruleset && env.snapshot().version == 36,
         "new attribute profile and in-process schema identified");
     check(env.options().weapon_bases == 3 && env.options().attribute_slots == 3
         && env.options().boost_slots == 0 && !env.options().pray, "setter extra mask separate from pure attack boosts");

@@ -59,7 +59,7 @@ void catalog_and_profile_boundaries() {
     for (CardId id : {CardId{0}, CardId{37}, CardId{70}, CardId{191}, CardId{200}, CardId{208}, CardId{65535}})
         check(!find_harm_card(id), "Glory light/counter sources and other unsupported harms excluded");
     auto enabled = fixture({43}, {120});
-    check(std::string_view(enabled.profile()) == harms_ruleset && enabled.snapshot().version == 35,
+    check(std::string_view(enabled.profile()) == harms_ruleset && enabled.snapshot().version == 36,
         "new harm profile and snapshot version identified");
     for (const Config disabled_config : {Config{}, Config{512, 10, true, true, true, true, true}}) {
         Env disabled(disabled_config); const auto original = disabled.snapshot();

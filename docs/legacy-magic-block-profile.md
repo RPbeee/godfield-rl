@@ -72,7 +72,7 @@ miraclesが無効なら新8種の通常武器・boost・防具の役割だけが
 遮断は項目を終了するため、未解決反射回数を増やさない。
 StepResultの `magic_blocked` をtrueにし、`weapon_blocked`・`magic_reflected`・`any_reflected`とは区別する。
 
-Snapshot共通versionは35。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshot共通versionは36。同じビルド・Config内のfixture用で、旧形式を自動移行する永続checkpointではない。
 新8種の許可flag、blockという履歴種別、自己座席のイベント・非保持由来を検証する。
 遮断履歴を反射や保持奇跡へ偽装したsnapshot、無効構成へ新IDを渡す復元・配布は拒否する。
 
@@ -80,7 +80,7 @@ Snapshot共通versionは35。同じビルド・Config内のfixture用で、旧�
 
 共通観測の追加部分と新しい順序付き行動は[HP吸収v28](legacy-hp-absorption-profile.md)を参照。旧ABIの幅・行動形式は維持する。
 
-共通C++観測は1317次元、gw出力は先頭750次元。v19では末尾567特徴が0。gvは先頭732、gu以前も従来の幅を維持する。
+共通C++観測は1345次元、gw出力は先頭750次元。v19では末尾595特徴が0。gvは先頭732、gu以前も従来の幅を維持する。
 既存のLastReactionのID・座席・block表現を使い、追加特徴は次のとおり。
 
 | 位置 | 内容 |

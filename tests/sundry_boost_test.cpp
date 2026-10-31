@@ -41,7 +41,7 @@ void metadata_minimum_base_prayer_and_discard() {
         "strict238-only SUNDRY pure boost10 metadata");
     for (CardId id : {CardId{0},CardId{133},CardId{197},CardId{237},CardId{239},CardId{65535}}) check(!find_sundry_boost_card(id), "no ordinary armor, MAGIC, FREE or gamble inclusion");
     Config minimum; minimum.sundry_boost = true; auto alone = fixture({238},{120},minimum); draws(alone);
-    check(std::string_view(alone.profile()) == sundry_boost_ruleset && alone.snapshot().version == 35 && alone.options().sundry_boost_slots == 1
+    check(std::string_view(alone.profile()) == sundry_boost_ruleset && alone.snapshot().version == 36 && alone.options().sundry_boost_slots == 1
         && alone.options().boost_slots == 1 && alone.options().discard_slots == 1 && !alone.options().weapon_bases
         && !alone.options().utility_slots && alone.options().pray, "independent pure extra does not count as WEAPON or prevent prayer");
     reject(alone,{ActionKind::use,0,0,0}); reject(alone,attack()); reject(alone,ordered({0}));

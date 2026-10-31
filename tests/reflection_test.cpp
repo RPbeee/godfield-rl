@@ -64,7 +64,7 @@ void metadata_and_profile_boundaries() {
         check(record.card.kind == Kind::weapon && !record.card.discardable && record.card.boost == 0,
             "reaction weapons retain weapon restrictions");
     auto enabled = fixture({39}, {20});
-    check(std::string_view(enabled.profile()) == reflection_ruleset && enabled.snapshot().version == 35,
+    check(std::string_view(enabled.profile()) == reflection_ruleset && enabled.snapshot().version == 36,
         "reaction profile and snapshot schema identified");
 
     for (const Config config : {Config{}, Config{512, 10, true}, Config{512, 10, true, true},

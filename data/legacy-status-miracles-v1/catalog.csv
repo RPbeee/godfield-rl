@@ -1,0 +1,6 @@
+id,label,element,cure,disease,harm,cost,price,weight
+202,legacy-202,neutral,lower,none,none,3,10,1
+208,legacy-208,dark,none,none,dark_cloud,5,10,1
+211,legacy-211,neutral,all,none,none,5,15,1
+212,legacy-212,neutral,none,cold,none,6,10,1
+224,legacy-224,neutral,none,heaven,none,15,15,1

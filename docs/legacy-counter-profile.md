@@ -86,9 +86,9 @@ env.reset(42);
 既存profileではdead/queue/originの新しい状態を無効時の初期値に保ち、元の遷移を維持する。
 `Options::counter_slots` は190の手札候補maskで、最終属性やGloryによる合法性は `legal()` でも検証する。
 `StepResult::counter_queued/counter_launched/counter_skipped/counter_resolved` は当該stepのキュー処理を表す。
-Snapshotの共通versionは35。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
+Snapshotの共通versionは36。同じビルド・設定のfixture用で、旧形式を自動移行する永続checkpointではない。
 
-共通C++観測は1317次元、`gk_*` ABI 13は先頭515次元を返す。v13では末尾802個は0。先頭393個は[属性消去profile](legacy-attribute-removal-profile.md)を継承する。
+共通C++観測は1345次元、`gk_*` ABI 13は先頭515次元を返す。v13では末尾830個は0。先頭393個は[属性消去profile](legacy-attribute-removal-profile.md)を継承する。
 
 | 位置 | 内容 |
 | --- | --- |

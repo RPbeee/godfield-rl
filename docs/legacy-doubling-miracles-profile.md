@@ -43,10 +43,10 @@ MP費用は追加ATK・倍化・57自身の最終消費を別集計し、その�
 
 `Config::doubling_miracles` はデフォルトfalseで、miraclesとadditive_miraclesを必要とする。
 `State::attack_composition.initial_doubling` に合成開始時の保持数も記録し、復元時に合成を再実行する。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`gq_*` は先頭924次元。v21では末尾393特徴が0。旧 `gp_*` は903、gw以前も従来の出力幅を維持する。
-v20では末尾414特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
+共通C++観測は1345次元、`gq_*` は先頭924次元。v21では末尾421特徴が0。旧 `gp_*` は903、gw以前も従来の出力幅を維持する。
+v20では末尾442特徴が0。相手の未使用手札・非公開保持数・未来の抽選・乱数状態・fixture prefixは含めない。
 
 | 位置 | 内容 |
 | --- | --- |

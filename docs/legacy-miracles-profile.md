@@ -53,14 +53,14 @@ castのslotsは0、targetは固定座席0/1。旧版の取得順に基づくabil
 
 `Pending` に奇跡IDと、保持からの使用かどうかを持たせた。
 保持使用では「手札16枚＋配布予定1」が正当なので、手札から使う場合と同じ容量検証にしない。
-Snapshotは反撃拡張と共通の形式version35。profile、設定、保持数、保留効果を検証し、異なるprofileや旧versionは拒否する。
+Snapshotは反撃拡張と共通の形式version36。profile、設定、保持数、保留効果を検証し、異なるprofileや旧versionは拒否する。
 これは同じビルド内のfixture形式であり、永続checkpointの互換形式ではない。
 
 ## 観測・ABI
 
 `gm_*` ABI v2は164次元の観測と6種類の構成要素マスクを返す。
-harms拡張後のC++コアの観測は1317次元で、`gm_*` は先頭164個に出力を制限する。
-この奇跡のみのprofileでは末尾1153個は0。定義は[属性profile](legacy-elements-profile.md)、
+harms拡張後のC++コアの観測は1345次元で、`gm_*` は先頭164個に出力を制限する。
+この奇跡のみのprofileでは末尾1181個は0。定義は[属性profile](legacy-elements-profile.md)、
 [確率profile](legacy-chance-profile.md)、[反応profile](legacy-reflection-profile.md)、[病気profile](legacy-disease-profile.md)、
 [harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
 既存 `gl_*` は奇跡無効のprofileのみを生成し、従来の128次元・5種類のマスクを維持する。

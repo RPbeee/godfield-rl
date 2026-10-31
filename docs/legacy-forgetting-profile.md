@@ -57,10 +57,10 @@ seedから選択IDへの対応、XMLの個体indexまでは再現しない。こ
 `Pending::forget_card` が元神器241を表し、現在source/targetと反射前の所有者を区別する。
 `State::last_forget` に神器ID・source・target・削除ID・削除前総コピー数を記録する。
 空の試行も記録するが、削除前総数は非公開の内部値である。
-共通Snapshotはversion35。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1317次元、`gj_*` は先頭1017次元。v24では末尾300特徴が0。旧 `gi_*` は993、gt以前も従来の出力幅を維持する。
-v23では末尾324特徴が0。相手の残り保持数、抽選ticket、乱数状態、未来の抽選・fixture prefixは含めない。
+共通C++観測は1345次元、`gj_*` は先頭1017次元。v24では末尾328特徴が0。旧 `gi_*` は993、gt以前も従来の出力幅を維持する。
+v23では末尾352特徴が0。相手の残り保持数、抽選ticket、乱数状態、未来の抽選・fixture prefixは含めない。
 公開するのは忘却試行のsource/targetと、失ったIDまたは空だったことだけである。
 
 | 位置 | 内容 |
