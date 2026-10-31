@@ -35,6 +35,7 @@ struct Stats {
     std::uint64_t absorb_positive_resolutions = 0, absorb_nominal_hp = 0;
     std::uint64_t self_damage_positive_resolutions = 0, self_damage_nominal_hp = 0;
     std::uint64_t flash_added = 0, flash_removed = 0, flash_response_commands = 0;
+    std::uint64_t darkcloud_added = 0, darkcloud_removed = 0, chance_forced_hits = 0, counter_forced_hits = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -54,6 +55,8 @@ struct Stats {
         absorb_positive_resolutions += s.absorb_positive_resolutions; absorb_nominal_hp += s.absorb_nominal_hp;
         self_damage_positive_resolutions += s.self_damage_positive_resolutions; self_damage_nominal_hp += s.self_damage_nominal_hp;
         flash_added += s.flash_added; flash_removed += s.flash_removed; flash_response_commands += s.flash_response_commands;
+        darkcloud_added += s.darkcloud_added; darkcloud_removed += s.darkcloud_removed;
+        chance_forced_hits += s.chance_forced_hits; counter_forced_hits += s.counter_forced_hits;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -82,10 +85,13 @@ int main(int argc, char** argv) {
                         const auto rolls_before = before.chance_rolls, hits_before = before.chance_hits;
                         const auto created_before = before.counter_created, started_before = before.counter_started;
                         const auto counter_rolls_before = before.counter_rolls, counter_hits_before = before.counter_hits;
+                        const auto forced_before = before.chance_forced_hits, counter_forced_before = before.counter_forced_hits;
                         std::array<bool, player_capacity> flashed_before{};
+                        std::array<bool, player_capacity> clouded_before{};
                         for (std::size_t seat = 0; seat < count; ++seat) {
                             const auto& curses = before.state.players[seat].curses;
                             flashed_before[seat] = std::find(curses.begin(), curses.end(), Curse::flash) != curses.end();
+                            clouded_before[seat] = std::find(curses.begin(), curses.end(), Curse::darkcloud) != curses.end();
                             if (before.phase == MatchPhase::response && before.state.players[seat].id == command.actor && flashed_before[seat])
                                 ++stats.flash_response_commands;
                         }
@@ -166,7 +172,12 @@ int main(int argc, char** argv) {
                             const auto flashed = std::find(curses.begin(), curses.end(), Curse::flash) != curses.end();
                             if (flashed && !flashed_before[seat]) ++stats.flash_added;
                             if (!flashed && flashed_before[seat]) ++stats.flash_removed;
+                            const auto clouded = std::find(curses.begin(), curses.end(), Curse::darkcloud) != curses.end();
+                            if (clouded && !clouded_before[seat]) ++stats.darkcloud_added;
+                            if (!clouded && clouded_before[seat]) ++stats.darkcloud_removed;
                         }
+                        stats.chance_forced_hits += match.snapshot().chance_forced_hits - forced_before;
+                        stats.counter_forced_hits += match.snapshot().counter_forced_hits - counter_forced_before;
                         stats.chance_rolls += match.snapshot().chance_rolls - rolls_before;
                         stats.chance_hits += match.snapshot().chance_hits - hits_before;
                         stats.counter_created += match.snapshot().counter_created - created_before;
@@ -200,6 +211,7 @@ int main(int argc, char** argv) {
             << "\nresource_counter_rule=" << resource_counter_rule
             << "\ndamage_effect_rule=" << damage_effect_rule
             << "\nflash_rule=" << flash_rule
+            << "\ndarkcloud_rule=" << darkcloud_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -221,6 +233,8 @@ int main(int argc, char** argv) {
             << "\nabsorb_positive_resolutions=" << stats.absorb_positive_resolutions << "\nabsorb_nominal_hp=" << stats.absorb_nominal_hp
             << "\nself_damage_positive_resolutions=" << stats.self_damage_positive_resolutions << "\nself_damage_nominal_hp=" << stats.self_damage_nominal_hp
             << "\nflash_added=" << stats.flash_added << "\nflash_removed=" << stats.flash_removed << "\nflash_response_commands=" << stats.flash_response_commands
+            << "\ndarkcloud_added=" << stats.darkcloud_added << "\ndarkcloud_removed=" << stats.darkcloud_removed
+            << "\nchance_forced_hits=" << stats.chance_forced_hits << "\ncounter_forced_hits=" << stats.counter_forced_hits
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

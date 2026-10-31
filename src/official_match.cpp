@@ -36,11 +36,13 @@ const ItemInstance* instance(const PlayerState& p, ItemToken token) {
     const auto it = std::find_if(p.items.begin(), p.items.end(), [&](const auto& item) { return item.token == token; });
     return it == p.items.end() ? nullptr : &*it;
 }
-bool has_flash(const PlayerState& p) {
-    return std::find(p.curses.begin(), p.curses.end(), Curse::flash) != p.curses.end();
+bool has_curse(const PlayerState& p, Curse curse) {
+    return std::find(p.curses.begin(), p.curses.end(), curse) != p.curses.end();
 }
-void add_flash(PlayerState& p) {
-    if (!has_flash(p)) p.curses.push_back(Curse::flash);
+bool supported_curse(Curse curse) { return curse == Curse::flash || curse == Curse::darkcloud; }
+void add_curse(PlayerState& p, Curse curse) {
+    require(supported_curse(curse), "unsupported effect curse");
+    if (!has_curse(p, curse)) p.curses.insert(std::lower_bound(p.curses.begin(), p.curses.end(), curse), curse);
 }
 void closed_state(const SnapshotState& s, const MatchConfig& c) {
     validate_state(s);
@@ -51,10 +53,11 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         require(p.hp >= 0 && p.hp <= 99 && p.mp >= 0 && p.mp <= 99 && p.cp >= 0 && p.cp <= 99, "scene resources outside 0..99");
         require(p.dead || p.hp > 0, "HP0 without resolved death is not a quiescent scene");
         require(p.items.size() <= c.hand_limit, "scene inventory exceeds configured display limit");
-        if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return curse != Curse::flash; })
+        if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return !supported_curse(curse); })
             || p.guardian != Guardian::none || p.confusion_count)
-            unsupported("only Flash is implemented among scoped curses, guardians and confusion");
-        require(p.curses.size() <= 1, "duplicate Flash is not a canonical match state");
+            unsupported("only Flash and DarkCloud are implemented among scoped curses, guardians and confusion");
+        require(p.curses.size() <= 2 && std::is_sorted(p.curses.begin(), p.curses.end())
+            && std::adjacent_find(p.curses.begin(), p.curses.end()) == p.curses.end(), "noncanonical scoped curses");
         for (const auto& item : p.items) {
             if (item.fake_model || !match_supported(item.model)) unsupported("unsupported or disguised match model");
             require(!item.used || find_card(item.model)->category == Category::miracles, "only miracles can be retained in scoped matches");
@@ -85,9 +88,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 404>& gift_tickets() {
+const std::array<CardId, 407>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 404> values{};
+        std::array<CardId, 407> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -96,7 +99,7 @@ const std::array<CardId, 404>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 201) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 204) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -132,7 +135,7 @@ std::vector<PlayerId> chance_targets(const MatchSnapshot& s) {
 ResponseContext response_context(const MatchSnapshot& s) {
     require(s.queue.size() == 1, "response has no active item");
     const auto& effect = s.queue.front();
-    return {has_flash(s.state.players[index(s, effect.target)]), effect.category, effect.element, damaging(effect)};
+    return {has_curse(s.state.players[index(s, effect.target)], Curse::flash), effect.category, effect.element, damaging(effect)};
 }
 std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
@@ -235,7 +238,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         if (remaining && effect.element == Element::darkness) target.hp = 0;
         else change_resource(target, Resource::hp, -remaining);
         target_damage = hp - target.hp;
-        if (target_damage > 0 && effect.ability == Ability::add_curse_on_damage) add_flash(target);
+        if (target_damage > 0 && effect.ability == Ability::add_curse_on_damage) add_curse(target, find_card(effect.models.front())->curse);
     } else {
         switch (effect.ability) {
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
@@ -246,10 +249,11 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             change_resource(target, Resource::cp, -effect.amount);
             change_resource(s.state.players[index(s, effect.source)], Resource::cp, effect.amount);
             break;
-        case Ability::counter_curse: add_flash(target); break;
-        case Ability::remove_mild_curses: case Ability::remove_all_curses:
+        case Ability::add_curse: case Ability::counter_curse: add_curse(target, find_card(effect.models.front())->curse); break;
+        case Ability::remove_mild_curses:
             std::erase(target.curses, Curse::flash);
             break;
+        case Ability::remove_all_curses: target.curses.clear(); break;
         default: unsupported("effect has no scoped resolver");
         }
     }
@@ -282,9 +286,13 @@ bool next_action_effect(MatchSnapshot& s) {
         auto effect = std::move(s.counters.front()); s.counters.erase(s.counters.begin());
         if (s.state.players[index(s, effect.source)].dead || s.state.players[index(s, effect.target)].dead) continue;
         if (effect.hit_rate) {
-            ++s.counter_rolls;
-            if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(effect.hit_rate)) continue;
-            ++s.counter_hits;
+            effect.forced_hit = has_curse(s.state.players[index(s, effect.target)], Curse::darkcloud);
+            if (effect.forced_hit) ++s.counter_forced_hits;
+            else {
+                ++s.counter_rolls;
+                if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(effect.hit_rate)) continue;
+                ++s.counter_hits;
+            }
         }
         ++s.counter_started; effect.redirect_rng = s.rng;
         s.actor = effect.target; s.phase = MatchPhase::response; s.queue.push_back(std::move(effect));
@@ -294,12 +302,15 @@ bool next_action_effect(MatchSnapshot& s) {
     while (batch.cursor < batch.targets.size()) {
         const auto target = batch.targets[batch.cursor++];
         if (s.state.players[index(s, target)].dead) continue;
-        if (batch.chance) {
+        const auto forced = batch.chance && has_curse(s.state.players[index(s, target)], Curse::darkcloud);
+        if (forced) ++s.chance_forced_hits;
+        else if (batch.chance) {
             ++s.chance_rolls;
             if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(rate)) continue;
             ++s.chance_hits;
         }
         s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items));
+        s.queue.back().forced_hit = forced;
         s.actor = target; s.phase = MatchPhase::response;
         return true;
     }
@@ -362,6 +373,7 @@ void execute(MatchSnapshot& s, const Command& command) {
             batch.chance_rolls = s.chance_rolls; batch.chance_hits = s.chance_hits;
             batch.counter_created = s.counter_created; batch.counter_started = s.counter_started;
             batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
+            batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
             batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
             batch.targets = batch.chance ? chance_targets(s) : std::vector<PlayerId>{*command.target};
             s.batch = std::move(batch);
@@ -386,9 +398,11 @@ void validate_snapshot(const MatchSnapshot& s) {
     const auto n = s.state.players.size();
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
     require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= player_capacity * s.decisions, "invalid chance attempt counters");
+    require(s.chance_forced_hits <= player_capacity * s.decisions - s.chance_rolls, "invalid forced chance count");
     require(s.counter_hits <= s.counter_rolls && s.counter_rolls <= s.counter_created
         && s.counter_hits <= s.counter_started && s.counter_started <= s.counter_created
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
+    require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
     for (std::size_t i = 0; i < n; ++i) {
@@ -435,6 +449,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.chance_rolls = batch.chance_rolls; replay.chance_hits = batch.chance_hits;
         replay.counter_created = batch.counter_created; replay.counter_started = batch.counter_started;
         replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
+        replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
         require(batch.attack.kind == CommandKind::play && find_card(batch.models.front()), "action journal has no valid launch");
@@ -452,9 +467,9 @@ MatchStep result(const MatchSnapshot& s) { return {s.phase, s.actor, s.terminate
 }
 bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
-    const auto flash = c && c->curse == Curse::flash
-        && (c->ability == Ability::add_curse_on_damage || c->ability == Ability::counter_curse);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || flash) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
+    const auto curse = c && supported_curse(c->curse)
+        && (c->ability == Ability::add_curse_on_damage || c->ability == Ability::counter_curse || c->ability == Ability::add_curse);
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
@@ -462,7 +477,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
-            || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || flash
+            || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
@@ -603,14 +618,15 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v8\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v9\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
     out += "\",\"counter_rule\":\""; out += counter_rule;
     out += "\",\"resource_counter_rule\":\""; out += resource_counter_rule;
     out += "\",\"damage_effect_rule\":\""; out += damage_effect_rule;
-    out += "\",\"flash_rule\":\""; out += flash_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"flash_rule\":\""; out += flash_rule;
+    out += "\",\"darkcloud_rule\":\""; out += darkcloud_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -635,6 +651,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"bounces\":" + std::to_string(bounces);
         out += ",\"hit_rate\":" + std::to_string(e.hit_rate);
         out += ",\"counter\":"; out += e.is_counter ? "true" : "false";
+        out += ",\"forced_hit\":"; out += e.forced_hit ? "true" : "false";
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }

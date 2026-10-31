@@ -23,11 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==201&&match_gift_weight()==404&&std::string_view(match_ruleset)=="official-execution-subset-v10"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"201model/404weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==204&&match_gift_weight()==407&&std::string_view(match_ruleset)=="official-execution-subset-v11"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"204model/407weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,94,73,11,23,0,0,0}&&weight==404,"normal weapon/armor/simple sundry/miracle pool only");
-    check(!match_supported(0)&&!match_supported(image("pluto-ring"))&&!match_supported(image("mirage"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(counts==std::array<int,8>{0,95,74,11,24,0,0,0}&&weight==407,"normal weapon/armor/simple sundry/miracle pool only");
+    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("mirage"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -72,7 +72,7 @@ void recovery_retention_capacity_and_atomicity(){
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
-    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("pluto-ring");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
+    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("mercury-ring");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
         if(error==2)bad.players[0].curses={Curse::cold};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
@@ -141,8 +141,8 @@ void reflection_chain_exceeds_legacy_limit(){
     }
     check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1 through v9 checkpoints are explicitly rejected atomically by Flash v10 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"v1 through v10 checkpoints are explicitly rejected atomically by DarkCloud v11 schema");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -254,7 +254,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v8\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v9\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -463,6 +463,43 @@ void flash_counter_chance_and_journal(){
     auto duplicate=scene({},{});duplicate.players[0].curses={Curse::flash,Curse::flash};rejected=false;try{pending.load_scene(duplicate,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"duplicate Flash import is rejected atomically rather than silently canonicalized");
 }
 
+void darkcloud_forced_chance_and_mixed_roster(){
+    const auto spark=image("spark-bag");auto plain=scene({spark},{});Match control;control.load_scene(plain,0,123);control.step(chance_play(0,{0}));check(control.snapshot().chance_rolls==1&&control.snapshot().chance_hits==0&&control.snapshot().chance_forced_hits==0&&!control.snapshot().batch,"seed123 normal75 roll misses without DarkCloud");
+    auto state=scene({spark},{image("super-mirror")});state.players[1].curses={Curse::darkcloud};Match forced;forced.load_scene(state,0,123);forced.step(chance_play(0,{0}));check(forced.snapshot().actor==7&&forced.snapshot().queue[0].forced_hit&&forced.snapshot().queue[0].hit_rate==75&&forced.snapshot().rng==123&&forced.snapshot().chance_rolls==0&&forced.snapshot().chance_hits==0&&forced.snapshot().chance_forced_hits==1,"DarkCloud forces original75 hit with zero draw and separate metric");roundtrip(forced);forced.step(defend(7,{0}));check(forced.snapshot().actor==0&&forced.snapshot().queue[0].forced_hit&&forced.snapshot().queue[0].hit_rate==75&&forced.snapshot().rng==123&&!forced.snapshot().state.players[0].curses.size(),"reflection preserves forced proof and original rate without rechecking unmarked destination");roundtrip(forced);forced.step(defend(0));check(forced.snapshot().state.players[0].hp==39&&forced.snapshot().state.players[1].curses==std::vector<Curse>{Curse::darkcloud}&&forced.snapshot().chance_forced_hits==1&&forced.snapshot().chance_rolls==0,"forced redirected body resolves once and normal damage does not remove DarkCloud");roundtrip(forced);
+    SnapshotState nine;for(PlayerId id=0;id<9;++id){auto p=player(id,id==0?std::initializer_list<CardId>{spark}:std::initializer_list<CardId>{});if(id%2)p.curses={Curse::darkcloud};nine.players.push_back(std::move(p));}Match mixed;mixed.load_scene(nine,0,123);mixed.step(chance_play(0,{0}));
+    for(PlayerId actor:{1u,3u,4u,5u,6u,7u,8u}){check(mixed.snapshot().actor==actor&&mixed.snapshot().queue[0].forced_hit==static_cast<bool>(actor%2),"mixed fixed-seat roster alternates forced hits with independent ordinary percentage draws");roundtrip(mixed);if(actor==8)check(mixed.snapshot().rng==std::uint64_t{123}+std::uint64_t{4}*0x9e3779b97f4a7c15ULL,"only four non-Dark target activations advance environment RNG before gifts");mixed.step(defend(actor));}
+    check(mixed.snapshot().chance_rolls==4&&mixed.snapshot().chance_hits==3&&mixed.snapshot().chance_forced_hits==4&&mixed.snapshot().state.players[2].hp==40&&mixed.snapshot().owner==1&&!mixed.snapshot().batch,"nine-player mixed action has4 draws,3 drawn hits,4 forced hits and one genuine miss");roundtrip(mixed);
+}
+
+void darkcloud_damage_sources_and_cures(){
+    const auto hex=image("hexagon-doom"),dark=image("dark-cloud"),mirror=image("super-mirror");
+    auto m=fixture(scene({hex},{}));m.step(play(0,{0},7));check(m.snapshot().state.players[1].curses.empty(),"DarkCloud on-damage payload waits until positive target damage");m.step(defend(7));check(m.snapshot().state.players[1].hp==29&&m.snapshot().state.players[1].curses==std::vector<Curse>{Curse::darkcloud},"hexagon11 applies DarkCloud without Dark execution");roundtrip(m);
+    auto zero=fixture(scene({hex},{image("god-shield")}));zero.step(play(0,{0},7));zero.step(defend(7,{0}));check(zero.snapshot().state.players[1].hp==40&&zero.snapshot().state.players[1].curses.empty(),"fully defended hexagon never applies DarkCloud");roundtrip(zero);
+    auto lethal=scene({hex},{});lethal.players[1].hp=1;auto dead=fixture(lethal);dead.step(play(0,{0},7));dead.step(defend(7));check(dead.snapshot().state.players[1].dead&&dead.snapshot().state.players[1].curses==std::vector<Curse>{Curse::darkcloud},"positive lethal damage still adds DarkCloud under explicit local rule");roundtrip(dead);
+    auto reflect=fixture(scene({hex},{mirror}));reflect.step(play(0,{0},7));reflect.step(defend(7,{0}));reflect.step(defend(0));check(reflect.snapshot().state.players[0].hp==29&&reflect.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}&&reflect.snapshot().state.players[1].curses.empty(),"reflected hexagon adds DarkCloud to final target only");roundtrip(reflect);
+    auto repeat=scene({hex},{});repeat.players[1].curses={Curse::flash,Curse::darkcloud};auto idem=fixture(repeat);idem.step(play(0,{0},7));idem.step(defend(7));check(idem.snapshot().state.players[1].curses==std::vector<Curse>({Curse::flash,Curse::darkcloud}),"on-damage reapplication preserves canonical unique Flash plus DarkCloud");roundtrip(idem);
+    auto own=fixture(scene({dark},{image("smile-dew")}));own.step(play(0,{0},0));check(own.snapshot().state.players[0].hp==40&&own.snapshot().state.players[0].mp==5&&own.snapshot().state.players[0].items[0].used&&own.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}&&!own.snapshot().batch,"DarkCloud miracle self-use is immediate nonattack, pays5 and retains token");roundtrip(own);own.step(play(7,{0},7));own.step(play(0,{0},0));check(own.snapshot().state.players[0].mp==0&&own.snapshot().state.players[0].curses.size()==1,"same retained DarkCloud miracle pays again and remains idempotent");roundtrip(own);
+    auto free_state=scene({dark,image("spiritual-doll")},{});free_state.players[0].mp=0;free_state.players[0].curses={Curse::flash};auto free=fixture(free_state);free.step(play(0,{0,1},0));check(free.snapshot().state.players[0].mp==0&&free.snapshot().state.players[0].items[0].used&&free.snapshot().state.players[0].curses==std::vector<Curse>({Curse::flash,Curse::darkcloud}),"Flash permits main DarkCloud plus FREE and canonical mixed state");roundtrip(free);
+    auto blocked=fixture(scene({dark},{image("angel-knife")}));blocked.step(play(0,{0},7));blocked.step(defend(7,{0}));check(blocked.snapshot().state.players[0].mp==5&&blocked.snapshot().state.players[0].items[0].used&&blocked.snapshot().state.players[1].hp==40&&blocked.snapshot().state.players[1].curses.empty(),"magic blocker cancels nonattack DarkCloud without refunding cost or retention");roundtrip(blocked);
+    auto magic=fixture(scene({dark},{image("moonlight-helm")}));magic.step(play(0,{0},7));magic.step(defend(7,{0}));roundtrip(magic);magic.step(defend(0));check(magic.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}&&magic.snapshot().state.players[1].curses.empty()&&magic.snapshot().state.players[0].hp==40,"magic reflection redirects pure DarkCloud without treating Darkness element as damage");roundtrip(magic);
+    for(const auto name:{"smile-shell","heart-shell","tone","song"}){auto state=scene({image(name)},{});state.players[0].mp=20;state.players[0].curses={Curse::flash,Curse::darkcloud};auto cure=fixture(state);cure.step(play(0,{0},0));const auto mild=find_card(image(name))->ability==Ability::remove_mild_curses;check(cure.snapshot().state.players[0].curses==(mild?std::vector<Curse>{Curse::darkcloud}:std::vector<Curse>{}),"mild cures remove only Flash whereas all cures remove Flash and DarkCloud");roundtrip(cure);}
+}
+
+void darkcloud_counter_fifo_forced_and_selection(){
+    const auto pluto=image("pluto-ring"),uranus=image("uranus-ring"),mars=image("mars-ring");auto state=scene({image("bronze-club"),image("aqua-shoes"),image("aqua-shoes")},{pluto,uranus,mars});Match fifo;fifo.load_scene(state,0,123);fifo.step(play(0,{0},7));fifo.step(defend(7,{0,1,2}));
+    check(fifo.snapshot().queue[0].models==std::vector<CardId>{pluto}&&fifo.snapshot().queue[0].power==0&&fifo.snapshot().queue[0].amount==0&&fifo.snapshot().queue[0].category==Category::armor&&fifo.snapshot().queue[0].element==Element::darkness&&fifo.snapshot().state.players[0].hp==40,"Pluto is pure nonattack Darkness counter rather than immediate Dark damage");roundtrip(fifo);reject(fifo,defend(0,{1}));fifo.step(defend(0));check(fifo.snapshot().state.players[0].hp==40&&fifo.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}&&fifo.snapshot().queue[0].models==std::vector<CardId>{uranus},"first FIFO pure Dark counter adds state without HP loss before Flash counter");roundtrip(fifo);fifo.step(defend(0));
+    check(fifo.snapshot().state.players[0].curses==std::vector<Curse>({Curse::flash,Curse::darkcloud})&&fifo.snapshot().queue[0].models==std::vector<CardId>{mars}&&fifo.snapshot().queue[0].forced_hit&&fifo.snapshot().queue[0].hit_rate==75&&fifo.snapshot().counter_forced_hits==1&&fifo.snapshot().counter_rolls==0&&fifo.snapshot().counter_hits==0&&fifo.snapshot().rng==123,"same FIFO applies Flash/Dark before Mars activation, forcing original75 hit without a draw");roundtrip(fifo);reject(fifo,defend(0,{1,2}));fifo.step(defend(0,{1}));check(fifo.snapshot().state.players[0].hp==40&&fifo.snapshot().state.players[0].curses==std::vector<Curse>({Curse::flash,Curse::darkcloud}),"new Flash enforces one-card defense and Dark persists through blocked ordinary damage");roundtrip(fifo);
+    auto reflect=fixture(scene({image("bronze-club"),image("super-mirror"),image("rainbow-curtain"),image("aqua-shoes")},{pluto}));reflect.step(play(0,{0},7));reflect.step(defend(7,{0}));reject(reflect,defend(0,{2}));reject(reflect,defend(0,{3}));reflect.step(defend(0,{1}));roundtrip(reflect);reflect.step(defend(7));check(reflect.snapshot().state.players[0].curses.empty()&&reflect.snapshot().state.players[1].hp==39&&reflect.snapshot().state.players[1].curses==std::vector<Curse>{Curse::darkcloud},"190 alone redirects pure Pluto curse without Dark execution or nested counter");roundtrip(reflect);
+}
+
+void darkcloud_canonical_journal_and_cutoff(){
+    auto state=scene({image("spark-bag")},{});state.players[1].curses={Curse::darkcloud};Match m;m.load_scene(state,0,123);m.step(chance_play(0,{0}));const auto exact=m.snapshot();for(int error=0;error<12;++error){auto bad=exact;if(error==0)bad.queue[0].forced_hit=false;if(error==1)bad.queue[0].hit_rate=100;if(error==2)bad.chance_forced_hits=0;if(error==3)bad.chance_rolls=1;if(error==4)bad.chance_hits=1;if(error==5)++bad.batch->chance_forced_hits;if(error==6)bad.batch->initial_state.players[1].curses.clear();if(error==7)bad.batch->rng^=1;if(error==8)bad.queue[0].redirect_rng^=1;if(error==9)++bad.rng;if(error==10)bad.state.players[1].curses.clear();if(error==11)++bad.counter_forced_hits;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"replay rejects forged forced proof, counters, initial curse, RNG anchors and current state atomically");}
+    for(const auto curses:{std::vector<Curse>{Curse::darkcloud,Curse::darkcloud},std::vector<Curse>{Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::flash,Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::cold,Curse::darkcloud}}){auto invalid=scene();invalid.players[0].curses=curses;bool rejected=false;try{m.load_scene(invalid,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"runtime accepts only sorted unique supported Flash/Dark state and rejects other curses");}
+    auto late=state;late.update_count=max_wire_integer;Match failed;failed.load_scene(late,0,123);const auto before=failed.snapshot();check(failed.legal(chance_play(0,{0})),"forced launch can fail only at late transport boundary");bool rejected=false;try{failed.step(chance_play(0,{0}));}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late launch rollback restores consumed item, forced counter, RNG and new journal");
+    MatchConfig limit;limit.max_decisions=1;Match cut(limit);cut.load_scene(state,0,123);cut.step(chance_play(0,{0}));check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().chance_forced_hits==1&&cut.snapshot().chance_rolls==0&&cut.snapshot().chance_hits==0&&cut.snapshot().rng==123&&!cut.snapshot().batch&&cut.snapshot().queue.empty()&&cut.snapshot().state.players[1].hp==40,"forced hit survives launch cutoff accounting while no response HP or gifts execute");roundtrip(cut);
+    auto counter_state=scene({image("bronze-club")},{image("pluto-ring"),image("mars-ring")});MatchConfig counter_limit;counter_limit.max_decisions=4;Match counter(counter_limit);counter.load_scene(counter_state,0,123);counter.step(play(0,{0},7));counter.step(defend(7,{0,1}));counter.step(defend(0));counter.step(defend(0));check(counter.snapshot().truncated&&counter.snapshot().counter_forced_hits==1&&counter.snapshot().counter_rolls==0&&counter.snapshot().counter_hits==0&&counter.snapshot().state.players[0].hp==39&&counter.snapshot().rng==123&&!counter.snapshot().batch,"counter forced-hit metric and no-draw RNG persist through command-boundary cutoff");roundtrip(counter);
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -506,4 +543,37 @@ void checkpoint_cutoff_and_seeded_multiplayer(){
         check(a.snapshot().terminated!=a.snapshot().truncated,"explicit terminal or cutoff reached; no silent stuck match");}
 }
 }
-int main(){scope_reset_and_local_contract();weapon_frames_colors_owner_and_fixed_rewards();recovery_retention_capacity_and_atomicity();reflection_filter_and_immutable_origin();reflection_snapshot_adversaries();reflection_chain_exceeds_legacy_limit();reflection_role_capacity_and_late_failures();blocking_roles_retention_and_reflection();ordered_free_setter_and_double();free_response_capacity_sampler_and_atomicity();bounce_targets_roles_and_rng_provenance();retained_bounce_exceeds_physical_limit_and_free();chance_scope_boundaries_and_single_cost();chance_multiplayer_journal_and_privacy();chance_dead_skip_origin_cancel_cutoff_and_rollback();counter_damage_fifo_and_reactions();counter_chance_death_journal_and_atomicity();counter_generation_exceeds_old_duel_limit();resource_counter_mp_cp_and_alias();resource_counter_dead_skip_and_journal();mp_refill_extends_retained_redirect_budget();absorption_stages_reflection_and_retention();same_damage_stages_deaths_and_journal();composed_damage_effect_and_block_cancel();checkpoint_cutoff_and_seeded_multiplayer();std::cout<<"Experimental official match passed (201subset/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/block/reflection/filter/9teams/owner/retention/atomicity/snapshot/RNG/cutoff; server scheduling not asserted).\n";}
+int main(){
+    scope_reset_and_local_contract();
+    weapon_frames_colors_owner_and_fixed_rewards();
+    recovery_retention_capacity_and_atomicity();
+    reflection_filter_and_immutable_origin();
+    reflection_snapshot_adversaries();
+    reflection_chain_exceeds_legacy_limit();
+    reflection_role_capacity_and_late_failures();
+    blocking_roles_retention_and_reflection();
+    ordered_free_setter_and_double();
+    free_response_capacity_sampler_and_atomicity();
+    bounce_targets_roles_and_rng_provenance();
+    retained_bounce_exceeds_physical_limit_and_free();
+    chance_scope_boundaries_and_single_cost();
+    chance_multiplayer_journal_and_privacy();
+    chance_dead_skip_origin_cancel_cutoff_and_rollback();
+    counter_damage_fifo_and_reactions();
+    counter_chance_death_journal_and_atomicity();
+    counter_generation_exceeds_old_duel_limit();
+    resource_counter_mp_cp_and_alias();
+    resource_counter_dead_skip_and_journal();
+    mp_refill_extends_retained_redirect_budget();
+    absorption_stages_reflection_and_retention();
+    same_damage_stages_deaths_and_journal();
+    composed_damage_effect_and_block_cancel();
+    flash_damage_selection_and_cures();
+    flash_counter_chance_and_journal();
+    darkcloud_forced_chance_and_mixed_roster();
+    darkcloud_damage_sources_and_cures();
+    darkcloud_counter_fifo_forced_and_selection();
+    darkcloud_canonical_journal_and_cutoff();
+    checkpoint_cutoff_and_seeded_multiplayer();
+    std::cout<<"Experimental official match passed (204subset/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+}

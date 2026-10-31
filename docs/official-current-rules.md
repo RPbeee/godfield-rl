@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。現行の[限定実行器v10](official-execution-subset.md)は閃光付与/反撃/解除7種を加えた201モデル/重み404。閃光以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。現行の[限定実行器v11](official-execution-subset.md)は暗雲付与/反撃3種を加えた204モデル/重み407。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -104,7 +104,7 @@ v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含め
 
 v7は実HP減少>0かつ生存した防御者だけが、選択181/184の順で各1counterを生成する規約を採る。181は実HP減少1倍/火/75%、184は2倍/土/必中、生成powerは198以下。被害を与えた現在source一人へ向かい、counter生成者originを保つ。counter FIFOを次の初期chance対象より先に処理し、childcounterは末尾へ追加、開始時source/target死亡は無draw skipとする。181はsingle targetの開始時に1回命中抽選し、redirect後再抽選はしない。
 
-command末尾の自然終局→cutoffを優先し、元owner死亡なら残り初期chance対象を取消すが、既予約counterは生存条件を満たせば続ける。全action後だけalive補充/次ownerへ進む。これらのtrigger/実HP基準/順序/deathskip等は**公式server未検証の実験規約**で、公開 `counter_rule='experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;roll-before-response;redirects-no-reroll'` に明示する。
+command末尾の自然終局→cutoffを優先し、元owner死亡なら残り初期chance対象を取消すが、既予約counterは生存条件を満たせば続ける。全action後だけalive補充/次ownerへ進む。これらのtrigger/実HP基準/順序/deathskip等は**公式server未検証の実験規約**で、公開 `counter_rule='experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll'` に明示する。
 
 全pending playを非再帰ActionBatchへ統一し、launch前state/RNG/counters/原発command+response journalから同じexecutorで完全再生して現在frame/FIFOまで比較する。将来FIFO/journal/RNGやnativecounter集計は公開viewへ出さない。旧版のraw残余×2・死者source実行・固定32等を現行の確定ルールとして移さない。
 
@@ -130,7 +130,7 @@ MP187により旧paid234の最大19回/人は成立しない。初期MP総量<=9
 
 `hit`（10930–10955行）は受信event.playerIdへ表示targetを向けて命中演出/応答演出を行い、`miss`（10956–10963行）は同じく受信targetへ外れの演出だけを行う。`nextAttack`（10881–10888行）は受信したattackを `p3` でdecodeし `fv` で表示する。ここには対象queueの生成・命中乱数・確率端点・途中dead skip・補充順は無い。reflect/bounceは元aggregateのhitRate表示を保ち、再命中抽選するclient処理も見えないが、serverの再抽選無しまで独立照合したわけではない。
 
-v6はtarget無しのplayだけを受理し、launch時aliveの敵を入力順に固定する。自己と同非Soloチームを除き、処理時deadなら無draw skip、生存者へ有界100抽選1回の `roll < hit_rate` を適用する。miss応答無し、hitだけresponse、redirect再抽選無しとし、原発消費/MC費用/used保持は1回。自然終局→cutoffは受理コマンド末尾で判定し、自動miss/skipはdecisionを増やさない。launchは最初hitまたは全missまでdrain後に判定し、response完了後は未打切りの場合だけ次対象を抽選する。origin死亡なら残り取消、補充はbatch全完了後とする。これらは**公式server未確認の実験規約**で、top-level `chance_rule='experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death'` に明示する。
+v6はtarget無しのplayだけを受理し、launch時aliveの敵を入力順に固定する。自己と同非Soloチームを除き、処理時deadなら無draw skip、生存者へ有界100抽選1回の `roll < hit_rate` を適用する。miss応答無し、hitだけresponse、redirect再抽選無しとし、原発消費/MC費用/used保持は1回。自然終局→cutoffは受理コマンド末尾で判定し、自動miss/skipはdecisionを増やさない。launchは最初hitまたは全missまでdrain後に判定し、response完了後は未打切りの場合だけ次対象を抽選する。origin死亡なら残り取消、補充はbatch全完了後とする。これらは**公式server未確認の実験規約**で、top-level `chance_rule='experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death'` に明示する。
 
 `e1` はhitRateを条件にしないため、属性消去でNEになった命中済み確率武器には21/38/233がmatchingする。旧版の％武器への反射制限を流用しない。このv6のchance専用restoreはv7で全pending play用ActionBatchへ統一し、launch前state/RNG/counters/commandと受理response journalから内部executorを再生して、途中でHP/deadが変わるbatchやcounterも検査する。将来roster/cursor/anchor/journal/RNGは公開観測へ出さない。
 
@@ -147,6 +147,20 @@ counterはtargetdamage段階だけの実HP減少と全body後survivorを基準�
 98は木75%のtargetless chanceを使い追加不可、216は光ATK10/MP10の保持/FREEを使う。新RNG/MP予算は不要。公開damage_effect_ruleは `experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only`。HP primitive以外の量・順序・死亡/反撃接合は現行server未照合と明示し、旧仕様の一致を現行公式適合の証拠へ数えない。
 
 v9では状態を実行しない。v10は70/185/224と199/200/237/238を加えて閃光だけを扱う。防御の1枚制限と非病気curseの重複防止には公開clientの根拠がある。実HP損失時の致死を含む付与・明示解除まで持続・counterの生存条件/FIFOは実験規約とする。解除4種も閃光だけの閉じた状態集合で実行し、他の病気や霧/夢へ暗黙に対応しない。詳しくは[限定実行器のv10契約](official-execution-subset.md#v10の閃光と解除)を参照。
+
+## 暗雲：公開説明・表示とv11規約
+
+41はNE武器ATK11/addCurseOnDamage暗雲/p15w1、186は闇armor/ATKDEF0/counterCurse暗雲/p10w1、223は闇miracle/power0/addCurse暗雲/MP5w1。v11はこの3種を加え204モデル/重み407（95武器/74防具/11雑貨/24奇跡）となる。186は `fv` のcounterCurse分岐でcurseを動的表示するが、`gf3` はpower0のarmorをattackと判定しない。闇即死のdamageではなく、普通DEF/filter等は不可で190万能反射だけがmatchingする。
+
+JAの暗雲説明は「全体攻撃を受けると必ず命中する」、ENは “Received %ATK attacks hit certainly”。`hit`（10930–10955行）は受信済み対象の暗雲を参照して不可避演出を選ぶ（viewerの霧による表示秘匿条件もある）。`nextAttack` はserverから受け取ったattackを表示するだけなので、無drawか、活性化時点、redirect後の再判定までは一次で確定しない。ENに沿えばWIDE専用へ限定する根拠は無いが、181counterへの適用も独立server trace照合は未了である。
+
+`dA` は非病気curseの再付与を重複させず、通常HP更新やdieは暗雲を自動解除しない。mild説明はCold/Fever/Fog/Flashで暗雲を含まず、allは全curseを対象にする。removeCurses eventはserver指定リストを削除するので、これだけでserverの解除発行順を確定しない。
+
+v11はpercent初期対象と181counterの活性化時に暗雲なら無drawforcedhit、元hit_rate維持/現在pending.forced_hit真、redirect再確認無しの**実験規約**を採る。Flash→DarkCloudのcanonical順・重複拒否で同居し、mildはFlashだけ/allは両方を解除。再付与idempotent・all解除まで持続・no tickとする。41の正HP被害/致死付与、186の生存counter、223のself即時/他者responseも既存のローカル規約へ接続する。
+
+公開darkcloud_ruleは `experimental:force-percent-hit-without-draw-at-target-activation;redirects-no-recheck;idempotent-until-all-cure;no-tick`、chance/counter_ruleへdarkcloud-forces-without-drawを加える。実draw成功hitsとforcedを分離し、miss=rolls−hitsを維持する。Snapshot11のanchor/現在frameまで完全replayしてRNG非消費を検査し、累計forcedや未来journalを公開viewへ出さない。病気・霧/夢・他curseは未対応として拒否する。
+
+v10検証範囲の訂正：専用native Flash2関数がmainへ未登録だったため、そのcounter FIFO/canonical偽造/late rollback等をv10実行済みとした範囲は撤回する。CTest件数・C API/Python18ケース・大規模benchの記録値は維持し、v11で登録を修正して初実行し、全source/test最終freeze後の検証でもfixture修正無しでRelease/SANとも通過した。 GNU/Clangではofficial_match native test targetに `-Wunused-function -Werror=unused-function` を追加し、同様の未使用テスト関数をcompile errorにする。
 
 ## 病気・閃光・暗雲
 

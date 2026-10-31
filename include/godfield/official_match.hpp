@@ -9,15 +9,16 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v10";
-inline constexpr const char* match_scope = "experimental:201-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v11";
+inline constexpr const char* match_scope = "experimental:204-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
-inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
-inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;roll-before-response;redirects-no-reroll";
+inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
+inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
 inline constexpr const char* resource_counter_rule = "experimental:mp-self-target-with-response;cp-target-incoming-source;debit-current-target-then-full-credit-current-source;resource-debt-no-new-counter";
 inline constexpr const char* damage_effect_rule = "experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only";
 inline constexpr const char* flash_rule = "experimental:positive-target-hp-loss-including-lethal;idempotent-until-explicit-cure;counter-to-incoming-source;one-card-response;no-tick";
-inline constexpr std::uint32_t match_snapshot_version = 10;
+inline constexpr const char* darkcloud_rule = "experimental:force-percent-hit-without-draw-at-target-activation;redirects-no-recheck;idempotent-until-all-cure;no-tick";
+inline constexpr std::uint32_t match_snapshot_version = 11;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -62,6 +63,7 @@ struct EffectFrame {
     std::vector<RedirectFrame> redirects; // Reaction kind is derived from models and incoming payload.
     int hit_rate = 0; // Original display percentage; an active chance frame has already hit.
     bool is_counter = false;
+    bool forced_hit = false; // DarkCloud bypassed the original percentage draw.
     bool operator==(const EffectFrame&) const = default;
 };
 // Non-recursive privileged launch anchor and accepted response journal. Current
@@ -71,6 +73,7 @@ struct ActionBatch {
     PlayerId owner = 0;
     std::uint64_t rng = 0, decisions = 0, next_token = 0, chance_rolls = 0, chance_hits = 0;
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
+    std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0;
     Command attack;
     std::vector<CardId> models;
     std::vector<PlayerId> targets;
@@ -92,8 +95,9 @@ struct MatchSnapshot {
     std::vector<EffectFrame> counters; // Reserved FIFO, never part of a policy observation.
     std::vector<std::uint32_t> gifts;
     std::uint64_t rng = 0, decisions = 0, next_token = 0;
-    std::uint64_t chance_rolls = 0, chance_hits = 0; // Completed public attempts, never future rolls.
+    std::uint64_t chance_rolls = 0, chance_hits = 0; // Actual percentage draws/successes, excluding forced hits.
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
+    std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0; // Activated without environmental RNG.
     bool terminated = false, truncated = false;
     std::vector<double> rewards; // Fixed player vector order, never actor-relative.
     std::vector<PlayerId> winners;
