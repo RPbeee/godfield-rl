@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd",
+  "vectors_sha256": "161985263c498efc2f9c391f899a8134c52bd96aab24043edae5daaeb57c67a8",
+  "counts": {
+    "R": 7898
+  },
+  "methods": [
+    "c5.eW",
+    "c5.dH",
+    "c5.bc"
+  ],
+  "network_or_application_startup": false,
+  "purpose": "Actual client HP/MP/CP delta and debt cascade only; does not prove server scheduling, gifts, death or acceptance.",
+  "generator": "node scripts/official_resource_oracle.cjs --client /path/to/main.dart.js"
+}

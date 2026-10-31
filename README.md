@@ -5,20 +5,23 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 
 現行公式については、公開台帳296モデル、公開クライアントの計算・選択関数、
 最大9人のデコード済みスナップショットからの状態欄・手札表示の部分投影を独立実装しました。
-通常配布は正のgiftRateを持つ237モデル・重み合計500です。
+公式台帳の通常配布は正のgiftRateを持つ237モデル・重み合計500です。
 `godfield::official` は順序付き威力/属性/MP表示、反応・属性防御、見えているモデル列への追加可否を計算し、
 実際の公式JSをオフライン実行した50,270件のgolden vectorと一致しました。
 状態表示についても、実関数と抽出した分岐による22,140件が一致しました。
 後者はtooltip等の描画部品をstubに置き換えた照合を含み、全UI操作や対局の再現ではありません。
 `gfo_*` ABI1とPython `OfficialData` は台帳・合成計算、追加の `gfo_state_*` と
 Python `official_state.py` は入力スナップショットの読み取り・view・選択照会を公開します。
-いずれも対局を進めるEnvではありません。
+これらのread-only APIに加え、`godfield::official::Match` / `gfo_match_*` / Python `Match` で
+132モデル・重み308に限定した2〜9人/チーム対局を実行できます。
+配布・死亡・手番のscheduleは実験規約であり、公式サーバー同等性は未検証です。
 
 [公式一次調査](docs/official-current-rules.md)、[状態と表示の契約](docs/official-state-view.md)、
+[限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v1/README.md)を参照してください。
-公式サーバーのターン進行・effect queue・抽選、9人/チーム対局、守護神、終末・勝敗の実行器は未完成です。
-9人の状態を読み取れることは、9人対局を実行できることを意味しません。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進めますが、
+公式の237モデル全配布や全固有効果、多段queue、確率攻撃、反射/反撃、取引、病気・霧・夢、守護神・終末は実行できません。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
@@ -26,6 +29,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v1` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
+| `official-execution-subset-v1` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 132モデル/重み308、全7属性・単純回復・奇跡保持、`gfo_match_*` ABI1 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -84,6 +88,9 @@ cmake --build build -j 4
 ctest --test-dir build --output-on-failure
 python3 python/official_data.py
 python3 python/official_state.py
+python3 python/official_match.py
+./build/godfield_official_bench 1000 2 42 1
+./build/godfield_official_bench 1000 9 42 1
 ./build/godfield_legacy_bench 100000 4 42 dying-weapon
 python3 python/dying_weapon_env.py
 ./build/godfield_legacy_bench 100000 4 42 item-removal
@@ -221,14 +228,53 @@ C02の自然悪化5%は教典の記述を確認した段階です。
 C04の属性ワンドATK2/5は実際のclient合成関数でも加算されます。
 これらの公開client/説明の証拠と、権威的serverの解決順・HP遷移の未検証を分けています。
 
-全体検証は通常CTest125件（20.03秒）、ASan/UBSan86件（50.83秒）が通過しました。
-その後の不可能な文字列長（SIZE_MAX）拒否の追加後は、関係する通常4件（0.86秒）・SAN3件（1.13秒）を再検証しました。
-公式fact296件・旧37台帳hash・候補対応表、計算/選択50,270件、追加の状態helper/分岐22,140件が一致しています。
-Pythonは台帳15件・状態9件、C ABI合成4,878ケース、nativeのC ABI境界と非干渉も検証しました。
+限定実行器まで含めた全体検証は通常CTest129件（21.83秒）、ASan/UBSan89件（50.47秒）が通過しました。
+最後に「資源更新だけではHP0でもdeadを立てない」assertを追加し、資源テストを通常/SAN各1件再検証しました。coreの追加変更はありません。
+公式fact296件・旧37台帳hash・候補対応表、計算/選択50,270件、状態helper/分岐22,140件、
+実clientのHP/MP/CP更新7,898件が一致しています。Pythonは台帳15件・状態9件・新Match8件、
+C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot/restore、後段失敗のrollbackも検証しました。
 [状態oracleのmetadata](data/official-v1/state-vectors.manifest.json)にあるとおり、
 実関数と抽出分岐・描画stubを使った照合であり、全画面を操作したoracleではありません。
+[資源oracle](data/official-v1/resource-vectors.manifest.json)もローカル算術の照合で、配布・死亡・手番のサーバー順序を証明しません。
 公式対局traceは今回未取得で、公開clientから権威的serverの全実行器が得られたわけではありません。
 対局シミュレーターとしての公式完全対応は未達です。
+
+## 公式データによる限定対局実行器
+
+[official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
+132モデル/重み308を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
+奇跡のused保持・再使用、2〜9人とチームを扱います。
+rulesetは `official-execution-subset-v1`、scopeは `experimental:132-models;not-official-server-equivalence` です。
+対象外のモデル・fake・災い・守護神・混乱・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
+read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
+
+主動作から応答へ進み、効果解決・死亡確定の後に自然終局を優先し、未終局なら補充・次ownerへ進みます。
+自己攻撃もresponseを作り、自己回復は即時、他人への単純回復は空応答を待ちます。
+通常品の消費には補充を予約し、奇跡はusedとして残して空きがある場合だけ予約します。捨てるには補充を付けません。
+初期9枚/HP40MP10CP20/総枠18、固定入力順の主手番、残余 `max(0,ATK−DEF)`、
+配布・死亡・終局scheduleは明示したローカル実験規約です。
+公式clientで照合した算術・表示と、権威的serverで未照合の順序を[契約文書](docs/official-execution-subset.md)で分けています。
+
+[official_match_c_api.h](include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と
+[Python `Match`](python/official_match.py) はreset、legal、step、status、observe、
+外部policy RNGによるsample_actionを提供します。rewardは入力プレイヤー列に固定し、勝者+1/他者−1/draw0。
+意思決定の打切りは自然終局と分け、報酬0です。不正・未対応入力で状態/RNG/出力を一部更新しません。
+raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していません。
+
+`python3 python/official_match.py` はローカル実行例です。C++ベンチマークは
+`./build/godfield_official_bench GAMES PLAYERS SEED WORKERS`、省略時は `10000 2 42 1`。
+これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
+
+Releaseで他の計測処理と競合させずに再計測した結果（seed42、1 worker）:
+
+| 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 2 | 100,000 | 3,918,160 | 0 / 0 | 2.48432 | 1,577,160 |
+| 9 | 10,000 | 2,838,305 | 0 / 29 | 2.48806 | 1,140,770 |
+
+合法手samplerと各試合の終了snapshot検証を含みます。1/4 workersで全決定的な集計・checksumが一致しました。
+勝数・checksum・SANとの照合は[限定実行器の検証記録](docs/official-execution-subset.md#検証と計測)に記載しています。
+旧37profileは保持し、学習器と学習済みモデルは追加していません。
 
 ## 旧版を参考にした中立ルールセット
 
@@ -432,7 +478,7 @@ Gloryの防御制限は旧版botの挙動を採用しています。v7の通常�
 
 ### 独自ルールと未実装部分
 
-カードIDは公式IDと関係ありません。武器3種（威力3/6/10）、防具3種（防御3/6/10）、
+この節は初期のsynthetic環境についての説明です。カードIDは公式IDと関係ありません。武器3種（威力3/6/10）、防具3種（防御3/6/10）、
 回復2種（HP+5/+10）、MP回復1種（MP+5）、回復魔法1種（MP6でHP+10）の全10種。
 全種類を等確率・復元抽出します。開始手札にも補充にも同じ分布を使います。
 
@@ -495,8 +541,8 @@ Gymnasium/PettingZooアダプターやPPOはまだ同梱していません。
 [仕様差分表](docs/official-spec-gap.md)に、28項目の差分、資料間の衝突、対応順と受入条件を整理しています。
 
 1. 固定した公式データ・表示関数・部分viewを、出典付きfixtureで継続照合する。
-2. ターン進行・effect queue・消費・補充・死亡・固有効果を実装し、根拠のある遷移と照合する。
-3. 9人/チーム対局、守護神、終末・悪魔・勝敗へ広げる。9人の状態対応と対局対応を別に検証する。
+2. 限定実行器の実験的な配布・死亡・手番順を一次の対局結果と照合し、一般effect queueと未対応効果へ広げる。
+3. 確率・反射/反撃・取引・霧/夢・守護神・終末等を含む9人/チームの全範囲へ広げる。限定playableと公式全体の一致を別に検証する。
 
 学習器は現在の実装範囲に含めません。旧37profileのEnvとAPIは比較用に保存します。
 

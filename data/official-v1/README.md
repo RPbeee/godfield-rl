@@ -148,3 +148,20 @@ Unknown JSON, full attack tails and events remain privileged raw evidence and ar
 projected or replayed. The C++ projection uses at most18 own actual items because the
 fresh client renderer cannot display a19th nonempty instance. It does not impose a
 server capacity on foreign inventories or implement nine-player match transitions.
+
+## Resource-event arithmetic and scoped execution
+
+`resource-vectors.tsv` contains7,898 results from the actual client's `c5.eW`,
+`c5.dH`, and `c5.bc`: HP clipping and MP/CP debt cascading. The resource primitive
+never implicitly marks a player dead. Its fixture manifest pins the source hash.
+
+```sh
+node scripts/official_resource_oracle.cjs --client /tmp/godfield-official-cache/main.dart.js
+python3 scripts/check_official_vectors.py
+```
+
+These results verify the delta arithmetic, not the server's choice of deltas or
+its scheduling. The executable132-model pool and its308 normalized gift weight,
+turn/death/gift policies, unsupported boundaries and API are documented separately
+in [the experimental execution contract](../../docs/official-execution-subset.md).
+The full published pool remains237 positive-gift models with total weight500.

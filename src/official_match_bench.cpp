@@ -1,0 +1,107 @@
+#include "godfield/official_match.hpp"
+#include <algorithm>
+#include <array>
+#include <charconv>
+#include <chrono>
+#include <exception>
+#include <iostream>
+#include <limits>
+#include <string>
+#include <thread>
+#include <vector>
+
+namespace {
+using namespace godfield::official;
+std::uint64_t parse(const char* text, bool positive = true) {
+    std::uint64_t n = 0; const std::string input(text);
+    const auto result = std::from_chars(input.data(), input.data() + input.size(), n);
+    if (result.ec != std::errc{} || result.ptr != input.data() + input.size() || (positive && !n)) throw std::invalid_argument("invalid unsigned argument");
+    return n;
+}
+void mix(std::uint64_t& h, std::uint64_t value) {
+    for (unsigned i = 0; i < 8; ++i) { h ^= (value >> (i * 8)) & 255; h *= 1099511628211ULL; }
+}
+struct Stats {
+    std::uint64_t games = 0, decisions = 0, draws = 0, truncations = 0, checksum = 0;
+    std::uint64_t main = 0, responses = 0, physical = 0, first_uses = 0, recasts = 0, defense_cards = 0;
+    std::uint64_t prayers = 0, discarded = 0, self_attacks = 0, dark_responses = 0, full_hands = 0;
+    std::array<std::uint64_t, player_capacity> wins{};
+    void append(const Stats& s) {
+        games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
+        main += s.main; responses += s.responses; physical += s.physical; first_uses += s.first_uses; recasts += s.recasts;
+        defense_cards += s.defense_cards; prayers += s.prayers; discarded += s.discarded; self_attacks += s.self_attacks;
+        dark_responses += s.dark_responses; full_hands += s.full_hands;
+        for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
+    }
+};
+}
+int main(int argc, char** argv) {
+    try {
+        if (argc > 5) throw std::invalid_argument("usage: godfield_official_bench [games=10000] [players=2] [seed=42] [workers=1]");
+        const auto games = argc > 1 ? parse(argv[1]) : 10000;
+        const auto count = argc > 2 ? parse(argv[2]) : 2;
+        const auto seed = argc > 3 ? parse(argv[3], false) : 42;
+        auto workers = argc > 4 ? parse(argv[4]) : 1;
+        if (games > 1000000000 || count < 2 || count > 9 || workers > 64 || seed > UINT64_MAX - (games - 1)) throw std::invalid_argument("benchmark limits/seed range exceeded");
+        workers = std::min(workers, games);
+        std::vector<PlayerSetup> setup;
+        for (std::uint64_t i = 0; i < count; ++i) setup.push_back({100 + i * 7, Team::solo, "P" + std::to_string(i)});
+        std::vector<Stats> results(workers); std::vector<std::exception_ptr> errors(workers); std::vector<std::jthread> threads;
+        const auto start = std::chrono::steady_clock::now();
+        for (std::uint64_t worker = 0; worker < workers; ++worker) threads.emplace_back([&, worker](std::stop_token stop) {
+            try {
+                Match match; auto& stats = results[worker];
+                for (std::uint64_t i = worker; i < games && !stop.stop_requested(); i += workers) {
+                    match.reset(setup, seed + i); std::uint64_t policy = (seed + i) ^ 0x6a09e667f3bcc909ULL;
+                    std::uint64_t hash = 14695981039346656037ULL; mix(hash, i);
+                    while (!match.done()) {
+                        const auto command = match.sample_action(policy); const auto& before = match.snapshot();
+                        if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
+                        if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
+                        const auto& own = *find_player(before.state, command.actor);
+                        if (own.items.size() == before.config.hand_limit) ++stats.full_hands;
+                        if (command.kind == CommandKind::pray) ++stats.prayers;
+                        if (command.kind == CommandKind::discard) stats.discarded += command.items.size();
+                        if (command.kind == CommandKind::defend) stats.defense_cards += command.items.size();
+                        if (command.kind == CommandKind::play && command.target == command.actor && !command.items.empty()) {
+                            const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == command.items[0]; });
+                            if (find_card(item->model)->atk > 0) ++stats.self_attacks;
+                        }
+                        if (command.kind == CommandKind::play || command.kind == CommandKind::defend) for (auto token : command.items) {
+                            const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
+                            if (find_card(item->model)->category == Category::miracles) { if (item->used) ++stats.recasts; else ++stats.first_uses; }
+                            else ++stats.physical;
+                        }
+                        mix(hash, command.actor); mix(hash, static_cast<unsigned>(command.kind)); mix(hash, command.items.size());
+                        for (auto token : command.items) mix(hash, token);
+                        mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
+                        const auto step = match.step(command); ++stats.decisions;
+                        mix(hash, static_cast<unsigned>(step.phase)); mix(hash, step.terminated); mix(hash, step.truncated);
+                    }
+                    const auto& terminal = match.snapshot(); ++stats.games;
+                    if (terminal.truncated) ++stats.truncations; else if (terminal.winners.empty()) ++stats.draws;
+                    for (std::size_t seat = 0; seat < count; ++seat) if (terminal.rewards[seat] > 0) ++stats.wins[seat];
+                    mix(hash, terminal.rng); mix(hash, terminal.decisions); for (auto id : terminal.winners) mix(hash, id); stats.checksum += hash;
+                    match.restore(match.snapshot()); // Audit every completed episode as well as its rollout.
+                }
+            } catch (...) { errors[worker] = std::current_exception(); }
+        });
+        for (auto& thread : threads) thread.join();
+        for (const auto& error : errors) if (error) std::rethrow_exception(error);
+        Stats stats; for (const auto& local : results) stats.append(local);
+        std::uint64_t wins = 0; for (auto value : stats.wins) wins += value;
+        if (stats.games != games || stats.main + stats.responses != stats.decisions || wins + stats.draws + stats.truncations != games)
+            throw std::logic_error("inconsistent scoped benchmark accounting");
+        const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+        std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
+            << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
+            << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
+        for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
+        std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
+            << "\nmiracle_first_uses=" << stats.first_uses << "\nmiracle_recasts=" << stats.recasts << "\ndefense_cards=" << stats.defense_cards
+            << "\nprayers=" << stats.prayers << "\ndiscarded=" << stats.discarded << "\nself_attacks=" << stats.self_attacks
+            << "\ndark_responses=" << stats.dark_responses << "\nfull_hand_actions=" << stats.full_hands << "\nchecksum=" << stats.checksum
+            << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
+        return 0;
+    } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
+}
