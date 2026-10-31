@@ -42,7 +42,7 @@ void metadata_minimum_and_first_copy() {
         && !card->card.defense && !card->card.hp && !card->card.mp && card->card.price == 10
         && card->card.weight == 1 && card->card.discardable, "244 has passiveHP10 and no ordinary combat/MP effect");
     Config minimum; minimum.revival = true; auto env = fixture({244},{120},minimum);
-    check(std::string_view(env.profile()) == revival_ruleset && env.snapshot().version == 36 && env.options().discard_slots == 1
+    check(std::string_view(env.profile()) == revival_ruleset && env.snapshot().version == 37 && env.options().discard_slots == 1
         && !env.options().utility_slots && !env.options().weapon_bases && env.options().pray,
         "minimum profile has passive/discard role without unrelated dependencies"); reject(env,{ActionKind::use,0,0,0}); reject(env,attack());
     auto discard = fixture({244},{120},minimum); check(discard.step({ActionKind::discard,no_slot,1,no_slot}).valid

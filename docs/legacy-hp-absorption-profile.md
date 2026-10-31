@@ -72,10 +72,10 @@ FREE付き初使用/保持再使用はMP0でも可能だが、未保持の再使
 旧 `retained_type_ids` 21種は凍結し、新headerの22種配列へ221を220と222の間に挿入する。
 新flagがfalseなら221を0に固定し、旧ID順・checksumの旧15/21件loop・旧saltと抽選対応を維持する。
 `Pending::hp_absorption_card` は元神器の来歴、`LastHPAbsorption` は現在source/target・r・実回復を表す。
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1345次元、`g28_*` は先頭1110次元。v28では末尾235特徴が0。旧 `g27_*` は1085、g26以前も従来の出力幅を維持する。
-v27では末尾260特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
+共通C++観測は1368次元、`g28_*` は先頭1110次元。v28では末尾258特徴が0。旧 `g27_*` は1085、g26以前も従来の出力幅を維持する。
+v27では末尾283特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
 
 | 位置 | 内容 |
 | --- | --- |

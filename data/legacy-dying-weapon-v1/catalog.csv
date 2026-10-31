@@ -1,0 +1,2 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable,hit_rate,dying_amount
+117,legacy-117,weapon,light,1,0,0,0,0,10,1,0,75,30

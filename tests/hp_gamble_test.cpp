@@ -45,7 +45,7 @@ void metadata_minimum_signs_caps_and_self() {
     for (std::uint8_t bit = 0; bit < 2; ++bit) for (std::uint8_t target = 0; target < 2; ++target) {
         auto env = fixture({237},{120},minimum); auto s = env.snapshot(); s.state.players[0].mp = 0; check(env.restore(s), "restore independent0MP gamble"); draws(env); roll(env,bit);
         const auto rng = env.snapshot().rng_state;
-        check(std::string_view(env.profile()) == hp_gamble_ruleset && env.snapshot().version == 36 && env.options().hp_gamble_slots == 1
+        check(std::string_view(env.profile()) == hp_gamble_ruleset && env.snapshot().version == 37 && env.options().hp_gamble_slots == 1
             && env.options().utility_slots == 1 && env.options().discard_slots == 1 && env.options().pray, "minimum profile exposes use/discard without prayer or MP interference");
         const auto used = env.step(use(target)); const int delta = bit ? 10 : -10;
         check(used.hp_gamble_used && used.hp_gamble_card == 237 && used.hp_gamble_delta == delta && env.snapshot().hp_gamble_index == 1

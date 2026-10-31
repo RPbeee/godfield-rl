@@ -4,8 +4,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 option(GF_SANITIZE "Enable address/undefined sanitizers" OFF)
-add_library(godfield SHARED src/env.cpp src/c_api.cpp src/catalog.cpp src/miracles.cpp src/elements.cpp src/chance.cpp src/reflection.cpp src/disease.cpp src/harms.cpp src/celestial.cpp src/offensive_miracles.cpp src/defensive_miracles.cpp src/attribute_change.cpp src/attribute_removal.cpp src/counter.cpp src/counter_extensions.cpp src/money_counter.cpp src/magic_reflection.cpp src/any_reflection.cpp src/mana_weapon.cpp src/magic_block.cpp src/additive_miracles.cpp src/doubling_miracles.cpp src/wide_miracles.cpp src/magic_free.cpp src/forgetting.cpp src/exchange.cpp src/revival.cpp src/item_removal.cpp src/hp_absorption.cpp src/self_damage.cpp src/pestle_mortar.cpp src/selling.cpp src/buying.cpp src/hp_gamble.cpp src/magic_bounce.cpp src/sundry_boost.cpp src/status_miracles.cpp
-  src/legacy_env.cpp src/legacy_c_api.cpp src/miracles_c_api.cpp src/elements_c_api.cpp src/chance_c_api.cpp src/reflection_c_api.cpp src/disease_c_api.cpp src/harms_c_api.cpp src/celestial_c_api.cpp src/offensive_miracles_c_api.cpp src/defensive_miracles_c_api.cpp src/attribute_change_c_api.cpp src/attribute_removal_c_api.cpp src/counter_c_api.cpp src/counter_extensions_c_api.cpp src/money_counter_c_api.cpp src/magic_reflection_c_api.cpp src/any_reflection_c_api.cpp src/mana_weapon_c_api.cpp src/magic_block_c_api.cpp src/additive_miracles_c_api.cpp src/doubling_miracles_c_api.cpp src/wide_miracles_c_api.cpp src/magic_free_c_api.cpp src/forgetting_c_api.cpp src/exchange_c_api.cpp src/revival_c_api.cpp src/item_removal_c_api.cpp src/hp_absorption_c_api.cpp src/self_damage_c_api.cpp src/pestle_mortar_c_api.cpp src/selling_c_api.cpp src/buying_c_api.cpp src/hp_gamble_c_api.cpp src/magic_bounce_c_api.cpp src/sundry_boost_c_api.cpp src/status_miracles_c_api.cpp)
+add_library(godfield SHARED src/env.cpp src/c_api.cpp src/catalog.cpp src/miracles.cpp src/elements.cpp src/chance.cpp src/reflection.cpp src/disease.cpp src/harms.cpp src/celestial.cpp src/offensive_miracles.cpp src/defensive_miracles.cpp src/attribute_change.cpp src/attribute_removal.cpp src/counter.cpp src/counter_extensions.cpp src/money_counter.cpp src/magic_reflection.cpp src/any_reflection.cpp src/mana_weapon.cpp src/magic_block.cpp src/additive_miracles.cpp src/doubling_miracles.cpp src/wide_miracles.cpp src/magic_free.cpp src/forgetting.cpp src/exchange.cpp src/revival.cpp src/item_removal.cpp src/hp_absorption.cpp src/self_damage.cpp src/pestle_mortar.cpp src/selling.cpp src/buying.cpp src/hp_gamble.cpp src/magic_bounce.cpp src/sundry_boost.cpp src/status_miracles.cpp src/dying_weapon.cpp
+  src/legacy_env.cpp src/legacy_c_api.cpp src/miracles_c_api.cpp src/elements_c_api.cpp src/chance_c_api.cpp src/reflection_c_api.cpp src/disease_c_api.cpp src/harms_c_api.cpp src/celestial_c_api.cpp src/offensive_miracles_c_api.cpp src/defensive_miracles_c_api.cpp src/attribute_change_c_api.cpp src/attribute_removal_c_api.cpp src/counter_c_api.cpp src/counter_extensions_c_api.cpp src/money_counter_c_api.cpp src/magic_reflection_c_api.cpp src/any_reflection_c_api.cpp src/mana_weapon_c_api.cpp src/magic_block_c_api.cpp src/additive_miracles_c_api.cpp src/doubling_miracles_c_api.cpp src/wide_miracles_c_api.cpp src/magic_free_c_api.cpp src/forgetting_c_api.cpp src/exchange_c_api.cpp src/revival_c_api.cpp src/item_removal_c_api.cpp src/hp_absorption_c_api.cpp src/self_damage_c_api.cpp src/pestle_mortar_c_api.cpp src/selling_c_api.cpp src/buying_c_api.cpp src/hp_gamble_c_api.cpp src/magic_bounce_c_api.cpp src/sundry_boost_c_api.cpp src/status_miracles_c_api.cpp src/dying_weapon_c_api.cpp)
 target_include_directories(godfield PUBLIC include)
 target_compile_options(godfield PRIVATE -Wall -Wextra -Wpedantic)
 if(GF_SANITIZE)
@@ -132,6 +132,9 @@ if(BUILD_TESTING)
   add_executable(godfield_status_miracles_tests tests/status_miracles_test.cpp)
   target_link_libraries(godfield_status_miracles_tests PRIVATE godfield)
   add_test(NAME status_miracles_environment COMMAND godfield_status_miracles_tests)
+  add_executable(godfield_dying_weapon_tests tests/dying_weapon_test.cpp)
+  target_link_libraries(godfield_dying_weapon_tests PRIVATE godfield)
+  add_test(NAME dying_weapon_environment COMMAND godfield_dying_weapon_tests)
   add_test(NAME sundry_boost_fresh_revival_benchmark COMMAND godfield_legacy_bench 1 1 78564 sundry-boost)
   set_tests_properties(sundry_boost_fresh_revival_benchmark PROPERTIES
     PASS_REGULAR_EXPRESSION "sale_revival_steps=1([^0-9]|$)")
@@ -193,6 +196,8 @@ if(BUILD_TESTING)
       ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-item-removal-v1/generate.py --check)
     add_test(NAME status_miracles_catalog_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-status-miracles-v1/generate.py --check)
+    add_test(NAME dying_weapon_catalog_integrity COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-dying-weapon-v1/generate.py --check)
     add_test(NAME sundry_boost_catalog_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-sundry-boost-v1/generate.py --check)
     add_test(NAME magic_bounce_catalog_integrity COMMAND ${Python3_EXECUTABLE}
@@ -266,6 +271,8 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/item_removal_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME status_miracles_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/status_miracles_python_test.py $<TARGET_FILE:godfield>)
+      add_test(NAME dying_weapon_python COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/dying_weapon_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME sundry_boost_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/sundry_boost_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME magic_bounce_python COMMAND ${Python3_EXECUTABLE}

@@ -67,9 +67,9 @@ boost10は既存最大15以内なので、57・raw/counter上界と最大商品�
 既存AttackCompositionの物理品列に238を記録し、通常attackは既存のmask表現を使う。
 `StepResult::sundry_boost_cards_used` は攻撃extraで実消費した238の枚数。破棄/売買/除去では0を返す。
 
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
-共通C++観測は1345次元、`g35_*` は先頭1317次元。v35では末尾28特徴が0。旧 `g34_*` は1300、g33以前も従来の出力幅を維持する。
-v34では末尾45特徴が0。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通C++観測は1368次元、`g35_*` は先頭1317次元。v35では末尾51特徴が0。旧 `g34_*` は1300、g33以前も従来の出力幅を維持する。
+v34では末尾68特徴が0。
 
 | 位置 | 内容 |
 | --- | --- |

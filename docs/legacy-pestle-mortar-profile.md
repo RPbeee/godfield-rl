@@ -59,10 +59,10 @@ r0の完全防御も診断用解決eventに含める。ミス/遮断や継続中
 `MortarCard{Card}` のlocal0=245。保持配列や奇跡indexは増やさない。
 `Pending::pestle_card` は99、`mortar_card` は0または245。
 `LastPestle` は最初の選択履歴で、反射中の現在source/targetとは区別する。
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1345次元、`g30_*` は先頭1175次元。v30では末尾170特徴が0。旧 `g29_*` は1135、g28以前も従来の出力幅を維持する。
-v29では末尾210特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
+共通C++観測は1368次元、`g30_*` は先頭1175次元。v30では末尾193特徴が0。旧 `g29_*` は1135、g28以前も従来の出力幅を維持する。
+v29では末尾233特徴が0。相手の手札・非公開保持数・乱数やfixture prefixは追加しない。
 
 | 位置 | 内容 |
 | --- | --- |

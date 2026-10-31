@@ -53,7 +53,7 @@ void metadata_and_ordinary_roles() {
             && !card->card.hp && !card->card.mp && card->card.weight == 1 && card->card.discardable == (i >= 3)
             && card->card.price == (i == 0 || i >= 5 ? 15 : 10), "blocker dual roles and original card fields preserved");
         auto env = fixture({ids[i]}, {120},narrow);
-        check(std::string_view(env.profile()) == magic_block_ruleset && env.snapshot().version == 36,
+        check(std::string_view(env.profile()) == magic_block_ruleset && env.snapshot().version == 37,
             "dependency-free blocker profile and common schema19");
         if (i < 3) {
             check(env.options().weapon_bases == 1 && !env.options().discard_slots && !env.options().pray,

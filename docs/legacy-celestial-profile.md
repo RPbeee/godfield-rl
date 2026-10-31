@@ -66,11 +66,11 @@ env.reset(42);
 末尾の `Config::celestial` はデフォルトfalse。対象神器が既存機構を使うため、
 celestialを有効にする場合はelements・chance・harmsも必要。不正な組み合わせは構築時に拒否する。
 miracles・reflection・diseaseは個別に選べる。再現には全Configを保存する。
-Snapshotの共通versionは36。同じビルド・設定のfixture用で、旧versionの永続互換は保証しない。
+Snapshotの共通versionは37。同じビルド・設定のfixture用で、旧versionの永続互換は保証しない。
 `StepResult::dark_execution` は当該stepで正の闇残余による即死を解決したかを返す。
 
-共通C++観測は1345次元、`gs_*` ABI 8は先頭301次元を返す。
-v8では末尾1044個が0になる。追加部分は[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。7種類の構成要素maskと6byteの `gl_action` を使う。
+共通C++観測は1368次元、`gs_*` ABI 8は先頭301次元を返す。
+v8では末尾1067個が0になる。追加部分は[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。7種類の構成要素maskと6byteの `gl_action` を使う。
 従来 `gl/gm/ge/gc/gr/gd/gh` は128/164/186/210/236/258/283次元を維持する。
 v8部分の追加18特徴は従来profileでは0。
 

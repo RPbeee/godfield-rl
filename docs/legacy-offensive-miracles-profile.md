@@ -67,10 +67,10 @@ miracles/reflection/disease等の全設定を保存して再現する。CLIとC 
 `Player::abilities` は固定長15、`Options::ability_slots` は15bitを使うuint16のまま。
 `ActionKind::cast` のbaseは0〜14。実際に保持しておりMPを払える場合だけ合法。
 `StepResult::spell_first_use/spell_recast` は新旧15種の当該stepの使用を表す。
-Snapshotの共通versionは36。旧形式を自動移行する永続checkpointとは扱わない。
+Snapshotの共通versionは37。旧形式を自動移行する永続checkpointとは扱わない。
 
-共通C++観測は1345次元、`go_*` ABI 9は先頭334次元を返す。
-v9では末尾1011個が0になる。追加部分は[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭301個は[光・闇profile](legacy-celestial-profile.md)を継承する。
+共通C++観測は1368次元、`go_*` ABI 9は先頭334次元を返す。
+v9では末尾1034個が0になる。追加部分は[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。先頭301個は[光・闇profile](legacy-celestial-profile.md)を継承する。
 
 | 位置 | 内容 |
 | --- | --- |

@@ -44,7 +44,7 @@ void catalog_minimum_and_allocation_boundaries() {
         "exchange2 retains ordinary fields and is discardable");
     for (CardId id : {CardId{0},CardId{1},CardId{3},CardId{244},CardId{65535}}) check(!find_exchange_card(id), "no buy/sell/revival effects silently included");
     Config minimum; minimum.exchanges = true; auto narrow = fixture({2},{120},minimum);
-    check(std::string_view(narrow.profile()) == exchange_ruleset && narrow.snapshot().version == 36
+    check(std::string_view(narrow.profile()) == exchange_ruleset && narrow.snapshot().version == 37
         && narrow.options().exchange_slots == 1 && narrow.options().discard_slots == 1 && !narrow.options().utility_slots
         && !narrow.options().weapon_bases && narrow.options().pray,
         "dependency-free main exchange uses dedicated role and keeps weapon-based prayer");

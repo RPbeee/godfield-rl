@@ -66,9 +66,12 @@ void metadata_minimum_first_and_recast() {
             && m.cost == costs[i] && m.price == (i == 2 || i == 4 ? 15 : 10) && m.weight == 1
             && m.element == (i == 1 ? Element::dark : Element::neutral), "exact sorted status catalog costs, prices and typed attributes");
         auto env = fixture({m.id},{186},minimum()); draws(env); no_worsen(env);
-        check(std::string_view(env.profile()) == status_miracles_ruleset && env.snapshot().version == 36
+        check(std::string_view(env.profile()) == status_miracles_ruleset && env.snapshot().version == 37
             && env.options().status_slots == 1 && env.options().utility_slots == 1 && env.options().pray && !env.options().weapon_bases,
             "minimal profile exposes standalone status as utility, never weapon");
+        const auto hand_obs = env.observe();
+        check(hand_obs[285] == (m.id == 208 ? 1.f : 0.f) && hand_obs[169] == 0.f,
+            "status hand attributes expose Dark208 in celestial scalar while old four-element prefix stays zero");
         const auto r = env.step(use()); const auto& p = env.state().pending;
         check(r.valid && r.status_first_use && !r.status_recast && r.spell_first_use && !r.spell_recast && r.spell_mp_spent == m.cost
             && r.status_miracle_card == m.id && r.status_source == 0 && r.status_target == 1 && env.state().players[0].status_abilities[i] == 1

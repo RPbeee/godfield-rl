@@ -91,7 +91,7 @@ void catalog_and_dependencies() {
         check(threw, "celestial requires elements, chance and harms explicitly enabled");
     }
     auto env = fixture({70}, {158});
-    check(std::string_view(env.profile()) == celestial_ruleset && env.snapshot().version == 36,
+    check(std::string_view(env.profile()) == celestial_ruleset && env.snapshot().version == 37,
         "explicit legacy celestial profile and schema");
     roundtrip(env);
     const auto main = env.snapshot(); env.step(attack());

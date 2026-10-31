@@ -77,7 +77,7 @@ void catalog_and_profiles() {
     for (CardId id : {CardId{0}, CardId{37}, CardId{43}, CardId{46}, CardId{197}, CardId{237}, CardId{65535}})
         check(!find_disease_card(id), "harms, unsupported miracles and random items excluded");
     auto enabled = fixture({34}, {120});
-    check(std::string_view(enabled.profile()) == disease_ruleset && enabled.snapshot().version == 36,
+    check(std::string_view(enabled.profile()) == disease_ruleset && enabled.snapshot().version == 37,
         "disease profile and snapshot schema identified");
     bool threw = false;
     try { Env invalid(Config{512, 10, false, false, false, false, true}); }

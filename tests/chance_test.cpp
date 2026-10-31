@@ -71,7 +71,7 @@ void metadata_and_profiles() {
     auto combined = fixture({100, 216}, {123}, Config{512, 10, true, true, true});
     check(std::string_view(chance.profile()) == chance_ruleset
         && std::string_view(combined.profile()) == chance_miracles_ruleset, "profiles distinguish miracle flag");
-    check(chance.snapshot().version == 36, "shared counter extensions snapshot schema version");
+    check(chance.snapshot().version == 37, "shared counter extensions snapshot schema version");
 
     for (const Config config : {Config{}, Config{512, 10, true}, Config{512, 10, false, true},
                                 Config{512, 10, true, true}}) {

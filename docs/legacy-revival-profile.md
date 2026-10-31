@@ -68,10 +68,10 @@ v26のexchange_suicidesは244が発動しなかったHP0配分だけを数え、
 
 `Config::revival` はデフォルトfalseで、他の拡張を必要としない。
 `StepResult::revivals[2]` は各座席でそのstepに消費した244の枚数、`State::last_revival` は最後のID/seatを表す。
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1345次元、`g26_*` は先頭1062次元。v26では末尾283特徴が0。旧 `gg_*` は1043、gj以前も従来の出力幅を維持する。
-v25では末尾302特徴が0。相手の未使用244を含む手札・非公開保持数・乱数やfixture prefixは公開しない。
+共通C++観測は1368次元、`g26_*` は先頭1062次元。v26では末尾306特徴が0。旧 `gg_*` は1043、gj以前も従来の出力幅を維持する。
+v25では末尾325特徴が0。相手の未使用244を含む手札・非公開保持数・乱数やfixture prefixは公開しない。
 発動済みの最後の座席だけは公開情報として返す。
 
 | 位置 | 内容 |

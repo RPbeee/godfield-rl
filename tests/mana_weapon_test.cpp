@@ -57,7 +57,7 @@ void metadata_scope_and_zero() {
         check(!find_mana_weapon_card(id), "no added magic role silently included");
     Config narrow; narrow.mana_weapon = true;
     auto env = fixture({57}, {120},0,narrow);
-    check(std::string_view(env.profile()) == mana_weapon_ruleset && env.snapshot().version == 36
+    check(std::string_view(env.profile()) == mana_weapon_ruleset && env.snapshot().version == 37
         && env.options().weapon_bases == 1 && !env.options().boost_slots && !env.options().pray
         && !env.options().discard_slots && !env.options().utility_slots,
         "dependency-free profile preserves weapon role and no-pray even at MP0");

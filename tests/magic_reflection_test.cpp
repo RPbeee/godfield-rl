@@ -73,7 +73,7 @@ void metadata_and_dual_roles() {
     for (CardId id : {CardId{0},CardId{20},CardId{39},CardId{119},CardId{196},CardId{210},CardId{65535}})
         check(!find_magic_reflection_card(id), "weapon reflection, magic bounce and ANY not silently included");
     auto env = fixture({171}, {120});
-    check(std::string_view(env.profile()) == magic_reflection_ruleset && env.snapshot().version == 36,
+    check(std::string_view(env.profile()) == magic_reflection_ruleset && env.snapshot().version == 37,
         "explicit new reflection profile and schema");
     for (int missing = 0; missing < 2; ++missing) {
         auto bad = config; if (!missing) { bad.reflection = false; bad.defensive_miracles = false; } else {

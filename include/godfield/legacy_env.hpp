@@ -35,6 +35,7 @@
 #include "godfield/magic_bounce.hpp"
 #include "godfield/sundry_boost.hpp"
 #include "godfield/status_miracles.hpp"
+#include "godfield/dying_weapon.hpp"
 #include <array>
 #include <cstdint>
 #include <span>
@@ -78,6 +79,7 @@ inline constexpr const char* hp_gamble_ruleset = "legacy-hp-gamble-subset-v33";
 inline constexpr const char* magic_bounce_ruleset = "legacy-magic-bounce-subset-v34";
 inline constexpr const char* sundry_boost_ruleset = "legacy-sundry-boost-subset-v35";
 inline constexpr const char* status_miracles_ruleset = "legacy-status-miracles-subset-v36";
+inline constexpr const char* dying_weapon_ruleset = "legacy-dying-weapon-subset-v37";
 // Main-turn slots remain stable. Defensive kinds have their own local indices.
 inline constexpr int total_miracle_count = miracle_count + offensive_miracle_count;
 inline constexpr int total_retained_miracle_count = total_miracle_count + defensive_miracle_count;
@@ -126,7 +128,8 @@ inline constexpr int buying_observation_size = 1251;
 inline constexpr int hp_gamble_observation_size = 1278;
 inline constexpr int magic_bounce_observation_size = 1300;
 inline constexpr int sundry_boost_observation_size = 1317;
-inline constexpr int observation_size = 1345;
+inline constexpr int status_miracles_observation_size = 1345;
+inline constexpr int observation_size = 1368;
 inline constexpr int legacy_attack_extra_capacity = 64;
 inline constexpr int attack_extra_capacity = 65;
 inline constexpr std::uint8_t no_slot = 255;
@@ -174,6 +177,7 @@ struct Config {
     bool magic_bounce = false;
     bool sundry_boost = false;
     bool status_miracles = false;
+    bool dying_weapon = false;
     bool operator==(const Config&) const = default;
 };
 struct Action {
@@ -386,7 +390,7 @@ struct State {
 };
 struct Snapshot {
     std::uint64_t format_tag = 0x67666c6567616379ULL; // gflegacy; in-process fixture format.
-    std::uint32_t version = 36;
+    std::uint32_t version = 37;
     Config config{};
     State state{};
     std::uint64_t rng_state = 0;
@@ -436,6 +440,7 @@ struct Options {
     std::uint16_t magic_bounce_slots = 0; // Hand membership in active main/response; consult reaction_slots and legal().
     std::uint16_t sundry_boost_slots = 0; // Main-hand238 membership, also in ordinary boost_slots.
     std::uint16_t status_slots = 0, status_ability_slots = 0, free_status_ability_slots = 0;
+    std::uint16_t dying_weapon_slots = 0; // Main hand117 membership; ordinary percent weapon role.
     bool pray = false;
     std::uint8_t defense_limit = 0;
     bool operator==(const Options&) const = default;
@@ -498,6 +503,7 @@ struct StepResult {
     bool status_first_use = false, status_recast = false, status_resolved = false;
     CardId status_miracle_card = 0;
     std::uint8_t status_source = no_slot, status_target = no_slot;
+    bool dying_weapon_attack = false; // Normal117 launch; death payload is unreachable in a duel.
     bool chance_attempt = false, chance_hit = false;
     bool chance_forced = false;
     bool reflected = false, bounced = false, bounce_self = false;
@@ -540,6 +546,7 @@ public:
     void reset(std::uint64_t seed) noexcept;
     const State& state() const noexcept { return snapshot_.state; }
     const char* profile() const noexcept {
+        if (snapshot_.config.dying_weapon) return dying_weapon_ruleset;
         if (snapshot_.config.status_miracles) return status_miracles_ruleset;
         if (snapshot_.config.sundry_boost) return sundry_boost_ruleset;
         if (snapshot_.config.magic_bounce) return magic_bounce_ruleset;

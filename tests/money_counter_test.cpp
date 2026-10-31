@@ -54,7 +54,7 @@ void metadata_and_profile() {
     for (CardId id : {CardId{0},CardId{188},CardId{189},CardId{190},CardId{193},CardId{220},CardId{65535}})
         check(!find_money_counter_card(id), "new lookup does not erase other counter or money-miracle semantics");
     auto env = fixture({194}, {120});
-    check(std::string_view(env.profile()) == money_counter_ruleset && env.snapshot().version == 36
+    check(std::string_view(env.profile()) == money_counter_ruleset && env.snapshot().version == 37
         && env.options().discard_slots == 1 && !env.options().weapon_bases && !env.options().utility_slots,
         "absorption profile and response-only artifact role explicit");
     reject(env,{ActionKind::use,0,0,1});

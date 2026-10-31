@@ -235,7 +235,7 @@ void malformed_actions_and_snapshots() {
     reject(env, {ActionKind::attack, 0, 0, 1}, "hand miracle is not an ordinary weapon");
 
     const auto original = env.snapshot();
-    check(original.version == 36, "shared snapshot schema includes counter extensions");
+    check(original.version == 37, "shared snapshot schema includes counter extensions");
     auto invalid = original; invalid.state.players[0].abilities[0] = 513;
     check(!env.restore(invalid) && env.snapshot() == original, "retained count above profile budget rejected");
     invalid = original; invalid.state.players[0].abilities = {512, 1};

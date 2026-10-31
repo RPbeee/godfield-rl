@@ -167,6 +167,7 @@ Env::Env(Config config) {
         || (config.magic_reflection && (!config.reflection || !config.miracles))
         || (config.magic_bounce && (!config.reflection || !config.miracles))
         || (config.status_miracles && (!config.miracles || !config.disease || !config.celestial))
+        || (config.dying_weapon && !config.celestial)
         || (config.any_reflection && !config.reflection)
         || (config.additive_miracles && (!config.miracles || !config.celestial))
         || (config.doubling_miracles && !config.additive_miracles)
@@ -214,7 +215,8 @@ bool Env::supported(CardId id) const noexcept {
         || (snapshot_.config.hp_gamble && find_hp_gamble_card(id))
         || (snapshot_.config.magic_bounce && find_magic_bounce_card(id))
         || (snapshot_.config.sundry_boost && find_sundry_boost_card(id))
-        || (snapshot_.config.status_miracles && find_status_miracle(id));
+        || (snapshot_.config.status_miracles && find_status_miracle(id))
+        || (snapshot_.config.dying_weapon && find_dying_weapon_card(id));
 }
 const Card* Env::artifact(CardId id) const noexcept {
     if (const auto* card = find_card(id)) return card;
@@ -247,9 +249,11 @@ const Card* Env::artifact(CardId id) const noexcept {
     if (const auto* card = find_hp_gamble_card(id)) return &card->card;
     if (const auto* card = find_magic_bounce_card(id)) return &card->card;
     if (const auto* card = find_sundry_boost_card(id)) return &card->card;
+    if (const auto* card = find_dying_weapon_card(id)) return &card->card;
     return nullptr;
 }
 int Env::trade_price(CardId id) const noexcept {
+    if (snapshot_.config.dying_weapon) if (const auto* card = find_dying_weapon_card(id)) return card->card.price;
     if (snapshot_.config.status_miracles) if (const auto* m = find_status_miracle(id)) return m->price;
     if (snapshot_.config.sundry_boost) if (const auto* card = find_sundry_boost_card(id)) return card->card.price;
     if (snapshot_.config.magic_bounce) if (const auto* card = find_magic_bounce_card(id)) return card->card.price;
@@ -258,6 +262,8 @@ int Env::trade_price(CardId id) const noexcept {
     return sale_price(id);
 }
 Element Env::element_of(CardId id) const noexcept {
+    if (const auto* m = find_status_miracle(id)) return m->element;
+    if (const auto* card = find_dying_weapon_card(id)) return card->element;
     if (const auto* card = find_pestle_card(id)) return card->element;
     if (const auto* card = find_hp_absorption_card(id)) return card->element;
     if (const auto* m = find_hp_absorption_miracle(id)) return m->element;
@@ -275,6 +281,7 @@ Element Env::element_of(CardId id) const noexcept {
     return Element::neutral;
 }
 int Env::chance_rate(CardId id) const noexcept {
+    if (const auto* card = find_dying_weapon_card(id)) return card->hit_rate;
     if (const auto* card = find_hp_absorption_card(id)) return card->hit_rate;
     if (const auto* card = find_chance_card(id)) return card->hit_rate;
     if (const auto* card = find_celestial_card(id)) return card->hit_rate;
@@ -406,6 +413,8 @@ CardId Env::draw() noexcept {
         for (const auto& c : sundry_boost_catalog()) total_weight += c.card.weight;
     if (snapshot_.config.status_miracles)
         for (const auto& m : status_miracles()) total_weight += m.weight;
+    if (snapshot_.config.dying_weapon)
+        for (const auto& c : dying_weapon_catalog()) total_weight += c.card.weight;
     auto ticket = bounded(snapshot_.rng_state, total_weight);
     for (const auto& c : catalog()) {
         if (ticket < static_cast<unsigned>(c.weight)) return c.id;
@@ -562,6 +571,10 @@ CardId Env::draw() noexcept {
     if (snapshot_.config.status_miracles) for (const auto& m : status_miracles()) {
         if (ticket < static_cast<unsigned>(m.weight)) return m.id;
         ticket -= m.weight;
+    }
+    if (snapshot_.config.dying_weapon) for (const auto& c : dying_weapon_catalog()) {
+        if (ticket < static_cast<unsigned>(c.card.weight)) return c.card.id;
+        ticket -= c.card.weight;
     }
     return catalog().back().id;
 }
@@ -1733,6 +1746,7 @@ Options Env::options() const noexcept {
     for (auto count : p.status_abilities) acquired += count;
     for (int i = 0; i < p.hand_count; ++i) {
         const auto bit = static_cast<std::uint16_t>(1u << i);
+        if (s.phase == Phase::main && snapshot_.config.dying_weapon && find_dying_weapon_card(p.hand[i])) out.dying_weapon_slots |= bit;
         if (snapshot_.config.magic_bounce && find_magic_bounce_card(p.hand[i])) out.magic_bounce_slots |= bit;
         if (s.phase == Phase::main && snapshot_.config.sundry_boost && find_sundry_boost_card(p.hand[i])) out.sundry_boost_slots |= bit;
         if (s.phase == Phase::main && snapshot_.config.hp_gamble && find_hp_gamble_card(p.hand[i])) {
@@ -2833,6 +2847,7 @@ StepResult Env::step(Action a) noexcept {
         launch_pending(m.id, result);
     } else {
         const auto& base = *artifact(p.hand[a.base]);
+        if (snapshot_.config.dying_weapon && weapon_attack(a.kind) && find_dying_weapon_card(base.id)) result.dying_weapon_attack = true;
         if (snapshot_.config.magic_free && find_magic_free_card(base.id)) result.magic_free_cards = 1;
         const auto* mana = snapshot_.config.mana_weapon && weapon_attack(a.kind) ? find_mana_weapon_card(base.id) : nullptr;
         const auto spent = static_cast<std::uint8_t>(mana ? p.mp : 0);
@@ -3114,6 +3129,16 @@ Observation Env::observe() const noexcept {
                 total += s.last_exchange.after[i];
             }
             obs[1042] = total / 297.f;
+        }
+    }
+    if (snapshot_.config.dying_weapon) {
+        obs[1345] = 1.f;
+        for (int i = 0; i < me.hand_count; ++i) obs[1346 + i] = find_dying_weapon_card(me.hand[i]) != nullptr;
+        obs[1362] = s.phase == Phase::response && s.pending.hit_rate && s.last_chance.id == 117
+            && !s.pending.miracle && !s.pending.counter_card;
+        if (s.last_chance.id == 117) {
+            obs[1363] = 1.f; obs[1364] = s.last_chance.hit; obs[1365] = s.last_chance.forced;
+            obs[1366] = s.last_chance.source == s.actor; obs[1367] = s.last_chance.target == s.actor;
         }
     }
     if (snapshot_.config.status_miracles) {

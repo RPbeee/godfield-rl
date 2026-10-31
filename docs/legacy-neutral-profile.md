@@ -55,8 +55,8 @@
 ## 観測 v1
 
 `gl_*` が返す、行動プレイヤー視点の128個のfloat。`actor` は別途固定座席0/1で返す。
-反撃対応を追加した後のC++ `Env::observe()` は1345次元の共通形式となり、
-このprofileでは末尾1217個が0になる。`gl_*` は先頭128個だけを返して既存ABIを維持する。
+反撃対応を追加した後のC++ `Env::observe()` は1368次元の共通形式となり、
+このprofileでは末尾1240個が0になる。`gl_*` は先頭128個だけを返して既存ABIを維持する。
 末尾の定義は[奇跡profile](legacy-miracles-profile.md)、[属性profile](legacy-elements-profile.md)、
 [確率profile](legacy-chance-profile.md)、[反応profile](legacy-reflection-profile.md)、[病気profile](legacy-disease-profile.md)、
 [harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
@@ -99,7 +99,7 @@ python3 python/legacy_env.py
 ## 再現と検証
 
 `snapshot()/restore()` は同じルールセット・同じConfigで使うメモリー内のfixture用。
-現在の共通形式はversion36。状態、手番順、ゲーム乱数状態、配布スクリプトと位置を含み、形式tag/versionを検証する。
+現在の共通形式はversion37。状態、手番順、ゲーム乱数状態、配布スクリプトと位置を含み、形式tag/versionを検証する。
 無効な拡張の状態やprefixを持ち込むことは拒否し、古い形式を黙って移行しない。
 ディスク保存用の永続的・異なるビルド間で互換なシリアライズ形式ではない。
 未対応神器ID、非正規の空きスロット、不正な手番や配布予定、異なる設定は原子的に拒否する。

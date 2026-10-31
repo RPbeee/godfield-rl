@@ -126,6 +126,8 @@ class StatusMiraclesBridgeTests(unittest.TestCase):
                 self.assertEqual(features[1317], 1)
                 for i, card in enumerate(ids):
                     self.assertAlmostEqual(features[1318 + i], (self.IDS.index(card) + 1) / 5 if card in self.IDS else 0, places=6)
+                    if card in self.IDS:
+                        self.assertEqual(features[285 + i], 1 if card == 208 else 0)
                     if card == 224:
                         self.assertFalse(options[3] & (1 << i))
                 seen.update(card for card in ids if card in self.IDS)

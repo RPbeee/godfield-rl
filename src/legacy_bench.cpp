@@ -100,6 +100,7 @@ struct alignas(64) Stats {
     std::uint64_t sundry_boost_attacks = 0, sundry_boost_cards_used = 0, sundry_boost_plain_attacks = 0, sundry_boost_ordered_attacks = 0, sundry_boost_mana_attacks = 0, sundry_boost_mana_resets = 0, sundry_boost_resets_after_boost = 0, sundry_boost_double_attacks = 0, sundry_boost_wide_attacks = 0, sundry_boost_reaction_steps = 0, sundry_boost_counters_queued = 0, sundry_boost_discarded_cards = 0, sundry_boost_sold_cards = 0, sundry_boost_bought_cards = 0, sundry_boost_removed_cards = 0, sundry_boost_raw_max = 0, sundry_boost_raw_checked = 0, sundry_boost_self_attacks = 0;
     std::array<std::uint64_t, 7> sundry_boost_elements{};
     std::uint64_t status_first_uses = 0, status_recasts = 0, status_mp_spent = 0, status_learned = 0, status_casts = 0, status_resolutions = 0, status_self_resolutions = 0, status_lower_cures = 0, status_all_cures = 0, status_dark_cloud_applications = 0, status_cold_applications = 0, status_heaven_applications = 0, status_heaven_falls = 0, status_disease_changes = 0, status_diseases_removed = 0, status_glory_cleared = 0, status_dark_cloud_cleared = 0, status_dark_cloud_new = 0, status_hp_lost = 0, status_free_uses = 0, status_reflections = 0, status_bounces = 0, status_blocks = 0, status_held_resolutions = 0, forgetting_status_miracles = 0, status_retained_inventory = 0, sold_status_miracles = 0, bought_status_miracles = 0, removed_status_miracles = 0;
+    std::uint64_t dying_weapon_attacks = 0, dying_weapon_hits = 0, dying_weapon_misses = 0, dying_weapon_forced_hits = 0, dying_weapon_normalized_targets = 0, dying_weapon_response_decisions = 0, dying_weapon_removal_responses = 0, dying_weapon_reactions = 0, dying_weapon_blocks = 0, dying_weapon_counters_queued = 0, dying_weapon_dead_holders = 0, dying_weapon_dead_copies = 0, dying_weapon_revival_holders = 0, dying_weapon_sold_cards = 0, dying_weapon_bought_cards = 0, dying_weapon_removed_cards = 0;
     std::uint64_t checksum = 0;
     std::exception_ptr error;
 };
@@ -120,6 +121,7 @@ std::uint64_t mix(std::uint64_t value) noexcept {
 }
 
 const godfield::legacy::Card* artifact(godfield::legacy::CardId id) noexcept {
+    if (const auto* dying = godfield::legacy::find_dying_weapon_card(id)) return &dying->card;
     if (const auto* neutral = godfield::legacy::find_card(id)) return neutral;
     if (const auto* elemental = godfield::legacy::find_element_card(id)) return &elemental->card;
     if (const auto* chance = godfield::legacy::find_chance_card(id)) return &chance->card;
@@ -154,6 +156,7 @@ const godfield::legacy::Card* artifact(godfield::legacy::CardId id) noexcept {
 }
 
 int chance_rate(godfield::legacy::CardId id) noexcept {
+    if (const auto* dying = godfield::legacy::find_dying_weapon_card(id)) return dying->hit_rate;
     if (const auto* chance = godfield::legacy::find_chance_card(id)) return chance->hit_rate;
     if (const auto* absorption = godfield::legacy::find_hp_absorption_card(id)) return absorption->hit_rate;
     if (const auto* celestial = godfield::legacy::find_celestial_card(id)) return celestial->hit_rate;
@@ -162,6 +165,7 @@ int chance_rate(godfield::legacy::CardId id) noexcept {
 }
 
 godfield::legacy::Element chance_element(godfield::legacy::CardId id) noexcept {
+    if (const auto* dying = godfield::legacy::find_dying_weapon_card(id)) return dying->element;
     if (const auto* pestle = godfield::legacy::find_pestle_card(id)) return pestle->element;
     if (const auto* elemental = godfield::legacy::find_element_card(id)) return elemental->element;
     if (const auto* absorption = godfield::legacy::find_hp_absorption_card(id)) return absorption->element;
@@ -267,14 +271,14 @@ int main(int argc, char** argv) {
         const std::uint64_t threads = argc > 2 ? number(argv[2]) : 1;
         const std::uint64_t seed = argc > 3 ? number(argv[3]) : 42;
         const std::string_view selected_profile = argc > 4 ? argv[4] : "neutral";
-        constexpr std::array<std::string_view, 36> profiles{
-            "neutral", "miracles", "elements", "chance", "reflection", "disease", "harms", "celestial", "offensive-miracles", "defensive-miracles", "attribute-change", "attribute-removal", "counter", "counter-extensions", "money-counter", "magic-reflection", "any-reflection", "mana-weapon", "magic-block", "additive-miracles", "doubling-miracles", "wide-miracles", "magic-free", "forgetting", "exchange", "revival", "item-removal", "hp-absorption", "self-damage", "pestle-mortar", "selling", "buying", "hp-gamble", "magic-bounce", "sundry-boost", "status-miracles"};
+        constexpr std::array<std::string_view, 37> profiles{
+            "neutral", "miracles", "elements", "chance", "reflection", "disease", "harms", "celestial", "offensive-miracles", "defensive-miracles", "attribute-change", "attribute-removal", "counter", "counter-extensions", "money-counter", "magic-reflection", "any-reflection", "mana-weapon", "magic-block", "additive-miracles", "doubling-miracles", "wide-miracles", "magic-free", "forgetting", "exchange", "revival", "item-removal", "hp-absorption", "self-damage", "pestle-mortar", "selling", "buying", "hp-gamble", "magic-bounce", "sundry-boost", "status-miracles", "dying-weapon"};
         const auto position = std::find(profiles.begin(), profiles.end(), selected_profile);
         if (position == profiles.end())
-            throw std::invalid_argument("profile must be neutral, miracles, elements, chance, reflection, disease, harms, celestial, offensive-miracles, defensive-miracles, attribute-change, attribute-removal, counter, counter-extensions, money-counter, magic-reflection, any-reflection, mana-weapon, magic-block, additive-miracles, doubling-miracles, wide-miracles, magic-free, forgetting, exchange, revival, item-removal, hp-absorption, self-damage, pestle-mortar, selling, buying, hp-gamble, magic-bounce, sundry-boost, or status-miracles");
+            throw std::invalid_argument("profile must be neutral, miracles, elements, chance, reflection, disease, harms, celestial, offensive-miracles, defensive-miracles, attribute-change, attribute-removal, counter, counter-extensions, money-counter, magic-reflection, any-reflection, mana-weapon, magic-block, additive-miracles, doubling-miracles, wide-miracles, magic-free, forgetting, exchange, revival, item-removal, hp-absorption, self-damage, pestle-mortar, selling, buying, hp-gamble, magic-bounce, sundry-boost, status-miracles, or dying-weapon");
         const auto level = position - profiles.begin();
         const godfield::legacy::Config config{512, 10, level >= 1, level >= 2,
-            level >= 3, level >= 4, level >= 5, level >= 6, level >= 7, level >= 8, level >= 9, level >= 10, level >= 11, level >= 12, level >= 13, level >= 14, level >= 15, level >= 16, level >= 17, level >= 18, level >= 19, level >= 20, level >= 21, level >= 22, level >= 23, level >= 24, level >= 25, level >= 26, level >= 27, level >= 28, level >= 29, level >= 30, level >= 31, level >= 32, level >= 33, level >= 34, level >= 35};
+            level >= 3, level >= 4, level >= 5, level >= 6, level >= 7, level >= 8, level >= 9, level >= 10, level >= 11, level >= 12, level >= 13, level >= 14, level >= 15, level >= 16, level >= 17, level >= 18, level >= 19, level >= 20, level >= 21, level >= 22, level >= 23, level >= 24, level >= 25, level >= 26, level >= 27, level >= 28, level >= 29, level >= 30, level >= 31, level >= 32, level >= 33, level >= 34, level >= 35, level >= 36};
         const auto retained_order = retained_ids(config.hp_absorption, config.status_miracles);
         const std::string_view ruleset_name = godfield::legacy::Env(config).profile();
         int catalog_weight = 0;
@@ -320,7 +324,9 @@ int main(int argc, char** argv) {
         if (config.magic_bounce) for (const auto& card : godfield::legacy::magic_bounce_catalog()) catalog_weight += card.card.weight;
         if (config.sundry_boost) for (const auto& card : godfield::legacy::sundry_boost_catalog()) catalog_weight += card.card.weight;
         if (config.status_miracles) for (const auto& card : godfield::legacy::status_miracles()) catalog_weight += card.weight;
+        if (config.dying_weapon) for (const auto& card : godfield::legacy::dying_weapon_catalog()) catalog_weight += card.card.weight;
         const auto trade_price = [&config](godfield::legacy::CardId id) noexcept {
+            if (config.dying_weapon) if (const auto* card = godfield::legacy::find_dying_weapon_card(id)) return card->card.price;
             if (config.status_miracles) if (const auto* card = godfield::legacy::find_status_miracle(id)) return card->price;
             if (config.sundry_boost) if (const auto* card = godfield::legacy::find_sundry_boost_card(id)) return card->card.price;
             if (config.magic_bounce) if (const auto* card = godfield::legacy::find_magic_bounce_card(id)) return card->card.price;
@@ -380,7 +386,7 @@ int main(int argc, char** argv) {
                         std::array<float, 2> terminal_rewards{};
                         const auto learned_at_start = output.miracle_first_uses;
                         const auto forgotten_at_start = output.forgetting_removed;
-                        std::uint64_t forgetting_digest = 0, exchange_digest = 0, revival_digest = 0, item_removal_digest = 0, hp_absorption_digest = 0, self_damage_digest = 0, pestle_digest = 0, sale_digest = 0, buy_digest = 0, hp_gamble_digest = 0, magic_card_bounce_digest = 0, sundry_boost_digest = 0, status_digest = 0;
+                        std::uint64_t forgetting_digest = 0, exchange_digest = 0, revival_digest = 0, item_removal_digest = 0, hp_absorption_digest = 0, self_damage_digest = 0, pestle_digest = 0, sale_digest = 0, buy_digest = 0, hp_gamble_digest = 0, magic_card_bounce_digest = 0, sundry_boost_digest = 0, status_digest = 0, dying_weapon_digest = 0;
                         bool sundry_boost_pending = false;
                         std::uint64_t counter_order_digest = 0;
                         std::uint64_t magic_reflection_digest = 0, game_magic_reflections = 0;
@@ -740,6 +746,18 @@ int main(int argc, char** argv) {
                                 if (replayed_mana_left < 0 || replayed_boost_raw < 0)
                                     throw std::runtime_error("invalid replayed SUNDRY boost resource state");
                             }
+                            const bool dying_weapon_base = config.dying_weapon && weapon_attack && attack_id == 117;
+                            const bool incoming_dying_weapon = config.dying_weapon && incoming_response && !incoming_magic
+                                && !incoming_counter && incoming_hit_rate == 75 && before.last_chance.id == 117;
+                            const auto dying_source_before = before.pending.source;
+                            const auto dying_target_before = before.pending.target;
+                            const auto dying_target_cloud = before.players[1 - actor].dark_cloud;
+                            const auto dying_dead_before = std::array<bool, 2>{before.players[0].dead, before.players[1].dead};
+                            // No DYING_ATTACK queue can exist with exactly two players:
+                            // death marks dead before testing at least two not.dead players.
+                            // Keep ordinary hitRate75 distinct from the preserved death power30.
+                            if (incoming_dying_weapon && incoming_damage != 1)
+                                throw std::runtime_error("duel117 pending has a death/modified attack amount");
                             const auto status_before = before.players;
                             std::uint64_t status_known_before = 0;
                             if (config.status_miracles) for (const auto count : player.status_abilities) status_known_before += count;
@@ -1006,6 +1024,7 @@ int main(int argc, char** argv) {
                                 output.item_removed_mortars += godfield::legacy::find_mortar_card(result.removed_item) != nullptr;
                                 output.sundry_boost_removed_cards += godfield::legacy::find_sundry_boost_card(result.removed_item) != nullptr;
                                 output.removed_status_miracles += godfield::legacy::find_status_miracle(result.removed_item) != nullptr;
+                                output.dying_weapon_removed_cards += config.dying_weapon && result.removed_item == 117;
                             }
                             if (config.item_removal && (item_removal_use || incoming_item_removal)) {
                                 item_removal_digest = mix(item_removal_digest ^ after.decisions
@@ -1194,6 +1213,7 @@ int main(int argc, char** argv) {
                                 output.sold_magic_bounce_cards += godfield::legacy::find_magic_bounce_card(sold_item) != nullptr;
                                 output.sundry_boost_sold_cards += godfield::legacy::find_sundry_boost_card(sold_item) != nullptr;
                                 output.sold_status_miracles += godfield::legacy::find_status_miracle(sold_item) != nullptr;
+                                output.dying_weapon_sold_cards += config.dying_weapon && sold_item == 117;
                                 output.sale_delivered += result.sale_delivered;
                                 output.sale_delivery_failures += !result.sale_delivered;
                                 output.sale_self_resolutions += sale_source == sale_target;
@@ -1288,6 +1308,7 @@ int main(int argc, char** argv) {
                                     output.bought_magic_bounce_cards += godfield::legacy::find_magic_bounce_card(result.buy_item) != nullptr;
                                     output.sundry_boost_bought_cards += godfield::legacy::find_sundry_boost_card(result.buy_item) != nullptr;
                                     output.bought_status_miracles += godfield::legacy::find_status_miracle(result.buy_item) != nullptr;
+                                    output.dying_weapon_bought_cards += config.dying_weapon && result.buy_item == 117;
                                     output.buy_delivered += result.buy_delivered;
                                     output.buy_delivery_failures += !result.buy_delivered;
                                     output.buy_money_spent += result.buy_money_lost;
@@ -1694,6 +1715,60 @@ int main(int argc, char** argv) {
                                 output.disease_worsenings += result.disease_worsened;
                                 output.tick_damage += result.disease_damage;
                                 output.tick_healing += result.disease_healing;
+                            }
+                            if (result.dying_weapon_attack != dying_weapon_base)
+                                throw std::runtime_error("inconsistent117 ordinary attack event");
+                            if (dying_weapon_base) {
+                                const auto& chance = after.last_chance;
+                                if (action.kind != godfield::legacy::ActionKind::attack || action.slots || action.extra_count
+                                    || action.counter_count || !result.chance_attempt || chance.id != 117 || chance.hit_rate != 75
+                                    || chance.source != actor || chance.target != 1 - actor
+                                    || chance.hit != result.chance_hit || chance.forced != result.chance_forced
+                                    || result.chance_forced != dying_target_cloud)
+                                    throw std::runtime_error("117 chance/normalization/payload mismatch");
+                                ++output.dying_weapon_attacks;
+                                output.dying_weapon_hits += result.chance_hit;
+                                output.dying_weapon_misses += !result.chance_hit;
+                                output.dying_weapon_forced_hits += result.chance_forced;
+                                ++output.dying_weapon_normalized_targets;
+                            }
+                            if (incoming_dying_weapon) {
+                                ++output.dying_weapon_response_decisions;
+                                output.dying_weapon_removal_responses += result.attribute_removed;
+                                output.dying_weapon_reactions += result.reflected || result.bounced;
+                                output.dying_weapon_blocks += result.weapon_blocked;
+                                output.dying_weapon_counters_queued += result.counter_queued;
+                                if (result.chance_attempt)
+                                    throw std::runtime_error("117 response rerolled its ordinary chance");
+                            }
+                            if (config.dying_weapon) {
+                                for (int seat = 0; seat < 2; ++seat) {
+                                    const auto& owner = after.players[seat];
+                                    int copies = 0;
+                                    for (int slot = 0; slot < owner.hand_count; ++slot) copies += owner.hand[slot] == 117;
+                                    if (!dying_dead_before[seat] && owner.dead && copies) {
+                                        ++output.dying_weapon_dead_holders;
+                                        output.dying_weapon_dead_copies += copies;
+                                    }
+                                    output.dying_weapon_revival_holders += result.revivals[seat] && copies;
+                                }
+                                if (dying_weapon_base || incoming_dying_weapon) {
+                                    dying_weapon_digest = mix(dying_weapon_digest ^ after.decisions
+                                        ^ static_cast<std::uint64_t>(action.kind)
+                                        ^ (static_cast<std::uint64_t>(actor) << 16)
+                                        ^ (static_cast<std::uint64_t>(action.target) << 24)
+                                        ^ (static_cast<std::uint64_t>(dying_source_before) << 32)
+                                        ^ (static_cast<std::uint64_t>(dying_target_before) << 40)
+                                        ^ (static_cast<std::uint64_t>(incoming_element) << 48));
+                                    dying_weapon_digest = mix(dying_weapon_digest ^ result.dying_weapon_attack
+                                        ^ (static_cast<std::uint64_t>(result.chance_hit) << 8)
+                                        ^ (static_cast<std::uint64_t>(result.chance_forced) << 16)
+                                        ^ (static_cast<std::uint64_t>(result.attribute_removed) << 24)
+                                        ^ (static_cast<std::uint64_t>(result.reflected) << 25)
+                                        ^ (static_cast<std::uint64_t>(result.bounced) << 26)
+                                        ^ (static_cast<std::uint64_t>(result.weapon_blocked) << 27)
+                                        ^ (static_cast<std::uint64_t>(result.counter_queued) << 32));
+                                }
                             }
                             if (result.chance_hit && !result.chance_attempt)
                                 throw std::runtime_error("chance hit reported without an attempt");
@@ -2381,6 +2456,18 @@ int main(int argc, char** argv) {
                                 ^ (static_cast<std::uint64_t>(state.pending.disease) << 24) ^ (static_cast<std::uint64_t>(state.pending.cure) << 32)
                                 ^ (static_cast<std::uint64_t>(state.pending.harm) << 40) ^ (static_cast<std::uint64_t>(state.pending.from_ability) << 48));
                         }
+                        if (config.dying_weapon) {
+                            digest = mix(digest ^ 0x6479696e67773337ULL ^ dying_weapon_digest);
+                            const auto& chance = state.last_chance;
+                            digest = mix(digest ^ chance.id ^ (static_cast<std::uint64_t>(chance.hit_rate) << 16)
+                                ^ (static_cast<std::uint64_t>(chance.hit) << 24) ^ (static_cast<std::uint64_t>(chance.forced) << 25)
+                                ^ (static_cast<std::uint64_t>(chance.source) << 32) ^ (static_cast<std::uint64_t>(chance.target) << 40));
+                            for (const auto& owner : state.players) {
+                                std::uint16_t slots = 0;
+                                for (int slot = 0; slot < owner.hand_count; ++slot) if (owner.hand[slot] == 117) slots |= 1u << slot;
+                                digest = mix(digest ^ slots ^ (static_cast<std::uint64_t>(owner.dead) << 32));
+                            }
+                        }
                         output.checksum += digest;
                     }
                 } catch (...) {
@@ -2636,6 +2723,22 @@ int main(int argc, char** argv) {
             total.sundry_boost_raw_checked += output.sundry_boost_raw_checked;
             total.sundry_boost_self_attacks += output.sundry_boost_self_attacks;
             total.sundry_boost_raw_max = std::max(total.sundry_boost_raw_max, output.sundry_boost_raw_max);
+            total.dying_weapon_attacks += output.dying_weapon_attacks;
+            total.dying_weapon_hits += output.dying_weapon_hits;
+            total.dying_weapon_misses += output.dying_weapon_misses;
+            total.dying_weapon_forced_hits += output.dying_weapon_forced_hits;
+            total.dying_weapon_normalized_targets += output.dying_weapon_normalized_targets;
+            total.dying_weapon_response_decisions += output.dying_weapon_response_decisions;
+            total.dying_weapon_removal_responses += output.dying_weapon_removal_responses;
+            total.dying_weapon_reactions += output.dying_weapon_reactions;
+            total.dying_weapon_blocks += output.dying_weapon_blocks;
+            total.dying_weapon_counters_queued += output.dying_weapon_counters_queued;
+            total.dying_weapon_dead_holders += output.dying_weapon_dead_holders;
+            total.dying_weapon_dead_copies += output.dying_weapon_dead_copies;
+            total.dying_weapon_revival_holders += output.dying_weapon_revival_holders;
+            total.dying_weapon_sold_cards += output.dying_weapon_sold_cards;
+            total.dying_weapon_bought_cards += output.dying_weapon_bought_cards;
+            total.dying_weapon_removed_cards += output.dying_weapon_removed_cards;
             total.status_first_uses += output.status_first_uses;
             total.status_recasts += output.status_recasts;
             total.status_mp_spent += output.status_mp_spent;
@@ -2870,6 +2973,15 @@ int main(int argc, char** argv) {
             || total.item_removed_weapons + total.item_removed_armor + total.item_removed_miracles + total.item_removed_other != total.items_removed
             || total.item_removed_revivals > total.item_removed_other)
             throw std::runtime_error("item removal accounting mismatch");
+        if (total.dying_weapon_hits + total.dying_weapon_misses != total.dying_weapon_attacks
+            || total.dying_weapon_normalized_targets != total.dying_weapon_attacks
+            || total.dying_weapon_forced_hits > total.dying_weapon_hits
+            || total.dying_weapon_removal_responses > total.dying_weapon_response_decisions
+            || total.dying_weapon_reactions + total.dying_weapon_blocks > total.dying_weapon_response_decisions
+            || total.dying_weapon_dead_holders > total.dying_weapon_dead_copies
+            || total.dying_weapon_sold_cards > total.sale_resolutions || total.dying_weapon_bought_cards > total.buy_purchases
+            || total.dying_weapon_removed_cards > total.items_removed)
+            throw std::runtime_error("dying weapon accounting mismatch");
         if (total.status_first_uses + total.status_recasts != total.status_casts || total.status_learned != total.status_first_uses
             || total.status_lower_cures + total.status_all_cures + total.status_dark_cloud_applications
                 + total.status_cold_applications + total.status_heaven_applications != total.status_resolutions
@@ -3014,6 +3126,7 @@ int main(int argc, char** argv) {
                 + (config.magic_bounce ? godfield::legacy::magic_bounce_catalog().size() : 0)
                 + (config.sundry_boost ? godfield::legacy::sundry_boost_catalog().size() : 0)
                 + (config.status_miracles ? godfield::legacy::status_miracles().size() : 0)
+                + (config.dying_weapon ? godfield::legacy::dying_weapon_catalog().size() : 0)
             << "\ncatalog_weight=" << catalog_weight
             << "\ninitial_hand=" << static_cast<int>(config.initial_hand)
             << " max_decisions=" << config.max_decisions
@@ -3395,12 +3508,28 @@ int main(int argc, char** argv) {
 << " sold_status_miracles=" << total.sold_status_miracles
 << " bought_status_miracles=" << total.bought_status_miracles
 << " removed_status_miracles=" << total.removed_status_miracles
-            << "\nchecksum_version=" << (config.status_miracles ? 36 : config.sundry_boost ? 35 : config.magic_bounce ? 34 : config.hp_gamble ? 33 : config.buying ? 32 : config.selling ? 31 : config.pestle_mortar ? 30 : config.self_damage ? 29 : config.hp_absorption ? 28 : config.item_removal ? 27 : config.revival ? 26 : config.exchanges ? 25 : config.forgetting ? 24 : config.magic_free ? 23 : config.wide_miracles ? 22 : config.doubling_miracles ? 21 : config.additive_miracles ? 20 : config.magic_block ? 19 : config.mana_weapon ? 18 : config.any_reflection ? 17 : config.magic_reflection ? 16 : config.money_counter ? 15 : config.counter_extensions ? 14 : config.counters ? 13 : config.attribute_removal ? 12 : config.attribute_change ? 11 : config.defensive_miracles ? 10 : config.offensive_miracles ? 9 : config.celestial ? 8 : config.harms ? 7 : config.disease ? 6 : config.reflection ? 5 : config.chance ? 4 : config.elements ? 3 : 2)
+            << "\ndying_weapon_attacks=" << total.dying_weapon_attacks
+            << " dying_weapon_hits=" << total.dying_weapon_hits
+            << " dying_weapon_misses=" << total.dying_weapon_misses
+            << " dying_weapon_forced_hits=" << total.dying_weapon_forced_hits
+            << " dying_weapon_normalized_targets=" << total.dying_weapon_normalized_targets
+            << " dying_weapon_response_decisions=" << total.dying_weapon_response_decisions
+            << " dying_weapon_removal_responses=" << total.dying_weapon_removal_responses
+            << " dying_weapon_reactions=" << total.dying_weapon_reactions
+            << " dying_weapon_blocks=" << total.dying_weapon_blocks
+            << " dying_weapon_counters_queued=" << total.dying_weapon_counters_queued
+            << " dying_weapon_dead_holders=" << total.dying_weapon_dead_holders
+            << " dying_weapon_dead_copies=" << total.dying_weapon_dead_copies
+            << " dying_weapon_revival_holders=" << total.dying_weapon_revival_holders
+            << " dying_weapon_sold_cards=" << total.dying_weapon_sold_cards
+            << " dying_weapon_bought_cards=" << total.dying_weapon_bought_cards
+            << " dying_weapon_removed_cards=" << total.dying_weapon_removed_cards
+            << "\nchecksum_version=" << (config.dying_weapon ? 37 : config.status_miracles ? 36 : config.sundry_boost ? 35 : config.magic_bounce ? 34 : config.hp_gamble ? 33 : config.buying ? 32 : config.selling ? 31 : config.pestle_mortar ? 30 : config.self_damage ? 29 : config.hp_absorption ? 28 : config.item_removal ? 27 : config.revival ? 26 : config.exchanges ? 25 : config.forgetting ? 24 : config.magic_free ? 23 : config.wide_miracles ? 22 : config.doubling_miracles ? 21 : config.additive_miracles ? 20 : config.magic_block ? 19 : config.mana_weapon ? 18 : config.any_reflection ? 17 : config.magic_reflection ? 16 : config.money_counter ? 15 : config.counter_extensions ? 14 : config.counters ? 13 : config.attribute_removal ? 12 : config.attribute_change ? 11 : config.defensive_miracles ? 10 : config.offensive_miracles ? 9 : config.celestial ? 8 : config.harms ? 7 : config.disease ? 6 : config.reflection ? 5 : config.chance ? 4 : config.elements ? 3 : 2)
             << "\nchecksum=" << total.checksum << '\n';
         return 0;
     } catch (const std::exception& error) {
         std::cerr << error.what()
-            << "\nUsage: godfield_legacy_bench [games=100000] [threads=1] [seed=42] [profile=neutral|miracles|elements|chance|reflection|disease|harms|celestial|offensive-miracles|defensive-miracles|attribute-change|attribute-removal|counter|counter-extensions|money-counter|magic-reflection|any-reflection|mana-weapon|magic-block|additive-miracles|doubling-miracles|wide-miracles|magic-free|forgetting|exchange|revival|item-removal|hp-absorption|self-damage|pestle-mortar|selling|buying|hp-gamble|magic-bounce|sundry-boost|status-miracles]\n";
+            << "\nUsage: godfield_legacy_bench [games=100000] [threads=1] [seed=42] [profile=neutral|miracles|elements|chance|reflection|disease|harms|celestial|offensive-miracles|defensive-miracles|attribute-change|attribute-removal|counter|counter-extensions|money-counter|magic-reflection|any-reflection|mana-weapon|magic-block|additive-miracles|doubling-miracles|wide-miracles|magic-free|forgetting|exchange|revival|item-removal|hp-absorption|self-damage|pestle-mortar|selling|buying|hp-gamble|magic-bounce|sundry-boost|status-miracles|dying-weapon]\n";
         return 1;
     }
 }

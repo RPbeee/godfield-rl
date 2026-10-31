@@ -64,14 +64,14 @@ Actionの形式は変更しない。基底が確率武器ならslotsは0に限�
 chance無効profileでは空のprefixによるクリアだけを許可する。
 指定した未来の値・現在位置・乱数状態は観測や合法手maskへ出さない。
 
-Snapshotは反撃拡張と共通のversion36。公開記録、命中済みの保留攻撃、未使用の抽選prefixと現在位置を含む。
+Snapshotは反撃拡張と共通のversion37。公開記録、命中済みの保留攻撃、未使用の抽選prefixと現在位置を含む。
 復元時はprofile、形式、率と神器の対応、source/target、配布予定などを検証する。
 旧versionをそのまま受け付けない。永続checkpointや異なるビルド間の互換形式はまだ未実装。
 
 ## 観測とC ABI
 
-C++の共通観測は反撃拡張後の1345次元で、`gc_*` ABI 4は先頭210次元を返す。
-この確率profileでは末尾1135個は0。定義は[反応profile](legacy-reflection-profile.md)、
+C++の共通観測は反撃拡張後の1368次元で、`gc_*` ABI 4は先頭210次元を返す。
+この確率profileでは末尾1158個は0。定義は[反応profile](legacy-reflection-profile.md)、
 [病気profile](legacy-disease-profile.md)、[harms profile](legacy-harms-profile.md)と[光・闇profile](legacy-celestial-profile.md)と[攻撃奇跡profile](legacy-offensive-miracles-profile.md)と[防御奇跡profile](legacy-defensive-miracles-profile.md)と[属性付け替えprofile](legacy-attribute-change-profile.md)と[属性消去profile](legacy-attribute-removal-profile.md)と[反撃profile](legacy-counter-profile.md)と[反撃拡張profile](legacy-counter-extensions-profile.md)と[所持金反撃profile](legacy-money-counter-profile.md)と[魔法反射profile](legacy-magic-reflection-profile.md)と[万能反射profile](legacy-any-reflection-profile.md)と[MP武器profile](legacy-mana-weapon-profile.md)と[魔法遮断profile](legacy-magic-block-profile.md)を参照。
 既存 `gl_*` は128、`gm_*` は164、`ge_*` は186の出力を維持する。
 各旧prefixが返す行の幅でコピーするため、コアの拡張で既存バッファーを超えて書き込まない。

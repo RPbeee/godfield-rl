@@ -52,10 +52,10 @@ kind13の196→FREE suffixは従来どおり未消費で、最終targetの手札
 `Config::item_removal` はデフォルトfalseで、他の拡張を必要としない。
 `Pending::item_removal_card` が元240、`State::last_item_removal` が最後のsource/target・削除ID・削除前枚数/slotを表す。
 削除前の手札枚数とslotは内部値で、公開イベントはsource/targetと削除IDまたは空結果だけである。
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
 
-共通C++観測は1345次元、`g27_*` は先頭1085次元。v27では末尾260特徴が0。旧 `g26_*` は1062、gg以前も従来の出力幅を維持する。
-v26では末尾283特徴が0。相手の残り手札内容・選択slot/ticket・内部population・乱数やfixture prefixは追加しない。
+共通C++観測は1368次元、`g27_*` は先頭1085次元。v27では末尾283特徴が0。旧 `g26_*` は1062、gg以前も従来の出力幅を維持する。
+v26では末尾306特徴が0。相手の残り手札内容・選択slot/ticket・内部population・乱数やfixture prefixは追加しない。
 
 | 位置 | 内容 |
 | --- | --- |

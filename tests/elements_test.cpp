@@ -95,7 +95,7 @@ void metadata_and_profile_boundaries() {
     invalid = before; invalid.version = 2;
     check(!elements_only.restore(invalid) && elements_only.snapshot() == before,
         "previous snapshot schema rejected without migration");
-    check(before.version == 36, "shared counter extensions snapshot schema version");
+    check(before.version == 37, "shared counter extensions snapshot schema version");
     check(!elements_only.restore(combined.snapshot()), "combined profile snapshot cannot cross into elements-only profile");
 }
 void all_defense_pairs() {

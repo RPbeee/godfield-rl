@@ -69,7 +69,7 @@ bool valid(const legacy::Env& env, const g36_action& action) noexcept {
 extern "C" {
 int g36_abi_version(void) { return 36; }
 const char* g36_ruleset(void) { return legacy::status_miracles_ruleset; }
-int g36_observation_size(void) { return legacy::observation_size; }
+int g36_observation_size(void) { return legacy::status_miracles_observation_size; }
 int g36_options_width(void) { return 40; }
 int g36_hand_capacity(void) { return legacy::hand_capacity; }
 size_t g36_action_size(void) { return sizeof(g36_action); }
@@ -157,7 +157,7 @@ int g36_observe(const g36_batch* batch, size_t count, float* observations,
         const auto& env = batch->envs[i];
         const auto obs = env.observe();
         const auto choices = env.options();
-        std::copy_n(obs.begin(), legacy::observation_size, observations + i * legacy::observation_size);
+        std::copy_n(obs.begin(), legacy::status_miracles_observation_size, observations + i * legacy::status_miracles_observation_size);
         auto* row = options + 40 * i;
         row[0] = choices.weapon_bases; row[1] = choices.boost_slots;
         row[2] = choices.defense_slots; row[3] = choices.utility_slots;

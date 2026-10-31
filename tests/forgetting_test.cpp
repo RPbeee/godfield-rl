@@ -62,7 +62,7 @@ void metadata_empty_and_singleton_rng() {
     for (CardId id : {CardId{0},CardId{239},CardId{240},CardId{250},CardId{65535}}) check(!find_forgetting_card(id), "no implicit creature/other utility inclusion");
     Config minimal; minimal.miracles = minimal.forgetting = true;
     auto empty = fixture({241}, {120},minimal); draws(empty); ticket(empty,999); const auto before = empty.snapshot();
-    check(std::string_view(empty.profile()) == forgetting_ruleset && empty.snapshot().version == 36
+    check(std::string_view(empty.profile()) == forgetting_ruleset && empty.snapshot().version == 37
         && empty.options().forget_slots == 1 && empty.options().utility_slots == 1 && empty.options().discard_slots == 1 && empty.options().pray,
         "minimum profile exposes utility/discard and keeps weapon-based prayer");
     const auto none = empty.step(use(0));

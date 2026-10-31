@@ -67,7 +67,7 @@ void metadata_all_six_and_dual_roles() {
     check(extra.step(accept(1)).valid && extra.state().players[1].hp == 34, "119 is plainDEF0 against weapon with21 boost"); roundtrip(extra);
     for (CardId id : {CardId{0},CardId{20},CardId{39},CardId{40},CardId{210},CardId{196},CardId{65535}})
         check(!find_magic_bounce_card(id), "old weapon bounce/reflect/ANY and held magic210 stay separate");
-    auto profile = fixture({119},{120}); check(std::string_view(profile.profile()) == magic_bounce_ruleset && profile.snapshot().version == 36,
+    auto profile = fixture({119},{120}); check(std::string_view(profile.profile()) == magic_bounce_ruleset && profile.snapshot().version == 37,
         "new profile and checkpoint schema explicit");
     for (int missing = 0; missing < 2; ++missing) {
         Config bad; bad.magic_bounce = true; if (!missing) bad.miracles = true; else bad.reflection = true;

@@ -65,9 +65,9 @@ turnはlaunch時に現在turn+1、解決後はそのcompleted turn。符号は�
 196反射では進めず、未使用のprefix/位置やgame RNGをpolicy観測に含めない。
 旧Pythonのseed→符号のbit単位一致は主張しない。
 
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
-共通C++観測は1345次元、`g33_*` は先頭1278次元。v33では末尾67特徴が0。旧 `g32_*` は1251、g31以前も従来の出力幅を維持する。
-v32では末尾94特徴が0。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通C++観測は1368次元、`g33_*` は先頭1278次元。v33では末尾90特徴が0。旧 `g32_*` は1251、g31以前も従来の出力幅を維持する。
+v32では末尾117特徴が0。
 
 | 位置 | 内容 |
 | --- | --- |

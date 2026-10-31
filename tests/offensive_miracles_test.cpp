@@ -74,7 +74,7 @@ void metadata_and_profile() {
         check(threw, "offensive spells require miracles and celestial semantics explicitly enabled");
     }
     auto env = fixture({198}, {120});
-    check(std::string_view(env.profile()) == offensive_miracles_ruleset && env.snapshot().version == 36
+    check(std::string_view(env.profile()) == offensive_miracles_ruleset && env.snapshot().version == 37
         && env.state().players[0].abilities.size() == main_ability_capacity, "new spell profile, schema and total retained kinds");
     roundtrip(env);
     auto disabled_config = config; disabled_config.offensive_miracles = false; Env disabled(disabled_config);

@@ -84,9 +84,9 @@ StepResultのstatus_first_use/recast/resolvedとid/現在source/targetを、全�
 
 ## 観測とC ABI
 
-共通Snapshotはversion36。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
-共通C++観測と `g36_*` は1345次元。旧 `g35_*` は1317、g34以前も従来の出力幅を維持する。
-v35では末尾28特徴が0。
+共通Snapshotはversion37。同じビルド・Config内のfixture用であり、旧形式の永続checkpoint移行はしない。
+共通C++観測は1368次元、`g36_*` は先頭1345次元。v36では末尾23特徴が0。旧 `g35_*` は1317、g34以前も従来の出力幅を維持する。
+v35では末尾51特徴が0。
 
 | 位置 | 内容 |
 | --- | --- |
@@ -103,6 +103,10 @@ v35では末尾28特徴が0。
 既存aggregate1016は新5も含む現在の総保持数になる。旧13個別・221個別などの座標は動かさない。
 新profileでtail以外が常に同値とは主張せず、旧flag=falseの各profileの値/幅を維持する。
 相手の手札/保持数、game RNG、未使用ticketやprefixは観測しない。
+
+v37で共通element_ofが新statusを参照するよう修正し、208の手札属性欄285+slotをNEの0から闇の6/6へ直した。
+他4種はNEで従来値のまま。Pending属性/純効果は元から正しく、旧v36ゲーム軌跡・乱数・checksumは変えない。
+この観測修正はg36の固定1345幅にも反映する。
 
 新C ABI [status_miracles_c_api.h](../include/godfield/status_miracles_c_api.h) は `g36_*` version36。
 88byte・kind0〜19・最大65参照・tail@17、mask幅40。旧37語を保ち、word37はmain手札5種の所属、
