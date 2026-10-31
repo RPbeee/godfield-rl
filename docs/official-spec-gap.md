@@ -8,6 +8,36 @@
 追記: 比較後に `legacy-neutral-subset-v1` を追加した。以下の差分表の「現在のC++」欄は
 上記commitの比較基準として保持する。新しい実装の進捗と制限は次節に記載。
 
+## 現行公式の一次対応範囲（2026-11-01）
+
+[公式公開データ/クライアント調査](official-current-rules.md)と
+[公式適合計画](official-conformance-plan.md)を新しい根拠とする。
+[data/official-v1](../data/official-v1/README.md)に現行公開台帳296モデルを独立固定し、
+通常配布の正のgiftRateを持つ237モデル・重み合計500を確認した。
+旧版37台帳・対戦Env・全C ABI/Pythonは維持し、旧IDを現行へ流用しない。
+公式JSONのSHA256は `03a4782dc6899aeedd9b7986a49bd3c0217b96ac38c0779deb588bc94cca3e7c`。
+client JSのhashが以前のB記録と一致しても、別取得のJSON台帳が更新されていない証拠にはならない。
+Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作5件を含む集計範囲の差である。
+件数差だけから5件の追加更新が起きたとは判断しない。
+
+| 現在実装済みの範囲 | 根拠と限界 |
+| --- | --- |
+| 公式296モデルのtyped C++台帳 | 公式JSON全item fieldとJSの欠損default/配列index+1を固定。説明・画像・client全文はrepoに複製しない |
+| `godfield::official` pure composition | 順序付き威力/属性/MP表示、反応/属性防御などの公開client関数を移植。選択列を受け取る計算であり、ターンやHPを更新しない |
+| visible追加predicate | 見かけのモデル列に対するmain/response追加可否を再現。夢の真値、所有/容量/MPを含むserver全体の合法性判定ではない |
+| 実clientのオフラインoracle | 認証・DOM・network起動を止めた実JSの関数を実行し、50,270件のgolden vectorでC++と一致。旧serverテストを公式照合と数えない |
+| `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
+
+公式完全シミュレーターは未達である。多人数/チーム・公開/秘匿viewと記憶・真偽神器、
+turn/effect queue、配布/命中/状態の抽選、守護神、終末/悪魔/超常現象、死亡/勝敗を含むserver実行器が残る。
+公開説明・client関数・実対局/権威的serverの結果を別の証拠として管理し、未観測の順序を旧実装で埋めない。
+学習器と学習済みモデルは削除済みのまま、この対応範囲へ含めない。
+
+検証: 通常CTest121件・ASan/UBSan83件が通過し、公式296 factsと旧37台帳hash、generator、
+候補crosswalk、実client由来50,270 golden vectorの整合を確認した。新Python15テストとC ABI合成4,878ケースも一致した。
+今回公式対局traceは取得しておらず、公開clientから権威的server engineの全体を取得できたとは扱わない。
+したがってこの検証数を、公式ゲーム全体の完全対応やserver状態遷移の一致の証明にしない。
+
 ## 差分表作成後の実装進捗
 
 新profileの詳細は[旧版中立ルールセット](legacy-neutral-profile.md)と
@@ -44,9 +74,9 @@
 [物理追加ATK238を加えたv35](legacy-sundry-boost-profile.md)、
 [状態・解除奇跡を加えたv36](legacy-status-miracles-profile.md)、
 [死亡時効果付き武器の通常使用を加えたv37](legacy-dying-weapon-profile.md)を参照。
-現行公式との直接照合を完了した項目はまだない。
+現行公式との直接照合は上節の公開台帳・client計算/visible選択関数まで完了し、対局全体の遷移は未完了である。
 各行の「残る条件」は、その行のprofile時点での範囲を示す。後続profileで実装した機能も含むため、
-最新の全体範囲はv36の行と各profileの仕様を参照する。
+最新のlegacy範囲はv37の行と各profileの仕様、現行公式の範囲は上節と公式適合計画を参照する。
 
 | 対象ID | 追加した実装 | 残る条件 |
 | --- | --- | --- |
@@ -187,6 +217,18 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 | C03 | Sには開始時の手札9枚という観測がある [S] | F1の初期配布数は10、F2は開始時に配布を処理 [F1] [F2] | モード・最初の配布・最初の行動・観察タイミングを合わせる。手札上限16という別の条件とは分ける |
 | C04 | Bの対応候補Wand of Ignition/Mystic Waterは+ATK2/5と火/水への付替を表示 [B] | 旧65/85は単独ATK2/5だが、F3のADD_ATTRIBUTE追加処理は威力を加算しない [F3] | ID対応自体を確定せず、現行の単独/追加時の威力を動的照合。旧版profileでは非加算を維持。[調査と検算](legacy-attribute-change-rules.md)を参照 |
 | C05 | [旧bot](https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/bot.py)はcounter攻撃へ防御を返さない | F3のdefenderCommandはcounterにも普通防具・195・再counterを受理する [F3] | 現行公式の反撃応答を動的照合。v13/v14は旧server受理を選び、bot意図や公式一致を確定しない。[調査](legacy-counter-rules.md)を参照 |
+
+### C01〜C05の今回の一次確認
+
+上表は旧資料間の衝突の記録として保持する。今回の対応状態は次のとおり。
+
+| 衝突 | 今回直接確認・実装した範囲 | 残る確認 |
+| --- | --- | --- |
+| C01 | 公式教典とclientの属性防御predicateは光攻撃へfalse。`official::attribute_defense_allowed`と実JS oracleも一致 | 特殊反応/混合防御を含む権威的serverの受理・解決。legacyの光→闇防御は変更しない |
+| C02 | 公式配信の教典説明は自然悪化5%と記載 | serverでのtick対象・抽選の位置/端点・再付与・死亡順。今回のpure kernelは病気turnを進めない |
+| C03 | 公式clientの初期表示は9枠、資源表示の初期値はHP40/MP10/CP20 | 初回実配布数、保持/物理手札上限と補充の動的契約 |
+| C04 | 現行66/83の属性ワンドはisPlusAtkかつATK2/5。実clientの順序付き合成でも加算し、official kernelが一致 | serverの消費/HP遷移との照合。旧65/85の非加算仕様はlegacyへ保存 |
+| C05 | 現行clientのvisible応答predicateについてattack分類・反応・追加可否を実JSで照合 | counter由来分類の完全な意味、server受理と多段queue/死亡/補充順 |
 
 ## 実装箇所との対応
 

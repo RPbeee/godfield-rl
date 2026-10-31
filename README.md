@@ -3,10 +3,22 @@
 God Fieldを強化学習で扱うための、C++20製ローカルシミュレーターです。
 描画・通信・外部ライブラリに依存せず、自己対戦を高速に回すための基盤を用意しています。
 
+現行公式については、公開台帳296モデルと公開クライアントの計算・選択関数を独立実装しました。
+通常配布は正のgiftRateを持つ237モデル・重み合計500です。
+`godfield::official` は順序付き威力/属性/MP表示、反応・属性防御、見えているモデル列への追加可否を計算し、
+実際の公式JSをオフライン実行した50,270件のgolden vectorと一致しました。
+`gfo_*` ABI1とPython `OfficialData` は台帳・合成計算を公開します。対局を進めるEnvではありません。
+
+[公式一次調査](docs/official-current-rules.md)、[適合計画と未完了条件](docs/official-conformance-plan.md)、
+[296件の出典・取得hash・旧版比較](data/official-v1/README.md)を参照してください。
+公式サーバーの全状態遷移、抽選、秘匿view、9人/チーム、守護神、終末・勝敗の実行器は未完成です。
+旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
+
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
 
-| ルールセット | 用途 | 神器・接口 |
+| ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
+| `official-catalog-client-rules-v1` | 現行公式の台帳・公開clientの表示計算。対局実行不可 | 296モデル、`gfo_*` ABI1 / Python `OfficialData` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -46,9 +58,9 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 | `legacy-neutral-subset-v1` | 旧版の処理順を反映した1対1の部分実装 | 出典付き60種、手札容量16、意味的Action、128特徴、`gl_*` |
 | `synthetic-neutral-duel-v1` | 最初に作った独自ルールの比較用環境 | 独自10種、9スロット、521行動、73特徴、`gf_*` |
 
-新ルールは旧版の重みを各profileの対象プール内で正規化して抽選します。公式の配布分布とは扱いません。
+legacy各ルールは旧版の重みを各profileの対象プール内で正規化して抽選します。公式の配布分布とは扱いません。
 ここで学習した方策が本家でも強いとは主張できません。
-現在は合法手のランダム実行・ベンチマークができます。学習器と学習済みモデルは同梱していません。
+legacy対戦Envは合法手のランダム実行・ベンチマークができます。学習器と学習済みモデルは同梱していません。
 
 旧版系のC++コアは共通1368特徴・Snapshot version37です。既存ABIの出力幅は変更せず、
 `gl_*` / `gm_*` / `ge_*` / `gc_*` / `gr_*` / `gd_*` / `gh_*` / `gs_*` / `go_*` / `gb_*` / `ga_*` / `gn_*` / `gk_*` / `gx_*` / `gy_*` / `gz_*` / `gu_*` / `gv_*` / `gw_*` / `gp_*` / `gq_*` / `gt_*` / `gi_*` / `gj_*` / `gg_*` / `g26_*` / `g27_*` / `g28_*` / `g29_*` / `g30_*` / `g31_*` / `g32_*` / `g33_*` / `g34_*` / `g35_*` / `g36_*` は128 / 164 / 186 / 210 / 236 / 258 / 283 / 301 / 334 / 356 / 375 / 393 / 515 / 661 / 679 / 696 / 713 / 732 / 750 / 903 / 924 / 945 / 993 / 1017 / 1043 / 1062 / 1085 / 1110 / 1135 / 1175 / 1221 / 1251 / 1278 / 1300 / 1317 / 1345特徴を維持します。
@@ -63,6 +75,7 @@ macOS/Linux、CMake 3.20以上、C++20コンパイラーが必要です。パッ
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 4
 ctest --test-dir build --output-on-failure
+python3 python/official_data.py
 ./build/godfield_legacy_bench 100000 4 42 dying-weapon
 python3 python/dying_weapon_env.py
 ./build/godfield_legacy_bench 100000 4 42 item-removal
@@ -141,6 +154,29 @@ cmake -S . -B build-sanitize -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGF_SANITIZE=ON
 cmake --build build-sanitize -j 4
 ctest --test-dir build-sanitize --output-on-failure
 ```
+
+## 現行公式の台帳と計算API
+
+[official_catalog.hpp](include/godfield/official_catalog.hpp)の296件は公式配信JSONの全モデルを保持します。
+IDはその配列位置+1で、legacy IDとは別です。台帳のgiftRate・守護神行動率・悪魔出現率を混ぜて配布しません。
+旧231件との対応はmetadata候補表であり、名称・画像を根拠にした全件の同一性確定はまだしていません。
+[official_rules.hpp](include/godfield/official_rules.hpp)のpure functionsは、表示上の合成やvisible選択の追加可否を返します。
+夢では見かけモデルを渡す契約で、隠れた真の神器によるserver合法性判定とは区別します。
+
+[official_c_api.h](include/godfield/official_c_api.h)の `gfo_*` ABI1と
+[Python `OfficialData`](python/official_data.py)は、read-only台帳と順序付き合成previewを提供します。
+ハンドル付きゲーム状態、step/reset、報酬、乱数抽選、ターン進行は提供しません。
+合成が計算できる列でも、それだけで合法な対戦行動とは認めません。
+
+C01は公式教典とclientで光への属性防御拒否を確認し、公式kernelにも反映しました。
+C02の自然悪化5%は教典の記述を確認した段階です。
+C04の属性ワンドATK2/5は実際のclient合成関数でも加算されます。
+これらの公開client/説明の証拠と、権威的serverの解決順・HP遷移の未検証を分けています。
+
+通常CTest121件、ASan/UBSan83件が通過。公式fact296件・旧37台帳hash・候補対応表の整合、
+実clientの50,270 golden vector、新Python15テストとC ABI合成4,878ケースを検証しました。
+公式対局traceは今回未取得で、公開clientから権威的serverの全実行器が得られたわけではありません。
+対局シミュレーターとしての公式完全対応は未達です。
 
 ## 旧版を参考にした中立ルールセット
 

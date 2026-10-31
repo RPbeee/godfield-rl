@@ -1,0 +1,11 @@
+{
+  "source_url": "https://godfield.net/i18n/ja.json",
+  "observed_on": "2026-11-01",
+  "source_etag": "\"7203e5fc74f99f66f8c9292c948c4fd66734900318f1bb6dc00a26451d0620d0\"",
+  "source_last_modified": "Thu, 29 Oct 2026 07:43:52 GMT",
+  "source_raw_bytes": 49137,
+  "source_raw_sha256": "03a4782dc6899aeedd9b7986a49bd3c0217b96ac38c0779deb588bc94cca3e7c",
+  "client_url": "https://godfield.net/main.dart.js",
+  "client_bytes": 440238,
+  "client_sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd"
+}

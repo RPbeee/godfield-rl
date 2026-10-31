@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd",
+  "cards_sha256": "9ce45da9dd372da1ab30397068885a20bbd5927b0891946b5fc7bc07226fa1a8",
+  "vectors_sha256": "fd15f14520c2d0aa8234ec31ce573c138e7d703cc7c050ad32beec7257212ca7",
+  "counts": {
+    "C": 4878,
+    "R": 16576,
+    "M": 12336,
+    "D": 16480
+  },
+  "purpose": "Actual pinned public client composition, reaction and visible append predicates; not server transition fixtures.",
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_client_oracle.cjs --client /path/to/main.dart.js"
+}

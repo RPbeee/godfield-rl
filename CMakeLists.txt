@@ -7,6 +7,7 @@ option(GF_SANITIZE "Enable address/undefined sanitizers" OFF)
 add_library(godfield SHARED src/env.cpp src/c_api.cpp src/catalog.cpp src/miracles.cpp src/elements.cpp src/chance.cpp src/reflection.cpp src/disease.cpp src/harms.cpp src/celestial.cpp src/offensive_miracles.cpp src/defensive_miracles.cpp src/attribute_change.cpp src/attribute_removal.cpp src/counter.cpp src/counter_extensions.cpp src/money_counter.cpp src/magic_reflection.cpp src/any_reflection.cpp src/mana_weapon.cpp src/magic_block.cpp src/additive_miracles.cpp src/doubling_miracles.cpp src/wide_miracles.cpp src/magic_free.cpp src/forgetting.cpp src/exchange.cpp src/revival.cpp src/item_removal.cpp src/hp_absorption.cpp src/self_damage.cpp src/pestle_mortar.cpp src/selling.cpp src/buying.cpp src/hp_gamble.cpp src/magic_bounce.cpp src/sundry_boost.cpp src/status_miracles.cpp src/dying_weapon.cpp
   src/legacy_env.cpp src/legacy_c_api.cpp src/miracles_c_api.cpp src/elements_c_api.cpp src/chance_c_api.cpp src/reflection_c_api.cpp src/disease_c_api.cpp src/harms_c_api.cpp src/celestial_c_api.cpp src/offensive_miracles_c_api.cpp src/defensive_miracles_c_api.cpp src/attribute_change_c_api.cpp src/attribute_removal_c_api.cpp src/counter_c_api.cpp src/counter_extensions_c_api.cpp src/money_counter_c_api.cpp src/magic_reflection_c_api.cpp src/any_reflection_c_api.cpp src/mana_weapon_c_api.cpp src/magic_block_c_api.cpp src/additive_miracles_c_api.cpp src/doubling_miracles_c_api.cpp src/wide_miracles_c_api.cpp src/magic_free_c_api.cpp src/forgetting_c_api.cpp src/exchange_c_api.cpp src/revival_c_api.cpp src/item_removal_c_api.cpp src/hp_absorption_c_api.cpp src/self_damage_c_api.cpp src/pestle_mortar_c_api.cpp src/selling_c_api.cpp src/buying_c_api.cpp src/hp_gamble_c_api.cpp src/magic_bounce_c_api.cpp src/sundry_boost_c_api.cpp src/status_miracles_c_api.cpp src/dying_weapon_c_api.cpp)
 target_include_directories(godfield PUBLIC include)
+target_sources(godfield PRIVATE src/official_catalog.cpp src/official_rules.cpp src/official_c_api.cpp)
 target_compile_options(godfield PRIVATE -Wall -Wextra -Wpedantic)
 if(GF_SANITIZE)
   target_compile_options(godfield PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -19,6 +20,19 @@ add_executable(godfield_legacy_bench src/legacy_bench.cpp)
 target_link_libraries(godfield_legacy_bench PRIVATE godfield Threads::Threads)
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(godfield_official_catalog_tests tests/official_catalog_test.cpp)
+  target_link_libraries(godfield_official_catalog_tests PRIVATE godfield)
+  add_test(NAME official_catalog COMMAND godfield_official_catalog_tests)
+  add_executable(godfield_official_rules_tests tests/official_rules_test.cpp)
+  target_link_libraries(godfield_official_rules_tests PRIVATE godfield)
+  add_test(NAME official_client_rules COMMAND godfield_official_rules_tests)
+  add_executable(godfield_official_vectors_tests tests/official_client_vectors_test.cpp)
+  target_link_libraries(godfield_official_vectors_tests PRIVATE godfield)
+  add_test(NAME official_client_vectors COMMAND godfield_official_vectors_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/client-vectors.tsv)
+  add_executable(godfield_official_api_tests tests/official_c_api_test.cpp)
+  target_link_libraries(godfield_official_api_tests PRIVATE godfield)
+  add_test(NAME official_c_api COMMAND godfield_official_api_tests)
   add_executable(godfield_tests tests/env_test.cpp)
   target_link_libraries(godfield_tests PRIVATE godfield)
   add_test(NAME environment COMMAND godfield_tests)
@@ -140,6 +154,10 @@ if(BUILD_TESTING)
     PASS_REGULAR_EXPRESSION "sale_revival_steps=1([^0-9]|$)")
   find_package(Python3 QUIET COMPONENTS Interpreter)
   if(Python3_Interpreter_FOUND)
+    add_test(NAME official_catalog_integrity COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/generate.py --check)
+    add_test(NAME official_vectors_integrity COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_official_vectors.py)
     add_test(NAME catalog_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-neutral-v1/generate.py --check)
     add_test(NAME miracles_catalog_integrity COMMAND ${Python3_EXECUTABLE}
@@ -215,6 +233,8 @@ if(BUILD_TESTING)
     add_test(NAME hp_absorption_catalog_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/data/legacy-hp-absorption-v1/generate.py --check)
     if(NOT GF_SANITIZE)
+      add_test(NAME official_python COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_api_test.py $<TARGET_FILE:godfield>)
       add_test(NAME legacy_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/legacy_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME miracles_python COMMAND ${Python3_EXECUTABLE}
