@@ -100,3 +100,19 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 最初のpure kernelが通っても、対局状態機械・全神器解決・多人数・秘匿・終末は未完了である。
 各項目はデータ、根拠、実装、適合fixtureの4点が揃って初めて対応済みとする。
+
+## 状態・view部分の実装状況
+
+`official_state.hpp` は最大9人の識別子/チーム、手札個体token・真のmodel・fake・usedを分離し、
+入力済みsnapshotから通常状態欄・使用済み奇跡欄・自己手札のfresh viewを作る。
+`gfo_state_*` とPython `OfficialState` はこの投影と、本人の見かけモデルによる選択照会を公開する。
+`raw_snapshot` は全attack tail/events/unknownを含む特権的な原資料であり、方策へ渡すviewとは別である。
+
+元の50,270件に加え、公式clientの実関数・抽出した表示分岐由来の22,140件を照合した。
+非公開の真モデル、相手未使用手札、霧下の資源、transport版やuserIdを変えても、
+同じ可視情報のviewと選択照会が変わらないことを独立したnative/Python検査で確かめる。
+観測の範囲・18枠の描画域・未投影の攻撃/rating/履歴は[表示契約](official-state-view.md)に固定する。
+
+これは対局状態機械の完了ではない。actor/phase、target/取引配分、サーバー受理、
+配布・効果queue・病気tick・脱落・守護神・終末は次の実装と照合対象として残る。
+9人のstate/view対応と、9人対局の実行・勝敗対応を同じ完了項目として数えない。

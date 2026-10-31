@@ -124,3 +124,27 @@ Numeric fixture results stay within JavaScript's exact integer range (up to2^53-
 The native composition API also accepts larger values using exact, checked int64 arithmetic;
 that extension does not reproduce JavaScript Number rounding beyond its safe integer range.
 The fixture is not a claim of equivalence for arbitrary huge overrides or unbounded input lists.
+
+## Fresh-state/view fixtures
+
+`state-vectors.tsv` adds22,140 cases: actual enemy/alive/ending-display helpers,
+visible-model and tooltip helpers, wire Set normalization and curse/death display,
+and fresh hand sorting. Fog cases execute the unique predicate expressions extracted
+from the pinned fresh-snapshot branch with actual team enums and alive filtering.
+Widget construction is stubbed where needed; this is not a whole DOM/game session.
+The separate `state-vectors.manifest.json` records these limits and source fingerprints.
+
+```sh
+node scripts/official_state_oracle.cjs --client /tmp/godfield-official-cache/main.dart.js
+python3 scripts/check_official_vectors.py
+python3 python/official_state.py
+```
+
+[Snapshot/view contracts](../../docs/official-state-view.md) describe public used-miracle
+panels, aliases, fog and dream. [state-schema.json](state-schema.json) documents the
+strict import value shape and additional invariants; the implementation also rejects
+float/bool/string values for integer fields, duplicate keys and invalid UTF-8.
+Unknown JSON, full attack tails and events remain privileged raw evidence and are not
+projected or replayed. The C++ projection uses at most18 own actual items because the
+fresh client renderer cannot display a19th nonempty instance. It does not impose a
+server capacity on foreign inventories or implement nine-player match transitions.

@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd",
+  "cards_sha256": "9ce45da9dd372da1ab30397068885a20bbd5927b0891946b5fc7bc07226fa1a8",
+  "vectors_sha256": "eaf966d4b1a8cc7b13133b3f4260c2899885131242ccb07bf1876e2a14c01d0e",
+  "counts": {
+    "P": 7163,
+    "F": 5184,
+    "G": 7104,
+    "C": 2080,
+    "H": 609
+  },
+  "purpose": "Fresh client relations/display/visible instances only; not server transitions or a winner decision.",
+  "network_or_application_startup": false,
+  "methods": [
+    "c5.ce",
+    "h7.aG/dR/lV",
+    "aC.gL",
+    "l_.$0 (tooltip widget builder stubbed)",
+    "tL/pz + c5.dA/hP (visuals stubbed)",
+    "fG.hs(false)"
+  ],
+  "extracted_predicates": {
+    "fog_outer": "l.ay.ak(B.q)&&!l.x&&!p",
+    "fog_enemy": "i===B.p&&m!==l||i!==j"
+  },
+  "generator": "node scripts/official_state_oracle.cjs --client /path/to/main.dart.js"
+}

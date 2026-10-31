@@ -10,7 +10,8 @@
 
 ## 現行公式の一次対応範囲（2026-11-01）
 
-[公式公開データ/クライアント調査](official-current-rules.md)と
+[公式公開データ/クライアント調査](official-current-rules.md)、
+[fresh state/viewの契約](official-state-view.md)と
 [公式適合計画](official-conformance-plan.md)を新しい根拠とする。
 [data/official-v1](../data/official-v1/README.md)に現行公開台帳296モデルを独立固定し、
 通常配布の正のgiftRateを持つ237モデル・重み合計500を確認した。
@@ -25,18 +26,49 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 公式296モデルのtyped C++台帳 | 公式JSON全item fieldとJSの欠損default/配列index+1を固定。説明・画像・client全文はrepoに複製しない |
 | `godfield::official` pure composition | 順序付き威力/属性/MP表示、反応/属性防御などの公開client関数を移植。選択列を受け取る計算であり、ターンやHPを更新しない |
 | visible追加predicate | 見かけのモデル列に対するmain/response追加可否を再現。夢の真値、所有/容量/MPを含むserver全体の合法性判定ではない |
+| 最大9人のデコード済みスナップショット | Team ID0〜4・dead・資源・災い・守護神・token/model/fake/usedを区別。9人の対局を進行する実行器ではない |
+| fresh状態欄・自己手札・使用済み奇跡の部分view | 参加者の別名、霧の生存敵statusと別のusedパネル、見かけfaceと死亡/終局後tooltipを分離。他者unusedの枚数、user ID、transport更新番号を出さない。攻撃/rating/全イベント画面は未投影 |
+| 本人のinstance選択照会 | token重複・表示モデルのappend・自己MP・祈り・取引最低枚数・本人の閃光を確認。真値を見た先行拒否はしない。actor/phase/手番/target/server受理の全合法性ではない |
 | 実clientのオフラインoracle | 認証・DOM・network起動を止めた実JSの関数を実行し、50,270件のgolden vectorでC++と一致。旧serverテストを公式照合と数えない |
+| 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
+| `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
 
-公式完全シミュレーターは未達である。多人数/チーム・公開/秘匿viewと記憶・真偽神器、
-turn/effect queue、配布/命中/状態の抽選、守護神、終末/悪魔/超常現象、死亡/勝敗を含むserver実行器が残る。
+公式完全シミュレーターは未達である。decoded frameの9人・チームと、freshな状態欄/手札の表示は対応したが、
+多人数/チーム対局のターン進行・effect queue、配布/命中/状態の抽選、守護神、終末/悪魔/超常現象、死亡/勝敗を含むserver実行器が残る。
+active攻撃/購入表示・モード依存rating欄、増分イベントとプレイヤーの記憶も今回のviewへは投影していない。
 公開説明・client関数・実対局/権威的serverの結果を別の証拠として管理し、未観測の順序を旧実装で埋めない。
 学習器と学習済みモデルは削除済みのまま、この対応範囲へ含めない。
 
-検証: 通常CTest121件・ASan/UBSan83件が通過し、公式296 factsと旧37台帳hash、generator、
-候補crosswalk、実client由来50,270 golden vectorの整合を確認した。新Python15テストとC ABI合成4,878ケースも一致した。
+全体検証: 通常CTest125件（20.03秒）・ASan/UBSan86件（50.83秒）が通過した。
+その後の不可能な文字列長（SIZE_MAX）の拒否追加後は、影響する通常4件（0.86秒）・SAN3件（1.13秒）を再検証した。
+公式296 factsと旧37台帳hash、generator、候補crosswalk、実client由来の計算/選択50,270件、
+追加の状態helper/抽出分岐22,140件のgolden vectorが一致した。
+Pythonは台帳15件・状態9件、C ABI合成4,878ケース、native C ABI境界と非干渉を検証した。
+[状態oracle metadata](../data/official-v1/state-vectors.manifest.json)のとおり、
+実関数に加え抽出分岐・tooltip等の描画stubを含む。実アプリの全画面操作を完走したという意味ではない。
 今回公式対局traceは取得しておらず、公開clientから権威的server engineの全体を取得できたとは扱わない。
 したがってこの検証数を、公式ゲーム全体の完全対応やserver状態遷移の一致の証明にしない。
+
+### 状態・観測対応で区別する境界
+
+`official_state.hpp` の投影は `official-fresh-view-v1`。霧は生存viewerが霧を持ち、未終局である場合の生存敵statusを覆う。
+使用済み奇跡の別パネルでは名前/teamとfake優先のモデル列が見えるため、全情報を一律に隠さない。
+観戦者には本人手札を与えず、終局でも他者unusedの自動公開は行わない。
+夢はfakeの存在印と表示モデルを可視とし、真モデルのtooltipは本人dead/終局時に限って開示する。
+本人の手札はused後方・見かけモデル順で安定ソートし、fresh描画が扱える18個までを照会・投影の範囲とする。
+18個はserverの物理手札容量の主張ではなく、他者usedパネルへ一律に課す制限でもない。
+
+選択照会は本人のtokenを使い、見かけモデルと公開自己MPを参照する。閃光はcallerが迂回できないよう本人の災いから判定する。
+祈り・捨てる/ささげる・売るの選択数まで検査しても、現在その人が動けるか、どのtargetを選べるか、
+夢の実体をserverがどう解決するかは別の未実装条件である。詳細は[状態と表示の一次根拠・API契約](official-state-view.md)を参照。
+
+[OfficialState](../python/official_state.py) はdict/JSON文字列または `from_file` で読み込み、
+`view(player_id=... / user_id=... / spectator=True)` と `can_append_hand` / `selection_ready` を提供する。
+`raw_snapshot` は未知フィールドや未投影のattacks/eventsも保持した元JSONのdeepcopyであり、
+それ自体を秘匿条件に従うviewとみなしてポリシーへ渡してはならない。
+読み込みで検査する既知fieldの型・数値域は [state-schema.json](../data/official-v1/state-schema.json) に固定した。
+応答の `ResponseContext` は既知の公開情報として明示し、未投影のraw攻撃から自動でturn/targetを推定しない。
 
 ## 差分表作成後の実装進捗
 
@@ -129,6 +161,7 @@ turn/effect queue、配布/命中/状態の抽選、守護神、終末/悪魔/�
 | 出典 | 内容 | 扱い |
 | --- | --- | --- |
 | [B: Bible抽出記録][B] | 第三者が公式画面から抽出した2026-09-20の神器・参照説明 | 当時の公式表示の記録。現在の画面とは未照合。説明文だけで処理順までは確定しない |
+| [現行公式JSON](https://godfield.net/i18n/ja.json) / [現行client](https://godfield.net/main.dart.js) | 2026-11-01取得の296モデル・教典・計算・表示・選択処理 | hashを固定して台帳、pure関数、freshな部分viewを照合。server engineや全画面・時系列の一致は主張しない |
 | [S: 調査記録][S] | 同プロジェクトによる公式クライアントの観察 | 観察した場面の証拠。全条件で成り立つ規則とは限らない |
 | [F0: godfield-flash README][F0] | 旧Flash版の非公式エミュレーターの説明 | 作者が神器分布と霧の不完全さを明記。動作の参考にするが正解と同一視しない |
 | [F1: player.py][F1] | 初期値、所持品、奇跡、状態変化 | 旧版実装の根拠 |
@@ -139,7 +172,8 @@ turn/effect queue、配布/命中/状態の抽選、守護神、終末/悪魔/�
 
 Bに記録されたクライアントSHA-256:
 `764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd`。
-これは抽出者の記録値であり、今回こちらで現行クライアントを取得して計算した値ではない。
+これはB内では抽出者の記録値である。今回は別途公式URLから取得して同じSHA-256を確認した。
+ただしBの観測内容全体や、別配信JSONの版まで同一と証明する値ではない。
 F系の参照リンクには可変の `master` が残る。v36では全CSV、v37ではroom.py/turn.pyを
 固定commit `fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80` から取得し、新manifestへSHA256を記録した。
 過去manifestの当時の取得記録は変更せず、未取得の処理まで固定内容と照合済みとは扱わない。
@@ -226,7 +260,7 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 | --- | --- | --- |
 | C01 | 公式教典とclientの属性防御predicateは光攻撃へfalse。`official::attribute_defense_allowed`と実JS oracleも一致 | 特殊反応/混合防御を含む権威的serverの受理・解決。legacyの光→闇防御は変更しない |
 | C02 | 公式配信の教典説明は自然悪化5%と記載 | serverでのtick対象・抽選の位置/端点・再付与・死亡順。今回のpure kernelは病気turnを進めない |
-| C03 | 公式clientの初期表示は9枠、資源表示の初期値はHP40/MP10/CP20 | 初回実配布数、保持/物理手札上限と補充の動的契約 |
+| C03 | 公式clientの初期表示は9枠、資源表示の初期値はHP40/MP10/CP20。freshな自己手札描画は使用済みを含む18個までを今回の対応域にする | 初回実配布数、server側の保持/未使用物理手札上限と補充の動的契約。表示の18をserver容量とは断定しない |
 | C04 | 現行66/83の属性ワンドはisPlusAtkかつATK2/5。実clientの順序付き合成でも加算し、official kernelが一致 | serverの消費/HP遷移との照合。旧65/85の非加算仕様はlegacyへ保存 |
 | C05 | 現行clientのvisible応答predicateについてattack分類・反応・追加可否を実JSで照合 | counter由来分類の完全な意味、server受理と多段queue/死亡/補充順 |
 
@@ -234,6 +268,8 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 | ローカル箇所 | 主な差分 |
 | --- | --- |
+| [official_state.hpp](../include/godfield/official_state.hpp)、[official_state.cpp](../src/official_state.cpp) | 現行公式decoded frameとfresh部分view、本人の表示モデル/token選択照会。D20/D23/D25の表示側を部分対応し、対局進行は未実装 |
+| [official_c_api.h](../include/godfield/official_c_api.h)、[official_state_c_api.h](../include/godfield/official_state_c_api.h)、[official_state.py](../python/official_state.py) | 現行公式の台帳・計算APIと入力stateのimport/view照会。旧版Envとは別の部分対応接口 |
 | [env.hpp: Card / cards / Player / State](../include/godfield/env.hpp) | D01〜D03、D06、D11、D15〜D23。神器・プレイヤー・解決中状態を拡張 |
 | [env.cpp: reset / refill](../src/env.cpp) | D02〜D04、D10。初期化と神器獲得を区別 |
 | [env.cpp: legal / legal_actions](../src/env.cpp) | D05〜D08、D13〜D15、D20、D24。合法手を仕様から生成 |
@@ -243,6 +279,11 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 | [env_test.cpp](../tests/env_test.cpp) | D27。独自ルール用テストを公式照合テストと区別 |
 
 ## 着手順と完了条件
+
+現行対応の次の本体作業は、turn/effect queue・消費/補充/死亡順を持つ状態遷移実装である。
+その上で9人/チーム対局、守護神、終末/悪魔/超常現象と勝敗へ拡大する。
+9人分のstate/viewがある段階を9人playableの完了とせず、学習器は現在の対象に追加しない。
+以下の番号付き手順は、差分表作成時の計画記録として読む。
 
 1. **資料の固定と台帳**: Bの元データ、F系の参照commit、意味的な神器対応表を固定する。現行未照合の項目を残す。
 2. **土台の置換**: D02〜D11・D16・D24・D26。初期状態、容量、順番、配布、合法手、保持奇跡、死亡待ちを扱える状態機械を作る。

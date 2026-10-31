@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:godfield:official:fresh-snapshot-import:v1",
+  "title": "Strict official decoded snapshot import, fresh UI projection only",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "players": {
+      "type": "array",
+      "maxItems": 9,
+      "items": {
+        "$ref": "#/$defs/player"
+      },
+      "default": []
+    },
+    "gf": {
+      "$ref": "#/$defs/signed"
+    },
+    "tiebreakGF": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "isOver": {
+      "type": "boolean",
+      "default": false
+    },
+    "updateCount": {
+      "$ref": "#/$defs/nonnegative"
+    },
+    "attackTurnPlayerId": {
+      "$ref": "#/$defs/nonnegative"
+    },
+    "attacks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    }
+  },
+  "$defs": {
+    "signed": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "nonnegative": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "model": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 296
+    },
+    "item": {
+      "type": "object",
+      "required": [
+        "id",
+        "modelId"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "modelId": {
+          "$ref": "#/$defs/model"
+        },
+        "fakeModelId": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 296,
+          "default": 0
+        },
+        "used": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "An actual instance, never an empty model0 UI slot. Tokens are unique per player, including token0. True/fake/used remain separate."
+    },
+    "player": {
+      "type": "object",
+      "required": [
+        "id"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonnegative"
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "default": ""
+        },
+        "alias": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "team": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 4,
+          "default": 0
+        },
+        "hp": {
+          "$ref": "#/$defs/signed"
+        },
+        "mp": {
+          "$ref": "#/$defs/signed"
+        },
+        "cp": {
+          "$ref": "#/$defs/signed"
+        },
+        "confusionCount": {
+          "$ref": "#/$defs/signed"
+        },
+        "dead": {
+          "type": "boolean",
+          "default": false
+        },
+        "guardian": {
+          "enum": [
+            null,
+            "",
+            "mars",
+            "mercury",
+            "jupiter",
+            "saturn",
+            "uranus",
+            "pluto",
+            "neptune",
+            "venus",
+            "earth",
+            "moon"
+          ]
+        },
+        "curses": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "cold",
+              "fever",
+              "hell",
+              "heaven",
+              "fog",
+              "dream",
+              "flash",
+              "darkcloud"
+            ]
+          },
+          "default": []
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/item"
+          },
+          "default": []
+        },
+        "isBot": {
+          "type": "boolean"
+        },
+        "rating": {
+          "$ref": "#/$defs/signed"
+        },
+        "ratingGain": {
+          "$ref": "#/$defs/signed"
+        }
+      },
+      "description": "Projected resources/confusion default0, team missing/null=>0; missing userId/alias/guardian=>none. Unknown fields and isBot/rating remain raw only. Do not infer a server resource99 cap."
+    }
+  },
+  "x-invariants": [
+    "All actual player IDs unique; item tokens unique per player, not globally. IDs are not seat positions.",
+    "Every integer JSON value is JS-safe; known integer fields reject booleans/floats/strings; all strings must encode as strict UTF-8; duplicate JSON object keys and nonfinite numbers are rejected.",
+    "Attacks/events/tail entries/unknown fields are preserved as raw JSON but never projected or replayed. They do not supply automatic response/timing context.",
+    "Foreign inventory length is unbounded in this import contract; requesting an own fresh view/selection with over18 actual items is rejected by the verified renderer boundary, not a claimed server capacity.",
+    "Raw JSON is privileged evidence, not an agent observation. Explicit player ID/user ID or spectator selector is required. Unknown/ambiguous user selection fails closed.",
+    "C++ native frame contains players/gf/tiebreak/isOver/update_count only; raw fields have no transition semantics."
+  ]
+}
