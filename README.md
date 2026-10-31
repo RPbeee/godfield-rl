@@ -13,16 +13,16 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 `gfo_*` ABI1とPython `OfficialData` は台帳・合成計算、追加の `gfo_state_*` と
 Python `official_state.py` は入力スナップショットの読み取り・view・選択照会を公開します。
 これらのread-only APIに加え、`godfield::official::Match` / `gfo_match_*` / Python `Match` で
-189モデル・重み376に限定した2〜9人/チーム対局を実行できます。
+194モデル・重み381に限定した2〜9人/チーム対局を実行できます。
 配布・死亡・手番のscheduleは実験規約であり、公式サーバー同等性は未検証です。
 
 [公式一次調査](docs/official-current-rules.md)、[状態と表示の契約](docs/official-state-view.md)、
 [限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v1/README.md)を参照してください。
-限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種を扱います。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害を扱います。
 公式の237モデル全配布や全固有効果、多段queue、
-固有効果付き確率攻撃、災いcounter、取引、病気・霧・夢、守護神・終末は実行できません。
+吸収以外の固有効果付き確率攻撃、災いcounter、取引、病気・霧・夢、守護神・終末は実行できません。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
@@ -30,7 +30,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v1` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v8` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 189モデル/重み376、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種、`gfo_match_*` ABI1 / Python `Match` |
+| `official-execution-subset-v9` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 194モデル/重み381、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害、`gfo_match_*` ABI1 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -245,9 +245,9 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 ## 公式データによる限定対局実行器
 
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
-189モデル/重み376を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
-奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188、2〜9人とチームを扱います。
-rulesetは `official-execution-subset-v8`、scopeは `experimental:189-models;not-official-server-equivalence` です。
+194モデル/重み381を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
+奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種、2〜9人とチームを扱います。
+rulesetは `official-execution-subset-v9`、scopeは `experimental:194-models;not-official-server-equivalence` です。
 対象外のモデル・fake・災い・守護神・混乱・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
 read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
 
@@ -260,7 +260,7 @@ read-onlyな `OfficialState` が表示できる局面を、全てこの実行器
 
 反射は元のpower/category/abilityとownerを保ち、現在のsource/targetだけを交換します。
 属性消去は反射後も無属性を維持し、原発奇跡の再課金・新sourceへの取得は行いません。
-各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version8の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7は拒否します。
+各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version9の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8は拒否します。
 普通防具→反射は現行clientの追加条件で不受理で、反射前に許すのは連続した属性消去だけです。
 自己反射にもresponseを作るのは明示的な実験規約です。公開viewに未来RNG・消費token来歴は出しません。
 
@@ -277,7 +277,7 @@ matching遮断は現在のpayload全体を取消し、原発者のMPや既消費
 ＜壁＞は通常は初回/再使用とも6MP、初回はused保持し、空きがあれば補充1・満杯なら0。v4では直後のFREEで費用0にもできます。
 遮断後は未終局・未打切りの場合だけまとめて補充してownerを巡回します。
 blockイベントが元効果をどう取り消すかはclientの演出だけで証明できず、この実行器の明示規約です。
-公開JSONは `official-execution-view-v6`、C ABIは1を維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
+公開JSONは `official-execution-view-v7`、C ABIは1を維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
 
 FREEは直前のMCだけを無料化し、複数MC→FREEペアも全て免除します。MP不足のMCを含む途中prefixでは拒否せず、完成列の最終費用を検証します。
 壁233→FREEは全選択を消費/used保持する契約で、旧版の「特殊後FREE未消費」は採用しません。
@@ -301,6 +301,10 @@ v8はMP反撃187とCP反撃188を加えます。187は実HP損失×2を生成者
 対象・自己応答・生成量は実験規約で、top-level `resource_counter_rule='experimental:mp-self-target-with-response;cp-target-incoming-source;debit-current-target-then-full-credit-current-source;resource-debt-no-new-counter'` と明示します。CP primitiveの順序/不足連鎖には公開clientの根拠があります。
 MP回復で旧paid234上限19回/人は使えないため、response上限は `2*n*hand_limit + floor(99*n*(hand_limit+1)/5) + targets.size()`（最大9人/18枠/targets9で3,718）へ更新し、同executorの全replayで会計します。
 
+v9はHP吸収27/45/98/216と同被害53を追加します。category内訳はweapons93/armor72/sundries9/miracles20。正nonDark残余rawを現在sourceへ先にheal（吸収）またはdamage（53）し、続いてtargetへrawdamage、自己aliasでも逐次HP0〜99clipします。死flagは全body後、counter基準はtarget段階の実HP減少だけで、source側変化からcounterは作らず派生counterへ能力を継承しません。
+98木75%は既存targetless chance、216光ATK10/MP10は保持/FREEを扱います。現scopeで合法なDark吸収/53は到達せず、その例を実行可能として扱いません。HP副作用の量・順序は参照Flashを参考にした実験規約で、現行clientのHP算術と確定度を分けます。
+公開 `damage_effect_rule='experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only'` に明示し、新RNGやMP予算は追加しません。Flash等の状態導入は将来候補です。
+
 [official_match_c_api.h](include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と
 [Python `Match`](python/official_match.py) はreset、legal、step、status、observe、
 外部policy RNGによるsample_actionを提供します。rewardは入力プレイヤー列に固定し、勝者+1/他者−1/draw0。
@@ -312,7 +316,7 @@ raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していま
 これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
 
 以下は過去の **v1・132モデル/重み308** のRelease計測（seed42、1 worker）です。
-現行v8の性能やchecksumを示すものではありません。
+現行v9の性能やchecksumを示すものではありません。
 
 | 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -350,7 +354,7 @@ Python Match10ケースも通過。公式assetsの再取得hashと296モデルfa
 9人10,000試合が2.46832秒（1,154,300意思決定/秒）で、上表の全決定的fieldを維持しました。
 合法手sampler・実行・終了snapshot検証を含みます。Release/SAN各1,000試合の時間以外の全集計も一致しました。
 勝数・反射/消去の集計は[契約文書のv3記録](docs/official-execution-subset.md#v3の過去の検証と集計)へ記載しています。
-これらのv1〜v7結果は現行v8の189モデルの速度・checksumではありません。
+これらのv1〜v8結果は現行v9の194モデルの速度・checksumではありません。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過しました（各 `-j4` 同時実行）。Python Matchは11ケースです。
 その後、0MPの追加Aura+FREE pairを生成する専用native局面を追加し、Release/SAN各1件も通過しました（0.26/0.57秒）。coreの追加変更はありません。
@@ -368,7 +372,7 @@ FREE品使用数は通常の武器/防具役割での使用も含み、無料化
 合法手sampler・実行・終了snapshot検証込みです。プールとsamplerが異なるためv3との速度比を改善率として扱いません。
 Release/SANの2人・9人各1,000試合も時間以外の全集計が一致しました。
 勝数・Aura/setter等は[契約文書のv4記録](docs/official-execution-subset.md#v4の過去の検証と集計)へ記載しています。
-以上のv4計測も過去の証拠として保持し、189モデルのv8の計測とは分けます。
+以上のv4計測も過去の証拠として保持し、194モデルのv9の計測とは分けます。
 v5は全Release CTest129件/20.03秒、ASan/UBSan89件/51.49秒、focused Release3件/1.09秒・SAN2件/1.20秒が通過しました。最終全ソースfreeze後の全体suiteは各 `-j4` のRelease/SAN同時実行です。Python MatchはASTで12ケース、公式assets再取得hashと296モデルfactsも一致し、compile warningはありませんでした。
 
 | v5人数 | 試合数 | 意思決定数 | draw / 打切り | bounce / 乱気流 初 / 再 | checksum |
@@ -415,7 +419,19 @@ v8は全Release CTest129件/19.78秒・ASan/UBSan89件/51.38秒、focused Releas
 MP実増分は99cap後の値、CP名目は不足資源への波及やsourceのcap前の請求額で、実CP移転額とは異なります。
 1/4 workersの時間以外の全fieldが一致し、全終了snapshotをrestoreできました。Release/SAN seed42各1,000試合も時間以外の全fieldが一致し、checksumは2人 `13623686729798944892`、9人 `4100116851726543187`。
 競合を避けたRelease・1 workerでは、2人100,000試合が2.34208秒（1,612,400意思決定/秒）、9人10,000試合が2.46961秒（964,117意思決定/秒）で全決定的fieldを維持しました。合法手sampler・実行・終了snapshot検証込みで、学習や推論の速度ではありません。版間の速度改善比は主張しません。
-勝数・他集計は[契約文書のv8記録](docs/official-execution-subset.md#v8の検証と集計)へ記載しています。
+勝数・他集計は[契約文書のv8記録](docs/official-execution-subset.md#v8の過去の検証と集計)へ記載しています。
+以上のv8計測も過去の証拠として保持し、v9の検証・計測とは分けます。
+v9は全Release CTest129件/20.20秒・ASan/UBSan89件/51.81秒、focused Release3件/1.13秒・SAN2件/1.33秒が通過しました。全source/bridge/test最終freeze後のbuild/full、Python MatchはAST確認16ケース、warning/error0、公式assetsのfresh取得hash/296facts一致です。
+
+| v9人数 | 試合数 | 意思決定数 | draw / 打切り | 吸収 正解決 / raw合計 | 同被害 正解決 / raw合計 | checksum |
+| ---: | ---: | ---: | ---: | --- | --- | --- |
+| 2 | 100,000 | 3,734,360 | 142 / 0 | 22,464 / 180,643 | 6,922 / 81,885 | `8957456254725946378` |
+| 9 | 10,000 | 2,361,580 | 15 / 0 | 19,382 / 136,285 | 4,180 / 47,877 | `12174732045177881378` |
+
+名目HPは普通DEF後の正nonDark raw残余で、実回復量やclip後の実HP損失ではありません。1/4 workersはworker数・時間以外の全fieldが一致し、全終了snapshotをrestoreできました。
+Release/SAN seed42各1,000試合も時間以外の全fieldが一致し、checksumは2人 `2715841436232270123`、9人 `13089925563403552514`。
+競合を避けたRelease・1 workerでは、2人100,000試合が2.34078秒（1,595,350意思決定/秒）、9人10,000試合が2.509秒（941,242意思決定/秒）で全決定的fieldを維持しました。合法手sampler・実行・終了snapshot検証込みで、学習や推論の速度ではありません。版間の速度改善比は主張しません。
+勝数・他集計は[契約文書のv9記録](docs/official-execution-subset.md#v9の検証と集計)へ記載しています。
 旧37profileは保持し、学習器と学習済みモデルは追加していません。
 
 ## 旧版を参考にした中立ルールセット
@@ -684,7 +700,7 @@ Gymnasium/PettingZooアダプターやPPOはまだ同梱していません。
 
 1. 固定した公式データ・表示関数・部分viewを、出典付きfixtureで継続照合する。
 2. 限定実行器の実験的な配布・死亡・手番順を一次の対局結果と照合し、一般effect queueと未対応効果へ広げる。
-3. 災いcounter・固有効果付き確率攻撃・取引・霧/夢・守護神・終末等を含む9人/チームの全範囲へ広げる。限定playableと公式全体の一致を別に検証する。
+3. 災いcounter・吸収以外の固有効果付き確率攻撃・取引・霧/夢・守護神・終末等を含む9人/チームの全範囲へ広げる。限定playableと公式全体の一致を別に検証する。
 
 学習器は現在の実装範囲に含めません。旧37profileのEnvとAPIは比較用に保存します。
 

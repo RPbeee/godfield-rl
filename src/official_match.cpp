@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 376>& gift_tickets() {
+const std::array<CardId, 381>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 376> values{};
+        std::array<CardId, 381> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 376>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 189) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 194) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -210,12 +210,23 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
     }
     return result;
 }
-void resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) {
+// Counter generation uses the target damage stage, rather than the net HP
+// change across source healing/self-damage when source and target alias.
+std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) {
     auto& target = s.state.players[index(s, effect.target)];
+    std::int64_t target_damage = 0;
     if (damaging(effect)) {
         const auto remaining = std::max<std::int64_t>(0, effect.power - defense);
+        if (remaining && effect.element != Element::darkness) {
+            if (effect.ability == Ability::absorb_hp)
+                change_resource(s.state.players[index(s, effect.source)], Resource::hp, remaining);
+            else if (effect.ability == Ability::deal_same_damage)
+                change_resource(s.state.players[index(s, effect.source)], Resource::hp, -remaining);
+        }
+        const auto hp = target.hp;
         if (remaining && effect.element == Element::darkness) target.hp = 0;
         else change_resource(target, Resource::hp, -remaining);
+        target_damage = hp - target.hp;
     } else {
         switch (effect.ability) {
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
@@ -230,6 +241,7 @@ void resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) 
         }
     }
     for (auto& p : s.state.players) if (!p.hp) p.dead = true;
+    return target_damage;
 }
 void advance(MatchSnapshot& s) {
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
@@ -318,9 +330,8 @@ void execute(MatchSnapshot& s, const Command& command) {
             effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
         } else {
             if (response.reaction == Reaction::none) {
-                const auto hp = s.state.players[seat].hp;
-                resolve(s, effect, response.defense);
-                reserve_counters(s, effect, command, models, hp - s.state.players[seat].hp);
+                const auto damage = resolve(s, effect, response.defense);
+                reserve_counters(s, effect, command, models, damage);
             }
             s.queue.clear(); completed = true;
         }
@@ -427,14 +438,15 @@ MatchStep result(const MatchSnapshot& s) { return {s.phase, s.actor, s.terminate
 }
 bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
             || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk
             || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
-            || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp);
+            || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
+            || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -574,12 +586,13 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v6\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v7\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
     out += "\",\"counter_rule\":\""; out += counter_rule;
-    out += "\",\"resource_counter_rule\":\""; out += resource_counter_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"resource_counter_rule\":\""; out += resource_counter_rule;
+    out += "\",\"damage_effect_rule\":\""; out += damage_effect_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

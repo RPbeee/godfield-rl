@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。現行の[限定実行器v8](official-execution-subset.md)は資源反撃187/188を加えた189モデル/重み376。災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。現行の[限定実行器v9](official-execution-subset.md)はHP吸収/同被害5種を加えた194モデル/重み381。災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -133,6 +133,20 @@ MP187により旧paid234の最大19回/人は成立しない。初期MP総量<=9
 v6はtarget無しのplayだけを受理し、launch時aliveの敵を入力順に固定する。自己と同非Soloチームを除き、処理時deadなら無draw skip、生存者へ有界100抽選1回の `roll < hit_rate` を適用する。miss応答無し、hitだけresponse、redirect再抽選無しとし、原発消費/MC費用/used保持は1回。自然終局→cutoffは受理コマンド末尾で判定し、自動miss/skipはdecisionを増やさない。launchは最初hitまたは全missまでdrain後に判定し、response完了後は未打切りの場合だけ次対象を抽選する。origin死亡なら残り取消、補充はbatch全完了後とする。これらは**公式server未確認の実験規約**で、top-level `chance_rule='experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death'` に明示する。
 
 `e1` はhitRateを条件にしないため、属性消去でNEになった命中済み確率武器には21/38/233がmatchingする。旧版の％武器への反射制限を流用しない。このv6のchance専用restoreはv7で全pending play用ActionBatchへ統一し、launch前state/RNG/counters/commandと受理response journalから内部executorを再生して、途中でHP/deadが変わるbatchやcounterも検査する。将来roster/cursor/anchor/journal/RNGは公開観測へ出さない。
+
+## HP吸収・同被害：一次算術とv9の実験規約
+
+公式JSONでgiftRate>0のabsorbHPは27（NE武器ATK7/p10）、45（NE武器ATK12/p15）、98（木武器ATK3/75%/p10）、216（光奇跡ATK10/MP10）の4種。dealSameDamageは53（NE武器ATK14/p1）。全てgiftRate1で追加5/重み5、v9は194モデル/重み381、category内訳weapons93/armor72/sundries9/miracles20となる。
+
+JA/EN説明は「HPを吸収する」/“Absorb HP”と「使用者に同じダメージ」/“Get the same damage”まで。現行JSの `dealDamage`（11247–11260行）はevent.playerId（0なら現在target）とevent.damageでHPを減らし、`boostHP`（11275–11289行）も同じplayerId規約でevent.hpを加える。HP0〜99clipとdieが別イベントなのは一次確認済みだが、両能力のraw量・適用順・Dark時の省略を算出するclient分岐は無い。
+
+参考Flashの固定 `turn.inflictDamage` は正残余→Dark別処理、それ以外でsource吸収回復→source同被害→target被害の順。v9はこれを参考に、正nonDark残余rawを現在sourceへ先にhealまたはdamageし、続いてtargetへrawdamageする**実験規約**とする。自己aliasでも各段階をclipし、吸収HP95/raw12は99→87、同被害HP40/raw14は40→26→12、HP10/raw14は10→0→0。source/targetのdead確定は全body後である。
+
+counterはtargetdamage段階だけの実HP減少と全body後survivorを基準にし、source側の副作用や自己net変化からは新counterを作らない。派生counterは元吸収/同被害を継承しない。miss/block/redirect/残余0では副作用を適用せず、Dark bodyも通さない。ただし現scopeでDark吸収/53へ合法に合成する経路は無く、Dark guardを到達可能例としない。
+
+98は木75%のtargetless chanceを使い追加不可、216は光ATK10/MP10の保持/FREEを使う。新RNG/MP予算は不要。公開damage_effect_ruleは `experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only`。HP primitive以外の量・順序・死亡/反撃接合は現行server未照合と明示し、旧仕様の一致を現行公式適合の証拠へ数えない。
+
+Flash導入なら70/185/199を最小候補にできるが、付与triggerや解除/反撃順を別途定める必要があり、v9の実行scopeには含めない。
 
 ## 病気・閃光・暗雲
 

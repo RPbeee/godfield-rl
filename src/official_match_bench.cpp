@@ -32,6 +32,8 @@ struct Stats {
     std::uint64_t chance_attacks = 0, chance_rolls = 0, chance_hits = 0;
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
     std::uint64_t mp_counter_resolved = 0, mp_counter_gained = 0, cp_counter_resolved = 0, cp_counter_nominal = 0;
+    std::uint64_t absorb_positive_resolutions = 0, absorb_nominal_hp = 0;
+    std::uint64_t self_damage_positive_resolutions = 0, self_damage_nominal_hp = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -48,6 +50,8 @@ struct Stats {
         counter_rolls += s.counter_rolls; counter_hits += s.counter_hits;
         mp_counter_resolved += s.mp_counter_resolved; mp_counter_gained += s.mp_counter_gained;
         cp_counter_resolved += s.cp_counter_resolved; cp_counter_nominal += s.cp_counter_nominal;
+        absorb_positive_resolutions += s.absorb_positive_resolutions; absorb_nominal_hp += s.absorb_nominal_hp;
+        self_damage_positive_resolutions += s.self_damage_positive_resolutions; self_damage_nominal_hp += s.self_damage_nominal_hp;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -89,6 +93,8 @@ int main(int argc, char** argv) {
                         }
                         const auto redirect_depth = before.queue.empty() ? 0 : before.queue.front().redirects.size();
                         bool bounced = false;
+                        bool response_stops_payload = false;
+                        std::int64_t response_defense = 0;
                         auto incoming_element = before.queue.empty() ? Attribute{} : before.queue.front().element;
                         if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
@@ -118,6 +124,8 @@ int main(int argc, char** argv) {
                             if (command.kind == CommandKind::defend) {
                                 if (find_card(item->model)->ability == Ability::filter_atk_element) { ++stats.filters; incoming_element.reset(); }
                                 const auto reaction = reaction_for(item->model, before.queue.front().category, incoming_element);
+                                if (reaction != Reaction::none) response_stops_payload = true;
+                                else response_defense += card.defense;
                                 if (reaction == Reaction::reflect || reaction == Reaction::bounce) {
                                     if (reaction == Reaction::reflect) ++stats.reflections; else { ++stats.bounces; bounced = true; }
                                     stats.max_redirect_depth = std::max(stats.max_redirect_depth, static_cast<std::uint64_t>(redirect_depth + 1));
@@ -129,6 +137,15 @@ int main(int argc, char** argv) {
                                 if (card.category == Category::miracles && card.ability == Ability::bounce_miracle) {
                                     if (item->used) ++stats.turbulence_recasts; else ++stats.turbulence_first_uses;
                                 }
+                            }
+                        }
+                        if (command.kind == CommandKind::defend && !response_stops_payload && incoming_element != Element::darkness) {
+                            const auto& effect = before.queue.front();
+                            const auto remaining = std::max<std::int64_t>(0, effect.power - response_defense);
+                            if (remaining && effect.ability == Ability::absorb_hp) {
+                                ++stats.absorb_positive_resolutions; stats.absorb_nominal_hp += remaining;
+                            } else if (remaining && effect.ability == Ability::deal_same_damage) {
+                                ++stats.self_damage_positive_resolutions; stats.self_damage_nominal_hp += remaining;
                             }
                         }
                         mix(hash, command.actor); mix(hash, static_cast<unsigned>(command.kind)); mix(hash, command.items.size());
@@ -166,6 +183,7 @@ int main(int argc, char** argv) {
             << "\nchance_rule=" << chance_rule
             << "\ncounter_rule=" << counter_rule
             << "\nresource_counter_rule=" << resource_counter_rule
+            << "\ndamage_effect_rule=" << damage_effect_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -184,6 +202,8 @@ int main(int argc, char** argv) {
             << "\ncounter_misses=" << stats.counter_rolls - stats.counter_hits
             << "\nmp_counter_resolved=" << stats.mp_counter_resolved << "\nmp_counter_gained=" << stats.mp_counter_gained
             << "\ncp_counter_resolved=" << stats.cp_counter_resolved << "\ncp_counter_nominal=" << stats.cp_counter_nominal
+            << "\nabsorb_positive_resolutions=" << stats.absorb_positive_resolutions << "\nabsorb_nominal_hp=" << stats.absorb_nominal_hp
+            << "\nself_damage_positive_resolutions=" << stats.self_damage_positive_resolutions << "\nself_damage_nominal_hp=" << stats.self_damage_nominal_hp
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
