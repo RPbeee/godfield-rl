@@ -1,0 +1,5 @@
+id,label,source_kind,element,amount,cost,hit_rate,price,weight
+26,legacy-026,weapon,neutral,7,0,0,10,1
+42,legacy-042,weapon,neutral,11,0,0,15,1
+103,legacy-103,weapon,wood,3,0,75,10,1
+221,legacy-221,magic,light,10,10,0,15,1

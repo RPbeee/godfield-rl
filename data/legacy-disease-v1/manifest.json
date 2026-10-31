@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-disease-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "0446c7a6fb1cec51ed8d5d8eeac6f16a8e7c250c655086be41ed7cc76df11054",
+  "catalog_sha256": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+  "catalog_count": 8,
+  "counts_by_kind": {
+    "weapon": 4,
+    "armor": 1,
+    "mana": 1,
+    "heal": 2
+  },
+  "counts_by_disease": {
+    "hell": 1,
+    "cold": 3,
+    "fever": 1,
+    "heaven": 1,
+    "none": 2
+  },
+  "counts_by_cure": {
+    "none": 6,
+    "lower": 1,
+    "all": 1
+  },
+  "defense_disease_count": 1,
+  "total_selected_weight": 24,
+  "selection": {
+    "ids": [
+      30,
+      34,
+      49,
+      61,
+      175,
+      234,
+      235,
+      236
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "WEAPON",
+      "PROTECTOR",
+      "SUNDRY"
+    ],
+    "allowed_attributes": [
+      "",
+      "FIRE",
+      "WATER",
+      "TREE",
+      "SOIL"
+    ],
+    "allowed_disease_extras": [
+      "COLD",
+      "FEVER",
+      "HELL",
+      "HEAVEN"
+    ],
+    "hit_rate": 0,
+    "cure_attack_kinds": [
+      "REMOVE_LOWER_HARMS",
+      "REMOVE_ALL_HARMS"
+    ]
+  },
+  "limitations": [
+    "Legacy ID234, not ID233, grants MP+20 and Heaven. Both effects are preserved.",
+    "Cure records use Kind::heal solely for utility routing, have hp=0, and retain their separate lower/all Cure field.",
+    "Historical REMOVE_LOWER_HARMS and REMOVE_ALL_HARMS also apply to non-disease harms. The full cure class is retained; profiles without those harms must explicitly record that restriction.",
+    "On-defense labels preserve the source defenseExtra location; reaction ordering and affected target require engine validation.",
+    "Natural progression probabilities and disease order are engine rules, not inferred from this catalog.",
+    "MAGIC, light/dark, probabilistic attacks, other harms, absorption and special reactions are excluded.",
+    "Legacy IDs and technical labels are not verified current official IDs or names.",
+    "Historical weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "Existing five catalogs/fingerprints are unchanged."
+  ]
+}

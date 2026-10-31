@@ -1,0 +1,13 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable,hit_rate
+100,legacy-100,weapon,fire,1,0,0,0,0,2,1,0,75
+105,legacy-105,weapon,fire,4,0,0,0,0,6,1,0,75
+106,legacy-106,weapon,water,4,0,0,0,0,6,1,0,75
+107,legacy-107,weapon,wood,4,0,0,0,0,6,1,0,75
+108,legacy-108,weapon,stone,4,0,0,0,0,6,1,0,75
+109,legacy-109,weapon,water,5,0,0,0,0,5,1,0,50
+110,legacy-110,weapon,stone,6,0,0,0,0,9,1,0,25
+112,legacy-112,weapon,fire,7,0,0,0,0,10,1,0,75
+113,legacy-113,weapon,wood,8,0,6,0,0,15,1,0,75
+114,legacy-114,weapon,water,9,0,0,0,0,9,1,0,50
+115,legacy-115,weapon,fire,10,0,0,0,0,15,1,0,50
+116,legacy-116,weapon,stone,20,0,0,0,0,15,1,0,25

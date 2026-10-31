@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-sundry-boost-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-11-01",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "21c07443023a6983e235031b8a19406f1cec03e4d78db635e3ebdb1e6d8c3fec",
+  "catalog_sha256": "f5dbeda651e84d56b375c63f855ea0348509e132e0df8c4a6010ac1687043158",
+  "catalog_count": 1,
+  "total_selected_weight": 2,
+  "selection": {
+    "ids": [
+      238
+    ],
+    "positive_weight_required": true,
+    "type": "SUNDRY",
+    "attack_kind": "",
+    "attack_extra": "INCREASE_ATK",
+    "value": 0,
+    "sub_value": 10,
+    "price": 15,
+    "weight": 2
+  },
+  "limitations": [
+    "Only positive-weight SUNDRY INCREASE_ATK238 is added: source value blank and subValue10, price15, weight2, neutral, discardable. Card keeps base attack0, boost10, defense/HP/MP0, with no MP cost, hit-rate roll, disease or harm.",
+    "This is a physical attack extra only, not a WEAPON base, standalone USE, MAGIC or retained ability. It may be added to supported guaranteed WEAPON bases through ordinary/ordered attacks, subject to the existing no-addition cases and composed attribute rules.",
+    "Its neutral boost adds10 at its position; later DOUBLE_ATK scales it, setter changes do not add their displayed attack, and a later paid MAGIC on base57 resets the current attack amount. Consuming N copies does not imply a final raw increment10*N.",
+    "MAGIC_FREE can mark an adjacent physical238 as its free predecessor but cannot waive a different MAGIC.238 never pays MP, triggers a paid-MAGIC reset, or creates retained learning itself.",
+    "Canonical defense excludes this no-DEF SUNDRY. The source weak guard can consume it as zero-DEF neutral/prefix defense, potentially offering strategically useful response-time hand cycling. This source acceptance is documented separately and not treated as a redundant action or exposed as an implemented defense role; current official UI acceptance remains unverified.",
+    "All thirty-four earlier catalog hashes, weights, Kind values, retained IDs and local indices remain fixed. The earlier216 price rows/fingerprint remain frozen; the core adds238 price15 only when enabled, keeping4/237/physical-MAGIC-bounce fallbacks.",
+    "The combined pool becomes225/weight479. Boost10 does not exceed the existing15 maximum; merchandise max30 and raw/counter bounds remain unchanged.",
+    "Historical IDs, technical labels, prices and acquisition weights are not verified current official identifiers, names or probabilities.",
+    "Immutable raw content was unavailable; observed master content is not asserted byte-identical to the history-head revision."
+  ],
+  "counts_by_kind": {
+    "sundry": 1
+  },
+  "previous_catalog_sha256": {
+    "legacy-additive-miracles-v1": "a78dafd8ad33105b0d7cae48c281dacc2c482a2ade44d595438903a1d21cd997",
+    "legacy-any-reflection-v1": "682523fa55a0b4a554d190d92057e08d2b14b60c4cb5d152e622a3aade6d14bd",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-buying-v1": "54a1d75946acdb90162b71aed9640a9c234a737b2ebf8ece4505b1b9812f1b36",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-doubling-miracles-v1": "fa51237e871fd606bf3f81bb063ac71b250bfe5a49f2f28ed3c254f6514de739",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-exchange-v1": "d4f95f4f3853e789db2a66460e49857437b5884723a28df35774cf575287cdc5",
+    "legacy-forgetting-v1": "776d7bef4e738576a33418f3e2890b2a539fbe7582179a973508cfdb84370bcb",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-hp-absorption-v1": "f48782ab0d9654445f02540e043d22d9b8d07cdf4d13ff438ea94dc915490de1",
+    "legacy-hp-gamble-v1": "002dcc3327a34a87652603afd1c1871f6d6840802252eded31090883a5062468",
+    "legacy-item-removal-v1": "e5ec7deb813c3c6a9414b9bc05d48dfc31062b88283658a0d28f1a13623adaa2",
+    "legacy-magic-block-v1": "32781bbb5acc2860ed47df15fc20e54b8efd3f8c7da5b8f7a9d84136c4808551",
+    "legacy-magic-bounce-v1": "1f1472af2ee9fd6de4613f9af226211b909e6b0f8eb938f92b772e0e9c2a8ddf",
+    "legacy-magic-free-v1": "44ac7bfe88ff0c6b77163aae9024fd50ea8fbe0f4713136f8b6c019e8fe52572",
+    "legacy-magic-reflection-v1": "530f23f74e45db12307dbd606dea9dd01aeabf732a3c410f9a81cd8b401d1d4f",
+    "legacy-mana-weapon-v1": "e42dc3ffd6538b64d60771ba039cfb7d0dd3955e3d60cb9e711758d0e319c83d",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-money-counter-v1": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-pestle-mortar-v1": "bed61767a6682dc14d3c2a631e47644e5fa6ff66a1bb16c26bd960504c221e8d",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-revival-v1": "518a71ca143c5f8b94f3d26b8beb2b26110f740e8866f58eb21eb9003681c561",
+    "legacy-self-damage-v1": "4bb6e47733986c7985c5a01f8f832a6ae4f0861fdf2f8afded478631384728ec",
+    "legacy-selling-v1": "de8e57c5963c1c8c6c39ea60b6ac8100e35dbd806f02be674a40feaac83b6219",
+    "legacy-wide-miracles-v1": "f27ec84ab8cbc68c8f018cfb33b705f30e800d342db1d3166b9b85af20c443d5"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/item.py#L111-L126",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/attackData.py#L78-L94",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L226-L286",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L534-L587"
+  ],
+  "stable_local_slots": {
+    "238": 0
+  },
+  "previous_sale_prices_sha256": "0ca966940cfe75ce75ca0d172cc041b103bc991383e7bd790f671ecb750724e6"
+}

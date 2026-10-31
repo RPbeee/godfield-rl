@@ -1,0 +1,6 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable
+47,legacy-047,weapon,neutral,12,0,0,0,0,20,1,0
+153,legacy-153,armor,neutral,0,0,6,0,0,20,1,1
+172,legacy-172,armor,neutral,0,0,9,0,0,20,1,1
+180,legacy-180,armor,neutral,0,0,12,0,0,20,1,1
+239,legacy-239,sundry,neutral,0,0,0,0,0,5,2,1

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-magic-block-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "154a02fa65034b2d05a206539e3809653cf9e3b67bede5400efd38c29583b81a",
+  "catalog_sha256": "32781bbb5acc2860ed47df15fc20e54b8efd3f8c7da5b8f7a9d84136c4808551",
+  "catalog_count": 8,
+  "total_selected_weight": 8,
+  "selection": {
+    "ids": [
+      27,
+      54,
+      55,
+      152,
+      165,
+      182,
+      183,
+      185
+    ],
+    "positive_weight_required": true,
+    "types": [
+      "WEAPON",
+      "PROTECTOR"
+    ],
+    "attack_kinds": [
+      "ATK",
+      ""
+    ],
+    "attack_extras": [
+      "",
+      "INCREASE_ATK"
+    ],
+    "defense_kinds": [
+      "",
+      "DFS"
+    ],
+    "defense_extra": "BLOCK_MAGIC",
+    "attribute": "",
+    "hit_rate": 0
+  },
+  "limitations": [
+    "Dedicated magic-block catalog membership retains BLOCK_MAGIC; ordinary attack/boost/defense roles are preserved rather than stripped.",
+    "Against a MAGIC-origin pending item, use of a blocker mandatorily activates BLOCK_MAGIC before its own DFS subtraction; ordinary-DFS-only use on that response is not a separate legal outcome.",
+    "Magic block applies to damage and utility miracles, including Light, Dark and already-hit percentage miracles; it does not reroll chance.",
+    "Earlier defense pieces are consumed and their status effects remain. The original effect is blocked without HP/money application or counter creation from it.",
+    "The original caster already paid MP and retained a first-use miracle before response; blocking does not refund or undo those events.",
+    "The MAGIC-origin special branch skips final ordinary attribute, Dark and counter checks in the historical server.",
+    "Ordinary WEAPON, MAGICAL weapon57 and COUNTER/PROTECTOR origins do not activate BLOCK_MAGIC; applicable ordinary ATK/INCREASE_ATK/DFS roles remain.",
+    "Only ID55 supplies added ATK15; ID27/54 are standalone weapons only and the five protectors cannot start ordinary attacks.",
+    "All source attributes are empty, normalize to neutral and participate in ordinary attribute composition.",
+    "The blocker artifacts have no percentage, disease, harm, MP cost or retained miracle.",
+    "Weight-zero duplicate records312,313,363 are excluded completely.",
+    "Initial self-resolving effects expose no block response. Exact original XML traces and current official-client fidelity are not asserted.",
+    "Historical IDs and technical labels are not verified current official IDs or names.",
+    "Old acquisition weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "All eighteen earlier catalogs, fingerprints and miracle indices remain unchanged."
+  ],
+  "counts_by_kind": {
+    "weapon": 3,
+    "armor": 5
+  },
+  "previous_catalog_sha256": {
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f",
+    "legacy-money-counter-v1": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+    "legacy-magic-reflection-v1": "530f23f74e45db12307dbd606dea9dd01aeabf732a3c410f9a81cd8b401d1d4f",
+    "legacy-any-reflection-v1": "682523fa55a0b4a554d190d92057e08d2b14b60c4cb5d152e622a3aade6d14bd",
+    "legacy-mana-weapon-v1": "e42dc3ffd6538b64d60771ba039cfb7d0dd3955e3d60cb9e711758d0e319c83d"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L534-L581",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L630-L637",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/item.py#L111-L126"
+  ],
+  "mp_cost": 0,
+  "mandatory_special_when_magic": true
+}

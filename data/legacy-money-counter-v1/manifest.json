@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-money-counter-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "55a08e31655d717f6fa8f8daea105a9e3417702c9231df6b6a49c6b70a91ec97",
+  "catalog_sha256": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+  "catalog_count": 1,
+  "total_selected_weight": 1,
+  "selection": {
+    "ids": [
+      194
+    ],
+    "positive_weight_required": true,
+    "type": "PROTECTOR",
+    "attack_kind": "ABSORB_YEN",
+    "attack_extra": "",
+    "defense_kind": "COUNTER",
+    "defense_extra": "",
+    "attribute": "",
+    "value": 0,
+    "hit_rate": 0
+  },
+  "limitations": [
+    "Dedicated catalog membership retains the complete ABSORB_YEN counter, including money credit and money/MP/HP shortage cascade.",
+    "The requested amount is raw residual times one, not actual initial HP loss or Dark execution damage.",
+    "Source credit is capped at 99 and happens before target payment; it is not limited by target available money or actual money loss.",
+    "An insufficient target can lose MP and HP; the effect must not be simplified to a money-only transfer or money-only clamp.",
+    "A finalized-dead counter source can still receive its credit if the queued target is alive; payment HP loss is not attack damage and does not generate further counters.",
+    "Later ordinary defense does not subtract from the already decided payment amount.",
+    "The empty source attribute is neutral and participates in defense element composition rather than being omitted.",
+    "The record has no percentage, harm, disease, MP cost or retained miracle slot.",
+    "Unlike-counter ordering remains semantically significant and uses the existing ordered counter action representation.",
+    "Old server counter-defense acceptance is retained as source behavior; discrepancy from bot intent remains unresolved C05.",
+    "FOG counter188 and ILLUSION counter189 remain completely excluded.",
+    "Historical IDs and technical labels are not verified current official IDs or names.",
+    "Old acquisition weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "All fourteen earlier catalogs, fingerprints and miracle indices remain unchanged."
+  ],
+  "counts_by_kind": {
+    "armor": 1
+  },
+  "previous_catalog_sha256": {
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L588-L602",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L457-L461",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/player.py#L101-L121",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/item.py#L27-L41"
+  ],
+  "mp_cost": 0,
+  "counter_multiplier": 1,
+  "target": "incoming_source",
+  "resolution": {
+    "amount": "Positive raw residual after ordinary defense, multiplied by one; the decided amount is independent of armor selected on the later money-counter response.",
+    "credit_first": "counter source money = min(99, source money + full requested amount)",
+    "debit_second": "target pays requested amount from money first, then MP, then HP, each floored at zero",
+    "conserved_transfer": false
+  }
+}

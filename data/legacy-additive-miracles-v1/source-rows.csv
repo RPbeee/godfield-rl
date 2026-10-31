@@ -1,0 +1,3 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+197,MAGIC,ATK,INCREASE_ATK,,,FIRE,2,2,,10,1
+217,MAGIC,ATK,INCREASE_ATK,,,LIGHT,10,7,,15,1

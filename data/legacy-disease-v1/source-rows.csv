@@ -1,0 +1,9 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+30,WEAPON,ATK,HELL,,,,8,,,15,1
+34,WEAPON,ATK,COLD,,,,9,,,10,1
+49,WEAPON,ATK,COLD,,,,13,,,15,1
+61,WEAPON,ATK,COLD,,,SOIL,1,,,10,1
+175,PROTECTOR,,,DFS,FEVER,FIRE,10,,,10,1
+234,SUNDRY,INCREASE_MP,HEAVEN,,,,20,,,20,1
+235,SUNDRY,REMOVE_LOWER_HARMS,,,,,,,,5,12
+236,SUNDRY,REMOVE_ALL_HARMS,,,,,,,,15,6

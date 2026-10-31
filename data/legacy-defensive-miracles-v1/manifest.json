@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-defensive-miracles-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "2a6e1d054e62bce9c41c7c3d0a2b873176aeb8004ac7aa520f3578de69a2be2f",
+  "catalog_sha256": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+  "catalog_count": 2,
+  "counts_by_kind": {
+    "bounce_magic": 1,
+    "block_weapon": 1
+  },
+  "stable_kind_slots": {
+    "210": 0,
+    "215": 1
+  },
+  "storage_group": "defensive_abilities",
+  "old_general_miracle_slots_unchanged": true,
+  "total_selected_weight": 2,
+  "selection": {
+    "ids": [
+      210,
+      215
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "MAGIC"
+    ],
+    "attack_kind": "",
+    "attack_extra": "",
+    "defense_kind": "",
+    "allowed_defense_extra": [
+      "FLICK_MAGIC",
+      "BLOCK_WEAPON"
+    ],
+    "attribute": "",
+    "value": 0,
+    "hit_rate": 0
+  },
+  "reaction_targets": {
+    "210": "MAGIC-derived pending effects, including offensive, HP and money miracles; source validation skips element defense matching for MAGIC.",
+    "215": "Neutral-element WEAPON-derived pending attacks; no Dark weapon bypass is inferred."
+  },
+  "limitations": [
+    "Neutral source attribute does not restrict bounce_magic to neutral incoming miracles; applicability follows the source attack kind.",
+    "ID210 must not be limited to damaging miracles, as utility miracles are also MAGIC-derived effects.",
+    "Light/Dark handling here records the historical server target classification, not a resolution of current-official conflict C01.",
+    "Prices are preserved in source-rows.csv; the runtime type needs only reaction kind, MP cost and weight.",
+    "Defensive local slots 0/1 are separate from the existing general miracle slots 0..14 and do not renumber them.",
+    "Retained defensive use can continue chains without consuming hand cards, so old hand-count-only chain limits are not sufficient.",
+    "Historical IDs and technical labels are not verified current official IDs or names.",
+    "Old acquisition weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "Existing nine catalogs and fingerprints are unchanged."
+  ]
+}

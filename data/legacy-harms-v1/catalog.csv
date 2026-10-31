@@ -1,0 +1,2 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable,harm,on_defense
+43,legacy-043,weapon,neutral,11,0,0,0,0,15,1,0,dark_cloud,0

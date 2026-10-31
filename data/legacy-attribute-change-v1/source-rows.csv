@@ -1,0 +1,3 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+65,WEAPON,ATK,ADD_ATTRIBUTE,,,FIRE,2,,,15,1
+85,WEAPON,ATK,ADD_ATTRIBUTE,,,WATER,5,,,15,1

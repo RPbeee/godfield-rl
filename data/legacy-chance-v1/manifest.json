@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-chance-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "73c70ec719b46c378497cd9265ca25fa60ced0265201ba4b20d3b7c212af9474",
+  "catalog_sha256": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+  "catalog_count": 12,
+  "counts_by_kind": {
+    "weapon": 12
+  },
+  "counts_by_element": {
+    "fire": 4,
+    "water": 3,
+    "wood": 2,
+    "stone": 3
+  },
+  "counts_by_hit_rate": {
+    "25": 2,
+    "50": 3,
+    "75": 7
+  },
+  "dual_role_weapon_count": 1,
+  "total_selected_weight": 12,
+  "selection": {
+    "ids": [
+      100,
+      105,
+      106,
+      107,
+      108,
+      109,
+      110,
+      112,
+      113,
+      114,
+      115,
+      116
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "WEAPON"
+    ],
+    "allowed_attributes": [
+      "",
+      "FIRE",
+      "WATER",
+      "TREE",
+      "SOIL"
+    ],
+    "attack_kind": "ATK",
+    "attack_extra": "",
+    "defense_extra": "",
+    "allowed_defense_kind": [
+      "",
+      "DFS"
+    ],
+    "hit_rate_min": 1,
+    "hit_rate_max": 100
+  },
+  "limitations": [
+    "Only source hit_rate is represented. Repeat/multi-hit semantics are an engine concern and have not been inferred from the percentage.",
+    "LIGHT/DARK, status and absorption effects are excluded, rather than simplified.",
+    "No neutral candidate matches this simple allowlist in the inspected source rows.",
+    "Legacy IDs and technical labels are not verified current official IDs or names.",
+    "Historical weights are not verified official probabilities; upstream reports uncertainty about acquisition distribution.",
+    "Current official-client compatibility has not been verified.",
+    "Existing legacy-neutral-v1, legacy-miracles-v1 and legacy-elements-v1 pools/fingerprints are unchanged."
+  ]
+}

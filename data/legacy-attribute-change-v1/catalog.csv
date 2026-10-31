@@ -1,0 +1,3 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable
+65,legacy-065,weapon,fire,2,0,0,0,0,15,1,0
+85,legacy-085,weapon,water,5,0,0,0,0,15,1,0

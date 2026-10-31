@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-miracles-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually normalized selected factual fields",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "The branch history exposes this commit, but its immutable raw content was not retrieved. Retrieved master rows are not asserted byte-identical to that revision.",
+  "catalog_sha256": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+  "catalog_count": 2,
+  "total_selected_weight": 2,
+  "stable_slots": {
+    "216": 0,
+    "220": 1
+  },
+  "selection": {
+    "ids": [
+      216,
+      220
+    ],
+    "rule": "MAGIC with INCREASE_HP or INCREASE_YEN, positive weight, no attribute, hit rate or extra effect."
+  },
+  "limitations": [
+    "Legacy ID216 is HP+10 for 6MP; the contemporary extracted Spring entry instead records 7MP. These profiles must not be conflated.",
+    "Old IDs and technical names are not verified current official identifiers.",
+    "Weights are legacy emulator data; its README warns that acquisition distribution may be inaccurate.",
+    "This two-record catalog does not change the original legacy-neutral-v1 pool or fingerprint.",
+    "Only heal and money miracles are included. Unsupported effects remain unsupported.",
+    "Current official-client compatibility has not been verified."
+  ]
+}

@@ -1,0 +1,2 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+209,MAGIC,,WIDE_ATK,,,,,5,100,10,1

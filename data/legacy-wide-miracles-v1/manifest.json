@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-wide-miracles-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "b5bab467bc5cb0bb3532ead292b6704c353859454e1825875fb56d8a980551ac",
+  "catalog_sha256": "f27ec84ab8cbc68c8f018cfb33b705f30e800d342db1d3166b9b85af20c443d5",
+  "catalog_count": 1,
+  "total_selected_weight": 1,
+  "selection": {
+    "ids": [
+      209
+    ],
+    "positive_weight_required": true,
+    "type": "MAGIC",
+    "attack_kind": "",
+    "attack_extra": "WIDE_ATK",
+    "defense_kind": "",
+    "defense_extra": "",
+    "attributes": [
+      ""
+    ],
+    "hit_rate": 100
+  },
+  "limitations": [
+    "WIDE_ATK has no standalone attack kind and cannot be a base or standalone cast; only a guaranteed-hit WEAPON-origin base accepts it as an ordered addition.",
+    "Each use sets massiveAttack true, chance100 and attribute neutral. It then participates in normal attribute mixing; a later supported setter can restore a color.",
+    "Each first hand use consumes and retains the miracle and pays MP5. Retained uses pay MP5 each and may repeat, including after learning earlier in the same command.",
+    "Each use adds one pending gift. Repeated WIDE_ATK must not be removed even if the final chance is already100: cost, gift, neutral reset and MAGICAL reset remain significant.",
+    "With MAGICAL57, each added MAGIC first pays its cost and resets damage to twice the remaining MP before applying its extra. Final MAGICAL payment empties remaining MP.",
+    "Alive enemies are enumerated at enqueue. In a duel this normalizes a supplied self target to the sole alive enemy. It does not create repeated attacks against the same target.",
+    "Chance100 still consumes a hit roll in source doAttack before checking a dead target. DarkCloud short-circuits the roll. These RNG rules differ from the guaranteed-hit chance0 sentinel.",
+    "The completed item retains WEAPON origin. Neutral WIDE attacks allow supported weapon reactions; colored WIDE attacks require neutralization for those reactions. MAGIC-only reactions do not apply.",
+    "At most nineteen MP5 uses fit the MP99 cap. DOUBLE_ATK214 remains a separate optional catalog and retains its old local index.",
+    "This row has no numeric ATK, defense, disease or harm. Source price10 is preserved in source-rows.csv.",
+    "MAGIC_FREE remains excluded. All twenty-one earlier catalogs, fingerprints and ability indices remain unchanged.",
+    "Historical IDs, technical labels and acquisition weights are not verified current official identifiers, names or probabilities.",
+    "Immutable raw content was unavailable; observed master content is not asserted byte-identical to the history-head revision."
+  ],
+  "counts_by_kind": {
+    "magic": 1
+  },
+  "previous_catalog_sha256": {
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f",
+    "legacy-money-counter-v1": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+    "legacy-magic-reflection-v1": "530f23f74e45db12307dbd606dea9dd01aeabf732a3c410f9a81cd8b401d1d4f",
+    "legacy-any-reflection-v1": "682523fa55a0b4a554d190d92057e08d2b14b60c4cb5d152e622a3aade6d14bd",
+    "legacy-mana-weapon-v1": "e42dc3ffd6538b64d60771ba039cfb7d0dd3955e3d60cb9e711758d0e319c83d",
+    "legacy-magic-block-v1": "32781bbb5acc2860ed47df15fc20e54b8efd3f8c7da5b8f7a9d84136c4808551",
+    "legacy-additive-miracles-v1": "a78dafd8ad33105b0d7cae48c281dacc2c482a2ade44d595438903a1d21cd997",
+    "legacy-doubling-miracles-v1": "fa51237e871fd606bf3f81bb063ac71b250bfe5a49f2f28ed3c254f6514de739"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L110-L136",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L226-L286",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/player.py#L276-L301",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/attackData.py#L78-L94",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L234-L325"
+  ],
+  "stable_local_slots": {
+    "209": 0
+  }
+}

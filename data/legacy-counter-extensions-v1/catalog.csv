@@ -1,0 +1,5 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable,effect,multiplier,hit_rate,harm,target
+187,legacy-187,armor,fire,0,0,0,0,0,10,1,1,damage,1,75,none,all_enemies
+191,legacy-191,armor,light,0,0,0,0,0,10,1,1,harm,0,0,glory,incoming_source
+192,legacy-192,armor,dark,0,0,0,0,0,10,1,1,harm,0,0,dark_cloud,incoming_source
+193,legacy-193,armor,neutral,0,0,0,0,0,10,1,1,mana,2,0,none,self

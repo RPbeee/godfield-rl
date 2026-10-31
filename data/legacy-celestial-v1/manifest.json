@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-celestial-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "3397c9bafee7034d14322dcba10755ea29f94b3fffa5de1794b01ccc3f251cae",
+  "catalog_sha256": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+  "catalog_count": 18,
+  "counts_by_kind": {
+    "weapon": 16,
+    "armor": 2
+  },
+  "counts_by_element": {
+    "light": 10,
+    "dark": 8
+  },
+  "counts_by_harm": {
+    "none": 17,
+    "glory": 1
+  },
+  "counts_by_hit_rate": {
+    "0": 15,
+    "25": 1,
+    "50": 1,
+    "75": 1
+  },
+  "boost_weapon_count": 2,
+  "total_selected_weight": 18,
+  "selection": {
+    "ids": [
+      62,
+      63,
+      70,
+      75,
+      76,
+      82,
+      83,
+      87,
+      88,
+      89,
+      93,
+      96,
+      97,
+      101,
+      104,
+      111,
+      158,
+      176
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "WEAPON",
+      "PROTECTOR"
+    ],
+    "allowed_attributes": [
+      "LIGHT",
+      "DARK"
+    ],
+    "allowed_attack_extra": [
+      "",
+      "INCREASE_ATK",
+      "GLORY"
+    ],
+    "defense_extra": "",
+    "allowed_defense_kind": [
+      "",
+      "DFS"
+    ],
+    "allowed_hit_rates": [
+      0,
+      25,
+      50,
+      75
+    ]
+  },
+  "excluded_related_records": [
+    {
+      "id": 99,
+      "reason": "PESTLE special effect is unsupported."
+    },
+    {
+      "id": 117,
+      "reason": "DYING_ATTACK death-trigger effect is unsupported."
+    },
+    {
+      "id": 191,
+      "reason": "GLORY COUNTER protector is unsupported."
+    },
+    {
+      "id": 192,
+      "reason": "DARK_CLOUD COUNTER protector is unsupported."
+    }
+  ],
+  "limitations": [
+    "Only historical source data is represented; light/dark combination, defense and lethal rules require a separate engine implementation and validation.",
+    "ID70 preserves GLORY, giving one ordinary Glory application source only when this separate catalog is enabled.",
+    "ID62 and ID89 retain both base attack and additive attack roles.",
+    "Three positive hit-rate records retain their percentage; probability and target processing are not stripped.",
+    "All source defense extras are empty; on_defense is omitted from this catalog type.",
+    "All MAGIC, guardians, counters, PESTLE and DYING_ATTACK are excluded.",
+    "Technical labels and historical IDs are not verified current official names/IDs.",
+    "Weights are historical values, not verified official acquisition probabilities.",
+    "Existing seven catalogs and fingerprints are unchanged."
+  ]
+}

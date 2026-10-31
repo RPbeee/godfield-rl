@@ -1,0 +1,9 @@
+id,label,kind,element,attack,boost,defense,hp,mp,price,weight,discardable,disease,cure,on_defense
+30,legacy-030,weapon,neutral,8,0,0,0,0,15,1,0,hell,none,0
+34,legacy-034,weapon,neutral,9,0,0,0,0,10,1,0,cold,none,0
+49,legacy-049,weapon,neutral,13,0,0,0,0,15,1,0,cold,none,0
+61,legacy-061,weapon,stone,1,0,0,0,0,10,1,0,cold,none,0
+175,legacy-175,armor,fire,0,0,10,0,0,10,1,1,fever,none,1
+234,legacy-234,mana,neutral,0,0,0,0,20,20,1,1,heaven,none,0
+235,legacy-235,heal,neutral,0,0,0,0,0,5,12,1,none,lower,0
+236,legacy-236,heal,neutral,0,0,0,0,0,15,6,1,none,all,0

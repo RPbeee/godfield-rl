@@ -1,0 +1,13 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+100,WEAPON,ATK,,,,FIRE,1,,75,2,1
+105,WEAPON,ATK,,,,FIRE,4,,75,6,1
+106,WEAPON,ATK,,,,WATER,4,,75,6,1
+107,WEAPON,ATK,,,,TREE,4,,75,6,1
+108,WEAPON,ATK,,,,SOIL,4,,75,6,1
+109,WEAPON,ATK,,,,WATER,5,,50,5,1
+110,WEAPON,ATK,,,,SOIL,6,,25,9,1
+112,WEAPON,ATK,,,,FIRE,7,,75,10,1
+113,WEAPON,ATK,,DFS,,TREE,8,6,75,15,1
+114,WEAPON,ATK,,,,WATER,9,,50,9,1
+115,WEAPON,ATK,,,,FIRE,10,,50,15,1
+116,WEAPON,ATK,,,,SOIL,20,,25,15,1

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-any-reflection-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "8d0167ef227f5a66c884633d1eaaf6ff42c3a9a08740ffe675032b2e6dfac1e9",
+  "catalog_sha256": "682523fa55a0b4a554d190d92057e08d2b14b60c4cb5d152e622a3aade6d14bd",
+  "catalog_count": 1,
+  "total_selected_weight": 1,
+  "selection": {
+    "ids": [
+      196
+    ],
+    "positive_weight_required": true,
+    "type": "PROTECTOR",
+    "attack_kind": "",
+    "attack_extra": "",
+    "defense_kind": "",
+    "defense_extra": "REFLECT_ANY",
+    "attribute": "",
+    "value": 0,
+    "hit_rate": 0
+  },
+  "limitations": [
+    "Dedicated catalog membership retains REFLECT_ANY; the card is not ordinary zero-defense armor.",
+    "The source has no DFS kind or ordinary defense value, no attack kind or boost, no percentage, other harm, disease, MP cost or retained miracle.",
+    "The empty attribute is neutral and participates in defense element composition.",
+    "The post-reaction exemption depends on the first defense piece, not the position of the reflection artifact alone.",
+    "ID196 first reflects and stops consumption before any later submitted pieces. Prefix pieces before it are consumed and their status effects remain.",
+    "For a non-MAGIC item with an earlier prefix, Dark attacks and COUNTER origins are rejected and final attribute compatibility is required. ID195 can clear a weapon attribute but cannot remove COUNTER origin.",
+    "Successful reflection swaps current source/target and returns the original current attack payload; previous ordinary defense reductions are discarded.",
+    "Payload amount, element, chance, status extras, originating artifact ID and retention provenance remain; an already-hit percentage attack is not rerolled.",
+    "For a reflected money counter, credit follows its current redirected source, independently of its immutable original artifact owner.",
+    "The card cannot start an ordinary attack or add ATK; it can be discarded.",
+    "The effect only applies when a response exists; initial self spells and automatically resolved self-MP counters do not expose a reflection choice.",
+    "The old server branch ends on finalized-dead target but does not independently reject finalized-dead source.",
+    "Exact historical XML traces and current official-client fidelity are not asserted; Fog and Illusion remain excluded.",
+    "Historical IDs and technical labels are not verified current official IDs or names.",
+    "Old acquisition weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "All sixteen earlier catalogs, fingerprints and miracle indices remain unchanged."
+  ],
+  "counts_by_kind": {
+    "armor": 1
+  },
+  "previous_catalog_sha256": {
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f",
+    "legacy-money-counter-v1": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+    "legacy-magic-reflection-v1": "530f23f74e45db12307dbd606dea9dd01aeabf732a3c410f9a81cd8b401d1d4f"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L534-L581",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L630-L642",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/attackData.py#L78-L94",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L387-L396"
+  ],
+  "mp_cost": 0,
+  "target": "Incoming items that actually offer a response, regardless of WEAPON, MAGIC or COUNTER origin; immediate self effects do not offer reflection.",
+  "prefix_gate": {
+    "first_defense_piece_196": "Skip final Dark, counter and ordinary element checks.",
+    "magic_origin": "Skip final checks regardless of earlier defense prefix.",
+    "other_prefix_nonmagic": "Require non-Dark attack attribute, non-COUNTER originating item and compatible final composed defense attribute."
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-harms-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source row; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master row is not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "5da88dc3ecd67ff989accde743b818f70a468f0f0f927bf59906877405cbef7e",
+  "catalog_sha256": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+  "catalog_count": 1,
+  "counts_by_kind": {
+    "weapon": 1
+  },
+  "counts_by_harm": {
+    "dark_cloud": 1
+  },
+  "glory_source_count": 0,
+  "total_selected_weight": 1,
+  "selection": {
+    "ids": [
+      43
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "WEAPON"
+    ],
+    "allowed_attributes": [
+      "",
+      "FIRE",
+      "WATER",
+      "TREE",
+      "SOIL"
+    ],
+    "attack_kind": "ATK",
+    "allowed_attack_extra": [
+      "GLORY",
+      "DARK_CLOUD"
+    ],
+    "defense_extra": "",
+    "hit_rate": 0
+  },
+  "excluded_related_records": [
+    {
+      "id": 70,
+      "reason": "GLORY source has LIGHT attribute."
+    },
+    {
+      "id": 191,
+      "reason": "GLORY source is a LIGHT COUNTER protector."
+    },
+    {
+      "id": 200,
+      "reason": "GLORY source is LIGHT probabilistic MAGIC."
+    },
+    {
+      "id": 192,
+      "reason": "DARK_CLOUD source is a DARK COUNTER protector."
+    },
+    {
+      "id": 208,
+      "reason": "DARK_CLOUD source is DARK MAGIC."
+    }
+  ],
+  "limitations": [
+    "No Glory-applying artifact matches this strict pool. Glory can be represented for explicit fixtures, but cannot originate through ordinary pool draws.",
+    "The enum does not authorize adding excluded Light/Dark, magic or counter artifacts with stripped effects.",
+    "Damage prerequisites, stacking, cure behavior and effect timing require engine validation.",
+    "Legacy ID43 and its technical label are not verified current official ID/name mappings.",
+    "Historical weights are not verified official probabilities; upstream reports distribution uncertainty.",
+    "Existing six catalogs and fingerprints are unchanged."
+  ]
+}

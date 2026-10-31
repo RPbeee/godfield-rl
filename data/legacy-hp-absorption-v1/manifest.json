@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-hp-absorption-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "9223d3f0feb03a155f35f20c8f01670dea818d3e0765bbe2872637065d5ad6b5",
+  "catalog_sha256": "f48782ab0d9654445f02540e043d22d9b8d07cdf4d13ff438ea94dc915490de1",
+  "catalog_count": 4,
+  "total_selected_weight": 4,
+  "selection": {
+    "ids": [
+      26,
+      42,
+      103,
+      221
+    ],
+    "positive_weight_required": true,
+    "types": [
+      "WEAPON",
+      "MAGIC"
+    ],
+    "attack_kind": "ATK",
+    "attack_extra": "ABSORB_HP",
+    "defense_kind": "",
+    "defense_extra": "",
+    "attributes": [
+      "",
+      "TREE",
+      "LIGHT"
+    ]
+  },
+  "limitations": [
+    "All four positive-weight ABSORB_HP rows are included completely: three weapons and one independent MAGIC. Existing offensive13 and every earlier catalog remain unchanged.",
+    "Weapon26/42 are neutral ATK7/11;103 is wood ATK3 with75% chance. All have boost0, defense0, static HP/MP0, no other effect and ordinary weapon non-discardability.",
+    "MAGIC221 is light ATK10, MPcost10, old price15 and weight1. Price remains in the source/normalized data while runtime miracle fields preserve amount, cost, element and weight.",
+    "ABSORB_HP heals the current source by the positive post-defense raw amount before damaging the target, capped at99HP. It is not a transfer limited by actual target HP loss. The source dark branch suppresses absorption and applies999 damage instead.",
+    "Reflection and bounce retain the effect while changing current source/target; a self-directed attack heals first and then applies target damage. Natural disease ticks and passive244 healing remain separate.",
+    "Weapon26/42 permit existing ordinary boosts/setters/paid modifiers; percentage103 does not accept additions. MAGIC221 can be cast standalone or retained and may use FREE, but its ABSORB_HP extra is not a legal weapon addition.",
+    "MAGIC221 appends main ability slot15 without changing the old15 main slots or defensive/additive indices. The old21-type forgetting order stays fixed; a new independent sorted22-type array includes221 between220 and222.",
+    "All twenty-seven earlier catalog hashes, weights, Kind values and local indices remain fixed.",
+    "Historical IDs, technical labels and acquisition weights are not verified current official identifiers, names or probabilities.",
+    "Immutable raw content was unavailable; observed master content is not asserted byte-identical to the history-head revision."
+  ],
+  "counts_by_kind": {
+    "weapon": 3,
+    "magic": 1
+  },
+  "previous_catalog_sha256": {
+    "legacy-neutral-v1": "9d78cfdc44b89c53468b31e1f8e1b00f49ab68fbb19aeaf13d4d699535945ca3",
+    "legacy-miracles-v1": "07da28e8a3c809fe634f90f94a24eb9cfb53dfbdf8d2cb7658a145a2e250eb1c",
+    "legacy-elements-v1": "72fe1864f518a69e8b27e18018d7e8fe034863273c5515f52aebfd06f4cf0211",
+    "legacy-chance-v1": "d80827e64916479a06ae33e34bad2d4407fd8a06c525deb7148b4f8f417e84f8",
+    "legacy-reflection-v1": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+    "legacy-disease-v1": "581393b8127cb9065d6ccca65f7f31fe6a473cbf5ece02e6dcdb0c9a99263615",
+    "legacy-harms-v1": "940f9ec88d8b13a1aeafaf5f81c65c43a52cb2f82f23a2287aa8e6355cea005c",
+    "legacy-celestial-v1": "7c123d39fa061577d180e94bd6f5372e8eaf6a4f502fc6fbb1f9ce8fffe153b8",
+    "legacy-offensive-miracles-v1": "965afd092eca1d2dc9f07c4d5ce1ba46347b23dd0bac09f1acb500ce7535e658",
+    "legacy-defensive-miracles-v1": "c6efd5ccd68bb428b71a9626271738cead83bab853962869912492fe741a8497",
+    "legacy-attribute-change-v1": "3c9546aec0c0d022b4e3bf4e5f3c5c4bb1b708bf15b97ffd44bda035e7662b7c",
+    "legacy-attribute-removal-v1": "26d17ef9b787115d0a18de93c06c3c3c2fb994dff8b970d0602f3f3bb6cb3ecc",
+    "legacy-counter-v1": "a8215ab41d377211742564c8fb230ea2414a9741c0dbd81cdfbd2d6867206be0",
+    "legacy-counter-extensions-v1": "f1cf29e7839df0d5664b5851a414cf67e53cf1a34209cf50683b7a0e0380e97f",
+    "legacy-money-counter-v1": "d1444924adad2045923a6f2974832bedb8efb2d2a41d7c7b31b9c5196f53a0f1",
+    "legacy-magic-reflection-v1": "530f23f74e45db12307dbd606dea9dd01aeabf732a3c410f9a81cd8b401d1d4f",
+    "legacy-any-reflection-v1": "682523fa55a0b4a554d190d92057e08d2b14b60c4cb5d152e622a3aade6d14bd",
+    "legacy-mana-weapon-v1": "e42dc3ffd6538b64d60771ba039cfb7d0dd3955e3d60cb9e711758d0e319c83d",
+    "legacy-magic-block-v1": "32781bbb5acc2860ed47df15fc20e54b8efd3f8c7da5b8f7a9d84136c4808551",
+    "legacy-additive-miracles-v1": "a78dafd8ad33105b0d7cae48c281dacc2c482a2ade44d595438903a1d21cd997",
+    "legacy-doubling-miracles-v1": "fa51237e871fd606bf3f81bb063ac71b250bfe5a49f2f28ed3c254f6514de739",
+    "legacy-wide-miracles-v1": "f27ec84ab8cbc68c8f018cfb33b705f30e800d342db1d3166b9b85af20c443d5",
+    "legacy-magic-free-v1": "44ac7bfe88ff0c6b77163aae9024fd50ea8fbe0f4713136f8b6c019e8fe52572",
+    "legacy-forgetting-v1": "776d7bef4e738576a33418f3e2890b2a539fbe7582179a973508cfdb84370bcb",
+    "legacy-exchange-v1": "d4f95f4f3853e789db2a66460e49857437b5884723a28df35774cf575287cdc5",
+    "legacy-revival-v1": "518a71ca143c5f8b94f3d26b8beb2b26110f740e8866f58eb21eb9003681c561",
+    "legacy-item-removal-v1": "e5ec7deb813c3c6a9414b9bc05d48dfc31062b88283658a0d28f1a13623adaa2"
+  },
+  "behavior_sources": [
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L226-L286",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/turn.py#L483-L494",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/player.py#L94-L111",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/player.py#L276-L301",
+    "https://github.com/Igoorx/godfield-flash/blob/master/server-src/modules/attackData.py#L78-L94"
+  ],
+  "stable_local_slots": {
+    "weapons": {
+      "26": 0,
+      "42": 1,
+      "103": 2
+    },
+    "miracles": {
+      "221": 0
+    }
+  },
+  "hp_absorption_retained_type_ids": [
+    197,
+    198,
+    199,
+    200,
+    203,
+    204,
+    205,
+    206,
+    207,
+    209,
+    210,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    226
+  ]
+}

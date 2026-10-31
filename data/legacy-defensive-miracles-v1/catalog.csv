@@ -1,0 +1,3 @@
+id,label,kind,cost,weight,kind_index
+210,legacy-210,bounce_magic,5,1,0
+215,legacy-215,block_weapon,6,1,1

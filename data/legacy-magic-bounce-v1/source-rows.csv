@@ -1,0 +1,7 @@
+id,type,attack_kind,attack_extra,defense_kind,defense_extra,attribute,value,sub_value,hit_rate,price,weight
+21,WEAPON,ATK,INCREASE_ATK,,FLICK_MAGIC,,5,,,10,1
+119,PROTECTOR,,,DFS,FLICK_MAGIC,,0,,,5,1
+121,PROTECTOR,,,DFS,FLICK_MAGIC,,1,,,5,1
+127,PROTECTOR,,,DFS,FLICK_MAGIC,,2,,,5,1
+134,PROTECTOR,,,DFS,FLICK_MAGIC,,3,,,5,1
+140,PROTECTOR,,,DFS,FLICK_MAGIC,,4,,,5,1

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "catalog_version": "legacy-reflection-v1",
+  "repository": "https://github.com/Igoorx/godfield-flash",
+  "source_path": "server-src/ItemData.CSV",
+  "retrieved_url": "https://raw.githubusercontent.com/Igoorx/godfield-flash/master/server-src/ItemData.CSV",
+  "retrieved_via": "web text rendering; manually transcribed selected zero-based source rows; generated normalized facts",
+  "observed_on": "2026-10-31",
+  "history_head_commit": "fcc83740a3d3cd9968e6e5cd2b7ed781f53abe80",
+  "history_head_date": "2024-05-11",
+  "history_url": "https://github.com/Igoorx/godfield-flash/commits/master/",
+  "immutable_content_verified": false,
+  "immutable_content_note": "Immutable raw content was unavailable; retrieved master rows are not asserted byte-identical to the history-head revision.",
+  "source_rows_sha256": "7d1e104a72e24978c32038dd854bb14ff844a2c73132e1f1388274942da0c575",
+  "catalog_sha256": "652187da9080a3b835162e002d8d9d2c627f2ad1e2f595c9a4b672563c886d4d",
+  "catalog_count": 2,
+  "counts_by_kind": {
+    "weapon": 2
+  },
+  "counts_by_reaction": {
+    "bounce": 1,
+    "reflect": 1
+  },
+  "block_records": 0,
+  "total_selected_weight": 9,
+  "selection": {
+    "ids": [
+      20,
+      39
+    ],
+    "positive_weight_required": true,
+    "allowed_types": [
+      "WEAPON",
+      "PROTECTOR"
+    ],
+    "allowed_attack_kind": [
+      "ATK",
+      ""
+    ],
+    "attack_extra": "",
+    "attribute": "",
+    "hit_rate": 0,
+    "allowed_defense_kind": [
+      "",
+      "DFS"
+    ],
+    "allowed_defense_extra": [
+      "FLICK_WEAPON",
+      "REFLECT_WEAPON",
+      "BLOCK_WEAPON"
+    ]
+  },
+  "limitations": [
+    "The inspected simple positive-weight neutral non-miracle selection contains only weapon ID20 and ID39.",
+    "No BLOCK_WEAPON record matched this non-miracle allowlist; MAGIC ID215 is excluded.",
+    "REFLECT_ANY ID196 is excluded because admitting it as NE-weapon-only would strip part of its artifact behavior.",
+    "Magic reflection/bounce, status, elements, counters, and mixed extra effects are excluded.",
+    "Legacy IDs and technical labels are not verified current official names or IDs.",
+    "Historical weights are not verified official probabilities; upstream reports uncertainty about acquisition distribution.",
+    "Existing neutral, miracles, deterministic elements, and chance catalogs/fingerprints are unchanged.",
+    "Target selection, redirection, chain ordering and response behavior are engine concerns, not inferred by this catalog."
+  ]
+}
