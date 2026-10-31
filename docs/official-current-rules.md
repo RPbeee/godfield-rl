@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。現行の[限定実行器v7](official-execution-subset.md)は攻撃反撃181/184を加えた187モデル/重み374。資源/災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。現行の[限定実行器v8](official-execution-subset.md)は資源反撃187/188を加えた189モデル/重み376。災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -96,7 +96,7 @@ v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含め
 
 ## 攻撃反撃：一次で確認した範囲とv7規約
 
-原典の非災い反撃は181（火/75%/counterAtk）、184（土/counter2xAtk）、187（counterBoost2xMP）、188（counterTakeCP）の4種。全てcategory armor、通常ATK/DEF/MP0・価格10・giftRate1。v7はこのうち181/184の2種だけを追加し、資源反撃187/188は対象外にする。
+原典の非災い反撃は181（火/75%/counterAtk）、184（土/counter2xAtk）、187（counterBoost2xMP）、188（counterTakeCP）の4種。全てcategory armor、通常ATK/DEF/MP0・価格10・giftRate1。v7では181/184の2種を追加し、v8で資源反撃187/188も対象へ加える。
 
 `fv`（12115–12143行）は181/184に受信attack.atk、187にattack.mp、188にattack.cpを動的表示として渡す。`gf3`（12293–12295行）は動的ATK>0ならincoming_is_attackを認めるが、187/188の非ATK payloadは認めない。反撃のcategoryをweaponsへ置換する処理は無く、`e1/ev` から181/184への普通属性防御/filter・190万能反射が適合し、武器/奇跡専用反応は適合しないことを確認できる。
 
@@ -104,9 +104,21 @@ v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含め
 
 v7は実HP減少>0かつ生存した防御者だけが、選択181/184の順で各1counterを生成する規約を採る。181は実HP減少1倍/火/75%、184は2倍/土/必中、生成powerは198以下。被害を与えた現在source一人へ向かい、counter生成者originを保つ。counter FIFOを次の初期chance対象より先に処理し、childcounterは末尾へ追加、開始時source/target死亡は無draw skipとする。181はsingle targetの開始時に1回命中抽選し、redirect後再抽選はしない。
 
-command末尾の自然終局→cutoffを優先し、元owner死亡なら残り初期chance対象を取消すが、既予約counterは生存条件を満たせば続ける。全action後だけalive補充/次ownerへ進む。これらのtrigger/実HP基準/順序/deathskip等は**公式server未検証の実験規約**で、公開 `counter_rule='experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-source-target;roll-before-response;redirects-no-reroll'` に明示する。
+command末尾の自然終局→cutoffを優先し、元owner死亡なら残り初期chance対象を取消すが、既予約counterは生存条件を満たせば続ける。全action後だけalive補充/次ownerへ進む。これらのtrigger/実HP基準/順序/deathskip等は**公式server未検証の実験規約**で、公開 `counter_rule='experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;roll-before-response;redirects-no-reroll'` に明示する。
 
 全pending playを非再帰ActionBatchへ統一し、launch前state/RNG/counters/原発command+response journalから同じexecutorで完全再生して現在frame/FIFOまで比較する。将来FIFO/journal/RNGやnativecounter集計は公開viewへ出さない。旧版のraw残余×2・死者source実行・固定32等を現行の確定ルールとして移さない。
+
+## 資源反撃：算術の一次根拠とv8規約
+
+187のJA説明は「+MP{ダメージ×2}」、188は「¥{ダメージ} 没収」。`fv` は187へ受信attack.mp、188へattack.cpを動的表示として渡し、`gf3` はこれらpower0のarmorをattackと判定しない。`e1/ev` は190万能反射だけをmatchingさせ、普通DEF/filter/他counter/武器・奇跡用反応は適合しない。guardian欄neptune/venusはカードmetadataであり、abilityがsetGuardianではないこの2品からplayerguardianを召喚する根拠は無い。
+
+`boostMP`（11303行付近）は現在targetへ `dH(event.mp)` を適用し、MPを99上限へclipする。`takeCP`（11341–11342行）は現在targetへ `bc(-event.cp)` を適用後、現在sourceへ `bc(event.cp)` を適用する。`bc/dH/eW`（13234–13244行）により不足CP→MP→HPへ波及、加算は99でclipし、実所持CPを上限にしない。自己aliasでも逐次処理するので、CP3/MP4/HP40への名目10はCP10/MP0/HP37、CP95へ名目10は95→85→95になる。資源primitiveはHP0でdeadを自動付与せず、後からCPを加えてもHPは戻らない。
+
+一方、187のselftarget・明示response・実HP損失×2、188の旧incoming.sourceへの対象設定・実HP損失額、survivor生成やFIFOは公開server処理から未確定である。v8はこれらを**実験規約**とし、187はpassで一度だけ現在targetのMPを回復、自己190反射後もresponse継続、188は現在targetへ全額請求→現在counter.sourceへ全名目額creditとする。190で徴収方向が交換され、自己HP0をCPcreditで蘇生させない。
+
+通常damage bodyだけがcounter生成元であり、resource-debtによるHP損失から新counterを作らない。共通survivor/FIFO/deadskip/naturalcutoff/全action後gift規約は維持する。公開resource_counter_ruleは `experimental:mp-self-target-with-response;cp-target-incoming-source;debit-current-target-then-full-credit-current-source;resource-debt-no-new-counter`、counter_ruleのtarget表現はsingle-targetへ更新する。CP primitiveの確定算術と、未確認の生成/対象規約を混同しない。
+
+MP187により旧paid234の最大19回/人は成立しない。初期MP総量<=99*nと各187の実MP増分<=99・生成counter数<=n*hand_limitを用い、response上限を `2*n*hand_limit+floor(99*n*(hand_limit+1)/5)+targets.size()` へ更新する。全execute replayで資源/MP/gift/FIFOを照合し、未来journal/予算を公開viewへ出さない。
 
 ## 単純確率攻撃：確認範囲とv6の規約
 

@@ -122,7 +122,7 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 `official_match.hpp` / `official_match.cpp` はv1の132モデル・配布重み308、
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
-156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えた187モデル・配布重み374の `official-execution-subset-v7` へ拡張した。
+156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えた189モデル・配布重み376の `official-execution-subset-v8` へ拡張した。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
 別policy乱数、プログラム内snapshot再開、C/Python実行APIを持つ。
@@ -134,7 +134,7 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 反射は現在source/targetを交換し元のpayloadとownerを保ち、消去後の無属性を維持する。
 原発奇跡を再課金・新sourceへ取得させず、応答者ごとの消費と補充予定をledgerへ記録する。
-Snapshot version7は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
+Snapshot version8は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6/7を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
 自己反射もresponseを継続するのは明示したローカル規約であり、clientの自己target表示だけからserver規則を確定しない。
 
 v3の魔法遮断8種は現行の回復奇跡HP235/CP236も止め、武器遮断233は無属性武器にmatchingする。
@@ -142,7 +142,7 @@ MP増加奇跡は現行台帳に無く、categoryで判定する一般predicate�
 ＜壁＞単品は初回/再使用ともMP6、初回はused保持し、補充は空き次第で1または0。v4は直後FREEによる費用0も許可する。
 blockは現在payload全取消の終端応答とし、reflection ledgerへ保持しない。各選択の消費・費用・予約を処理後、
 未終局/未打切りの場合だけまとめて配布して元ownerから巡回する。この全体順はclientのblock演出だけで証明できず、実験規約である。
-v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたofficial-execution-view-v5とする。C ABI1は維持する。
+v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたview-v5、v8はresource_counter_ruleを加えたofficial-execution-view-v6とする。C ABI1は維持する。
 
 v4の無料化は各MCの即後FREEペア全てを免除し、MP不足prefixではなく完成列の最終費用を検証する。
 壁→FREEは全選択を消費/used保持する契約で、旧版の未消費suffixは採らない。
@@ -154,12 +154,15 @@ v5のbounceでは応答者が新sourceになり、対象は全aliveから自己�
 view-v3の `bounce_target_rule` は `experimental:uniform-all-alive-in-input-order;includes-self-and-teammates`、公開pendingは反射件数と跳ね返し件数を分離する。1対象のredirect連鎖中の死亡・補充は無く、これもローカル規約として扱う。
 
 v6はtarget無しの確率playを生存敵の入力順batchとして処理する。自己/同非Soloチームを除き、処理時deadは無draw skip、生存者へ有界100抽選1回、hitだけresponse、redirect再抽選無しとする。効果解決時に死亡を確定し、受理コマンド末尾で自然終局→cutoffを判定する。自動miss/skipはdecision増無しで、launchは最初hitか全missまでdrainしてから判定する。response完了後は未打切りの場合だけ次対象を抽選し、origin死亡なら残り取消、補充はbatch全完了後だけとする。これは原典clientから未確定なserver scheduleを明示した実験規約である。
-v6のChanceBatchはv7で全pending play用ActionBatchへ統一する。非再帰launch前state/RNG/counters/commandとresponse journalを内部executorで再生し、対象処理やcounterでaliveが変わる局面も全状態一致を検査する。response上限は `n*(2*hand_limit+99/5)+targets.size()`。公開chance_ruleにtargetless/all-enemy/順序/roll-before-response/no-reroll/skip-dead/origin-death取消を示し、roster/cursor/anchor/journal/RNGとnative chance_rolls/hitsは公開しない。
+v6のChanceBatchはv7で全pending play用ActionBatchへ統一する。非再帰launch前state/RNG/counters/commandとresponse journalを内部executorで再生し、対象処理やcounterでaliveが変わる局面も全状態一致を検査する。v7のresponse上限 `n*(2*hand_limit+99/5)+targets.size()` はv8で回復MPを含む予算へ更新する。公開chance_ruleにtargetless/all-enemy/順序/roll-before-response/no-reroll/skip-dead/origin-death取消を示し、roster/cursor/anchor/journal/RNGとnative chance_rolls/hitsは公開しない。
 
 v7の攻撃反撃は実HP減少>0の生存者だけが選択順に生成し、181は火/1倍/75%、184は土/2倍/必中とする。category armorを保ち、通常DEF/filterと190だけが適合。counter FIFOは次の初期chance対象より先、childcounterは末尾、開始時source/target死亡なら無draw skip。元owner死亡で残り初期chanceを取消しても、生存条件を満たす既予約counterは続ける。全action後だけalive補充/owner巡回とし、trigger/HP基準/順序はcounter_ruleに明示するserver未検証の実験規約である。
 ActionBatchのcounter生成数/予約数はn*hand_limit以下、nativecounter集計とfutureFIFO/journalは非公開。raw×2の指数的威力を採らず、HP0〜99から各生成power<=198を保つ。全beforestate+原発/responseの完全replayで現在state/RNG/MP/gifts/frame/FIFOを比較する。
 
-全効果の一般キュー、資源/災いcounter・売買・固有効果付き確率攻撃・霧/夢の実効果・守護神・終末と、
+v8の187は実HP損失×2のMPを生成者selftargetへ明示responseで回復し、188は実HP損失額を旧incoming.sourceから現在counter.sourceへCP徴収する。power0/armorNE nonattackなので190だけが適合し、MP99cap/CPdebit→fullnominalcredit/不足連鎖を処理する。対象・自己response・生成基準はexperimental、資源primitive順は一次根拠ありと区別する。resource-debtから新counterは作らず、card guardian metadataでplayerguardianを召喚しない。
+回復MPによりpaid234の旧19回/人上限は不適切で、response予算は `2*n*hand_limit+floor(99*n*(hand_limit+1)/5)+targets.size()`、counter生成/予約はn*hand_limit以下とする。初期MP<=99*n・各187実増<=99・全counter生成数から導き、全execute再生で資源/FIFO/journalも照合する。resource_counter_ruleを公開し、counter_ruleのtarget表現はsingle-targetへ更新する。
+
+全効果の一般キュー、災いcounter・売買・固有効果付き確率攻撃・霧/夢の実効果・守護神・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
-v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデルの計測・checksumは過去の証拠として保持し、現行v7の187モデルの結果とは分ける。
+v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデルの計測・checksumは過去の証拠として保持し、現行v8の189モデルの結果とは分ける。

@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 374>& gift_tickets() {
+const std::array<CardId, 376>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 374> values{};
+        std::array<CardId, 376> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 374>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 187) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 189) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -221,6 +221,11 @@ void resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) 
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
         case Ability::boost_mp: change_resource(target, Resource::mp, effect.amount); break;
         case Ability::boost_cp: change_resource(target, Resource::cp, effect.amount); break;
+        case Ability::counter_boost2x_mp: change_resource(target, Resource::mp, effect.amount); break;
+        case Ability::counter_take_cp:
+            change_resource(target, Resource::cp, -effect.amount);
+            change_resource(s.state.players[index(s, effect.source)], Resource::cp, effect.amount);
+            break;
         default: unsupported("effect has no scoped resolver");
         }
     }
@@ -278,14 +283,21 @@ bool next_action_effect(MatchSnapshot& s) {
 }
 void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Command& response,
                       std::span<const CardId> models, std::int64_t damage) {
-    if (damage <= 0 || s.state.players[index(s, response.actor)].dead) return;
+    if (!damaging(incoming) || damage <= 0 || s.state.players[index(s, response.actor)].dead) return;
     for (std::size_t i = 0; i < models.size(); ++i) {
         const auto& card = *find_card(models[i]);
-        if (card.ability != Ability::counter_atk && card.ability != Ability::counter2x_atk) continue;
+        if (card.ability != Ability::counter_atk && card.ability != Ability::counter2x_atk
+            && card.ability != Ability::counter_boost2x_mp && card.ability != Ability::counter_take_cp) continue;
         EffectFrame effect;
         effect.origin = response.actor; effect.source = response.actor; effect.target = incoming.source;
         effect.models = {card.id}; effect.tokens = {response.items[i]}; effect.category = Category::armor;
-        effect.element = card.element; effect.power = damage * (card.ability == Ability::counter2x_atk ? 2 : 1);
+        effect.element = card.element;
+        if (card.ability == Ability::counter_atk || card.ability == Ability::counter2x_atk)
+            effect.power = damage * (card.ability == Ability::counter2x_atk ? 2 : 1);
+        else {
+            effect.amount = static_cast<int>(damage * (card.ability == Ability::counter_boost2x_mp ? 2 : 1));
+            if (card.ability == Ability::counter_boost2x_mp) effect.target = response.actor;
+        }
         effect.ability = card.ability; effect.initial_target = effect.target; effect.hit_rate = card.hit_rate;
         effect.is_counter = true;
         s.counters.push_back(std::move(effect)); ++s.counter_created; ++s.batch->counters_created;
@@ -386,7 +398,10 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
             && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
         require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
-            && batch.responses.size() <= n * (2 * s.config.hand_limit + 99 / 5) + batch.targets.size(), "invalid action journal length");
+            // Up to n*cap physical redirects, n*cap counter completions, and
+            // paid Turbulence funded by initial MP plus <=99 per MP counter.
+            && batch.responses.size() <= 2 * n * s.config.hand_limit
+                + 99 * n * (s.config.hand_limit + 1) / 5 + batch.targets.size(), "invalid action journal length");
         for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
         MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
@@ -418,7 +433,8 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
             || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk
             || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle
-            || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk);
+            || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
+            || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -558,11 +574,12 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v5\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v6\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
-    out += "\",\"counter_rule\":\""; out += counter_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"counter_rule\":\""; out += counter_rule;
+    out += "\",\"resource_counter_rule\":\""; out += resource_counter_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

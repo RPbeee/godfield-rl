@@ -31,6 +31,7 @@ struct Stats {
     std::uint64_t free_main = 0, free_responses = 0, waived_mp = 0, doublings = 0, element_setters = 0;
     std::uint64_t chance_attacks = 0, chance_rolls = 0, chance_hits = 0;
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
+    std::uint64_t mp_counter_resolved = 0, mp_counter_gained = 0, cp_counter_resolved = 0, cp_counter_nominal = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -45,6 +46,8 @@ struct Stats {
         chance_attacks += s.chance_attacks; chance_rolls += s.chance_rolls; chance_hits += s.chance_hits;
         counter_created += s.counter_created; counter_started += s.counter_started;
         counter_rolls += s.counter_rolls; counter_hits += s.counter_hits;
+        mp_counter_resolved += s.mp_counter_resolved; mp_counter_gained += s.mp_counter_gained;
+        cp_counter_resolved += s.cp_counter_resolved; cp_counter_nominal += s.cp_counter_nominal;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -73,6 +76,17 @@ int main(int argc, char** argv) {
                         const auto rolls_before = before.chance_rolls, hits_before = before.chance_hits;
                         const auto created_before = before.counter_created, started_before = before.counter_started;
                         const auto counter_rolls_before = before.counter_rolls, counter_hits_before = before.counter_hits;
+                        std::optional<PlayerId> mp_counter_target;
+                        std::int64_t mp_counter_before = 0;
+                        if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()) {
+                            const auto& effect = before.queue.front();
+                            if (effect.ability == Ability::counter_boost2x_mp) {
+                                ++stats.mp_counter_resolved; mp_counter_target = effect.target;
+                                mp_counter_before = find_player(before.state, effect.target)->mp;
+                            } else if (effect.ability == Ability::counter_take_cp) {
+                                ++stats.cp_counter_resolved; stats.cp_counter_nominal += effect.amount;
+                            }
+                        }
                         const auto redirect_depth = before.queue.empty() ? 0 : before.queue.front().redirects.size();
                         bool bounced = false;
                         auto incoming_element = before.queue.empty() ? Attribute{} : before.queue.front().element;
@@ -127,6 +141,7 @@ int main(int argc, char** argv) {
                         stats.counter_started += match.snapshot().counter_started - started_before;
                         stats.counter_rolls += match.snapshot().counter_rolls - counter_rolls_before;
                         stats.counter_hits += match.snapshot().counter_hits - counter_hits_before;
+                        if (mp_counter_target) stats.mp_counter_gained += find_player(match.snapshot().state, *mp_counter_target)->mp - mp_counter_before;
                         if (bounced && step.actor == command.actor) ++stats.self_bounce_responses;
                         mix(hash, static_cast<unsigned>(step.phase)); mix(hash, step.terminated); mix(hash, step.truncated);
                     }
@@ -150,6 +165,7 @@ int main(int argc, char** argv) {
             << "\nbounce_target_rule=" << bounce_target_rule
             << "\nchance_rule=" << chance_rule
             << "\ncounter_rule=" << counter_rule
+            << "\nresource_counter_rule=" << resource_counter_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -166,6 +182,8 @@ int main(int argc, char** argv) {
             << "\ncounter_created=" << stats.counter_created << "\ncounter_started=" << stats.counter_started
             << "\ncounter_rolls=" << stats.counter_rolls << "\ncounter_hits=" << stats.counter_hits
             << "\ncounter_misses=" << stats.counter_rolls - stats.counter_hits
+            << "\nmp_counter_resolved=" << stats.mp_counter_resolved << "\nmp_counter_gained=" << stats.mp_counter_gained
+            << "\ncp_counter_resolved=" << stats.cp_counter_resolved << "\ncp_counter_nominal=" << stats.cp_counter_nominal
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

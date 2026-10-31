@@ -12,12 +12,12 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v7"); self.assertIn("187-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
-        self.assertEqual((len(match.supported_models), match.gift_weight), (187, 374))
+        self.assertEqual(match.ruleset, "official-execution-subset-v8"); self.assertIn("189-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual((len(match.supported_models), match.gift_weight), (189, 376))
         self.assertIn(212, match.supported_models); self.assertNotIn(112, match.supported_models); self.assertNotIn(14, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v5")
+        self.assertEqual(own["schema"], "official-execution-view-v6")
         self.assertEqual(own["board"]["players"][0]["name"], "A\0B")
         self.assertEqual(len(own["board"]["hand"]), 9); self.assertEqual(spectator["board"]["hand"], [])
         self.assertIsNone(own["pending"])
@@ -29,8 +29,8 @@ class MatchTests(unittest.TestCase):
         added = {38, 39, 156, 167, 174, 189, 190}
         match = self.match(config=Config(initial_hand=18, initial_hp=99))
         self.assertTrue(added <= set(match.supported_models))
-        # Death-passive chance, curse counters and resource counters remain outside v7.
-        self.assertTrue({112, 182, 187, 188}.isdisjoint(match.supported_models))
+        # Death-passive chance, curse counters remain outside v8.
+        self.assertTrue({112, 182, 183, 185, 186}.isdisjoint(match.supported_models))
         seen = set(); fixture = None
         for seed in range(4096):
             match.reset(seed)
@@ -189,13 +189,13 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(added <= seen, "all eight bounce models must actually be gifted")
         # Fixed public reset fixture: both sides can play a miracle+FREE at MP0.
         # Tokens are obtained only from that player's public observation.
-        match.reset(789); reference = self.match(config=config, seed=789)
+        match.reset(1887); reference = self.match(config=config, seed=1887)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
-        self.assertTrue({235, 163} <= own.keys()); self.assertTrue({234, 204} <= other.keys())
-        cast = Command(0, "play", (own[235], own[163]), 1)
+        self.assertTrue({235, 143} <= own.keys()); self.assertTrue({234, 143} <= other.keys())
+        cast = Command(0, "play", (own[235], own[143]), 1)
         self.assertEqual(match.step(cast), reference.step(cast))
-        bounce = Command(1, "defend", (other[234], other[204]))
+        bounce = Command(1, "defend", (other[234], other[143]))
         self.assertTrue(match.legal(bounce)); self.assertFalse(match.legal(Command(1, "defend", (other[234],))))
         before = match.observe(1); status = match.status
         with self.assertRaises(InvalidMatchError): match.step(Command(1, "defend", (other[234],)))
@@ -209,18 +209,18 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v5")
+        self.assertEqual(event["schema"], "official-execution-view-v6")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
         self.assertEqual((pending["origin"], pending["source"], pending["target"]), (0, 1, event["actor"]))
         self.assertEqual((pending["bounces"], pending["reflections"]), (1, 0))
-        self.assertEqual((pending["models"], pending["amount"]), ([235, 163], 10))
+        self.assertEqual((pending["models"], pending["amount"]), ([235, 143], 10))
         for key in ("redirect_rng", "redirects", "tokens", "rng", "gifts"):
             self.assertNotIn(key, event); self.assertNotIn(key, pending)
         hand = event["board"]["hand"]
         self.assertEqual(len(hand), 17)  # Replacement remains deferred during response.
-        self.assertNotIn(other[204], {item["token"] for item in hand})
+        self.assertNotIn(other[143], {item["token"] for item in hand})
         self.assertTrue(next(item for item in hand if item["token"] == other[234])["used"])
         self.assertEqual([p["status"]["mp"] for p in event["board"]["players"]], [0, 0])
         self.assertEqual([p["status"]["hp"] for p in event["board"]["players"]], [40, 40])
@@ -259,8 +259,8 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [40, 40])
         # Chance targets only enemies: teammate77 and source0 never enter this batch.
         roster = [PlayerSetup(0, team=1), PlayerSetup(77, team=1), PlayerSetup(88), PlayerSetup(99, team=2)]
-        multi = self.match(config=config, players=roster, seed=169)
-        reference = self.match(config=config, players=roster, seed=169)
+        multi = self.match(config=config, players=roster, seed=116)
+        reference = self.match(config=config, players=roster, seed=116)
         own = multi.observe(0)["board"]["hand"]
         chance = next(item["token"] for item in own if item["face"] == 95)
         command = Command(0, "play", (chance,))
@@ -290,18 +290,18 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in multi.observe()["board"]["players"]], [40, 40, 40, 39])
         self.assertEqual(len(multi.observe(0)["board"]["hand"]), 18)
         # An all-miss attempt consumes one decision and gives no response window.
-        match.reset(211)
+        match.reset(67)
         chance = next(item["token"] for item in match.observe(0)["board"]["hand"] if item["face"] == 95)
         result = match.step(Command(0, "play", (chance,)))
         self.assertEqual((result.decisions, result.phase, result.actor, result.owner), (1, "main", 1, 1))
         self.assertIsNone(match.observe()["pending"])
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [40, 40])
         # A chance miracle accepts FREE but a hit remains hit across reflection.
-        match.reset(2269); reference = self.match(config=config, seed=2269)
+        match.reset(5284); reference = self.match(config=config, seed=5284)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
-        self.assertTrue({225, 204} <= own.keys()); self.assertIn(39, other)
-        command = Command(0, "play", (own[225], own[204]))
+        self.assertTrue({225, 163} <= own.keys()); self.assertIn(39, other)
+        command = Command(0, "play", (own[225], own[163]))
         reached = False
         for policy_seed in range(4096):
             proposal, unused = match.sample_action(policy_seed); self.assertTrue(match.legal(proposal))
@@ -317,23 +317,19 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(match.step(Command(0, "defend")), reference.step(Command(0, "defend")))
         self.assertEqual(match.observe(0), reference.observe(0))
         hand = match.observe(0)["board"]["hand"]
-        self.assertEqual(len(hand), 18); self.assertNotIn(own[204], {item["token"] for item in hand})
+        self.assertEqual(len(hand), 18); self.assertNotIn(own[163], {item["token"] for item in hand})
         self.assertTrue(next(item for item in hand if item["token"] == own[225])["used"])
         self.assertEqual([p["status"]["mp"] for p in match.observe()["board"]["players"]], [0, 0])
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [35, 40])
 
     def test_damage_counters_fifo_hp_loss_and_hidden_reservations(self):
         config = Config(initial_hand=18, initial_mp=0)
-        match = self.match(config=config, seed=534)
-        reference = self.match(config=config, seed=534)
+        match = self.match(config=config, seed=11168)
+        reference = self.match(config=config, seed=11168)
         self.assertTrue({181, 184} <= set(match.supported_models))
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
         self.assertIn(32, own); self.assertTrue({118, 181, 184} <= other.keys())
-        # Counters are armor, never targetless main chance attacks despite Mars75%.
-        main_counter = Command(0, "play", (own[184],))
-        self.assertFalse(match.legal(main_counter))
-        with self.assertRaises(InvalidMatchError): match.step(main_counter)
         attack = Command(0, "play", (own[32],), 1)
         self.assertEqual(match.step(attack), reference.step(attack))
         before = match.observe(1); status = match.status
@@ -345,7 +341,7 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(match.legal(defense))
         self.assertEqual(match.step(defense), reference.step(defense))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["counter_rule"], "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-source-target;roll-before-response;redirects-no-reroll")
+        self.assertEqual(event["counter_rule"], "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;roll-before-response;redirects-no-reroll")
         self.assertEqual((event["phase"], event["actor"], event["owner"]), ("response", 0, 0))
         self.assertTrue(pending["counter"])
         self.assertEqual((pending["origin"], pending["source"], pending["target"]), (1, 1, 0))
@@ -371,15 +367,107 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(match.observe(player), reference.observe(player))
             self.assertEqual(len(match.observe(player)["board"]["hand"]), 18)
         # The missed Mars counter never creates a response decision.
-        match.reset(576)
+        match.reset(176)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
-        self.assertIn(6, own); self.assertIn(181, other)
+        self.assertIn(6, own); self.assertIn(181, other); self.assertIn(184, own)
+        main_counter = Command(0, "play", (own[184],))
+        self.assertFalse(match.legal(main_counter))
+        with self.assertRaises(InvalidMatchError): match.step(main_counter)
         match.step(Command(0, "play", (own[6],), 1))
         result = match.step(Command(1, "defend", (other[181],)))
         self.assertEqual((result.decisions, result.phase, result.actor, result.owner), (2, "main", 1, 1))
         self.assertIsNone(match.observe()["pending"])
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [40, 39])
+
+    def test_resource_counters_response_direction_alias_and_death(self):
+        rule = "experimental:mp-self-target-with-response;cp-target-incoming-source;debit-current-target-then-full-credit-current-source;resource-debt-no-new-counter"
+        def hand(match, seat):
+            return {item["face"]: item["token"] for item in match.observe(seat)["board"]["hand"]}
+        def stats(match, name):
+            return [p["status"][name] for p in match.observe()["board"]["players"]]
+        # Neptune emits a zero-power, explicit self-target response, not a guardian.
+        config = Config(initial_hand=18, initial_mp=0, initial_cp=0)
+        match = self.match(config=config, seed=14); reference = self.match(config=config, seed=14)
+        self.assertTrue({187, 188} <= set(match.supported_models))
+        own, other = hand(match, 0), hand(match, 1)
+        self.assertIn(6, own); self.assertIn(187, other)
+        attack = Command(0, "play", (own[6],), 1); defense = Command(1, "defend", (other[187],))
+        self.assertEqual(match.step(attack), reference.step(attack))
+        self.assertEqual(match.step(defense), reference.step(defense))
+        event = match.observe(1); pending = event["pending"]
+        self.assertEqual(event["resource_counter_rule"], rule)
+        self.assertEqual((match.status.phase, match.actor, match.status.owner), ("response", 1, 0))
+        self.assertEqual((pending["origin"], pending["source"], pending["target"], pending["power"], pending["amount"]), (1, 1, 1, 0, 2))
+        self.assertTrue(pending["counter"]); self.assertEqual(pending["models"], [187])
+        self.assertEqual(stats(match, "mp"), [0, 0]); self.assertEqual(stats(match, "guardian"), ["", ""])
+        self.assertFalse(match.legal(Command(1, "defend", (other[142],))))
+        before = match.observe(1); before_status = match.status
+        with self.assertRaises(InvalidMatchError): match.step(Command(1, "defend", (other[142],)))
+        for policy_seed in range(64):
+            proposal, rng = match.sample_action(policy_seed)
+            self.assertTrue(match.legal(proposal)); self.assertEqual((proposal, rng), match.sample_action(policy_seed))
+        self.assertEqual((match.observe(1), match.status), (before, before_status))
+        for key in ("batch", "counters", "counter_created", "counter_started", "counter_rolls", "counter_hits", "rng"):
+            self.assertNotIn(key, event); self.assertNotIn(key, pending)
+        accept = Command(1, "defend")
+        self.assertEqual(match.step(accept), reference.step(accept))
+        self.assertEqual(stats(match, "hp"), [40, 39]); self.assertEqual(stats(match, "mp"), [0, 2])
+        self.assertEqual((match.status.phase, match.actor, match.status.owner), ("main", 1, 1))
+        for seat in (0, 1):
+            self.assertEqual(match.observe(seat), reference.observe(seat))
+            self.assertEqual(len(match.observe(seat)["board"]["hand"]), 18)
+        capped = self.match(config=Config(initial_hand=18, initial_mp=98), seed=14)
+        own, other = hand(capped, 0), hand(capped, 1)
+        capped.step(Command(0, "play", (own[6],), 1)); capped.step(Command(1, "defend", (other[187],))); capped.step(Command(1, "defend"))
+        self.assertEqual(stats(capped, "mp"), [98, 99])
+        # A self-reflection of the MP counter keeps a response and applies once.
+        mirror = self.match(config=config, seed=1810)
+        own, other = hand(mirror, 0), hand(mirror, 1)
+        self.assertIn(6, own); self.assertTrue({187, 190} <= other.keys())
+        mirror.step(Command(0, "play", (own[6],), 1)); mirror.step(Command(1, "defend", (other[187],)))
+        mirror.step(Command(1, "defend", (other[190],)))
+        self.assertEqual((mirror.actor, mirror.observe()["pending"]["source"], mirror.observe()["pending"]["target"]), (1, 1, 1))
+        self.assertEqual(stats(mirror, "mp"), [0, 0])
+        mirror.step(Command(1, "defend")); self.assertEqual(stats(mirror, "mp"), [0, 2])
+        # Venus credits the full nominal amount after CP->MP->HP debt payment.
+        cp = self.match(config=config, seed=64)
+        own, other = hand(cp, 0), hand(cp, 1)
+        self.assertIn(32, own); self.assertIn(188, other)
+        cp.step(Command(0, "play", (own[32],), 1)); cp.step(Command(1, "defend", (other[188],)))
+        pending = cp.observe()["pending"]
+        self.assertEqual((cp.actor, pending["source"], pending["target"], pending["power"], pending["amount"]), (0, 1, 0, 0, 9))
+        cp.step(Command(0, "defend"))
+        self.assertEqual(stats(cp, "hp"), [31, 31]); self.assertEqual(stats(cp, "mp"), [0, 0]); self.assertEqual(stats(cp, "cp"), [0, 9])
+        self.assertIsNone(cp.observe()["pending"])
+        cp_cap = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=64)
+        own, other = hand(cp_cap, 0), hand(cp_cap, 1)
+        cp_cap.step(Command(0, "play", (own[32],), 1)); cp_cap.step(Command(1, "defend", (other[188],))); cp_cap.step(Command(0, "defend"))
+        self.assertEqual(stats(cp_cap, "cp"), [90, 99])
+        # Reflection changes creditor/debtor through the current source/target.
+        reflected = self.match(config=config, seed=501)
+        own, other = hand(reflected, 0), hand(reflected, 1)
+        self.assertTrue({6, 190} <= own.keys()); self.assertIn(188, other)
+        reflected.step(Command(0, "play", (own[6],), 1)); reflected.step(Command(1, "defend", (other[188],)))
+        reflected.step(Command(0, "defend", (own[190],)))
+        pending = reflected.observe()["pending"]
+        self.assertEqual((pending["origin"], pending["source"], pending["target"], pending["amount"]), (1, 0, 1, 1))
+        reflected.step(Command(1, "defend"))
+        self.assertEqual(stats(reflected, "cp"), [1, 0]); self.assertEqual(stats(reflected, "hp"), [40, 38])
+        # Aliased source==target still debits first; later credit cannot undo HP0.
+        for hp in (40, 2):
+            alias = self.match(config=Config(initial_hand=18, initial_hp=hp, initial_mp=0, initial_cp=0), seed=64)
+            own = hand(alias, 0)
+            alias.step(Command(0, "play", (own[6],), 0)); alias.step(Command(0, "defend", (own[188],)))
+            pending = alias.observe()["pending"]
+            self.assertEqual((pending["source"], pending["target"], pending["amount"]), (0, 0, 1))
+            result = alias.step(Command(0, "defend"))
+            self.assertEqual(stats(alias, "cp"), [1, 0]); self.assertEqual(stats(alias, "hp"), [hp - 2, hp])
+            if hp == 2:
+                self.assertTrue(result.terminated); self.assertEqual((result.winners, result.rewards), ((1,), (-1, 1)))
+                self.assertTrue(alias.observe()["board"]["players"][0]["dead"])
+            else:
+                self.assertEqual((result.phase, result.actor), ("main", 1))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()
