@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 319>& gift_tickets() {
+const std::array<CardId, 328>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 319> values{};
+        std::array<CardId, 328> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 319>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 139) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 148) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -169,7 +169,7 @@ EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models
     const auto& base = *find_card(models.front());
     return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, {}};
 }
-struct ResponseResult { std::int64_t defense = 0; bool reflected = false; };
+struct ResponseResult { std::int64_t defense = 0; Reaction reaction = Reaction::none; };
 // Composition is validated separately by the public-client append predicate.
 // A filter belongs to the incoming payload; a reflector never contributes ATK/DEF.
 ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> models) {
@@ -177,9 +177,14 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
     for (auto id : models) {
         const auto& c = *find_card(id);
         if (c.ability == Ability::filter_atk_element) effect.element.reset();
-        if (reaction_for(id, effect.category, effect.element) == Reaction::reflect) {
+        const auto reaction = reaction_for(id, effect.category, effect.element);
+        if (reaction == Reaction::reflect) {
             std::swap(effect.source, effect.target);
-            result.reflected = true;
+            result.reaction = reaction;
+        } else if (reaction == Reaction::block) {
+            result.reaction = reaction;
+        } else if (reaction != Reaction::none) {
+            unsupported("reaction has no scoped resolver");
         } else result.defense += c.defense;
     }
     return result;
@@ -295,7 +300,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             defense_prefix.push_back({id, false});
         }
         evidence(reflection.defender, reflection.models, reflection.tokens);
-        require(apply_response(replay, reflection.models).reflected, "history entry has no matching reflection");
+        require(apply_response(replay, reflection.models).reaction == Reaction::reflect, "history entry has no matching reflection");
     }
     replay.reflections = effect.reflections;
     require(effect == replay, "queued payload does not match original models and reflection history");
@@ -314,7 +319,7 @@ bool match_supported(CardId id) noexcept {
     return c && c->gift_rate > 0 && !c->hit_rate && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
-            || c->ability == Ability::filter_atk_element);
+            || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -367,9 +372,12 @@ MatchStep Match::step(const Command& command) {
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
         consume(s, seat, command.items, false);
-        if (response.reflected) {
+        if (response.reaction == Reaction::reflect) {
             effect.reflections.push_back({command.actor, models, command.items}); s.actor = effect.target;
-        } else { resolve(s, effect, response.defense); s.queue.clear(); completed = true; }
+        } else {
+            if (response.reaction == Reaction::none) resolve(s, effect, response.defense);
+            s.queue.clear(); completed = true;
+        }
     } else if (command.kind == CommandKind::discard) {
         consume(s, seat, command.items, true); completed = true;
     } else if (command.kind == CommandKind::pray) {

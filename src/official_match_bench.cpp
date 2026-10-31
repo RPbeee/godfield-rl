@@ -26,6 +26,7 @@ struct Stats {
     std::uint64_t main = 0, responses = 0, physical = 0, first_uses = 0, recasts = 0, defense_cards = 0;
     std::uint64_t prayers = 0, discarded = 0, self_attacks = 0, dark_responses = 0, full_hands = 0;
     std::uint64_t reflections = 0, filters = 0, max_reflection_depth = 0;
+    std::uint64_t blocks = 0, wall_first_uses = 0, wall_recasts = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -33,6 +34,7 @@ struct Stats {
         defense_cards += s.defense_cards; prayers += s.prayers; discarded += s.discarded; self_attacks += s.self_attacks;
         dark_responses += s.dark_responses; full_hands += s.full_hands;
         reflections += s.reflections; filters += s.filters; max_reflection_depth = std::max(max_reflection_depth, s.max_reflection_depth);
+        blocks += s.blocks; wall_first_uses += s.wall_first_uses; wall_recasts += s.wall_recasts;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -77,9 +79,14 @@ int main(int argc, char** argv) {
                             else ++stats.physical;
                             if (command.kind == CommandKind::defend) {
                                 if (find_card(item->model)->ability == Ability::filter_atk_element) { ++stats.filters; incoming_element.reset(); }
-                                if (reaction_for(item->model, before.queue.front().category, incoming_element) == Reaction::reflect) {
+                                const auto reaction = reaction_for(item->model, before.queue.front().category, incoming_element);
+                                if (reaction == Reaction::reflect) {
                                     ++stats.reflections;
                                     stats.max_reflection_depth = std::max(stats.max_reflection_depth, static_cast<std::uint64_t>(reflection_depth + 1));
+                                }
+                                if (reaction == Reaction::block) ++stats.blocks;
+                                if (find_card(item->model)->ability == Ability::block_weapon) {
+                                    if (item->used) ++stats.wall_recasts; else ++stats.wall_first_uses;
                                 }
                             }
                         }
@@ -113,6 +120,7 @@ int main(int argc, char** argv) {
             << "\nprayers=" << stats.prayers << "\ndiscarded=" << stats.discarded << "\nself_attacks=" << stats.self_attacks
             << "\ndark_responses=" << stats.dark_responses << "\nfull_hand_actions=" << stats.full_hands << "\nchecksum=" << stats.checksum
             << "\nreflections=" << stats.reflections << "\nfilters=" << stats.filters << "\nmax_reflection_depth=" << stats.max_reflection_depth
+            << "\nblocks=" << stats.blocks << "\nwall_first_uses=" << stats.wall_first_uses << "\nwall_recasts=" << stats.wall_recasts
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

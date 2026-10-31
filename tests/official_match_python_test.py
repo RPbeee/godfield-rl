@@ -12,8 +12,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v2"); self.assertIn("139-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
-        self.assertEqual((len(match.supported_models), match.gift_weight), (139, 319))
+        self.assertEqual(match.ruleset, "official-execution-subset-v3"); self.assertIn("148-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual((len(match.supported_models), match.gift_weight), (148, 328))
         self.assertIn(212, match.supported_models); self.assertNotIn(112, match.supported_models); self.assertNotIn(14, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
@@ -29,8 +29,8 @@ class MatchTests(unittest.TestCase):
         added = {38, 39, 156, 167, 174, 189, 190}
         match = self.match(config=Config(initial_hand=18, initial_hp=99))
         self.assertTrue(added <= set(match.supported_models))
-        # Other reaction families, chance and FREE remain explicitly outside v2.
-        self.assertTrue({21, 34, 46, 95, 233, 234}.isdisjoint(match.supported_models))
+        # Bounce reactions, chance and FREE remain explicitly outside v3.
+        self.assertTrue({21, 34, 46, 95, 234}.isdisjoint(match.supported_models))
         seen = set(); fixture = None
         for seed in range(4096):
             match.reset(seed)
@@ -65,6 +65,42 @@ class MatchTests(unittest.TestCase):
         self.assertIsNone(match.observe()["pending"])
         players = match.observe()["board"]["players"]
         self.assertEqual([p["status"]["hp"] for p in players], [98, 99])
+
+    def test_block_pool_and_retained_wall_response(self):
+        added = {42, 50, 55, 56, 165, 171, 177, 179, 233}
+        match = self.match(config=Config(initial_hand=18, initial_hp=99))
+        self.assertTrue(added <= set(match.supported_models))
+        seen = set(); fixture = None
+        for seed in range(4096):
+            match.reset(seed)
+            own = match.observe(0)["board"]["hand"]
+            other = match.observe(1)["board"]["hand"]
+            seen.update(item["face"] for item in own + other)
+            self.assertTrue(seen <= set(match.supported_models))
+            weapon = next((item for item in own if item["face"] == 6), None)
+            wall = next((item for item in other if item["face"] == 233), None)
+            if fixture is None and weapon is not None and wall is not None:
+                fixture = (seed, weapon["token"], wall["token"])
+            if added <= seen and fixture is not None: break
+        self.assertTrue(added <= seen, "all nine block models must actually be gifted")
+        self.assertIsNotNone(fixture)
+        seed, weapon, wall = fixture
+        match.reset(seed)
+        match.step(Command(0, "play", (weapon,), 1))
+        blocked = match.step(Command(1, "defend", (wall,)))
+        self.assertEqual((blocked.phase, blocked.actor, blocked.owner), ("main", 1, 1))
+        self.assertIsNone(match.observe()["pending"])
+        players = match.observe()["board"]["players"]
+        self.assertEqual([p["status"]["hp"] for p in players], [99, 99])
+        self.assertEqual([p["status"]["mp"] for p in players], [10, 4])
+        wall_item = next(item for item in match.observe(1)["board"]["hand"] if item["token"] == wall)
+        self.assertEqual((wall_item["face"], wall_item["used"]), (233, True))
+        # The retained response-only miracle must not become a main heal/attack.
+        command = Command(1, "play", (wall,), 0)
+        before = match.observe(1); status = match.status
+        self.assertFalse(match.legal(command))
+        with self.assertRaises(InvalidMatchError): match.step(command)
+        self.assertEqual((match.observe(1), match.status), (before, status))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

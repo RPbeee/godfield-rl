@@ -58,7 +58,19 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、[限定実行器v2](official-execution-subset.md)は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定する。bounce/block/counter/FREE/防御奇跡等を含めず、反射source/target・元payload・各応答者の消費来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定した。現行の[限定実行器v3](official-execution-subset.md)は、さらにblockMiracle8種とblockWeapon233を加えた148モデル/重み328。bounce/counter/FREEや233以外の反応奇跡等を含めず、反射source/target・元payload・各応答者の消費来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+
+### 遮断9モデルの一次確認とv3規約
+
+公式JSONのblockMiracleは42/50/55/56/165/171/177/179の8種、blockWeaponは233の1種。全て無属性でgiftRate1、v2集合との重複は無い。物理8種は価格15で、ATK11/13/15/15とDEF9/11/13/15を持つ。56はisPlusAtkで追加ATK15にも使える。233はcost6の奇跡で、`gkN`（13024–13033行）では主動作開始を拒否する。
+
+`e1` はincoming categoryがmiraclesならblockMiracle能力を反応結果 `block` と判定し、威力が正か、回復か、属性が何かは条件にしない。武器遮断233はcategoryがweaponsかつ現在属性が無属性のときだけ。`ev` の空列/直前filter条件はblockにも適用され、matching品の普通DEF opt-outや、普通防具→blockは受理しない。filter→blockは、incoming_is_attackを満たす攻撃への前置であれば可能。回復奇跡へのblockは単品でmatchingし、filterを使って奇跡を武器へ変える処理ではない。
+
+この一般predicateと現行台帳の効果の実在は別である。単純回復奇跡は235がHP、236がCPを増やし、MP増加の奇跡は台帳に無い。MP回復雑貨や守護神のMP増加を、効果が似ているという理由でmiraclesへ読み替えない。
+
+233の費用と保持表示は既存の通常MC経路に従う。submit時の `ee(null)` はMCをusedとして保持し、18枠未満なら補充用placeholderを作る。`useDefenseItems` は受信items列を表示した後、`la` の費用をMPから引く。233単品は初使用/再使用とも6MPで、既usedのtokenを使い直しても新しい保持品を別に作らない。防御奇跡→FREEのUI条件は別に存在するが、v3ではFREEを実行対象へ含めない。
+
+公式 `block` event handlerは `dE` を呼び、`dE` は音と `aZ("block", side)` の表示後に戻る（9765–9772行）。元のHP/MP/CP効果を取消す権威的な処理、補充予定の処理、手番決定はここに無い。v3は現在payload全取消、原発MCの既払いMPは戻さず再課金もしない、遮断品の消費/MP/used保持/補充予約は通常処理、未終局/未打切りならまとめて補充して元ownerから巡回する、という明示的なローカル規約にする。反射途中のblockもその場で終端にし、blockをpending反射ledgerへ積んで次の応答を作ることはしない。
 
 ## 病気・閃光・暗雲
 

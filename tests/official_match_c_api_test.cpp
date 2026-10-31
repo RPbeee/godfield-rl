@@ -24,12 +24,13 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 139 && gfo_match_gift_weight() == 319 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 148 && gfo_match_gift_weight() == 328 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v2"
-        && std::string(gfo_match_scope()) == "experimental:139-models;not-official-server-equivalence", "explicit v2 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v3"
+        && std::string(gfo_match_scope()) == "experimental:148-models;not-official-server-equivalence", "explicit v3 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {21, 34, 46, 95, 233, 234}) check(!gfo_match_supported(id), "remaining reaction/chance/FREE unsupported");
+    for (auto id : {21, 34, 46, 95, 234}) check(!gfo_match_supported(id), "remaining reaction/chance/FREE unsupported");
+    for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -116,6 +117,32 @@ int main() {
     gfo_match_command accept{}; accept.actor = 0; accept.kind = 1;
     check(gfo_match_step(reflected_match, &accept, &result) == 0 && result.phase == 0 && result.actor == 77 && result.owner == 77,
         "reflected item resolves once then normal next turn");
+    found = false; fixture_seed = 0; uint64_t wall_token = 0;
+    for (; fixture_seed < 4096 && !found; ++fixture_seed) {
+        fixture.reset(setup, fixture_seed);
+        bool weapon = false, wall = false;
+        for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon = true; weapon_token = item.token; }
+        for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 233) { wall = true; wall_token = item.token; }
+        found = weapon && wall;
+    }
+    check(found, "retained Wall reachable from public reset pool"); --fixture_seed;
+    gfo_match* blocked_match = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, fixture_seed, &blocked_match) == 0, "Wall fixture create");
+    attack.items[0] = weapon_token;
+    check(gfo_match_step(blocked_match, &attack, &result) == 0 && result.phase == 1 && result.actor == 77, "Wall incoming weapon");
+    gfo_match_command wall{}; wall.actor = 77; wall.kind = 1; wall.item_count = 1; wall.items[0] = wall_token;
+    check(gfo_match_step(blocked_match, &wall, &result) == 0 && result.phase == 0 && result.actor == 77 && result.owner == 77, "matching block finishes instead of opening another response");
+    const auto blocked = observe(blocked_match, 1, 77);
+    check(blocked.find("\"pending\":null") != std::string::npos && blocked.find("\"hp\":99,\"mp\":4") != std::string::npos,
+        "block cancels damage and pays six MP");
+    const auto wall_json = "\"token\":" + std::to_string(wall_token) + ",\"face\":233,\"reference\":233,\"disguised\":false,\"used\":true";
+    check(blocked.find(wall_json) != std::string::npos, "blocking miracle stays retained at same token");
+    wall.kind = 0; wall.has_target = 1; wall.target = 0;
+    const auto blocked_status = result; legal = 55;
+    check(gfo_match_legal(blocked_match, &wall, &legal) == 0 && !legal, "retained Wall is not a main action");
+    check(gfo_match_step(blocked_match, &wall, &result) == -2 && equal(result, blocked_status)
+        && observe(blocked_match, 1, 77) == blocked, "main Wall rejection preserves outputs and frame");
+    gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);
     std::cout << "official match C API passed\n";
