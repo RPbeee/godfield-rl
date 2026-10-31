@@ -122,7 +122,7 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 `official_match.hpp` / `official_match.cpp` はv1の132モデル・配布重み308、
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
-156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えた194モデル・配布重み381の `official-execution-subset-v9` へ拡張した。
+156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えたv9の194モデル・配布重み381を経て、閃光付与/反撃/解除7種を加えた201モデル・配布重み404の `official-execution-subset-v10` へ拡張した。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
 別policy乱数、プログラム内snapshot再開、C/Python実行APIを持つ。
@@ -134,7 +134,7 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 反射は現在source/targetを交換し元のpayloadとownerを保ち、消去後の無属性を維持する。
 原発奇跡を再課金・新sourceへ取得させず、応答者ごとの消費と補充予定をledgerへ記録する。
-Snapshot version9は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6/7/8を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
+Snapshot version10は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6/7/8/9を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
 自己反射もresponseを継続するのは明示したローカル規約であり、clientの自己target表示だけからserver規則を確定しない。
 
 v3の魔法遮断8種は現行の回復奇跡HP235/CP236も止め、武器遮断233は無属性武器にmatchingする。
@@ -142,7 +142,7 @@ MP増加奇跡は現行台帳に無く、categoryで判定する一般predicate�
 ＜壁＞単品は初回/再使用ともMP6、初回はused保持し、補充は空き次第で1または0。v4は直後FREEによる費用0も許可する。
 blockは現在payload全取消の終端応答とし、reflection ledgerへ保持しない。各選択の消費・費用・予約を処理後、
 未終局/未打切りの場合だけまとめて配布して元ownerから巡回する。この全体順はclientのblock演出だけで証明できず、実験規約である。
-v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたview-v5、v8はresource_counter_ruleを加えたview-v6、v9はdamage_effect_ruleを加えたofficial-execution-view-v7とする。C ABI1は維持する。
+v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたview-v5、v8はresource_counter_ruleを加えたview-v6、v9はdamage_effect_ruleを加えたview-v7、v10はflash_ruleを加えたofficial-execution-view-v8とする。C ABI1は維持する。
 
 v4の無料化は各MCの即後FREEペア全てを免除し、MP不足prefixではなく完成列の最終費用を検証する。
 壁→FREEは全選択を消費/used保持する契約で、旧版の未消費suffixは採らない。
@@ -163,9 +163,9 @@ v8の187は実HP損失×2のMPを生成者selftargetへ明示responseで回復�
 回復MPによりpaid234の旧19回/人上限は不適切で、response予算は `2*n*hand_limit+floor(99*n*(hand_limit+1)/5)+targets.size()`、counter生成/予約はn*hand_limit以下とする。初期MP<=99*n・各187実増<=99・全counter生成数から導き、全execute再生で資源/FIFO/journalも照合する。resource_counter_ruleを公開し、counter_ruleのtarget表現はsingle-targetへ更新する。
 
 v9は27/45/98/216吸収と53同被害を通常damage bodyへ閉じて追加する。正nonDark残余rawの現在source副作用を先に、targetdamageを後に適用し、selfalias逐次clamp/全body後dead確定/target段階だけのcounter基準を明示する。現行clientが受信HPイベントを更新する算術と、参照Flashを参考に採る量・順序の実験規約を分ける。現scopeではDark吸収/53へ到達せず、合法例を捏造しない。
-98は木75%の既存chance、216は保持MP10/FREEを扱い、新RNGやMP予算変更は無い。damage_effect_ruleを公開し、派生counterへの能力非継承・source側HP変動からcounter非生成を全replayで検査する。状態導入の最小候補は70/185/199等のFlash付与/反撃/解除だが、v9には含めない。
+98は木75%の既存chance、216は保持MP10/FREEを扱い、新RNGやMP予算変更は無い。damage_effect_ruleを公開し、派生counterへの能力非継承・source側HP変動からcounter非生成を全replayで検査する。v9には状態を含めず、v10で70/185/224と解除199/200/237/238を追加する。閃光の1枚応答制限をlive legality/samplerへ結び、FREEより先に検査する。付与trigger/致死時/持続/反撃FIFOは実験規約、解除4種は閃光だけの閉じた状態集合で実行する。他curse/重複Flash/fake等を拒否し、全action replayで状態と選択制限を照合する。
 
-全効果の一般キュー、災いcounter・売買・吸収以外の固有効果付き確率攻撃・霧/夢の実効果・守護神・終末と、
+全効果の一般キュー、閃光以外の災いcounter・売買・吸収/閃光以外の固有効果付き確率攻撃・霧/夢の実効果・守護神・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
-v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデルの計測・checksumは過去の証拠として保持し、現行v9の194モデルの結果とは分ける。
+v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデル、v9の194モデルの計測・checksumは過去の証拠として保持し、現行v10の201モデルの結果とは分ける。

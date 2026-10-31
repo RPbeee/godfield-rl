@@ -24,12 +24,12 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 194 && gfo_match_gift_weight() == 381 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 201 && gfo_match_gift_weight() == 404 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v9"
-        && std::string(gfo_match_scope()) == "experimental:194-models;not-official-server-equivalence", "explicit v9 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v10"
+        && std::string(gfo_match_scope()) == "experimental:201-models;not-official-server-equivalence", "explicit v10 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {112, 182, 183, 185, 186}) check(!gfo_match_supported(id), "death-passive chance and curse counters unsupported");
+    for (auto id : {112, 182, 183, 186}) check(!gfo_match_supported(id), "death-passive chance and curse counters unsupported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
     for (auto id : {46, 66, 83, 143, 163, 173, 204, 231}) check(gfo_match_supported(id), "added composition membership");
     for (auto id : {21, 34, 114, 125, 137, 151, 164, 234}) check(gfo_match_supported(id), "added bounce membership");
@@ -37,6 +37,7 @@ int main() {
     for (auto id : {181, 184}) check(gfo_match_supported(id), "damage counter membership");
     for (auto id : {187, 188}) check(gfo_match_supported(id), "resource counter membership");
     for (auto id : {27, 45, 98, 216, 53}) check(gfo_match_supported(id), "damage-effect membership");
+    for (auto id : {70, 185, 224, 199, 200, 237, 238}) check(gfo_match_supported(id), "Flash and cure membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -217,7 +218,7 @@ int main() {
     check(hand_count == 18, "free response refill clipped at hand cap");
     gfo_match_destroy(free_wall);
     // Public seeded reset contains Spring+FREE and Turbulence+FREE at MP0.
-    fixture.reset(setup, 35918);
+    fixture.reset(setup, 68233);
     bool got_spring = false, got_cast_free = false, got_bounce = false, got_bounce_free = false;
     uint64_t cast_free_token = 0, bounce_token = 0, bounce_free_token = 0;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
@@ -230,8 +231,8 @@ int main() {
     }
     check(got_spring && got_cast_free && got_bounce && got_bounce_free, "public reset zero-MP bounce fixture");
     gfo_match* bounce_match = nullptr; gfo_match* bounce_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 35918, &bounce_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 35918, &bounce_replay) == 0, "bounce fixture create");
+    check(gfo_match_create(&cfg, players.data(), 2, 68233, &bounce_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 68233, &bounce_replay) == 0, "bounce fixture create");
     free_cast.target = 77; free_cast.items[0] = spring_token; free_cast.items[1] = cast_free_token;
     check(gfo_match_step(bounce_match, &free_cast, &free_result) == 0
         && gfo_match_step(bounce_replay, &free_cast, &replay_result) == 0 && equal(free_result, replay_result), "incoming recovery miracle opens bounce response");
@@ -256,7 +257,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v7\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v8\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -288,12 +289,12 @@ int main() {
     for (std::size_t i = 0; i < chance_players.size(); ++i) {
         chance_players[i].id = chance_setup[i].id; chance_players[i].team = static_cast<uint8_t>(chance_setup[i].team);
     }
-    fixture.reset(chance_setup, 21); uint64_t chance_token = 0; bool found_chance = false;
+    fixture.reset(chance_setup, 102); uint64_t chance_token = 0; bool found_chance = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
     check(found_chance, "public reset multi-target chance fixture");
     gfo_match* chance_match = nullptr; gfo_match* chance_replay = nullptr;
-    check(gfo_match_create(&cfg, chance_players.data(), 4, 21, &chance_match) == 0
-        && gfo_match_create(&cfg, chance_players.data(), 4, 21, &chance_replay) == 0, "chance create");
+    check(gfo_match_create(&cfg, chance_players.data(), 4, 102, &chance_match) == 0
+        && gfo_match_create(&cfg, chance_players.data(), 4, 102, &chance_replay) == 0, "chance create");
     gfo_match_command chance_command{}; chance_command.item_count = 1; chance_command.items[0] = chance_token;
     auto explicit_target = chance_command; explicit_target.has_target = 1; explicit_target.target = 99;
     const auto chance_before = observe(chance_match); result = status(chance_match); const auto chance_status = result;
@@ -329,15 +330,15 @@ int main() {
     while ((offset = complete_chance.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
     check(hand_count == 18, "chance launch replacement counted once");
     gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
-    fixture.reset(setup, 63); found_chance = false;
+    fixture.reset(setup, 86); found_chance = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
-    check(found_chance && gfo_match_create(&cfg, players.data(), 2, 63, &chance_match) == 0, "all-miss fixture create");
+    check(found_chance && gfo_match_create(&cfg, players.data(), 2, 86, &chance_match) == 0, "all-miss fixture create");
     chance_command.items[0] = chance_token;
     check(gfo_match_step(chance_match, &chance_command, &result) == 0 && result.decisions == 1 && result.phase == 0
         && result.actor == 77 && result.owner == 77 && observe(chance_match).find("\"pending\":null") != std::string::npos,
         "all misses complete without any defense decision");
     gfo_match_destroy(chance_match);
-    fixture.reset(setup, 602);
+    fixture.reset(setup, 12517);
     bool got_chance_mc = false; got_cast_free = false; bool got_reflector = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 225) { got_chance_mc = true; spring_token = item.token; }
@@ -345,8 +346,8 @@ int main() {
     }
     for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 39) { got_reflector = true; mirror_token = item.token; }
     check(got_chance_mc && got_cast_free && got_reflector
-        && gfo_match_create(&cfg, players.data(), 2, 602, &chance_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 602, &chance_replay) == 0, "zero-MP chance miracle/FREE fixture create");
+        && gfo_match_create(&cfg, players.data(), 2, 12517, &chance_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 12517, &chance_replay) == 0, "zero-MP chance miracle/FREE fixture create");
     chance_command.item_count = 2; chance_command.items[0] = spring_token; chance_command.items[1] = cast_free_token;
     chance_sampled = false;
     for (uint64_t policy_seed = 0; policy_seed < 4096 && !chance_sampled; ++policy_seed) {
@@ -375,7 +376,7 @@ int main() {
         "chance miracle learned once and physical FREE consumed once");
     gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
     // Ordinary DEF reduces HP loss before the selected counters enter FIFO.
-    fixture.reset(setup, 1281);
+    fixture.reset(setup, 30310);
     uint64_t armor_token = 0, mars_token = 0, saturn_token = 0;
     bool got_attack = false, got_armor = false, got_mars = false, got_saturn = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 32) { weapon_token = item.token; got_attack = true; }
@@ -386,8 +387,8 @@ int main() {
     }
     check(got_attack && got_armor && got_mars && got_saturn, "public reset mixed-counter fixture");
     gfo_match* counter_match = nullptr; gfo_match* counter_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 1281, &counter_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 1281, &counter_replay) == 0, "counter fixture create");
+    check(gfo_match_create(&cfg, players.data(), 2, 30310, &counter_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 30310, &counter_replay) == 0, "counter fixture create");
     attack.items[0] = weapon_token;
     check(gfo_match_step(counter_match, &attack, &free_result) == 0 && gfo_match_step(counter_replay, &attack, &replay_result) == 0
         && equal(free_result, replay_result), "ordinary incoming damage for counters");
@@ -436,10 +437,10 @@ int main() {
     while ((offset = complete_counter.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
     check(hand_count == 18, "counter defenses refill only after full action");
     gfo_match_destroy(counter_match); gfo_match_destroy(counter_replay);
-    fixture.reset(setup, 4023); got_attack = false; got_mars = false;
+    fixture.reset(setup, 14117); got_attack = false; got_mars = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon_token = item.token; got_attack = true; }
     for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 181) { mars_token = item.token; got_mars = true; }
-    check(got_attack && got_mars && gfo_match_create(&cfg, players.data(), 2, 4023, &counter_match) == 0, "Mars-miss fixture create");
+    check(got_attack && got_mars && gfo_match_create(&cfg, players.data(), 2, 14117, &counter_match) == 0, "Mars-miss fixture create");
     attack.items[0] = weapon_token; defend_counters.item_count = 1; defend_counters.items[0] = mars_token;
     defend_counters.items[1] = 0; defend_counters.items[2] = 0;
     check(gfo_match_step(counter_match, &attack, &result) == 0
@@ -449,7 +450,7 @@ int main() {
     gfo_match_destroy(counter_match);
     // Resource counters stay armor payloads, never summon metadata guardians.
     cfg.initial_cp = 0;
-    fixture.reset(setup, 201); bool got_mp_counter = false; got_attack = false; got_armor = false;
+    fixture.reset(setup, 1036); bool got_mp_counter = false; got_attack = false; got_armor = false;
     uint64_t resource_token = 0;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 6) { weapon_token = item.token; got_attack = true; }
     for (const auto& item : fixture.snapshot().state.players[1].items) {
@@ -458,8 +459,8 @@ int main() {
     }
     check(got_attack && got_mp_counter && got_armor, "public reset Neptune fixture");
     gfo_match* resource_match = nullptr; gfo_match* resource_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 201, &resource_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 201, &resource_replay) == 0, "resource counter create");
+    check(gfo_match_create(&cfg, players.data(), 2, 1036, &resource_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 1036, &resource_replay) == 0, "resource counter create");
     attack.items[0] = weapon_token;
     check(gfo_match_step(resource_match, &attack, &free_result) == 0
         && gfo_match_step(resource_replay, &attack, &replay_result) == 0 && equal(free_result, replay_result), "resource counter incoming attack");
@@ -486,10 +487,10 @@ int main() {
         && observe(resource_match, 1, 77) == observe(resource_replay, 1, 77)
         && observe(resource_match).find("\"hp\":39,\"mp\":2,\"cp\":0") != std::string::npos, "Neptune applies once; policy queries leave future gifts unchanged");
     gfo_match_destroy(resource_match); gfo_match_destroy(resource_replay);
-    fixture.reset(setup, 5422); got_attack = false; bool got_cp_counter = false;
+    fixture.reset(setup, 26791); got_attack = false; bool got_cp_counter = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 32) { weapon_token = item.token; got_attack = true; }
     for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 188) { resource_token = item.token; got_cp_counter = true; }
-    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 5422, &resource_match) == 0, "public reset Venus fixture");
+    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 26791, &resource_match) == 0, "public reset Venus fixture");
     attack.items[0] = weapon_token; resource_defense.items[0] = resource_token;
     check(gfo_match_step(resource_match, &attack, &result) == 0 && gfo_match_step(resource_match, &resource_defense, &result) == 0
         && result.phase == 1 && result.actor == 0 && result.owner == 0, "Venus targets incoming source");
@@ -503,13 +504,13 @@ int main() {
         && observe(resource_match).find("\"hp\":31,\"mp\":0,\"cp\":0") != std::string::npos,
         "CP debt falls through MP and HP while creditor receives nominal CP");
     gfo_match_destroy(resource_match);
-    fixture.reset(setup, 1077); got_attack = false; got_cp_counter = false; bool got_any_reflector = false;
+    fixture.reset(setup, 4946); got_attack = false; got_cp_counter = false; bool got_any_reflector = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 6) { weapon_token = item.token; got_attack = true; }
         if (item.model == 190) { mirror_token = item.token; got_any_reflector = true; }
     }
     for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 188) { resource_token = item.token; got_cp_counter = true; }
-    check(got_attack && got_cp_counter && got_any_reflector && gfo_match_create(&cfg, players.data(), 2, 1077, &resource_match) == 0, "public reset Venus reflection fixture");
+    check(got_attack && got_cp_counter && got_any_reflector && gfo_match_create(&cfg, players.data(), 2, 4946, &resource_match) == 0, "public reset Venus reflection fixture");
     attack.items[0] = weapon_token; resource_defense.items[0] = resource_token;
     check(gfo_match_step(resource_match, &attack, &result) == 0 && gfo_match_step(resource_match, &resource_defense, &result) == 0, "CP reflection incoming");
     gfo_match_command resource_mirror{}; resource_mirror.actor = 0; resource_mirror.kind = 1; resource_mirror.item_count = 1; resource_mirror.items[0] = mirror_token;
@@ -523,13 +524,13 @@ int main() {
         "reflected CP payment follows current endpoints");
     gfo_match_destroy(resource_match);
     // Source/target aliasing does not cancel debt or resurrect an HP0 creditor.
-    fixture.reset(setup, 5422); got_attack = false; got_cp_counter = false;
+    fixture.reset(setup, 26791); got_attack = false; got_cp_counter = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 6) { weapon_token = item.token; got_attack = true; }
         if (item.model == 188) { resource_token = item.token; got_cp_counter = true; }
     }
     cfg.initial_hp = 2;
-    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 5422, &resource_match) == 0, "public reset alias/death fixture");
+    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 26791, &resource_match) == 0, "public reset alias/death fixture");
     attack.items[0] = weapon_token; attack.target = 0; resource_defense.actor = 0; resource_defense.items[0] = resource_token;
     check(gfo_match_step(resource_match, &attack, &result) == 0 && gfo_match_step(resource_match, &resource_defense, &result) == 0
         && result.phase == 1 && result.actor == 0, "self attack emits aliased CP response while source alive");
@@ -545,9 +546,9 @@ int main() {
         check(false, "damage-effect public reset fixture model missing"); return uint64_t{0};
     };
     cfg.initial_hp = 3; cfg.initial_mp = 0; cfg.initial_cp = 0;
-    fixture.reset(setup, 17); weapon_token = receipt_token(0, 27);
+    fixture.reset(setup, 936); weapon_token = receipt_token(0, 27);
     gfo_match* effect_match = nullptr; gfo_match* effect_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 17, &effect_match) == 0, "raw absorption fixture create");
+    check(gfo_match_create(&cfg, players.data(), 2, 936, &effect_match) == 0, "raw absorption fixture create");
     gfo_match_command effect_attack{}; effect_attack.has_target = 1; effect_attack.target = 77; effect_attack.item_count = 1; effect_attack.items[0] = weapon_token;
     gfo_match_command effect_pass{}; effect_pass.actor = 77; effect_pass.kind = 1;
     check(gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_pass, &result) == 0
@@ -559,21 +560,21 @@ int main() {
         "source gains raw7 even when target can lose only3");
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 98; effect_attack.target = 0; effect_pass.actor = 0;
-    check(gfo_match_create(&cfg, players.data(), 2, 17, &effect_match) == 0
+    check(gfo_match_create(&cfg, players.data(), 2, 936, &effect_match) == 0
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_pass, &result) == 0
         && observe(effect_match).find("\"hp\":92,\"mp\":0") != std::string::npos,
         "source-target alias heals to99 then takes raw7");
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 40; effect_attack.target = 77; effect_pass.actor = 77;
-    check(gfo_match_create(&cfg, players.data(), 2, 17, &effect_match) == 0, "zero-remainder absorption create");
+    check(gfo_match_create(&cfg, players.data(), 2, 936, &effect_match) == 0, "zero-remainder absorption create");
     gfo_match_command effect_defense{}; effect_defense.actor = 77; effect_defense.kind = 1; effect_defense.item_count = 1;
     effect_defense.items[0] = receipt_token(1, 176);
     check(gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_defense, &result) == 0
         && observe(effect_match).find("\"hp\":47") == std::string::npos && result.phase == 0, "zero remainder does not heal source");
     gfo_match_destroy(effect_match);
-    fixture.reset(setup, 1317); effect_attack.items[0] = receipt_token(0, 27); effect_attack.target = 0;
+    fixture.reset(setup, 210); effect_attack.items[0] = receipt_token(0, 27); effect_attack.target = 0;
     effect_defense.actor = 0; effect_defense.items[0] = receipt_token(0, 184); effect_pass.actor = 0;
-    check(gfo_match_create(&cfg, players.data(), 2, 1317, &effect_match) == 0
+    check(gfo_match_create(&cfg, players.data(), 2, 210, &effect_match) == 0
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_defense, &result) == 0
         && result.phase == 1 && result.actor == 0, "aliased absorption creates target-stage counter despite net HP0 change");
     const auto absorption_counter = observe(effect_match, 0, 0);
@@ -582,11 +583,11 @@ int main() {
     check(gfo_match_step(effect_match, &effect_pass, &result) == 0 && observe(effect_match).find("\"hp\":26,\"mp\":0") != std::string::npos,
         "counter does not inherit absorption ability");
     gfo_match_destroy(effect_match);
-    fixture.reset(setup, 1461); effect_attack.target = 77; effect_attack.item_count = 2;
+    fixture.reset(setup, 2866); effect_attack.target = 77; effect_attack.item_count = 2;
     effect_attack.items[0] = receipt_token(0, 216); effect_attack.items[1] = receipt_token(0, 204);
     effect_defense.actor = 77; effect_defense.items[0] = receipt_token(1, 39);
-    check(gfo_match_create(&cfg, players.data(), 2, 1461, &effect_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 1461, &effect_replay) == 0, "free absorption miracle create");
+    check(gfo_match_create(&cfg, players.data(), 2, 2866, &effect_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 2866, &effect_replay) == 0, "free absorption miracle create");
     const auto before_effect_samples = observe(effect_match);
     for (uint64_t policy_seed = 0; policy_seed < 64; ++policy_seed) {
         uint64_t policy = policy_seed; gfo_match_command candidate{};
@@ -608,15 +609,15 @@ int main() {
         && absorbed_mc.find("\"token\":" + std::to_string(effect_attack.items[1]) + ",") == std::string::npos,
         "miracle heals reflected current source, retains original token and consumes FREE once");
     gfo_match_destroy(effect_match); gfo_match_destroy(effect_replay);
-    fixture.reset(setup, 27); effect_attack.item_count = 1; effect_attack.items[1] = 0; effect_attack.has_target = 0; effect_attack.target = 0;
+    fixture.reset(setup, 84); effect_attack.item_count = 1; effect_attack.items[1] = 0; effect_attack.has_target = 0; effect_attack.target = 0;
     effect_attack.items[0] = receipt_token(0, 98); effect_pass.actor = 77;
-    check(gfo_match_create(&cfg, players.data(), 2, 27, &effect_match) == 0
+    check(gfo_match_create(&cfg, players.data(), 2, 84, &effect_match) == 0
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && result.phase == 1
         && gfo_match_step(effect_match, &effect_pass, &result) == 0 && observe(effect_match).find("\"hp\":43,\"mp\":0") != std::string::npos
         && observe(effect_match).find("\"hp\":37,\"mp\":0") != std::string::npos, "Wood75% absorption uses targetless hit pipeline");
     gfo_match_destroy(effect_match);
-    fixture.reset(setup, 126); effect_attack.items[0] = receipt_token(0, 98);
-    check(gfo_match_create(&cfg, players.data(), 2, 126, &effect_match) == 0
+    fixture.reset(setup, 51); effect_attack.items[0] = receipt_token(0, 98);
+    check(gfo_match_create(&cfg, players.data(), 2, 51, &effect_match) == 0
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && result.phase == 0 && result.decisions == 1
         && observe(effect_match).find("\"hp\":43") == std::string::npos, "missed chance absorption has no source effect");
     gfo_match_destroy(effect_match);
@@ -629,6 +630,58 @@ int main() {
         "self damage subtracts raw14 twice, but counter doubles only target-stage14");
     check(gfo_match_step(effect_match, &effect_pass, &result) == 0 && result.terminated && result.winner_count == 1 && result.winners[0] == 77,
         "derived counter has no inherited self-damage side effect");
+    gfo_match_destroy(effect_match);
+    // Flash restrictions and curing cross the opaque ABI, including atomic failure.
+    fixture.reset(setup, 40129); cfg.initial_hp = 40; cfg.initial_mp = cfg.initial_cp = 0;
+    check(gfo_match_create(&cfg, players.data(), 2, 40129, &effect_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 40129, &effect_replay) == 0, "Flash public reset fixture create");
+    gfo_match_command flash_attack{}; flash_attack.item_count = 1; flash_attack.items[0] = receipt_token(0, 70); flash_attack.has_target = 1;
+    gfo_match_command flash_pass{}; flash_pass.kind = 1;
+    const auto both_step = [&](const gfo_match_command& command) {
+        check(gfo_match_step(effect_match, &command, &free_result) == 0
+            && gfo_match_step(effect_replay, &command, &replay_result) == 0 && equal(free_result, replay_result), "Flash replay command/status");
+    };
+    both_step(flash_attack); both_step(flash_pass);
+    check(observe(effect_match).find("\"curses\":[\"flash\"]") != std::string::npos
+        && observe(effect_match).find("\"flash_rule\":") != std::string::npos, "Flash is visible through C ABI");
+    flash_attack.actor = 77; flash_attack.items[0] = receipt_token(1, 6); both_step(flash_attack);
+    gfo_match_command two_defenses{}; two_defenses.kind = 1;
+    for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 118) two_defenses.items[two_defenses.item_count++] = item.token;
+    check(two_defenses.item_count == 2, "public Flash fixture has two ordinary defenses");
+    const auto flashed_view = observe(effect_match); result = status(effect_match); const auto flashed_status = result;
+    check(gfo_match_legal(effect_match, &two_defenses, &legal) == 0 && !legal
+        && gfo_match_step(effect_match, &two_defenses, &result) == -2 && equal(result, flashed_status)
+        && observe(effect_match) == flashed_view, "Flash rejects two-card response without changing output/state");
+    for (uint64_t seed = 0; seed < 64; ++seed) {
+        uint64_t policy = seed; gfo_match_command candidate{};
+        check(gfo_match_sample_action(effect_match, &policy, &candidate) == 0 && candidate.item_count <= 1
+            && gfo_match_legal(effect_match, &candidate, &legal) == 0 && legal, "Flash sampler respects single-card response");
+    }
+    both_step(flash_pass);
+    gfo_match_command cure{}; cure.item_count = 2; cure.items[0] = receipt_token(0, 237); cure.items[1] = receipt_token(0, 204); cure.has_target = 1;
+    both_step(cure);
+    check(observe(effect_match) == observe(effect_replay) && observe(effect_match).find("\"curses\":[\"flash\"]") == std::string::npos
+        && observe(effect_match).find("\"hp\":37,\"mp\":0") != std::string::npos,
+        "main miracle plus FREE cures Flash while preserving gift RNG after failed response and sampling");
+    const auto held_cure = "\"token\":" + std::to_string(cure.items[0]) + ",\"face\":237,\"reference\":237,\"disguised\":false,\"used\":true";
+    check(observe(effect_match).find(held_cure) != std::string::npos, "cure retains original miracle token");
+    flash_attack.items[0] = receipt_token(1, 21); both_step(flash_attack);
+    check(gfo_match_legal(effect_match, &two_defenses, &legal) == 0 && legal, "curing Flash restores multi-card response legality");
+    both_step(two_defenses); check(observe(effect_match) == observe(effect_replay), "post-cure replay remains deterministic");
+    gfo_match_destroy(effect_match); gfo_match_destroy(effect_replay);
+    fixture.reset(setup, 261226);
+    check(gfo_match_create(&cfg, players.data(), 2, 261226, &effect_match) == 0, "Flash counter create");
+    flash_attack.actor = 0; flash_attack.target = 77; flash_attack.items[0] = receipt_token(0, 6);
+    gfo_match_command flash_defense{}; flash_defense.actor = 77; flash_defense.kind = 1; flash_defense.item_count = 1; flash_defense.items[0] = receipt_token(1, 185);
+    check(gfo_match_step(effect_match, &flash_attack, &result) == 0 && gfo_match_step(effect_match, &flash_defense, &result) == 0
+        && observe(effect_match).find("\"models\":[185]") != std::string::npos && observe(effect_match).find("\"power\":0") != std::string::npos,
+        "Flash counter is a nonattack response payload");
+    flash_pass.item_count = 1; flash_pass.items[0] = receipt_token(0, 190);
+    check(gfo_match_step(effect_match, &flash_pass, &result) == 0, "universal reflection accepts Flash counter");
+    flash_pass.actor = 77; flash_pass.item_count = 0; flash_pass.items[0] = 0;
+    check(gfo_match_step(effect_match, &flash_pass, &result) == 0
+        && observe(effect_match, 1, 77).find("\"hp\":39,\"mp\":0,\"cp\":0,\"curses\":[\"flash\"]") != std::string::npos,
+        "reflected Flash counter applies to current target without HP damage");
     gfo_match_destroy(effect_match);
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

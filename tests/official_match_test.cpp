@@ -23,10 +23,10 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==194&&match_gift_weight()==381&&std::string_view(match_ruleset)=="official-execution-subset-v9"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"194model/381weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==201&&match_gift_weight()==404&&std::string_view(match_ruleset)=="official-execution-subset-v10"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"201model/404weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,93,72,9,20,0,0,0}&&weight==381,"normal weapon/armor/simple sundry/miracle pool only");
+    check(counts==std::array<int,8>{0,94,73,11,23,0,0,0}&&weight==404,"normal weapon/armor/simple sundry/miracle pool only");
     check(!match_supported(0)&&!match_supported(image("pluto-ring"))&&!match_supported(image("mirage"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
@@ -141,8 +141,8 @@ void reflection_chain_exceeds_legacy_limit(){
     }
     check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1 through v8 checkpoints are explicitly rejected atomically by damage-effects v9 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"v1 through v9 checkpoints are explicitly rejected atomically by Flash v10 schema");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -254,7 +254,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v7\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v8\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -406,6 +406,63 @@ void composed_damage_effect_and_block_cancel(){
     auto blocked=fixture(scene({image("evil-broadsword")},{image("wall")}));blocked.step(play(0,{0},7));blocked.step(defend(7,{0}));check(blocked.snapshot().state.players[0].hp==40&&blocked.snapshot().state.players[1].hp==40&&blocked.snapshot().state.players[1].mp==4&&blocked.snapshot().state.players[1].items[0].used,"Wall cancels53 source self-damage together with target body while retaining normal cost/holding");roundtrip(blocked);
 }
 
+void flash_damage_selection_and_cures(){
+    const auto dagger=image("flash-dagger"),ring=image("uranus-ring"),mirror=image("super-mirror");
+    for(auto id:{dagger,ring,image("flash"),image("smile-shell"),image("heart-shell"),image("tone"),image("song")})
+        check(match_supported(id),"all seven Flash and cure models have complete supported roles");
+    auto state=scene({dagger},{image("aqua-shoes"),image("rainbow-curtain"),mirror});
+    auto m=fixture(state);m.step(play(0,{0},7));check(m.snapshot().state.players[1].curses.empty(),"Flash does not apply before response");
+    m.step(defend(7));check(m.snapshot().state.players[1].hp==38&&m.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},"positive target HP loss applies Flash");roundtrip(m);
+    check(m.observe(7).find("\"curses\":[\"flash\"]")!=std::string::npos&&m.observe({}).find(flash_rule)!=std::string::npos,"Flash status and experimental rule are public");
+    auto flashed=scene({image("bronze-club")},{image("aqua-shoes"),image("rainbow-curtain"),mirror});flashed.players[1].curses={Curse::flash};
+    auto limited=fixture(flashed);limited.step(play(0,{0},7));reject(limited,defend(7,{0,1}));reject(limited,defend(7,{1,2}));
+    limited.step(defend(7,{0}));check(limited.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},"ordinary damage or defense does not implicitly cure Flash");roundtrip(limited);
+    auto repeat=scene({dagger},{});repeat.players[1].curses={Curse::flash};auto idem=fixture(repeat);idem.step(play(0,{0},7));idem.step(defend(7));
+    check(idem.snapshot().state.players[1].curses.size()==1,"Flash reapplication is idempotent");roundtrip(idem);
+    auto lethal=scene({dagger},{});lethal.players[1].hp=1;auto dead=fixture(lethal);dead.step(play(0,{0},7));dead.step(defend(7));
+    check(dead.snapshot().state.players[1].dead&&dead.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},"local positive-HP-loss rule retains Flash even on lethal damage");roundtrip(dead);
+    auto zero=fixture(scene({dagger},{image("rainbow-curtain"),image("god-shield")}));zero.step(play(0,{0},7));zero.step(defend(7,{0,1}));
+    check(zero.snapshot().state.players[1].hp==40&&zero.snapshot().state.players[1].curses.empty(),"filtered zero damage does not apply Flash");roundtrip(zero);
+    auto reflected=fixture(scene({dagger},{mirror}));reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));
+    check(reflected.snapshot().state.players[0].curses.empty(),"Flash waits through redirect");reflected.step(defend(0));
+    check(reflected.snapshot().state.players[0].hp==38&&reflected.snapshot().state.players[0].curses==std::vector<Curse>{Curse::flash}&&reflected.snapshot().state.players[1].curses.empty(),"reflected damage applies Flash only to current target");roundtrip(reflected);
+    auto main=scene({image("bronze-club"),image("crossbow")},{});main.players[0].curses={Curse::flash};auto multi=fixture(main);
+    multi.step(play(0,{0,1},7));multi.step(defend(7));check(multi.snapshot().state.players[1].hp==37,"Flash restricts response selection, not main composition");roundtrip(multi);
+    auto nofree=scene({image("spring")},{image("turbulence"),image("spiritual-doll")});nofree.players[1].mp=0;nofree.players[1].curses={Curse::flash};auto sampler=fixture(nofree);
+    sampler.step(play(0,{0},7));reject(sampler,defend(7,{0,1}));const auto frozen=sampler.snapshot();
+    for(std::uint64_t rng=0;rng<64;++rng){auto policy=rng;const auto command=sampler.sample_action(policy);check(command.items.empty()&&sampler.legal(command),"flashed MP0 responder cannot sample unaffordable miracle plus FREE");}
+    check(sampler.snapshot()==frozen,"Flash sampler does not mutate game state or RNG");sampler.step(defend(7));roundtrip(sampler);
+    for(auto id:{image("smile-shell"),image("heart-shell"),image("tone"),image("song")}){
+        auto cure=scene({id},{});cure.players[0].curses={Curse::flash};cure.players[0].mp=20;auto clean=fixture(cure);clean.step(play(0,{0},0));
+        check(clean.snapshot().state.players[0].curses.empty()&&clean.snapshot().state.players[0].mp==20-find_card(id)->cost,"mild and all cures remove Flash in the closed Flash universe");roundtrip(clean);
+        if(find_card(id)->category==Category::miracles){check(clean.snapshot().state.players[0].items[0].used,"cure miracle retains its token");clean.step(pray(7));clean.step(play(0,{0},0));check(clean.snapshot().state.players[0].mp==20-2*find_card(id)->cost,"retained cure pays again even when there is nothing to remove");roundtrip(clean);}
+    }
+    auto paid=scene({image("tone"),image("spiritual-doll")},{});paid.players[0].mp=0;paid.players[0].curses={Curse::flash};auto free=fixture(paid);free.step(play(0,{0,1},0));
+    check(free.snapshot().state.players[0].curses.empty()&&free.snapshot().state.players[0].mp==0&&free.snapshot().state.players[0].items[0].used,"flashed main actor may cure with miracle plus FREE");roundtrip(free);
+    auto foreign=scene({image("smile-shell")},{mirror});for(auto& p:foreign.players)p.curses={Curse::flash};auto reverse=fixture(foreign);reverse.step(play(0,{0},7));reverse.step(defend(7,{0}));reverse.step(defend(0));
+    check(reverse.snapshot().state.players[0].curses.empty()&&reverse.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},"universal reflection redirects a nonattack cure");roundtrip(reverse);
+    auto blocked=scene({image("tone")},{image("angel-knife")});for(auto& p:blocked.players)p.curses={Curse::flash};auto keep=fixture(blocked);
+    keep.step(play(0,{0},7));keep.step(defend(7,{0}));check(keep.snapshot().state.players[0].curses==std::vector<Curse>{Curse::flash}&&keep.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash}&&keep.snapshot().state.players[0].mp==8,"miracle block cancels foreign cure while preserving original cost and both Flash states");roundtrip(keep);
+}
+
+void flash_counter_chance_and_journal(){
+    auto fifo=fixture(scene({image("bronze-club"),elemental(Category::armor,Element::wood),elemental(Category::armor,Element::wood)},{image("uranus-ring"),image("saturn-ring")}));
+    fifo.step(play(0,{0},7));fifo.step(defend(7,{0,1}));
+    check(fifo.snapshot().queue[0].ability==Ability::counter_curse&&fifo.snapshot().queue[0].category==Category::armor&&fifo.snapshot().queue[0].power==0&&fifo.snapshot().queue[0].amount==0&&fifo.snapshot().queue[0].element==Element::light,"Flash counter is a nonattack armor payload");
+    reject(fifo,defend(0,{1}));const auto waiting=fifo.snapshot();roundtrip(fifo);fifo.step(defend(0));
+    check(fifo.snapshot().state.players[0].curses==std::vector<Curse>{Curse::flash}&&fifo.snapshot().queue[0].ability==Ability::counter2x_atk,"Flash FIFO effect precedes subsequent damage counter");
+    reject(fifo,defend(0,{1,2}));fifo.step(defend(0,{1}));roundtrip(fifo);
+    auto reflect=fixture(scene({image("bronze-club"),image("super-mirror")},{image("uranus-ring")}));reflect.step(play(0,{0},7));reflect.step(defend(7,{0}));reflect.step(defend(0,{1}));reflect.step(defend(7));
+    check(reflect.snapshot().state.players[0].curses.empty()&&reflect.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},"190 redirects Flash counter without creating another counter");roundtrip(reflect);
+    for(const auto trial:{std::pair<std::uint64_t,bool>{100,true},{136,false}}){auto state=scene({image("flash")},{});state.players[0].mp=3;Match m;m.load_scene(state,0,trial.first);m.step(chance_play(0,{0}));if(trial.second)m.step(defend(7));
+        check(m.snapshot().state.players[1].hp==(trial.second?39:40)&&m.snapshot().state.players[1].curses.empty()!=trial.second&&m.snapshot().chance_rolls==1,"Flash25 chance applies state only after hit and positive damage");roundtrip(m);}
+    Match pending;pending.restore(waiting);const auto exact=pending.snapshot();
+    for(int error=0;error<6;++error){auto bad=exact;if(error==0)bad.state.players[0].curses={Curse::flash};if(error==1)bad.queue[0].power=1;if(error==2)bad.queue[0].ability=Ability::counter_atk;if(error==3)bad.queue[0].target=7;if(error==4)bad.state.players[1].curses={Curse::dream};if(error==5)bad.state.players[1].curses={Curse::flash,Curse::flash};bool rejected=false;try{pending.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==exact,"replay rejects forged Flash, other curses and altered counter payload atomically");}
+    auto late=exact;late.state.update_count=max_wire_integer;late.batch->initial_state.update_count=max_wire_integer-(late.decisions-late.batch->decisions);pending.restore(late);const auto before=pending.snapshot();bool rejected=false;try{pending.step(defend(0));}catch(const MatchError&){rejected=true;}
+    check(rejected&&pending.snapshot()==before,"late failure rolls back Flash application, FIFO, journal and RNG");
+    auto duplicate=scene({},{});duplicate.players[0].curses={Curse::flash,Curse::flash};rejected=false;try{pending.load_scene(duplicate,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"duplicate Flash import is rejected atomically rather than silently canonicalized");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -449,4 +506,4 @@ void checkpoint_cutoff_and_seeded_multiplayer(){
         check(a.snapshot().terminated!=a.snapshot().truncated,"explicit terminal or cutoff reached; no silent stuck match");}
 }
 }
-int main(){scope_reset_and_local_contract();weapon_frames_colors_owner_and_fixed_rewards();recovery_retention_capacity_and_atomicity();reflection_filter_and_immutable_origin();reflection_snapshot_adversaries();reflection_chain_exceeds_legacy_limit();reflection_role_capacity_and_late_failures();blocking_roles_retention_and_reflection();ordered_free_setter_and_double();free_response_capacity_sampler_and_atomicity();bounce_targets_roles_and_rng_provenance();retained_bounce_exceeds_physical_limit_and_free();chance_scope_boundaries_and_single_cost();chance_multiplayer_journal_and_privacy();chance_dead_skip_origin_cancel_cutoff_and_rollback();counter_damage_fifo_and_reactions();counter_chance_death_journal_and_atomicity();counter_generation_exceeds_old_duel_limit();resource_counter_mp_cp_and_alias();resource_counter_dead_skip_and_journal();mp_refill_extends_retained_redirect_budget();absorption_stages_reflection_and_retention();same_damage_stages_deaths_and_journal();composed_damage_effect_and_block_cancel();checkpoint_cutoff_and_seeded_multiplayer();std::cout<<"Experimental official match passed (194subset/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/block/reflection/filter/9teams/owner/retention/atomicity/snapshot/RNG/cutoff; server scheduling not asserted).\n";}
+int main(){scope_reset_and_local_contract();weapon_frames_colors_owner_and_fixed_rewards();recovery_retention_capacity_and_atomicity();reflection_filter_and_immutable_origin();reflection_snapshot_adversaries();reflection_chain_exceeds_legacy_limit();reflection_role_capacity_and_late_failures();blocking_roles_retention_and_reflection();ordered_free_setter_and_double();free_response_capacity_sampler_and_atomicity();bounce_targets_roles_and_rng_provenance();retained_bounce_exceeds_physical_limit_and_free();chance_scope_boundaries_and_single_cost();chance_multiplayer_journal_and_privacy();chance_dead_skip_origin_cancel_cutoff_and_rollback();counter_damage_fifo_and_reactions();counter_chance_death_journal_and_atomicity();counter_generation_exceeds_old_duel_limit();resource_counter_mp_cp_and_alias();resource_counter_dead_skip_and_journal();mp_refill_extends_retained_redirect_budget();absorption_stages_reflection_and_retention();same_damage_stages_deaths_and_journal();composed_damage_effect_and_block_cancel();checkpoint_cutoff_and_seeded_multiplayer();std::cout<<"Experimental official match passed (201subset/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/block/reflection/filter/9teams/owner/retention/atomicity/snapshot/RNG/cutoff; server scheduling not asserted).\n";}

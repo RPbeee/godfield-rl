@@ -34,6 +34,7 @@ struct Stats {
     std::uint64_t mp_counter_resolved = 0, mp_counter_gained = 0, cp_counter_resolved = 0, cp_counter_nominal = 0;
     std::uint64_t absorb_positive_resolutions = 0, absorb_nominal_hp = 0;
     std::uint64_t self_damage_positive_resolutions = 0, self_damage_nominal_hp = 0;
+    std::uint64_t flash_added = 0, flash_removed = 0, flash_response_commands = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -52,6 +53,7 @@ struct Stats {
         cp_counter_resolved += s.cp_counter_resolved; cp_counter_nominal += s.cp_counter_nominal;
         absorb_positive_resolutions += s.absorb_positive_resolutions; absorb_nominal_hp += s.absorb_nominal_hp;
         self_damage_positive_resolutions += s.self_damage_positive_resolutions; self_damage_nominal_hp += s.self_damage_nominal_hp;
+        flash_added += s.flash_added; flash_removed += s.flash_removed; flash_response_commands += s.flash_response_commands;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -80,6 +82,13 @@ int main(int argc, char** argv) {
                         const auto rolls_before = before.chance_rolls, hits_before = before.chance_hits;
                         const auto created_before = before.counter_created, started_before = before.counter_started;
                         const auto counter_rolls_before = before.counter_rolls, counter_hits_before = before.counter_hits;
+                        std::array<bool, player_capacity> flashed_before{};
+                        for (std::size_t seat = 0; seat < count; ++seat) {
+                            const auto& curses = before.state.players[seat].curses;
+                            flashed_before[seat] = std::find(curses.begin(), curses.end(), Curse::flash) != curses.end();
+                            if (before.phase == MatchPhase::response && before.state.players[seat].id == command.actor && flashed_before[seat])
+                                ++stats.flash_response_commands;
+                        }
                         std::optional<PlayerId> mp_counter_target;
                         std::int64_t mp_counter_before = 0;
                         if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()) {
@@ -152,6 +161,12 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        for (std::size_t seat = 0; seat < count; ++seat) {
+                            const auto& curses = match.snapshot().state.players[seat].curses;
+                            const auto flashed = std::find(curses.begin(), curses.end(), Curse::flash) != curses.end();
+                            if (flashed && !flashed_before[seat]) ++stats.flash_added;
+                            if (!flashed && flashed_before[seat]) ++stats.flash_removed;
+                        }
                         stats.chance_rolls += match.snapshot().chance_rolls - rolls_before;
                         stats.chance_hits += match.snapshot().chance_hits - hits_before;
                         stats.counter_created += match.snapshot().counter_created - created_before;
@@ -184,6 +199,7 @@ int main(int argc, char** argv) {
             << "\ncounter_rule=" << counter_rule
             << "\nresource_counter_rule=" << resource_counter_rule
             << "\ndamage_effect_rule=" << damage_effect_rule
+            << "\nflash_rule=" << flash_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -204,6 +220,7 @@ int main(int argc, char** argv) {
             << "\ncp_counter_resolved=" << stats.cp_counter_resolved << "\ncp_counter_nominal=" << stats.cp_counter_nominal
             << "\nabsorb_positive_resolutions=" << stats.absorb_positive_resolutions << "\nabsorb_nominal_hp=" << stats.absorb_nominal_hp
             << "\nself_damage_positive_resolutions=" << stats.self_damage_positive_resolutions << "\nself_damage_nominal_hp=" << stats.self_damage_nominal_hp
+            << "\nflash_added=" << stats.flash_added << "\nflash_removed=" << stats.flash_removed << "\nflash_response_commands=" << stats.flash_response_commands
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
