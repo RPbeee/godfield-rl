@@ -115,7 +115,8 @@ CSVは前段の[全364行raw archive](../data/legacy-status-miracles-v1/immutabl
 新statusをelement_ofで参照する修正であり、208のPending属性/純DarkCloud効果は元から正しかった。
 他4種はNEのまま、旧g36の固定1345幅にも修正を反映する。旧36ゲーム・乱数・checksumは変更しない。
 
-Fog/Illusion付与10種・助手/守護神・MYSTERY243・終末・複数人戦、現行公式との動的照合、学習器/学習済みモデルは未対応。
+Fog/Illusion付与10種・助手/守護神・MYSTERY243・終末・複数人戦、現行公式との動的照合は未対応。
+このv37を使う[C++学習ベースライン](training-baseline.md)を追加した。参照checkpointも同梱するが、公式や他の強い方策に対する強さは主張しない。
 
 
 ## 検証結果（2026-11-01）

@@ -48,7 +48,9 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 
 新ルールは旧版の重みを各profileの対象プール内で正規化して抽選します。公式の配布分布とは扱いません。
 ここで学習した方策が本家でも強いとは主張できません。
-まだ学習器・学習済みモデルはなく、ランダム合法手による実行・ベンチマークができます。
+依存を追加しないC++学習器 `godfield_train` でREINFORCEと線形価値baselineを学習・評価できます。
+[学習方法・候補手の制約・保存再開](docs/training-baseline.md)を参照してください。
+[参照モデル](models/baseline-v37-10k.gfl) を同梱します。単一seed・1万episodeの学習で、native random相手の別seed5,000試合の勝率は44.26%→84.26%でした。公式や他の強い方策に対する強さは未検証です。
 
 旧版系のC++コアは共通1368特徴・Snapshot version37です。既存ABIの出力幅は変更せず、
 `gl_*` / `gm_*` / `ge_*` / `gc_*` / `gr_*` / `gd_*` / `gh_*` / `gs_*` / `go_*` / `gb_*` / `ga_*` / `gn_*` / `gk_*` / `gx_*` / `gy_*` / `gz_*` / `gu_*` / `gv_*` / `gw_*` / `gp_*` / `gq_*` / `gt_*` / `gi_*` / `gj_*` / `gg_*` / `g26_*` / `g27_*` / `g28_*` / `g29_*` / `g30_*` / `g31_*` / `g32_*` / `g33_*` / `g34_*` / `g35_*` / `g36_*` は128 / 164 / 186 / 210 / 236 / 258 / 283 / 301 / 334 / 356 / 375 / 393 / 515 / 661 / 679 / 696 / 713 / 732 / 750 / 903 / 924 / 945 / 993 / 1017 / 1043 / 1062 / 1085 / 1110 / 1135 / 1175 / 1221 / 1251 / 1278 / 1300 / 1317 / 1345特徴を維持します。
@@ -63,6 +65,8 @@ macOS/Linux、CMake 3.20以上、C++20コンパイラーが必要です。パッ
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 4
 ctest --test-dir build --output-on-failure
+./build/godfield_train --episodes 10000 --out runs/baseline.gfl
+./build/godfield_train --evaluate models/baseline-v37-10k.gfl --eval-games 5000 --eval-seed 2000000000
 ./build/godfield_legacy_bench 100000 4 42 dying-weapon
 python3 python/dying_weapon_env.py
 ./build/godfield_legacy_bench 100000 4 42 item-removal
@@ -356,7 +360,7 @@ Gloryの防御制限は旧版botの挙動を採用しています。v7の通常�
 売買・所持金、複数人戦、公式の神器出現分布・補充条件などは未実装です。
 公式サイトへの接続・アカウント操作はありません。第三者実装・画像は同梱していません。
 
-## 学習インターフェース
+## synthetic環境の学習インターフェース
 
 C++ API: `include/godfield/env.hpp`。C ABI: `include/godfield/c_api.h`。
 
@@ -408,7 +412,7 @@ Gymnasium/PettingZooアダプターやPPOはまだ同梱していません。
 
 1. 現行版の神器データとルールを根拠付きで整理し、独自ルールとの差分を固定する。
 2. 神器分布・補充・属性・固有効果を追加し、具体的な対戦例で遷移を照合する。
-3. バージョン別のrulesetを保持したうえで、自己対戦学習・固定相手との評価を追加する。
+3. バージョン別のrulesetを保持し、C++学習器の候補方策・自己対戦・固定相手評価を改善する。
 
 調査の入口: [旧Flash版の非公式エミュレーター](https://github.com/Igoorx/godfield-flash)、
 [部分的なシミュレーターと学習系の先行実装](https://github.com/BrandenXia/godfield-bot)。
