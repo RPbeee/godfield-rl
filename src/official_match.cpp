@@ -77,9 +77,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 337>& gift_tickets() {
+const std::array<CardId, 351>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 337> values{};
+        std::array<CardId, 351> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 337>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 156) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 164) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -167,7 +167,13 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
 }
 EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target, const std::vector<ItemToken>& tokens) {
     const auto& base = *find_card(models.front());
-    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, {}};
+    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, s.rng, {}};
+}
+PlayerId sample_bounce_target(const MatchSnapshot& s, std::uint64_t& rng) {
+    std::array<PlayerId, player_capacity> alive;
+    std::size_t count = 0;
+    for (const auto& player : s.state.players) if (!player.dead) alive[count++] = player.id;
+    return alive[bounded(rng, count)];
 }
 struct ResponseResult { std::int64_t defense = 0; Reaction reaction = Reaction::none; };
 // Composition is validated separately by the public-client append predicate.
@@ -180,6 +186,9 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
         const auto reaction = reaction_for(id, effect.category, effect.element);
         if (reaction == Reaction::reflect) {
             std::swap(effect.source, effect.target);
+            result.reaction = reaction;
+        } else if (reaction == Reaction::bounce) {
+            effect.source = effect.target; // Next target is sampled by the caller.
             result.reaction = reaction;
         } else if (reaction == Reaction::block) {
             result.reaction = reaction;
@@ -262,11 +271,15 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(can_append_main(prefix, {id, false}), "invalid queued composition"); prefix.push_back({id, false});
     }
     auto replay = effect_for(s, effect.models, effect.initial_target, effect.tokens);
+    replay.redirect_rng = effect.redirect_rng;
+    auto replay_rng = effect.redirect_rng;
     require(!s.state.players[index(s, effect.initial_target)].dead, "initial effect target is dead");
     require(damaging(replay) || replay.target != s.owner, "self boost cannot wait for a response");
-    // Every reflected response consumes at least one physical item, before any
-    // gifts are dealt. Bound the ledger before inspecting adversarial entries.
-    require(effect.reflections.size() <= n * s.config.hand_limit && effect.reflections.size() < s.decisions, "impossible reflection history length");
+    // Every redirect spends a physical item (including FREE) or pays at least
+    // 5 MP for retained Turbulence. No gifts/resource recovery happen mid-chain.
+    // This resource bound permits repeated retained casts, unlike the old
+    // physical-only bound, and is independent of the decision cutoff.
+    require(effect.redirects.size() <= n * (s.config.hand_limit + 99 / 5) && effect.redirects.size() < s.decisions, "impossible redirect history length");
     std::array<std::unordered_set<ItemToken>, player_capacity> spent;
     std::array<std::size_t, player_capacity> physical{}, uses{};
     std::array<std::int64_t, player_capacity> costs{};
@@ -283,27 +296,31 @@ void validate_snapshot(const MatchSnapshot& s) {
                 require(retained && retained->used && retained->model == models[i] && !spent[seat].contains(token), "queued miracle has no retained instance");
             else {
                 ++physical[seat];
-                require(!retained && spent[seat].insert(token).second, "physical item present or consumed twice in reflection history");
+                require(!retained && spent[seat].insert(token).second, "physical item present or consumed twice in redirect history");
             }
         }
         uses[seat] += models.size(); costs[seat] += magic_cost(models);
     };
     evidence(s.owner, effect.models, effect.tokens);
-    for (const auto& reflection : effect.reflections) {
-        require(reflection.defender == replay.target, "reflection has wrong responder");
-        require(!reflection.models.empty() && reflection.models.size() <= s.config.hand_limit && reflection.models.size() == reflection.tokens.size(), "invalid reflection evidence shape");
+    for (const auto& redirect : effect.redirects) {
+        require(redirect.defender == replay.target, "redirect has wrong responder");
+        require(!redirect.models.empty() && redirect.models.size() <= s.config.hand_limit && redirect.models.size() == redirect.tokens.size(), "invalid redirect evidence shape");
         std::vector<VisibleSelection> defense_prefix;
         const ResponseContext context{false, replay.category, replay.element, damaging(replay)};
-        for (auto id : reflection.models) {
-            if (!match_supported(id)) unsupported("unsupported reflection model");
-            require(can_append_response(defense_prefix, {id, false}, context), "invalid reflection composition");
+        for (auto id : redirect.models) {
+            if (!match_supported(id)) unsupported("unsupported redirect model");
+            require(can_append_response(defense_prefix, {id, false}, context), "invalid redirect composition");
             defense_prefix.push_back({id, false});
         }
-        evidence(reflection.defender, reflection.models, reflection.tokens);
-        require(apply_response(replay, reflection.models).reaction == Reaction::reflect, "history entry has no matching reflection");
+        evidence(redirect.defender, redirect.models, redirect.tokens);
+        const auto reaction = apply_response(replay, redirect.models).reaction;
+        require(reaction == Reaction::reflect || reaction == Reaction::bounce, "history entry has no matching redirect");
+        if (reaction == Reaction::bounce) replay.target = sample_bounce_target(s, replay_rng);
+        require(redirect.target == replay.target, "recorded redirect target disagrees with replay");
     }
-    replay.reflections = effect.reflections;
-    require(effect == replay, "queued payload does not match original models and reflection history");
+    replay.redirects = effect.redirects;
+    require(replay_rng == s.rng, "environment RNG disagrees with redirect replay");
+    require(effect == replay, "queued payload does not match original models and redirect history");
     for (std::size_t i = 0; i < n; ++i) {
         const auto& own = s.state.players[i];
         require(own.items.size() + physical[i] <= s.config.hand_limit, "consumption history cannot originate from a valid hand");
@@ -320,7 +337,8 @@ bool match_supported(CardId id) noexcept {
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
-            || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk);
+            || c->ability == Ability::cut_cost || c->ability == Ability::set_element || c->ability == Ability::double_atk
+            || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -373,8 +391,9 @@ MatchStep Match::step(const Command& command) {
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
         consume(s, seat, command.items, false);
-        if (response.reaction == Reaction::reflect) {
-            effect.reflections.push_back({command.actor, models, command.items}); s.actor = effect.target;
+        if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
+            if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
+            effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
         } else {
             if (response.reaction == Reaction::none) resolve(s, effect, response.defense);
             s.queue.clear(); completed = true;
@@ -487,8 +506,9 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v2\",\"ruleset\":\"";
-    out += match_ruleset; out += "\",\"scope\":\""; out += match_scope; out += "\",\"phase\":\""; out += phase;
+    std::string out = "{\"schema\":\"official-execution-view-v3\",\"ruleset\":\"";
+    out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
+    out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -502,7 +522,15 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         bool first = true; for (auto id : e.models) { if (!first) out += ','; first = false; out += std::to_string(id); }
         out += "],\"category\":\""; out += category_name(e.category); out += "\",\"element\":";
         if (e.element) { out += '"'; out += element_name(*e.element); out += '"'; } else out += "null";
-        out += ",\"reflections\":" + std::to_string(e.reflections.size());
+        // A validated redirect contains exactly one matching reaction; only
+        // filters and an optional FREE suffix may accompany it.
+        std::size_t bounces = 0;
+        for (const auto& redirect : e.redirects) for (auto model : redirect.models) {
+            const auto ability = find_card(model)->ability;
+            if (ability == Ability::bounce_weapon || ability == Ability::bounce_miracle) ++bounces;
+        }
+        out += ",\"reflections\":" + std::to_string(e.redirects.size() - bounces);
+        out += ",\"bounces\":" + std::to_string(bounces);
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }

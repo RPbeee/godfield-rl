@@ -9,9 +9,10 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v4";
-inline constexpr const char* match_scope = "experimental:156-models;not-official-server-equivalence";
-inline constexpr std::uint32_t match_snapshot_version = 4;
+inline constexpr const char* match_ruleset = "official-execution-subset-v5";
+inline constexpr const char* match_scope = "experimental:164-models;not-official-server-equivalence";
+inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
+inline constexpr std::uint32_t match_snapshot_version = 5;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -35,11 +36,12 @@ struct Command {
     std::optional<PlayerId> target;
     bool operator==(const Command&) const = default;
 };
-struct ReflectionFrame {
+struct RedirectFrame {
     PlayerId defender = 0;
     std::vector<CardId> models;
     std::vector<ItemToken> tokens; // Privileged consumption evidence for this response.
-    bool operator==(const ReflectionFrame&) const = default;
+    PlayerId target = 0; // Derived reflection target or audited local bounce outcome.
+    bool operator==(const RedirectFrame&) const = default;
 };
 struct EffectFrame {
     PlayerId origin = 0, source = 0, target = 0;
@@ -51,7 +53,8 @@ struct EffectFrame {
     Ability ability = Ability::none;
     int amount = 0;
     PlayerId initial_target = 0;
-    std::vector<ReflectionFrame> reflections;
+    std::uint64_t redirect_rng = 0; // Privileged RNG at launch, for exact redirect replay.
+    std::vector<RedirectFrame> redirects; // Reaction kind is derived from models and incoming payload.
     bool operator==(const EffectFrame&) const = default;
 };
 struct MatchSnapshot {
@@ -61,7 +64,7 @@ struct MatchSnapshot {
     PlayerId owner = 0;
     std::optional<PlayerId> actor;
     MatchPhase phase = MatchPhase::finished;
-    std::vector<EffectFrame> queue; // One payload; reflections transfer it without cloning/recasting.
+    std::vector<EffectFrame> queue; // One payload; redirects transfer it without cloning/recasting.
     std::vector<std::uint32_t> gifts;
     std::uint64_t rng = 0, decisions = 0, next_token = 0;
     bool terminated = false, truncated = false;

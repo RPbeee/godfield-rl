@@ -23,11 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==156&&match_gift_weight()==337&&std::string_view(match_ruleset)=="official-execution-subset-v4"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"156model/337weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==164&&match_gift_weight()==351&&std::string_view(match_ruleset)=="official-execution-subset-v5"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"164model/351weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,72,63,9,12,0,0,0}&&weight==337,"normal weapon/armor/simple sundry/miracle pool only");
-    check(!match_supported(0)&&!match_supported(image("bouncing-sword"))&&!match_supported(image("mirage"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(counts==std::array<int,8>{0,74,68,9,13,0,0,0}&&weight==351,"normal weapon/armor/simple sundry/miracle pool only");
+    check(!match_supported(0)&&!match_supported(image("saturn-ring"))&&!match_supported(image("mirage"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -72,7 +72,7 @@ void recovery_retention_capacity_and_atomicity(){
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
-    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("bouncing-sword");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
+    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("saturn-ring");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
         if(error==2)bad.players[0].curses={Curse::cold};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
@@ -83,8 +83,8 @@ void reflection_filter_and_immutable_origin(){
     for(const auto id:{sword,moon}){auto main=fixture(scene({id},{}));main.step(play(0,{0},7));check(main.snapshot().queue[0].power==find_card(id)->atk,"reflection weapon retains its ordinary main ATK");main.step(defend(7));roundtrip(main);}
     auto chain=fixture(scene({image("bronze-club"),sword},{sword}));chain.step(play(0,{0},7));const auto origin=chain.snapshot().queue[0];const auto rng=chain.snapshot().rng;
     chain.step(defend(7,{0}));const auto first=chain.snapshot();check(first.owner==0&&first.actor==0&&first.queue[0].source==7&&first.queue[0].target==0&&first.queue[0].origin==0&&first.queue[0].initial_target==7
-        &&first.queue[0].models==origin.models&&first.queue[0].tokens==origin.tokens&&first.queue[0].power==1&&first.queue[0].reflections.size()==1&&first.gifts==std::vector<std::uint32_t>{1,1}&&first.rng==rng,"physical reflection swaps current endpoints without recasting, drawing or changing immutable payload");roundtrip(chain);
-    chain.step(defend(0,{1}));check(chain.snapshot().actor==7&&chain.snapshot().queue[0].source==0&&chain.snapshot().queue[0].target==7&&chain.snapshot().queue[0].reflections.size()==2
+        &&first.queue[0].models==origin.models&&first.queue[0].tokens==origin.tokens&&first.queue[0].power==1&&first.queue[0].redirects.size()==1&&first.gifts==std::vector<std::uint32_t>{1,1}&&first.rng==rng,"physical reflection swaps current endpoints without recasting, drawing or changing immutable payload");roundtrip(chain);
+    chain.step(defend(0,{1}));check(chain.snapshot().actor==7&&chain.snapshot().queue[0].source==0&&chain.snapshot().queue[0].target==7&&chain.snapshot().queue[0].redirects.size()==2
         &&chain.snapshot().gifts==std::vector<std::uint32_t>{2,1},"return reflection has same origin/owner and separately accounts each seat consumption");roundtrip(chain);
     chain.step(defend(7));check(chain.snapshot().state.players[1].hp==39&&chain.snapshot().state.players[0].items.size()==2&&chain.snapshot().state.players[1].items.size()==1&&chain.snapshot().owner==7,"only final receiver loses HP and all living seats receive accumulated gifts once");roundtrip(chain);
     const auto fire=elemental(Category::weapons,Element::fire), same=elemental(Category::armor,Element::fire);
@@ -108,7 +108,7 @@ void reflection_role_capacity_and_late_failures(){
     check(armor.snapshot().state.players[1].hp==40&&armor.snapshot().queue.empty(),"nonmatching magic reflector armor retains ordinary DEF against neutral weapon");roundtrip(armor);
     auto ordering=fixture(scene({image("bronze-club")},{ordinary,curtain,sword}));ordering.step(play(0,{0},7));reject(ordering,defend(7,{0,1}));reject(ordering,defend(7,{0,2}));
     auto filters=fixture(scene({image("bronze-club")},{curtain,curtain,sword}));filters.step(play(0,{0},7));filters.step(defend(7,{0,1,2}));
-    check(filters.snapshot().queue[0].reflections[0].models==std::vector<CardId>{curtain,curtain,sword}&&filters.snapshot().gifts[1]==3&&!filters.snapshot().queue[0].element,"multiple leading filters followed by reflector preserve canonical ordered evidence");roundtrip(filters);filters.step(defend(0));roundtrip(filters);
+    check(filters.snapshot().queue[0].redirects[0].models==std::vector<CardId>{curtain,curtain,sword}&&filters.snapshot().gifts[1]==3&&!filters.snapshot().queue[0].element,"multiple leading filters followed by reflector preserve canonical ordered evidence");roundtrip(filters);filters.step(defend(0));roundtrip(filters);
     auto light=fixture(scene({elemental(Category::weapons,Element::light)},{curtain,ordinary}));light.step(play(0,{0},7));reject(light,defend(7,{1}));const auto raw=light.snapshot().queue[0].power;
     light.step(defend(7,{0,1}));check(light.snapshot().state.players[1].hp==40-std::max<std::int64_t>(0,raw-find_card(ordinary)->defense),"filter allows ordinary armor against otherwise undefendable Light");roundtrip(light);
     auto healing=scene({image("smile-dew")},{mirror});healing.players[0].hp=98;auto utility=fixture(healing);utility.step(play(0,{0},7));const auto before=utility.snapshot().queue[0];utility.step(defend(7,{0}));
@@ -116,15 +116,15 @@ void reflection_role_capacity_and_late_failures(){
     utility.step(defend(0));check(utility.snapshot().state.players[0].hp==99&&utility.snapshot().state.players[1].hp==40,"reflected sundry recovery applies cap only to final recipient");roundtrip(utility);
     MatchConfig small;small.hand_limit=3;small.initial_hand=0;auto finite=fixture(scene({image("bronze-club"),sword,sword},{sword,sword,sword}),small);finite.step(play(0,{0},7));roundtrip(finite);
     for(const auto [actor,token]:{std::pair<PlayerId,ItemToken>{7,0},{0,1},{7,1},{0,2},{7,2}}){finite.step(defend(actor,{token}));roundtrip(finite);}
-    check(finite.snapshot().state.players[0].items.empty()&&finite.snapshot().state.players[1].items.empty()&&finite.snapshot().gifts==std::vector<std::uint32_t>{3,3}&&finite.snapshot().queue[0].reflections.size()==5,"small-cap chain consumes both complete hands with bounded per-seat replacement debt");
-    const auto exhausted=finite.snapshot();auto forged=exhausted;forged.queue[0].reflections[1].tokens[0]=forged.queue[0].tokens[0];bool threw=false;try{finite.restore(forged);}catch(const MatchError&){threw=true;}
+    check(finite.snapshot().state.players[0].items.empty()&&finite.snapshot().state.players[1].items.empty()&&finite.snapshot().gifts==std::vector<std::uint32_t>{3,3}&&finite.snapshot().queue[0].redirects.size()==5,"small-cap chain consumes both complete hands with bounded per-seat replacement debt");
+    const auto exhausted=finite.snapshot();auto forged=exhausted;forged.queue[0].redirects[1].tokens[0]=forged.queue[0].tokens[0];bool threw=false;try{finite.restore(forged);}catch(const MatchError&){threw=true;}
     check(threw&&finite.snapshot()==exhausted,"same-seat original physical token cannot be reused by later reflection");
     finite.step(defend(0));check(finite.snapshot().state.players[0].hp==39&&finite.snapshot().state.players[0].items.size()==3&&finite.snapshot().state.players[1].items.size()==3,"final resolution delivers each reserved gift once without exceeding small hand limit");roundtrip(finite);
     auto update=fixture(scene({image("bronze-club"),sword},{sword}));update.step(play(0,{0},7));update.step(defend(7,{0}));auto latest=update.snapshot();latest.state.update_count=max_wire_integer;update.restore(latest);
     const auto update_before=update.snapshot();check(update.legal(defend(0,{1})),"pending reflected frame still has syntactically valid next reflection before counter exhaustion");threw=false;try{update.step(defend(0,{1}));}catch(const MatchError&){threw=true;}
     check(threw&&update.snapshot()==update_before,"late update exhaustion rolls back second reflection, consumed carrier, ledger, gifts and RNG");
     auto token_scene=scene({image("bronze-club")},{sword});token_scene.players[0].items[0].token=max_wire_integer;auto tokens=fixture(token_scene);tokens.step(play(0,{max_wire_integer},7));tokens.step(defend(7,{0}));roundtrip(tokens);
-    const auto token_before=tokens.snapshot();check(tokens.legal(defend(0))&&token_before.queue[0].reflections.size()==1,"token exhaustion fixture has a valid reflected ledger before final response");threw=false;try{tokens.step(defend(0));}catch(const MatchError&){threw=true;}
+    const auto token_before=tokens.snapshot();check(tokens.legal(defend(0))&&token_before.queue[0].redirects.size()==1,"token exhaustion fixture has a valid reflected ledger before final response");threw=false;try{tokens.step(defend(0));}catch(const MatchError&){threw=true;}
     check(threw&&tokens.snapshot()==token_before,"late gift exhaustion after reflected payload rolls back HP, complete ledger, phase, reservations and RNG");
 }
 
@@ -139,10 +139,10 @@ void reflection_chain_exceeds_legacy_limit(){
         check(chain.snapshot().owner==0&&chain.snapshot().queue[0].origin==0&&chain.snapshot().queue[0].initial_target==7&&chain.snapshot().queue[0].power==1,"long reflection chain preserves owner, origin and base power");
         if(token<17){chain.step(defend(0,{token+1}));roundtrip(chain);}
     }
-    check(chain.snapshot().queue[0].reflections.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
+    check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1, v2 and v3 checkpoints are explicitly rejected atomically by ordered-composition v4 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"v1 through v4 checkpoints are explicitly rejected atomically by redirect-capable v5 schema");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -151,16 +151,16 @@ void reflection_snapshot_adversaries(){
     auto m=fixture(scene({image("bronze-club"),sword},{sword}));m.step(play(0,{0},7));m.step(defend(7,{0}));m.step(defend(0,{1}));const auto exact=m.snapshot();
     for(int error=0;error<15;++error){auto bad=exact;auto& effect=bad.queue[0];
         if(error==0)effect.source=7;if(error==1)effect.target=0;if(error==2)effect.initial_target=0;if(error==3)effect.origin=7;
-        if(error==4)effect.reflections[0].defender=0;if(error==5)effect.reflections[0].models[0]=image("bronze-club");
-        if(error==6)effect.reflections[0].tokens.clear();if(error==7)effect.reflections[0].tokens[0]=bad.next_token;
-        if(error==8)effect.reflections[1].tokens[0]=effect.tokens[0];
+        if(error==4)effect.redirects[0].defender=0;if(error==5)effect.redirects[0].models[0]=image("bronze-club");
+        if(error==6)effect.redirects[0].tokens.clear();if(error==7)effect.redirects[0].tokens[0]=bad.next_token;
+        if(error==8)effect.redirects[1].tokens[0]=effect.tokens[0];
         if(error==9)bad.state.players[1].items.push_back({0,sword,{},false});
         if(error==10)bad.gifts[1]=0;if(error==11)bad.gifts[0]=1;if(error==12)bad.decisions=2;
-        if(error==13)effect.reflections.push_back(effect.reflections[0]);if(error==14)effect.reflections[0].models.push_back(curtain);
+        if(error==13)effect.redirects.push_back(effect.redirects[0]);if(error==14)effect.redirects[0].models.push_back(curtain);
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"reflection transcript endpoint/type/token/payment/gift/decision forgery rejects transactionally");}
     auto spell=fixture(scene({image("spring")},{image("moonlight-helm")}));spell.step(play(0,{0},7));spell.step(defend(7,{0}));const auto saved=spell.snapshot();
     auto bad=saved;bad.state.players[0].mp=93;bool rejected=false;try{spell.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&spell.snapshot()==saved,"reflected miracle MP provenance remains charged to immutable origin");
-    auto different=saved;different.rng^=0xfedcba9876543210ULL;Match copy;copy.restore(different);std::uint64_t a=456,b=a;const auto before=spell.snapshot();const auto ca=spell.sample_action(a),cb=copy.sample_action(b);
+    auto different=saved;different.rng^=0xfedcba9876543210ULL;different.queue[0].redirect_rng=different.rng;Match copy;copy.restore(different);std::uint64_t a=456,b=a;const auto before=spell.snapshot();const auto ca=spell.sample_action(a),cb=copy.sample_action(b);
     check(ca==cb&&a==b&&spell.snapshot()==before&&spell.legal(ca),"reaction sampler depends only on visible own inventory and pending payload, not environmental future RNG");
 }
 
@@ -191,7 +191,7 @@ void blocking_roles_retention_and_reflection(){
     auto selfstate=scene({image("bronze-club"),wall},{});selfstate.players[0].mp=6;auto self=fixture(selfstate);self.step(play(0,{0},0));self.step(defend(0,{1}));check(self.snapshot().state.players[0].hp==40&&self.snapshot().state.players[0].mp==0&&self.snapshot().state.players[0].items[0].used&&self.snapshot().owner==7,"exactly6MP Wall cancels self weapon and retains itself through actual next turn");roundtrip(self);
     SnapshotState nine;for(unsigned i=0;i<9;++i)nine.players.push_back(player(100+i,i==0?std::initializer_list<CardId>{image("bronze-club"),sword}:i==8?std::initializer_list<CardId>{sword,wall}:std::initializer_list<CardId>{},static_cast<Team>(i%5)));
     nine.players[8].mp=6;Match team;team.load_scene(nine,100,99);team.step(play(100,{0},108));team.step(defend(108,{0}));roundtrip(team);team.step(defend(100,{1}));roundtrip(team);
-    const auto pending=team.snapshot();auto fake=pending;fake.queue[0].reflections[0].models[0]=wall;fake.queue[0].reflections[0].tokens[0]=1;fake.state.players[8].items[0].used=true;bool invalid_ledger=false;try{team.restore(fake);}catch(const MatchError&){invalid_ledger=true;}
+    const auto pending=team.snapshot();auto fake=pending;fake.queue[0].redirects[0].models[0]=wall;fake.queue[0].redirects[0].tokens[0]=1;fake.state.players[8].items[0].used=true;bool invalid_ledger=false;try{team.restore(fake);}catch(const MatchError&){invalid_ledger=true;}
     check(invalid_ledger&&team.snapshot()==pending,"block action cannot be forged into a pending reflection transcript even with an owned retained Wall token");
     team.step(defend(108,{1}));check(team.snapshot().owner==101&&team.snapshot().queue.empty()&&team.snapshot().state.players[0].hp==40&&team.snapshot().state.players[8].hp==40&&team.snapshot().state.players[0].items.size()==2&&team.snapshot().state.players[8].items.size()==3&&team.snapshot().state.players[8].mp==0,"ninth seat blocks after two reflections, pays all participant gifts and advances from immutable original owner");roundtrip(team);
     MatchConfig pair;pair.initial_hand=0;pair.hand_limit=2;auto crowded=fixture(scene({image("bronze-club")},{curtain,wall}),pair);const auto next_pair=crowded.snapshot().next_token;crowded.step(play(0,{0},7));crowded.step(defend(7,{0,1}));
@@ -243,6 +243,45 @@ void free_response_capacity_sampler_and_atomicity(){
     Match team;team.load_scene(nine,100,4);team.step(play(100,{0,1,2},108));roundtrip(team);team.step(defend(108,{0,1}));check(team.snapshot().owner==101&&team.snapshot().state.players[8].hp==40&&team.snapshot().state.players[0].mp==0&&team.snapshot().state.players[8].mp==0,"nine-seat composed FREE attack and FREE block retain actor/owner and exact zero-MP semantics");roundtrip(team);
 }
 
+void bounce_targets_roles_and_rng_provenance(){
+    const auto bounce=image("bouncing-sword"),harpoon=image("sky-harpoon"),turbulence=image("turbulence"),mirror=image("super-mirror");
+    for(auto id:{bounce,harpoon}){auto m=fixture(scene({id},{}));m.step(play(0,{0},7));check(m.snapshot().queue[0].power==find_card(id)->atk,"physical bounce weapon preserves ordinary base ATK");m.step(defend(7));roundtrip(m);}
+    auto plus=fixture(scene({image("bronze-club"),harpoon},{}));plus.step(play(0,{0,1},7));check(plus.snapshot().queue[0].power==10&&plus.snapshot().queue[0].ability==Ability::none,"harpoon extra adds9 once without conferring its magic reaction on original weapon");plus.step(defend(7));
+    for(const auto name:{"sky-boots","sky-gauntlet","sky-helm","sky-shield","sky-armor"}){auto m=fixture(scene({image("bronze-club")},{image(name)}));m.step(play(0,{0},7));m.step(defend(7,{0}));check(m.snapshot().state.players[1].hp==40,"nonmatching magic-bounce armor retains ordinary neutral weapon DEF");roundtrip(m);}
+    const std::array<PlayerId,9> ids{900,7,0,55,3,400,19,88,2};const std::array<unsigned,16> target_indices{7,5,4,0,4,8,5,3,4,4,1,3,0,4,5,2};std::set<PlayerId> destinations;
+    for(std::uint64_t seed=0;seed<128;++seed){SnapshotState state;for(unsigned i=0;i<9;++i)state.players.push_back(player(ids[i],i==0?std::initializer_list<CardId>{image("bronze-club")}:i==8?std::initializer_list<CardId>{bounce}:std::initializer_list<CardId>{},static_cast<Team>(i%3+1)));
+        Match m;m.load_scene(state,900,seed);m.step(play(900,{0},2));const auto original=m.snapshot().queue[0];m.step(defend(2,{0}));const auto& s=m.snapshot();const auto& e=s.queue[0];destinations.insert(e.target);
+        check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
+        if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
+        check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v3\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
+        if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
+        m.step(defend(e.target));roundtrip(m);
+    }
+    check(destinations==std::set<PlayerId>(ids.begin(),ids.end()),"bounce can reach every live seat including teammates, previous source, self and third parties");
+    auto dead=scene({image("bronze-club")},{bounce});dead.players.push_back(player(99));dead.players[2].hp=0;dead.players[2].dead=true;for(std::uint64_t seed=0;seed<32;++seed){Match m;m.load_scene(dead,0,seed);m.step(play(0,{0},7));m.step(defend(7,{0}));check(m.snapshot().queue[0].target!=99,"dead seats excluded from local all-alive bounce population");roundtrip(m);}
+    auto color=fixture(scene({elemental(Category::weapons,Element::fire)},{image("rainbow-curtain"),bounce}));color.step(play(0,{0},7));reject(color,defend(7,{1}));color.step(defend(7,{0,1}));check(!color.snapshot().queue[0].element&&color.snapshot().queue[0].source==7,"filter allows colored weapon bounce and keeps payload neutral after rerouting");roundtrip(color);
+    auto mixedstate=scene({image("spring"),image("moonlight-axe")},{image("sky-boots"),mirror});Match mixed;mixed.load_scene(mixedstate,0,2);mixed.step(play(0,{0},7));mixed.step(defend(7,{0}));check(mixed.snapshot().actor==0,"deterministic duel bounce reaches previous source");roundtrip(mixed);mixed.step(defend(0,{1}));roundtrip(mixed);mixed.step(defend(7,{1}));roundtrip(mixed);mixed.step(defend(0));check(mixed.snapshot().state.players[0].hp==50&&mixed.snapshot().state.players[0].mp==3&&mixed.snapshot().owner==7,"bounce and two physical reflections preserve utility kind/value, owner and original MP charge");roundtrip(mixed);
+    auto main=fixture(scene({turbulence},{}));reject(main,play(0,{0},7));
+}
+
+void retained_bounce_exceeds_physical_limit_and_free(){
+    const auto turbulence=image("turbulence"),doll=image("spiritual-doll");bool reached=false;
+    for(std::uint64_t seed=0;seed<256&&!reached;++seed){auto state=scene({image("spring"),turbulence},{turbulence});state.players[0].mp=state.players[1].mp=99;Match m;m.load_scene(state,0,seed);m.step(play(0,{0},7));unsigned redirects=0;
+        while(redirects<37){const auto actor=*m.snapshot().actor;const auto seat=actor==0?0:1;if(m.snapshot().state.players[seat].mp<5)break;m.step(defend(actor,{actor==0?ItemToken{1}:ItemToken{0}}));++redirects;roundtrip(m);}
+        if(redirects==37){reached=true;check(m.snapshot().queue[0].redirects.size()==37&&m.snapshot().state.players[0].mp==2&&m.snapshot().state.players[1].mp==4&&m.snapshot().gifts==std::vector<std::uint32_t>{16,17},"retained Turbulence reaches37 paid responses beyond two-seat36 physical bound with exact MP and capped gifts");
+            const auto saved=m.snapshot();check(std::count_if(saved.queue[0].redirects.begin(),saved.queue[0].redirects.end(),[](auto& row){return row.defender==0&&row.tokens==std::vector<ItemToken>{1};})==18&&std::count_if(saved.queue[0].redirects.begin(),saved.queue[0].redirects.end(),[](auto& row){return row.defender==7&&row.tokens==std::vector<ItemToken>{0};})==19,"same retained miracle token may legally recur across separate response decisions");
+            for(int error=0;error<6;++error){auto bad=saved;if(error==0)++bad.state.players[0].mp;if(error==1)++bad.state.players[1].mp;if(error==2)bad.state.players[0].items[1].used=false;if(error==3)--bad.gifts[1];if(error==4)bad.queue[0].redirects.back().models[0]=image("wall");if(error==5){auto& row=*std::find_if(bad.queue[0].redirects.begin(),bad.queue[0].redirects.end(),[](auto& entry){return entry.defender==0;});row.tokens[0]=0;}bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==saved,"long retained bounce checkpoint rejects excess MP, unretained ownership, gift, token and model forgery atomically");}
+            roundtrip(m);m.step(defend(*m.snapshot().actor));check(m.snapshot().state.players[0].items.size()==18&&m.snapshot().state.players[1].items.size()==18,"retained bounce chain resolves once and fills reserved slots without ownership duplication");roundtrip(m);}}
+    check(reached,"deterministic finite seed search reaches37 retained bounce responses without artificial chain cap");
+    auto darkstate=scene({image("darkness")},{turbulence});Match dark;dark.load_scene(darkstate,0,2);dark.step(play(0,{0},7));dark.step(defend(7,{0}));const auto dark_pending=dark.snapshot();check(dark_pending.actor==0&&dark_pending.queue[0].source==7&&dark_pending.queue[0].target==0&&dark_pending.queue[0].element==Element::darkness&&dark_pending.state.players[0].mp==5&&dark_pending.state.players[1].mp==5,"Dark miracle bounce needs no filter, preserves Dark and charges original caster and retained Turbulence independently");roundtrip(dark);
+    const auto lethal=dark.step(defend(0));check(lethal.terminated&&!lethal.truncated&&lethal.winners==std::vector<PlayerId>{7}&&lethal.rewards==std::vector<double>{-1,1}&&dark.snapshot().state.players[0].dead&&dark.snapshot().state.players[0].hp==0&&dark.snapshot().state.players[0].items.size()==1&&dark.snapshot().state.players[1].items.size()==1&&dark.snapshot().state.players[0].items[0].used&&dark.snapshot().state.players[1].items[0].used&&dark.snapshot().gifts==std::vector<std::uint32_t>{0,0}&&dark.snapshot().next_token==dark_pending.next_token&&dark.snapshot().rng==dark_pending.rng,"bounced Dark kills immutable owner, fixes seat rewards and cancels all gifts without undoing paid MP, holdings or prior bounce RNG draw");roundtrip(dark);
+    auto state=scene({image("spring"),image("angel-knife")},{turbulence,doll,image("angel-knife")});state.players[1].mp=0;auto free=fixture(state);free.step(play(0,{0},7));reject(free,defend(7,{0}));free.step(defend(7,{0,1}));check(free.snapshot().state.players[1].mp==0&&free.snapshot().state.players[1].items[0].used&&free.snapshot().queue[0].redirects.size()==1,"FREE suffix waives Turbulence5MP while retaining miracle and consuming carrier");roundtrip(free);const auto actor=*free.snapshot().actor;free.step(defend(actor,{actor==0?ItemToken{1}:ItemToken{2}}));check(free.snapshot().state.players[0].hp==40&&free.snapshot().state.players[1].hp==40,"either local bounce recipient may cancel retained utility with matching block");roundtrip(free);
+    MatchConfig cap;cap.max_decisions=2;auto cutstate=scene({image("spring")},{turbulence});auto cut=fixture(cutstate,cap);cut.step(play(0,{0},7));const auto before=cut.snapshot().rng;cut.step(defend(7,{0}));check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().queue.empty()&&cut.snapshot().rng!=before&&cut.snapshot().state.players[1].mp==5,"bounce at cutoff commits RNG/cost but does not resolve payload or gifts");roundtrip(cut);
+    auto late=fixture(scene({image("spring")},{turbulence}));late.step(play(0,{0},7));auto exhausted=late.snapshot();exhausted.state.update_count=max_wire_integer;late.restore(exhausted);const auto exact=late.snapshot();bool rejected=false;try{late.step(defend(7,{0}));}catch(const MatchError&){rejected=true;}check(rejected&&late.snapshot()==exact,"late bounce failure rolls back random draw, MP, used ownership, ledger and gifts");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -286,4 +325,4 @@ void checkpoint_cutoff_and_seeded_multiplayer(){
         check(a.snapshot().terminated!=a.snapshot().truncated,"explicit terminal or cutoff reached; no silent stuck match");}
 }
 }
-int main(){scope_reset_and_local_contract();weapon_frames_colors_owner_and_fixed_rewards();recovery_retention_capacity_and_atomicity();reflection_filter_and_immutable_origin();reflection_snapshot_adversaries();reflection_chain_exceeds_legacy_limit();reflection_role_capacity_and_late_failures();blocking_roles_retention_and_reflection();ordered_free_setter_and_double();free_response_capacity_sampler_and_atomicity();checkpoint_cutoff_and_seeded_multiplayer();std::cout<<"Experimental official match passed (156subset/ordered/FREE/block/reflection/filter/9teams/owner/retention/atomicity/snapshot/RNG/cutoff; server scheduling not asserted).\n";}
+int main(){scope_reset_and_local_contract();weapon_frames_colors_owner_and_fixed_rewards();recovery_retention_capacity_and_atomicity();reflection_filter_and_immutable_origin();reflection_snapshot_adversaries();reflection_chain_exceeds_legacy_limit();reflection_role_capacity_and_late_failures();blocking_roles_retention_and_reflection();ordered_free_setter_and_double();free_response_capacity_sampler_and_atomicity();bounce_targets_roles_and_rng_provenance();retained_bounce_exceeds_physical_limit_and_free();checkpoint_cutoff_and_seeded_multiplayer();std::cout<<"Experimental official match passed (164subset/bounce/ordered/FREE/block/reflection/filter/9teams/owner/retention/atomicity/snapshot/RNG/cutoff; server scheduling not asserted).\n";}

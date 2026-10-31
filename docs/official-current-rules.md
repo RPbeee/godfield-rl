@@ -54,11 +54,21 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 一方、`useDefenseItems`（10802–10879行）は受信したitems列全件を表示した後、その応答列のMP費用を引き、初使用奇跡を保持表示へ追加する。matching反応を見つけた時点でloopをbreakする処理は無い。submit時の `ee(null)` も選択済み列全件を消費予告する。防御奇跡233/234の直後のFREEはappend条件で許されるが、physical反射や190の直後のFREEは許されない。旧エミュレーターの「特殊後FREEは未消費suffix」という規則を現行へ移す根拠にはしない。サーバー側で実際に発行するitems列と最終消費結果のtraceはまだ取得していない。
 
-自己がtargetになった場合、`ft.aT`（12400行付近）は新しい別defender paneを作らず、source側へ矢印を向ける。bounceイベントも別paneが無ければ応答演出 `bB` を省く（11020–11030行）。自己返却に独立したresponse paneが無いことは確認できるが、これはサーバーでの自動解決や応答省略を証明しない。ローカル実行器が自己反射もresponseを続けるのは、明示的な実験規約である。
+自己がtargetになった場合、`ft.aT`（12400行付近）は新しい別defender paneを作らず、source側へ矢印を向ける。bounceイベントも別paneが無ければ応答演出 `bB` を省く（11020–11030行）。自己返却に独立したresponse paneが無いことは確認できるが、これはサーバーでの自動解決や応答省略を証明しない。ローカル実行器が自己反射・自己跳ね返しもresponseを続けるのは、明示的な実験規約である。
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。現行の[限定実行器v4](official-execution-subset.md)はさらにFREE・setter・倍化8種を加えた156モデル/重み337。bounce/counterや233以外の反応奇跡等を含めず、反射source/target・元payload・各応答者の消費来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。現行の[限定実行器v5](official-execution-subset.md)は跳ね返し8種を加えた164モデル/重み351。counterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+
+### 跳ね返し8モデルの一次確認とv5規約
+
+公式JSONでは21がbounceWeapon、34/114/125/137/151/164/234がbounceMiracle。21はATK5・giftRate7、34はATK9/isPlusAtk、5防具はDEF1/3/5/7/9、234はcost5の奇跡で、残りのgiftRateは各1。合計8モデル/追加重み14を確認した。`gkN` は234の主動作開始を拒否し、物理品の通常ATK/追加ATK/非matching普通DEFは保持する。`e1` は武器跳ね返しにweaponsかつ無属性、奇跡跳ね返しにmiraclesという条件を課す。回復奇跡も後者にmatchingする。
+
+bounce handler（11000–11030行）はreflectと同じ `cZ` を実行し、防御者が次のsourceになる。元aggregateの動的ATK/hit値を保って攻撃列を移し、次targetは受信済み `event.playerId` (`c3.b`) を参照する。handler内に生存候補の列挙・抽選は無い。JA教典 `bounceNote` は「攻撃を弾くと、その攻撃は誰かに向かう。」、ENも “it goes to somebody” とだけ説明し、生存者限定・自己/味方の包含・一様性・候補1人時の乱数消費は確定しない。
+
+v5は全aliveを入力seat順に列挙し、自己・味方・旧sourceを含めてSplitMix64の有界抽選で一様に選ぶ**ローカル実験規約**を定める。候補1人でも1draw、反射は0draw、自己targetもresponseを続ける。公開 `bounce_target_rule` で未検証の抽選規約を明示し、公式serverの分布と同一視しない。
+
+234は既存MC経路で初回used保持/再使用とも5MP、直後FREEなら完成列費用0。234→FREEの選択は `ev` のMC直後特例で許可され、全itemsの消費予告と費用計算に含む。無料化して同tokenを後の応答で再使用できるため、physical-onlyや固定32の連鎖上限を流用できない。v5は意思決定・全seatの物理消費/MP/補充予算と、乱数anchorからのredirect再生で検査する。消費発行・死亡・補充・次手番のscheduleは引き続き公式server未検証である。
 
 ### 遮断9モデルの一次確認とv3規約
 

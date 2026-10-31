@@ -24,14 +24,15 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 156 && gfo_match_gift_weight() == 337 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 164 && gfo_match_gift_weight() == 351 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v4"
-        && std::string(gfo_match_scope()) == "experimental:156-models;not-official-server-equivalence", "explicit v4 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v5"
+        && std::string(gfo_match_scope()) == "experimental:164-models;not-official-server-equivalence", "explicit v5 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {21, 34, 95, 234}) check(!gfo_match_supported(id), "remaining bounce/chance unsupported");
+    for (auto id : {95, 181, 184}) check(!gfo_match_supported(id), "remaining chance/counter unsupported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
     for (auto id : {46, 66, 83, 143, 163, 173, 204, 231}) check(gfo_match_supported(id), "added composition membership");
+    for (auto id : {21, 34, 114, 125, 137, 151, 164, 234}) check(gfo_match_supported(id), "added bounce membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -211,6 +212,71 @@ int main() {
     while ((offset = free_wall_observation.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
     check(hand_count == 18, "free response refill clipped at hand cap");
     gfo_match_destroy(free_wall);
+    // Public seeded reset contains Spring+FREE and Turbulence+FREE at MP0.
+    fixture.reset(setup, 16564);
+    bool got_spring = false, got_cast_free = false, got_bounce = false, got_bounce_free = false;
+    uint64_t cast_free_token = 0, bounce_token = 0, bounce_free_token = 0;
+    for (const auto& item : fixture.snapshot().state.players[0].items) {
+        if (item.model == 235) { got_spring = true; spring_token = item.token; }
+        if (item.model == 163) { got_cast_free = true; cast_free_token = item.token; }
+    }
+    for (const auto& item : fixture.snapshot().state.players[1].items) {
+        if (item.model == 234) { got_bounce = true; bounce_token = item.token; }
+        if (item.model == 46) { got_bounce_free = true; bounce_free_token = item.token; }
+    }
+    check(got_spring && got_cast_free && got_bounce && got_bounce_free, "public reset zero-MP bounce fixture");
+    gfo_match* bounce_match = nullptr; gfo_match* bounce_replay = nullptr;
+    check(gfo_match_create(&cfg, players.data(), 2, 16564, &bounce_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 16564, &bounce_replay) == 0, "bounce fixture create");
+    free_cast.target = 77; free_cast.items[0] = spring_token; free_cast.items[1] = cast_free_token;
+    check(gfo_match_step(bounce_match, &free_cast, &free_result) == 0
+        && gfo_match_step(bounce_replay, &free_cast, &replay_result) == 0 && equal(free_result, replay_result), "incoming recovery miracle opens bounce response");
+    gfo_match_command turbulence{}; turbulence.actor = 77; turbulence.kind = 1; turbulence.item_count = 1; turbulence.items[0] = bounce_token;
+    const auto before_bounce = observe(bounce_match, 1, 77); result = free_result;
+    check(gfo_match_step(bounce_match, &turbulence, &result) == -2 && equal(result, free_result)
+        && observe(bounce_match, 1, 77) == before_bounce, "paid Turbulence cannot spill MP debt at MP0");
+    turbulence.item_count = 2; turbulence.items[1] = bounce_free_token;
+    check(gfo_match_legal(bounce_match, &turbulence, &legal) == 0 && legal, "zero-MP Turbulence/FREE is legal");
+    pair_sampled = false;
+    for (uint64_t policy_seed = 0; policy_seed < 4096 && !pair_sampled; ++policy_seed) {
+        uint64_t policy = policy_seed, same_policy = policy_seed; gfo_match_command candidate{}, replay{};
+        check(gfo_match_sample_action(bounce_match, &policy, &candidate) == 0
+            && gfo_match_sample_action(bounce_match, &same_policy, &replay) == 0
+            && policy == same_policy && equal(candidate, replay), "bounce sampler reproducible policy stream");
+        check(gfo_match_legal(bounce_match, &candidate, &legal) == 0 && legal, "all sampled bounce-context actions legal");
+        pair_sampled = equal(candidate, turbulence);
+    }
+    check(pair_sampled && observe(bounce_match, 1, 77) == before_bounce, "sampler reaches free bounce without changing public state");
+    check(gfo_match_step(bounce_match, &turbulence, &free_result) == 0
+        && gfo_match_step(bounce_replay, &turbulence, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
+        "bounce transfers to an alive responder while retaining original owner");
+    const auto bounced_view = observe(bounce_match, 1, 77);
+    check(bounced_view.find("\"schema\":\"official-execution-view-v3\"") != std::string::npos
+        && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
+        && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
+        && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
+        "public bounce contract and separate redirect counters");
+    check(bounced_view.find("redirect_rng") == std::string::npos && bounced_view.find("redirects") == std::string::npos
+        && bounced_view.find("\"tokens\"") == std::string::npos, "private redirect replay evidence is not observed");
+    check(bounced_view.find("\"token\":" + std::to_string(bounce_free_token) + ",") == std::string::npos
+        && bounced_view.find("\"token\":" + std::to_string(bounce_token) + ",\"face\":234,\"reference\":234,\"disguised\":false,\"used\":true") != std::string::npos,
+        "bounce FREE physical suffix consumed while miracle is retained");
+    hand_count = 0; offset = 0;
+    while ((offset = bounced_view.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 17, "bounce replacement remains deferred");
+    accept.actor = free_result.actor;
+    check(gfo_match_step(bounce_match, &accept, &free_result) == 0
+        && gfo_match_step(bounce_replay, &accept, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 0 && free_result.actor == 77 && free_result.owner == 77,
+        "self or foreign bounce always has explicit response then finishes once");
+    check(observe(bounce_match, 1, 0) == observe(bounce_replay, 1, 0)
+        && observe(bounce_match, 1, 77) == observe(bounce_replay, 1, 77), "query/policy sampling preserves bounce RNG and future gift stream");
+    const auto complete_bounce = observe(bounce_match, 1, 77);
+    hand_count = 0; offset = 0;
+    while ((offset = complete_bounce.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 18 && complete_bounce.find("\"pending\":null") != std::string::npos, "bounce final gift cap");
+    gfo_match_destroy(bounce_match); gfo_match_destroy(bounce_replay);
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);

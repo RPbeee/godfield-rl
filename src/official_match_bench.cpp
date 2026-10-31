@@ -25,7 +25,8 @@ struct Stats {
     std::uint64_t games = 0, decisions = 0, draws = 0, truncations = 0, checksum = 0;
     std::uint64_t main = 0, responses = 0, physical = 0, first_uses = 0, recasts = 0, defense_cards = 0;
     std::uint64_t prayers = 0, discarded = 0, self_attacks = 0, dark_responses = 0, full_hands = 0;
-    std::uint64_t reflections = 0, filters = 0, max_reflection_depth = 0;
+    std::uint64_t reflections = 0, bounces = 0, filters = 0, max_redirect_depth = 0;
+    std::uint64_t turbulence_first_uses = 0, turbulence_recasts = 0, self_bounce_responses = 0;
     std::uint64_t blocks = 0, wall_first_uses = 0, wall_recasts = 0;
     std::uint64_t free_main = 0, free_responses = 0, waived_mp = 0, doublings = 0, element_setters = 0;
     std::array<std::uint64_t, player_capacity> wins{};
@@ -34,7 +35,8 @@ struct Stats {
         main += s.main; responses += s.responses; physical += s.physical; first_uses += s.first_uses; recasts += s.recasts;
         defense_cards += s.defense_cards; prayers += s.prayers; discarded += s.discarded; self_attacks += s.self_attacks;
         dark_responses += s.dark_responses; full_hands += s.full_hands;
-        reflections += s.reflections; filters += s.filters; max_reflection_depth = std::max(max_reflection_depth, s.max_reflection_depth);
+        reflections += s.reflections; bounces += s.bounces; filters += s.filters; max_redirect_depth = std::max(max_redirect_depth, s.max_redirect_depth);
+        turbulence_first_uses += s.turbulence_first_uses; turbulence_recasts += s.turbulence_recasts; self_bounce_responses += s.self_bounce_responses;
         blocks += s.blocks; wall_first_uses += s.wall_first_uses; wall_recasts += s.wall_recasts;
         free_main += s.free_main; free_responses += s.free_responses; waived_mp += s.waived_mp;
         doublings += s.doublings; element_setters += s.element_setters;
@@ -63,7 +65,8 @@ int main(int argc, char** argv) {
                     std::uint64_t hash = 14695981039346656037ULL; mix(hash, i);
                     while (!match.done()) {
                         const auto command = match.sample_action(policy); const auto& before = match.snapshot();
-                        const auto reflection_depth = before.queue.empty() ? 0 : before.queue.front().reflections.size();
+                        const auto redirect_depth = before.queue.empty() ? 0 : before.queue.front().redirects.size();
+                        bool bounced = false;
                         auto incoming_element = before.queue.empty() ? Attribute{} : before.queue.front().element;
                         if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
@@ -92,13 +95,16 @@ int main(int argc, char** argv) {
                             if (command.kind == CommandKind::defend) {
                                 if (find_card(item->model)->ability == Ability::filter_atk_element) { ++stats.filters; incoming_element.reset(); }
                                 const auto reaction = reaction_for(item->model, before.queue.front().category, incoming_element);
-                                if (reaction == Reaction::reflect) {
-                                    ++stats.reflections;
-                                    stats.max_reflection_depth = std::max(stats.max_reflection_depth, static_cast<std::uint64_t>(reflection_depth + 1));
+                                if (reaction == Reaction::reflect || reaction == Reaction::bounce) {
+                                    if (reaction == Reaction::reflect) ++stats.reflections; else { ++stats.bounces; bounced = true; }
+                                    stats.max_redirect_depth = std::max(stats.max_redirect_depth, static_cast<std::uint64_t>(redirect_depth + 1));
                                 }
                                 if (reaction == Reaction::block) ++stats.blocks;
                                 if (find_card(item->model)->ability == Ability::block_weapon) {
                                     if (item->used) ++stats.wall_recasts; else ++stats.wall_first_uses;
+                                }
+                                if (card.category == Category::miracles && card.ability == Ability::bounce_miracle) {
+                                    if (item->used) ++stats.turbulence_recasts; else ++stats.turbulence_first_uses;
                                 }
                             }
                         }
@@ -106,6 +112,7 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        if (bounced && step.actor == command.actor) ++stats.self_bounce_responses;
                         mix(hash, static_cast<unsigned>(step.phase)); mix(hash, step.terminated); mix(hash, step.truncated);
                     }
                     const auto& terminal = match.snapshot(); ++stats.games;
@@ -125,13 +132,15 @@ int main(int argc, char** argv) {
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
+            << "\nbounce_target_rule=" << bounce_target_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
             << "\nmiracle_first_uses=" << stats.first_uses << "\nmiracle_recasts=" << stats.recasts << "\ndefense_cards=" << stats.defense_cards
             << "\nprayers=" << stats.prayers << "\ndiscarded=" << stats.discarded << "\nself_attacks=" << stats.self_attacks
             << "\ndark_responses=" << stats.dark_responses << "\nfull_hand_actions=" << stats.full_hands << "\nchecksum=" << stats.checksum
-            << "\nreflections=" << stats.reflections << "\nfilters=" << stats.filters << "\nmax_reflection_depth=" << stats.max_reflection_depth
+            << "\nreflections=" << stats.reflections << "\nbounces=" << stats.bounces << "\nfilters=" << stats.filters << "\nmax_redirect_depth=" << stats.max_redirect_depth
+            << "\nturbulence_first_uses=" << stats.turbulence_first_uses << "\nturbulence_recasts=" << stats.turbulence_recasts << "\nself_bounce_responses=" << stats.self_bounce_responses
             << "\nblocks=" << stats.blocks << "\nwall_first_uses=" << stats.wall_first_uses << "\nwall_recasts=" << stats.wall_recasts
             << "\nfree_main_used=" << stats.free_main << "\nfree_response_used=" << stats.free_responses << "\nwaived_mp=" << stats.waived_mp
             << "\ndoublings=" << stats.doublings << "\nelement_setters=" << stats.element_setters

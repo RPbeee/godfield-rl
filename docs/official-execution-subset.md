@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v4
+# 現行公式データによる限定実行器 v5
 
-この実行器の `official-execution-subset-v4` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:156-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v5` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:164-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
-v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。末尾のv1〜v3計測・検証記録は各版の歴史的な証拠として残し、v4の速度や一致結果へ読み替えない。
+v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。末尾のv1〜v4計測・検証記録は各版の歴史的な証拠として残し、v5の速度や一致結果へ読み替えない。
 
 一次根拠があるものと、動かすためにこの実行器が定義する規約を分ける。
 
@@ -17,7 +17,7 @@ v1は132モデル/重み308、v2は物理反射6種と属性消去189を加え�
 
 ## 対象モデルと拒否する機能
 
-[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv4の対象を定義する。対象は156モデル、正のgiftRateの合計337。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
+[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv5の対象を定義する。対象は164モデル、正のgiftRateの合計351。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
 
 v1の基礎集合は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかという条件である。固定済みの現行台帳に対するこの基礎条件が132モデル/重み308を作り、v2はさらに後述7モデルを加える。属性は省略属性を含む全7種類を扱う。確率攻撃や、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
 
@@ -60,9 +60,22 @@ v4では次の8モデルを加える。204のみgiftRate2、残りは各1で、v
 | 204 | spiritual-doll | cutCost | 雑貨、単独主動作不可 | 0 |
 | 231 | aura | doubleAtk | 無属性・追加専用奇跡、累積ATK×2 | 6 |
 
+v5は次の8モデル/追加重み14を加える。全て無属性で、21のみgiftRate7、残りは各1。奇跡234以外はMP費用無し。
+
+| 現行ID | 画像識別子 | 能力 | 通常の値 | MP |
+| ---: | --- | --- | --- | ---: |
+| 21 | bouncing-sword | bounceWeapon | ATK5、追加ATK無し | 0 |
+| 34 | sky-harpoon | bounceMiracle | ATK9・追加ATK9 | 0 |
+| 114 | sky-boots | bounceMiracle | DEF1 | 0 |
+| 125 | sky-gauntlet | bounceMiracle | DEF3 | 0 |
+| 137 | sky-helm | bounceMiracle | DEF5 | 0 |
+| 151 | sky-shield | bounceMiracle | DEF7 | 0 |
+| 164 | sky-armor | bounceMiracle | DEF9 | 0 |
+| 234 | turbulence | bounceMiracle | 主動作不可の防御奇跡 | 5 |
+
 全プレイヤーのraw手札を含め、実行状態に未対応モデル、fake、災い、守護神、混乱、終末設定等があれば拒否する。本人に見えない他者の未対応カードでも、この実行器が将来通常品へ誤変換して進めることはない。`MatchError` の `unsupported` と、不正な入力を示す `invalid` は区別する。
 
-霧・夢・病気・閃光・暗雲・守護神・反撃・bounce・233以外の反応奇跡・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
+霧・夢・病気・閃光・暗雲・守護神・反撃・233/234以外の反応奇跡・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
 
 ## 初期化と入力状態
 
@@ -86,9 +99,9 @@ resetでは先頭プレイヤーをowner、GFを1にし、入力プレイヤー�
 
 通常のplayは生存targetを明示し、owner/actor/phaseと本人の所有品を検査する。表示モデルの選択・MP・category制約には公開クライアント由来の関数を使う。既存 `official_state` のappend照会だけで済ませず、実行器の現在phaseも検証する。
 
-武器やATK奇跡は、自己対象でも解決待ちのeffectとresponse phaseを作る。応答者はそのtargetであり、ownerとactorが同じ人でもphaseを分離する。普通防御では適合する品の選択順・合成と所有権を検証する。v2から物理反射と属性消去、v3から遮断を扱うが、跳ね返し等は含めない。旧版の自己攻撃時の応答省略を暗黙に流用しない。
+武器やATK奇跡は、自己対象でも解決待ちのeffectとresponse phaseを作る。応答者はそのtargetであり、ownerとactorが同じ人でもphaseを分離する。普通防御では適合する品の選択順・合成と所有権を検証する。v2から物理反射と属性消去、v3から遮断、v5から跳ね返しを扱う。旧版の自己攻撃時の応答省略を暗黙に流用しない。
 
-HP/MP/CPを増やす品は、自己対象なら即時解決する。他人を対象にした場合には応答待ちを作る。v1では空応答だけ、v2から適合する物理反射、v3から奇跡に対する魔法遮断を許す。普通防具で回復量を減らさない。非攻撃の回復へ属性消去を前置することはUIのincoming_is_attack制約により許さない。
+HP/MP/CPを増やす品は、自己対象なら即時解決する。他人を対象にした場合には応答待ちを作る。v1では空応答だけ、v2から適合する物理反射、v3から奇跡に対する魔法遮断、v5から奇跡への跳ね返しを許す。普通防具で回復量を減らさない。非攻撃の回復へ属性消去を前置することはUIのincoming_is_attack制約により許さない。
 
 prayは本人の手札に武器がなく、補充を受ける空きがあるときだけ許可する。discardは対象の制限を検査して捨て、補充予定を付けない。旧Flashの「捨て枚数に応じた配布」を公式ルールとして移さない。
 
@@ -114,7 +127,7 @@ discardのitemsは擬似モデル「捨てる」自身を含めず、捨てる�
 
 通常攻撃は、合成したraw威力から普通防御の値を引き、`max(0, raw−DEF)` を残余とする。闇属性で残余が正なら対象HPを0にし、残余0なら即死させない。他属性では残余を通常HP被害として適用する。属性適合と合成は確認済みclient計算を使うが、**残余式・effect適用と死亡処理の接合はローカル実験規約**であり、権威的serverの解決traceとの一致は未検証である。
 
-効果は `EffectFrame` にorigin/source/target、順序付きモデル列、category、属性、威力・能力を保持する。応答を待つpayloadは最大1個であり、反射はそれを移動して応答を続ける。複製や新しい奇跡の再発動ではなく、一般の多段反撃・守護神・全体攻撃queueを実装したものでもない。
+効果は `EffectFrame` にorigin/source/target、順序付きモデル列、category、属性、威力・能力を保持する。応答を待つpayloadは最大1個であり、反射/跳ね返しはそれを移動して応答を続ける。複製や新しい奇跡の再発動ではなく、一般の多段反撃・守護神・全体攻撃queueを実装したものでもない。
 
 ## v2の反射・属性消去
 
@@ -128,7 +141,7 @@ matchingする反応品を普通DEFとして選ぶopt-outは無い。非matching
 
 自己反射もresponseを継続する。これはv1の自己攻撃時と同じ**実験規約**である。現行clientは自己がtargetの場合に別の防御者paneを作らないが、それだけでサーバーの自己反射の解決・応答省略を確定することはできない。旧版の自己省略をこの実行器へ暗黙に移さない。
 
-反射応答は物理品を消費し、連鎖中に補充しないため、反射のたびに残り反射品が減る。固定9人×18枠の範囲に収まり、任意の旧32連鎖上限へ切り詰めない。v3の保持奇跡233は反射を続ける効果ではなく、その場で遮断終了する。ただし意思決定上限のtruncationは別に適用する。
+v2〜v4の継続反応は物理品を消費するため、その範囲では反射品が減る。v5の保持奇跡234は同tokenで跳ね返しを続けられるため、このphysical-only予算や旧32連鎖上限を流用しない。応答来歴の上限は後述する意思決定数・物理消費・MP会計から検証し、意思決定上限のtruncationも適用する。
 
 ## v3の遮断
 
@@ -140,7 +153,7 @@ matchingする反応品を普通DEFとして選ぶopt-outは無い。非matching
 
 matching遮断は現在のpayload全体を取消し、ATK被害・闇即死・HP/MP/CP回復等の元効果を適用しない。反射連鎖の途中から遮断してもその時点で終了する。原発奇跡のMPを再課金せず、既に支払ったMPや消費・保持も巻き戻さない。遮断応答の品は通常どおり消費またはused保持し、MPを払い、補充を予約する。完了後は自然終局を優先し、未終局かつ打切りでない場合だけ全員分をまとめて配り、元ownerから次手番へ巡回する。
 
-遮断は終端応答なので `ReflectionFrame` ledgerへ保存しない。反射履歴にblock応答を含めたpending snapshotは拒否する。一方、元攻撃モデル列でblockMiracle武器を普通ATKとして使うこととは区別する。
+遮断は終端応答なので `RedirectFrame` ledgerへ保存しない。反射履歴にblock応答を含めたpending snapshotは拒否する。一方、元攻撃モデル列でblockMiracle武器を普通ATKとして使うこととは区別する。
 
 この取消・補充・owner進行は明示した実験規約である。公式JSの `block` handler（11058–11067行）は `dE` を呼ぶだけで、`dE`（9765–9772行）も音・表示用 `aZ` の後に戻る。matching条件と演出は一次で確認できるが、権威的serverが元payloadをどの順で取り消し、消費・死亡・補充を発行するかを証明するコードではない。
 
@@ -172,9 +185,23 @@ responseの `ev` は「直前がMCで次がcutCost」を通常の反応後suffix
 
 MCを追加した武器のcategoryはweaponsのままである。FREEやsetter、Auraがcategoryをmiraclesへ変えることはなく、魔法遮断と武器遮断の判定も元のcategoryを使う。MP連動武器58や全体化232等、この8種追加に含まれない能力は引き続き対象外。
 
+## v5の跳ね返しと実験的な対象抽選
+
+`bounceWeapon` の21は現在categoryがweaponsかつ無属性の場合、`bounceMiracle` の34/114/125/137/151/164/234は現在categoryがmiraclesの場合にmatchingする。奇跡なら攻撃/回復・属性を問わない。matching品の普通DEFへのopt-outは無く、先頭または連続filter直後に選ぶ。非matching時のarmorは通常DEFを保ち、武器21/34の通常ATKと34の追加ATKも保つ。
+
+公開JSのbounce handler（11000–11030行）は反射と同じ `cZ` を使い、以前の防御者を新sourceにする。元aggregateの威力/hit表示値を維持し、新targetは受信済み `event.playerId` で設定する。公式教典の説明は「攻撃を弾くと、その攻撃は誰かに向かう。」であり、候補の生存条件・敵味方・自己・一様性・乱数消費は確定しない。
+
+この実行器は**実験規約**として、入力seat順に全aliveを列挙し、自己・味方・旧sourceを含めて一様抽選する。環境のSplitMix64と偏りを除いた有界抽選を使い、候補1人でも1drawを消費する。反射には対象抽選が無く、0draw。自己へ跳ね返っても明示的にresponseを続ける。公式serverの抽選分布や自己応答規則を再現したという主張ではない。
+
+originと元owner、元power/category/ability、既に消去した属性は維持し、原発MCを再課金・再取得しない。未解決連鎖中には死亡確定や補充を挟まない。各応答者の消費/used保持/MP/補充予約を処理し、最後に既存の解決・死亡・終局優先・補充・次owner規約へ進む。
+
+234は初使用/再使用とも5MP、初使用は同tokenをused保持する。直後FREEなら0MPで、そのFREEも物理消費する。MP不足prefixは完成列で検査し、同じ保持tokenを後のコマンドで繰り返し使える。1コマンド中の同token重複は不可。FREEの旧未消費suffixを採用しない。
+
+この再使用を含むredirect履歴の件数は `decisions-1` 以下、かつ `n * (hand_limit + 99/5)` 以下であることを検査する（`99/5` は整数除算）。後者は全seatの物理/FREE消費予算と、有償234の最低5MP予算を合わせた上限である。件数上限だけでなくMP・補充・消費済み物理tokenを全seatで厳密に会計する。旧physical-only `n*18` や固定32を新しい連鎖上限として流用しない。
+
 ## 死亡・次手番・終局・報酬
 
-効果を解決してから、このsubsetが定義する順に脱落を確定し、補充・次ownerへ進む。反射しても次ownerの巡回起点は元の主手番ownerのまま。deadの人は以後の主手番や生存対象から除く。病気tick、蘇生、死に際攻撃、守護神等をこの間へ推測で追加しない。HP0→脱落→次手番の具体的scheduleはサーバー未検証の実験規約である。
+効果を解決してから、このsubsetが定義する順に脱落を確定し、補充・次ownerへ進む。反射/跳ね返しを経ても次ownerの巡回起点は元の主手番ownerのまま。deadの人は以後の主手番や生存対象から除く。病気tick、蘇生、死に際攻撃、守護神等をこの間へ推測で追加しない。HP0→脱落→次手番の具体的scheduleはサーバー未検証の実験規約である。
 
 生存者が0人ならdraw、1人ならその人が勝者になる。複数生存者が全員同じ非Soloチームならチーム終局とする。勝利チームのwinnerリストには、先にdeadになった同チームの人も含む。後者はクライアントのending表示 `h7.lV` の集合規則を参考にするが、それ自体をサーバーの勝敗判定器とみなさない。
 
@@ -184,25 +211,54 @@ MCを追加した武器のcategoryはweaponsのままである。FREEやsetter�
 
 ## APIと再現性の境界
 
-`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v4の `MatchSnapshot` はversion4を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2/3を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
+`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v5の `MatchSnapshot` はversion5を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2/3/4を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
 
-応答待ちsnapshotには主動作で選んだtokenと、各反射応答者のモデル/token列を来歴として保存する。主動作のモデル列と同じ長さ・重複なし、普通品のtokenは既に消費済み、奇跡tokenは原発者の同モデルのused保持品、待機威力/能力は元モデル列と一致、という整合を検査する。反射前後のsource/target、初期target、消去後属性、反射者ごとの消費、各人の正確な補充予定をledgerから検証する。v1の「owner以外の補充予定は必ず0」という条件は、反応者も品を消費するv2には適用しない。token来歴は特権snapshot専用で、公開pending表示に出さない。
+応答待ちsnapshotには主動作で選んだtokenと、各継続反応の `RedirectFrame{defender,models,tokens,target}` を来歴として保存する。主動作のモデル列と同じ長さ・重複なし、普通品のtokenは既に消費済み、奇跡tokenは使用者の同モデルのused保持品、待機威力/能力は元モデル列と一致、という整合を検査する。反射/跳ね返し前後のsource/target、初期target、消去後属性、各応答者の消費・MP・正確な補充予定をledgerから検証する。`EffectFrame.redirect_rng` は主動作時の乱数anchorを保持し、元payloadから全redirectを再生して各抽選targetと最終 `s.rng` を照合する。anchorとledgerは特権状態であり観測へ出さない。v1の「owner以外の補充予定は必ず0」という条件は、反応者も品を消費するv2には適用しない。token来歴は特権snapshot専用で、公開pending表示に出さない。
 
 raw snapshotには他人の手札や将来のローカル乱数状態があるため、ポリシーの観測として渡さない。表示は `observe(viewer)` などの投影経路から取得する。snapshotはデバッグ・再現用の特権状態であり、公式の通信スナップショットと同じ形式でも、バージョンをまたぐ永続checkpointでもない。
 
 [official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。raw scene/checkpointのimport・restoreはこのC/Python公開APIへ追加していない。
 
-v4の `observe` は公開構造を追加しないためschema `official-execution-view-v2` を継続し、C ABIも1を維持する。rulesetとscopeはv4/156モデルへ更新する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に公開反射回数を返す。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
+v5の `observe` はschema `official-execution-view-v3` を使い、C ABIは1を維持する。rulesetとscopeはv5/164モデルへ更新する。top-levelに `bounce_target_rule="experimental:uniform-all-alive-in-input-order;includes-self-and-teammates"` を明示する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に反射件数、`pending.bounces` に跳ね返し件数を返す。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴tokenは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
 
 実行例は `python3 python/official_match.py`。ライブラリパスを別に指定する場合は同スクリプトの引数へ渡す。これは初期化してローカルに進める例であり、公式対局traceの取得ではない。
 
-旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、bounce/counter等の未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
+旧37profileとその台帳・Env・C ABI/Pythonは変更しない。この段階で学習器や学習済みモデルは追加しない。公式完全対応に向けては、一般effect queue、実配布・抽選・死亡・ターン順の一次照合、counter等の未対応能力、9人/チームでの多段効果、守護神、終末等が残る。
 
 ## 検証と計測
 
-以下のv1〜v3記録は過去のモデル集合・実装に対する証拠であり、156モデルのv4を同じコマンドで実行して同じchecksumや速度を得るという意味ではない。
+以下のv1〜v4記録は過去のモデル集合・実装に対する証拠であり、164モデルのv5を同じコマンドで実行して同じchecksumや速度を得るという意味ではない。v5の検証・計測結果は別に記録する。
 
-### v4の検証と集計
+### v5の検証と集計
+
+v5（164モデル/重み351）は全Release CTest129件/20.03秒、ASan/UBSan89件/51.49秒が通過した（各suiteの `-j4` 同時実行）。focusedもRelease3件/1.09秒・SAN2件/1.20秒が通過し、Python Match suiteはASTで12ケースを確認した。全ソース最終freeze後にbuildと全体検証を行い、全sourceのcompile warningは無かった。公式assets再取得のSHA-256と296モデルfactsも一致した。
+
+`./build/godfield_official_bench GAMES PLAYERS 42 WORKERS` のv5集計:
+
+| 人数 | 試合数 | 意思決定数 | 勝数 | draw | 打切り | checksum |
+| ---: | ---: | ---: | --- | ---: | ---: | --- |
+| 2 | 100,000 | 3,900,109 | 49,546 / 50,454 | 0 | 0 | `8091597239127085284` |
+| 9 | 10,000 | 2,787,125 | 1,123 / 1,111 / 1,121 / 1,072 / 1,212 / 1,090 / 1,124 / 1,048 / 1,087 | 0 | 12 | `15009826975196651729` |
+
+| 人数 | 跳ね返し | 乱気流 初 / 再使用 | 自己bounce応答 | 反射 | 属性消去 | 遮断 | 壁 初 / 再使用 | 最大redirect深度 |
+| ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: |
+| 2 | 36,602 | 893 / 288 | 18,203 | 24,448 | 22,067 | 12,476 | 5,446 / 1,844 | 4 |
+| 9 | 31,700 | 1,880 / 639 | 5,801 | 21,983 | 21,187 | 15,703 | 5,126 / 3,692 | 5 |
+
+| 人数 | FREE品使用 main / response | 免除MP合計 | Aura使用 | setter使用 |
+| ---: | --- | ---: | ---: | ---: |
+| 2 | 20,682 / 22,354 | 71,467 | 11,257 | 24,260 |
+| 9 | 21,162 / 19,140 | 90,602 | 14,164 | 17,184 |
+
+1 worker/4 workersで時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。`bounces` は受理された全bounce、`self_bounce_responses` は自己が次のactorとして応答を続けた件数であり、打切りでactorが無くなったbounceは後者に含まない。
+
+v5は旧 `max_reflection_depth` を廃止し、反射とbounceを合わせた履歴深度 `max_redirect_depth` を記録する。表の4/5は観測最大値であり、機能上の連鎖上限ではない。FREE使用数には通常武器/防具としての使用も含み、無料化発動回数とは異なる。競合中ログの秒数を独立速度に使わず、v1〜v4との速度比を改善率として主張しない。
+
+競合を避けたRelease・1 workerの再計測は、2人100,000試合が1.9292秒（2,021,620意思決定/秒）、9人10,000試合が2.24261秒（1,242,800意思決定/秒）。時間以外の全fieldは上表と一致した。合法手sampler、実行、reset、各試合の終了snapshot検証を含み、合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。scope・policy・プールがv4と異なるため、版間の速度比を改善率として主張しない。
+
+Release/SAN seed42各1,000試合も時間以外の全fieldが一致した。checksumは2人 `13433316251301511666`、9人 `10911795126884805082`。
+
+### v4の過去の検証と集計
 
 v4（156モデル/重み337）は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各suiteの `-j4` 同時実行）。Python Match suiteは11ケース。公式assetsの再取得SHA-256と296モデルfactsは固定済み資料と一致。
 
