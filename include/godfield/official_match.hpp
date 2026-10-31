@@ -9,10 +9,11 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v5";
-inline constexpr const char* match_scope = "experimental:164-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v6";
+inline constexpr const char* match_scope = "experimental:185-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
-inline constexpr std::uint32_t match_snapshot_version = 5;
+inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
+inline constexpr std::uint32_t match_snapshot_version = 6;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -55,7 +56,21 @@ struct EffectFrame {
     PlayerId initial_target = 0;
     std::uint64_t redirect_rng = 0; // Privileged RNG at launch, for exact redirect replay.
     std::vector<RedirectFrame> redirects; // Reaction kind is derived from models and incoming payload.
+    int hit_rate = 0; // Original display percentage; an active chance frame has already hit.
     bool operator==(const EffectFrame&) const = default;
+};
+// Non-recursive privileged launch anchor and accepted response journal. Current
+// targets/cursor/models are derived again when the batch is restored.
+struct ChanceBatch {
+    SnapshotState initial_state;
+    PlayerId owner = 0;
+    std::uint64_t rng = 0, decisions = 0, next_token = 0, chance_rolls = 0, chance_hits = 0;
+    Command attack;
+    std::vector<CardId> models;
+    std::vector<PlayerId> targets;
+    std::size_t cursor = 0; // Next initial target; current frame uses targets[cursor-1].
+    std::vector<Command> responses;
+    bool operator==(const ChanceBatch&) const = default;
 };
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
@@ -65,8 +80,10 @@ struct MatchSnapshot {
     std::optional<PlayerId> actor;
     MatchPhase phase = MatchPhase::finished;
     std::vector<EffectFrame> queue; // One payload; redirects transfer it without cloning/recasting.
+    std::optional<ChanceBatch> chance;
     std::vector<std::uint32_t> gifts;
     std::uint64_t rng = 0, decisions = 0, next_token = 0;
+    std::uint64_t chance_rolls = 0, chance_hits = 0; // Completed public attempts, never future rolls.
     bool terminated = false, truncated = false;
     std::vector<double> rewards; // Fixed player vector order, never actor-relative.
     std::vector<PlayerId> winners;

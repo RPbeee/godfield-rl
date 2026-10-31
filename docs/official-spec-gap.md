@@ -33,12 +33,12 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v5` / `godfield::official::Match` | 164モデル/重み351、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v6` / `godfield::official::Match` | 185モデル/重み372、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI1 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
-限定した164モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
-配布・死亡・手番の権威的serverとの同等性、一般effect queue、確率攻撃、counter、取引、病気・霧・夢、
+限定した185モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
+配布・死亡・手番の権威的serverとの同等性、一般effect queue、固有効果付き確率攻撃、counter、取引、病気・霧・夢、
 守護神、終末/悪魔/超常現象等は未対応である。未対応局面を黙って通常効果へ置き換えず拒否する。
 read-only viewにはactive攻撃/購入表示・モード依存rating欄・増分履歴を投影していない。
 実行器のobserveには、このsubsetが既に公開した待機effectとphase/owner/actorを追加している。
@@ -122,6 +122,10 @@ v5は21/34/114/125/137/151/164/234の跳ね返し8種を加え、164モデル/�
 Snapshot5は旧1〜4を拒否し、乱数anchorとredirect全履歴を再生してtarget/最終RNG、全seatのMP/補充/消費tokenを検証する。保持234の連鎖に旧physical-only予算や固定32を適用しない。
 公開JSONはofficial-execution-view-v3へ進み、top-level `bounce_target_rule='experimental:uniform-all-alive-in-input-order;includes-self-and-teammates'`、`pending.reflections` と新 `pending.bounces` を公開する。未来RNG・anchor・token ledgerは非公開、C ABI1は維持する。
 
+v6はability noneでhitRate>0の95/96/99〜111/225〜230の21種/重み21を追加し、185モデル/重み372とする。target無しのplayに限定し、launch alive敵を入力順に固定する。各生存対象へ有界100抽選の `roll < rate`、deadは無draw skip、miss応答無し/hitだけresponse、redirect後再抽選無しとする。原発消費・MC費用/used保持は1回で、chanceMC→FREEは可、chance武器addonsは不可、108は普通DEF6を保持する。
+自然終局→decision cutoffは受理コマンド末尾で判定する。自動miss/skipはdecision増無しで、launchは最初hitまたは全missまでdrainしてから判定するため、上限1でも複数rollが発生し得る。response完了後は未打切りの場合だけ次対象を抽選し、origin死亡なら残り取消。batch全完了後だけ補充・次ownerへ進む。この全敵展開・対象順・抽選/途中死亡は公式server未確認の実験規約であり、公開clientのglk/submit/hit/miss表示だけで確定したと扱わない。
+Snapshot6は旧1〜5を拒否し、非再帰launch anchorの状態/RNG/counters/commandと受理response journalから内部executorを再生してHP/dead/MP/gifts/RNG/currentframeを全比較する。履歴上限は `n*(hand_limit+99/5)+targets.size()`。view-v4は現在pendingの `hit_rate` と実験規約 `chance_rule` を公開し、将来roster/cursor/anchor/journal・RNG・native chance_rolls/hitsを出さない。C ABI1とbounce_target_ruleは維持する。
+
 Pythonの実行例は `python3 python/official_match.py`。ベンチマークは
 `./build/godfield_official_bench GAMES PLAYERS SEED WORKERS`（既定 `10000 2 42 1`）。
 この限定プールの実行速度と、公式全体の正しさ・全配布対応・対局trace適合は別の検証である。
@@ -156,7 +160,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v4の記録を現行v5の164モデルの速度・checksumの証拠として転記しない。
+v1〜v5の記録を現行v6の185モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -175,9 +179,15 @@ v5は全Release CTest129件/20.03秒、ASan/UBSan89件/51.49秒、focused Releas
 seed42の2人100,000試合は3,900,109意思決定・勝数49,546/50,454・draw0/trunc0・checksum `8091597239127085284`。
 9人10,000試合は2,787,125意思決定・勝数1,123/1,111/1,121/1,072/1,212/1,090/1,124/1,048/1,087・draw0/trunc12・checksum `15009826975196651729`。
 bounce36,602/31,700、乱気流初893/1,880・再288/639、自己bounce後の応答18,203/5,801。反射とbounceを合わせた `max_redirect_depth` は4/5で、旧 `max_reflection_depth` は廃止した。これは観測最大値で連鎖上限ではない。
-1/4 workersの時間以外の全fieldが一致し、全終了snapshotのrestoreに成功。自己bounce応答は打切りでactorが無くなる場合を含まず、受理全bounceとは分ける。詳細は[限定実行器v5記録](official-execution-subset.md#v5の検証と集計)。
+1/4 workersの時間以外の全fieldが一致し、全終了snapshotのrestoreに成功。自己bounce応答は打切りでactorが無くなる場合を含まず、受理全bounceとは分ける。詳細は[限定実行器v5記録](official-execution-subset.md#v5の過去の検証と集計)。
 競合を避けたRelease・1 workerは、2人100,000試合が1.9292秒（2,021,620意思決定/秒）、9人10,000試合が2.24261秒（1,242,800意思決定/秒）で全決定的fieldを維持した。合法手sampler・実行・終了snapshot検証を含み、scope・policy・プールが異なるv4との速度改善率は主張しない。
 Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、checksumは2人 `13433316251301511666`、9人 `10911795126884805082`。
+
+v6は全Release CTest129件/18.98秒、ASan/UBSan89件/50.42秒、focused Release3件/0.51秒・SAN2件/0.64秒が通過した。各 `-j4` のRelease/SAN同時実行で、最終全sourcefreeze後full/compile warning無し、Python Match13ケース、公式assets再取得hash/296facts一致。
+seed42の2人100,000試合は3,795,626意思決定・勝数49,552/50,448・draw0/trunc0・checksum `12990827435025744992`。9人10,000試合は2,396,687意思決定・勝数1,144/1,136/1,058/1,101/1,168/1,114/1,089/1,061/1,129・draw0/trunc0・checksum `12373722458217459627`。
+chance攻撃/roll/hit/missは2人117,318/117,318/68,036/49,282、9人47,957/195,003/113,248/81,755。1/4 workersの時間以外の全fieldが一致し、全終了snapshotのrestoreに成功した。
+Release/SAN seed42各1,000試合も時間以外の全fieldが一致し、checksumは2人 `14650413054504497333`、9人 `15816808055195738927`。詳細は[限定実行器v6記録](official-execution-subset.md#v6の検証と集計)。
+競合を避けたRelease・1 workerは、2人100,000試合が1.96549秒（1,931,130意思決定/秒）、9人10,000試合が1.98373秒（1,208,170意思決定/秒）で全決定的fieldを維持した。合法手sampler・実行・終了snapshot検証を含み、scope・policy・プールが異なるv5との速度改善率は主張しない。
 
 ## 差分表作成後の実装進捗
 
@@ -390,8 +400,8 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 ## 着手順と完了条件
 
-現行対応では164モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
-一般effect queue、counter・確率・取引・状態変化・霧/夢・守護神・終末等への拡張である。
+現行対応では185モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
+一般effect queue、counter・固有効果付き確率攻撃・取引・状態変化・霧/夢・守護神・終末等への拡張である。
 9人state/view、限定した9人playable、公式全体への適合は別段階として検証し、学習器は現在の対象に追加しない。
 以下の番号付き手順は、差分表作成時の計画記録として読む。
 

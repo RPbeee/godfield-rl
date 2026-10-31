@@ -29,6 +29,7 @@ struct Stats {
     std::uint64_t turbulence_first_uses = 0, turbulence_recasts = 0, self_bounce_responses = 0;
     std::uint64_t blocks = 0, wall_first_uses = 0, wall_recasts = 0;
     std::uint64_t free_main = 0, free_responses = 0, waived_mp = 0, doublings = 0, element_setters = 0;
+    std::uint64_t chance_attacks = 0, chance_rolls = 0, chance_hits = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -40,6 +41,7 @@ struct Stats {
         blocks += s.blocks; wall_first_uses += s.wall_first_uses; wall_recasts += s.wall_recasts;
         free_main += s.free_main; free_responses += s.free_responses; waived_mp += s.waived_mp;
         doublings += s.doublings; element_setters += s.element_setters;
+        chance_attacks += s.chance_attacks; chance_rolls += s.chance_rolls; chance_hits += s.chance_hits;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -65,6 +67,7 @@ int main(int argc, char** argv) {
                     std::uint64_t hash = 14695981039346656037ULL; mix(hash, i);
                     while (!match.done()) {
                         const auto command = match.sample_action(policy); const auto& before = match.snapshot();
+                        const auto rolls_before = before.chance_rolls, hits_before = before.chance_hits;
                         const auto redirect_depth = before.queue.empty() ? 0 : before.queue.front().redirects.size();
                         bool bounced = false;
                         auto incoming_element = before.queue.empty() ? Attribute{} : before.queue.front().element;
@@ -83,6 +86,7 @@ int main(int argc, char** argv) {
                         if (command.kind == CommandKind::play || command.kind == CommandKind::defend) for (auto token : command.items) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
                             const auto& card = *find_card(item->model);
+                            if (command.kind == CommandKind::play && token == command.items.front() && card.hit_rate) ++stats.chance_attacks;
                             if (card.category == Category::miracles) { if (item->used) ++stats.recasts; else ++stats.first_uses; }
                             else ++stats.physical;
                             if (card.ability == Ability::cut_cost) {
@@ -112,6 +116,8 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        stats.chance_rolls += match.snapshot().chance_rolls - rolls_before;
+                        stats.chance_hits += match.snapshot().chance_hits - hits_before;
                         if (bounced && step.actor == command.actor) ++stats.self_bounce_responses;
                         mix(hash, static_cast<unsigned>(step.phase)); mix(hash, step.terminated); mix(hash, step.truncated);
                     }
@@ -133,6 +139,7 @@ int main(int argc, char** argv) {
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
             << "\nbounce_target_rule=" << bounce_target_rule
+            << "\nchance_rule=" << chance_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -144,6 +151,8 @@ int main(int argc, char** argv) {
             << "\nblocks=" << stats.blocks << "\nwall_first_uses=" << stats.wall_first_uses << "\nwall_recasts=" << stats.wall_recasts
             << "\nfree_main_used=" << stats.free_main << "\nfree_response_used=" << stats.free_responses << "\nwaived_mp=" << stats.waived_mp
             << "\ndoublings=" << stats.doublings << "\nelement_setters=" << stats.element_setters
+            << "\nchance_attacks=" << stats.chance_attacks << "\nchance_rolls=" << stats.chance_rolls << "\nchance_hits=" << stats.chance_hits
+            << "\nchance_misses=" << stats.chance_rolls - stats.chance_hits
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

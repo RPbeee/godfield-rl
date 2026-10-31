@@ -70,16 +70,16 @@ Outcome outcome(const SnapshotState& state) {
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     s.terminated = true; s.truncated = false; s.state.is_over = true;
-    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear();
+    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.chance.reset();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
     s.winners = result.winners;
     s.rewards.assign(s.state.players.size(), 0);
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 351>& gift_tickets() {
+const std::array<CardId, 372>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 351> values{};
+        std::array<CardId, 372> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -88,7 +88,7 @@ const std::array<CardId, 351>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 164) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 185) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -114,6 +114,13 @@ void consume(MatchSnapshot& s, std::size_t seat, const std::vector<ItemToken>& t
     }
 }
 bool damaging(const EffectFrame& effect) { return effect.power > 0 || effect.category == Category::weapons; }
+std::vector<PlayerId> chance_targets(const MatchSnapshot& s) {
+    const auto& owner = s.state.players[index(s, s.owner)];
+    std::vector<PlayerId> targets;
+    for (const auto& player : s.state.players) if (!player.dead && player.id != owner.id
+        && (owner.team == Team::solo || player.team != owner.team)) targets.push_back(player.id);
+    return targets;
+}
 ResponseContext response_context(const MatchSnapshot& s) {
     require(s.queue.size() == 1, "response has no active item");
     const auto& effect = s.queue.front();
@@ -155,8 +162,13 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         for (auto id : models) require(find_card(id)->category != Category::weapons, "cannot discard weapons");
         return models;
     }
-    require(!models.empty() && command.target, "play needs items and explicit target");
-    require(!s.state.players[index(s, *command.target)].dead, "target is dead");
+    require(!models.empty(), "play needs items");
+    if (find_card(models.front())->hit_rate) {
+        require(!command.target && !chance_targets(s).empty(), "chance play needs no target and at least one alive enemy");
+    } else {
+        require(command.target.has_value(), "play needs explicit target");
+        require(!s.state.players[index(s, *command.target)].dead, "target is dead");
+    }
     std::vector<VisibleSelection> prefix;
     for (auto id : models) {
         require(can_append_main(prefix, {id, false}), "invalid main composition");
@@ -167,7 +179,7 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
 }
 EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target, const std::vector<ItemToken>& tokens) {
     const auto& base = *find_card(models.front());
-    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, s.rng, {}};
+    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, base.ability_value, target, s.rng, {}, base.hit_rate};
 }
 PlayerId sample_bounce_target(const MatchSnapshot& s, std::uint64_t& rng) {
     std::array<PlayerId, player_capacity> alive;
@@ -233,10 +245,76 @@ void advance(MatchSnapshot& s) {
     }
     throw std::logic_error("no alive next owner without a terminal outcome");
 }
+bool next_chance_target(MatchSnapshot& s) {
+    auto& batch = *s.chance;
+    const auto rate = find_card(batch.models.front())->hit_rate;
+    while (batch.cursor < batch.targets.size()) {
+        const auto target = batch.targets[batch.cursor++];
+        if (s.state.players[index(s, target)].dead) continue;
+        ++s.chance_rolls;
+        if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(rate)) continue;
+        ++s.chance_hits;
+        s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items));
+        s.actor = target; s.phase = MatchPhase::response;
+        return true;
+    }
+    s.chance.reset();
+    return false;
+}
+// Used by both the live transactional step and privileged journal replay.
+void execute(MatchSnapshot& s, const Command& command) {
+    const auto models = prepare(s, command); const auto seat = index(s, command.actor);
+    bool completed = false;
+    if (s.phase == MatchPhase::response) {
+        if (s.chance) s.chance->responses.push_back(command);
+        auto& effect = s.queue.front();
+        const auto response = apply_response(effect, models);
+        change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
+        consume(s, seat, command.items, false);
+        if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
+            if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
+            effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
+        } else {
+            if (response.reaction == Reaction::none) resolve(s, effect, response.defense);
+            s.queue.clear(); completed = true;
+        }
+    } else if (command.kind == CommandKind::discard) {
+        consume(s, seat, command.items, true); completed = true;
+    } else if (command.kind == CommandKind::pray) {
+        request_gift(s, seat); completed = true;
+    } else {
+        if (find_card(models.front())->hit_rate) {
+            ChanceBatch batch;
+            batch.initial_state = s.state; batch.owner = s.owner; batch.rng = s.rng;
+            batch.decisions = s.decisions; batch.next_token = s.next_token;
+            batch.chance_rolls = s.chance_rolls; batch.chance_hits = s.chance_hits;
+            batch.attack = command; batch.models = models; batch.targets = chance_targets(s);
+            s.chance = std::move(batch);
+            change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
+            completed = !next_chance_target(s);
+        } else {
+            const auto effect = effect_for(s, models, *command.target, command.items);
+            change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
+            if (damaging(effect) || effect.target != s.owner) {
+                s.queue.push_back(effect); s.actor = effect.target; s.phase = MatchPhase::response;
+            } else { resolve(s, effect, 0); completed = true; }
+        }
+    }
+    ++s.decisions; require(s.state.update_count < max_wire_integer, "update counter exhausted"); ++s.state.update_count;
+    const auto natural = outcome(s.state);
+    if (natural.terminal) finish(s, natural);
+    else if (s.decisions == s.config.max_decisions) {
+        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.chance.reset(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
+    } else if (completed) {
+        if (s.chance && s.state.players[index(s, s.owner)].dead) s.chance.reset();
+        if (!s.chance || !next_chance_target(s)) advance(s);
+    }
+}
 void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
     const auto n = s.state.players.size();
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
+    require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= player_capacity * s.decisions, "invalid chance attempt counters");
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
     for (std::size_t i = 0; i < n; ++i) {
@@ -245,7 +323,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     }
     const auto natural = outcome(s.state);
     if (s.phase == MatchPhase::finished) {
-        require(!s.actor && s.queue.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
+        require(!s.actor && s.queue.empty() && !s.chance && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
         require(s.terminated != s.truncated && s.state.is_over == s.terminated, "invalid episode boundary");
         if (s.terminated) {
             require(natural.terminal && s.winners == natural.winners, "invalid natural outcome");
@@ -258,10 +336,35 @@ void validate_snapshot(const MatchSnapshot& s) {
         && std::all_of(s.rewards.begin(), s.rewards.end(), [](auto v) { return v == 0; }), "invalid running match");
     require(s.actor && !s.state.players[index(s, *s.actor)].dead, "missing live actor");
     if (s.phase == MatchPhase::main) {
-        require(*s.actor == s.owner && s.queue.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
+        require(*s.actor == s.owner && s.queue.empty() && !s.chance && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
         return;
     }
     require(s.phase == MatchPhase::response && s.queue.size() == 1, "invalid match phase/queue");
+    if (s.chance) {
+        const auto& batch = *s.chance;
+        require(batch.owner == s.owner && batch.initial_state.players.size() == n && !batch.models.empty()
+            && batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()
+            && batch.targets.size() <= n && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid chance batch shape");
+        require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
+            && batch.responses.size() <= n * (s.config.hand_limit + 99 / 5) + batch.targets.size(), "invalid chance journal length");
+        for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized chance response");
+        closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
+        MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
+        replay.owner = batch.owner; replay.actor = batch.owner; replay.phase = MatchPhase::main;
+        replay.rng = batch.rng; replay.decisions = batch.decisions; replay.next_token = batch.next_token;
+        replay.chance_rolls = batch.chance_rolls; replay.chance_hits = batch.chance_hits;
+        replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
+        validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
+        require(batch.attack.kind == CommandKind::play && !batch.attack.target && find_card(batch.models.front())
+            && find_card(batch.models.front())->hit_rate > 0, "chance journal has no chance launch");
+        execute(replay, batch.attack);
+        for (const auto& response : batch.responses) {
+            require(replay.chance.has_value(), "chance journal continues after its batch ended");
+            execute(replay, response);
+        }
+        require(replay == s, "chance journal does not reproduce full snapshot");
+        return;
+    }
     const auto& effect = s.queue.front();
     require(effect.origin == s.owner && *s.actor == effect.target
         && !s.state.players[index(s, s.owner)].dead && s.decisions > 0 && !effect.models.empty() && effect.models.size() <= s.config.hand_limit && effect.tokens.size() == effect.models.size(), "invalid effect origin/actor");
@@ -270,6 +373,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         if (!match_supported(id)) unsupported("unsupported queued model");
         require(can_append_main(prefix, {id, false}), "invalid queued composition"); prefix.push_back({id, false});
     }
+    require(!find_card(effect.models.front())->hit_rate && !effect.hit_rate, "chance frame is missing its launch journal");
     auto replay = effect_for(s, effect.models, effect.initial_target, effect.tokens);
     replay.redirect_rng = effect.redirect_rng;
     auto replay_rng = effect.redirect_rng;
@@ -333,7 +437,7 @@ MatchStep result(const MatchSnapshot& s) { return {s.phase, s.actor, s.terminate
 }
 bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
-    return c && c->gift_rate > 0 && !c->hit_rate && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
@@ -384,37 +488,7 @@ void Match::load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed) 
 void Match::restore(const MatchSnapshot& snapshot) { validate_snapshot(snapshot); auto s = snapshot; data_ = std::move(s); config_ = data_.config; }
 bool Match::legal(const Command& command) const noexcept { try { (void)prepare(data_, command); return true; } catch (...) { return false; } }
 MatchStep Match::step(const Command& command) {
-    const auto models = prepare(data_, command); auto s = data_; const auto seat = index(s, command.actor);
-    bool completed = false;
-    if (s.phase == MatchPhase::response) {
-        auto& effect = s.queue.front();
-        const auto response = apply_response(effect, models);
-        change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
-        consume(s, seat, command.items, false);
-        if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
-            if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
-            effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
-        } else {
-            if (response.reaction == Reaction::none) resolve(s, effect, response.defense);
-            s.queue.clear(); completed = true;
-        }
-    } else if (command.kind == CommandKind::discard) {
-        consume(s, seat, command.items, true); completed = true;
-    } else if (command.kind == CommandKind::pray) {
-        request_gift(s, seat); completed = true;
-    } else {
-        const auto effect = effect_for(s, models, *command.target, command.items);
-        change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
-        if (damaging(effect) || effect.target != s.owner) {
-            s.queue.push_back(effect); s.actor = effect.target; s.phase = MatchPhase::response;
-        } else { resolve(s, effect, 0); completed = true; }
-    }
-    ++s.decisions; require(s.state.update_count < max_wire_integer, "update counter exhausted"); ++s.state.update_count;
-    const auto natural = outcome(s.state);
-    if (natural.terminal) finish(s, natural);
-    else if (s.decisions == s.config.max_decisions) {
-        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
-    } else if (completed) advance(s);
+    auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
 }
 Command Match::sample_action(std::uint64_t& policy_rng) const {
@@ -460,8 +534,10 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         for (const auto& item : own.items) {
             const auto& c = *find_card(item.model);
             if (c.category != Category::weapons) add(CommandKind::discard, item.token, {});
-            if (can_start_main(item.model))
-                for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
+            if (can_start_main(item.model)) {
+                if (c.hit_rate) add_usable(CommandKind::play, item, {});
+                else for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
+            }
         }
     }
     require(count != 0, "no scoped action available");
@@ -506,9 +582,10 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v3\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v4\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
-    out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
+    out += "\",\"chance_rule\":\""; out += chance_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -531,6 +608,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         }
         out += ",\"reflections\":" + std::to_string(e.redirects.size() - bounces);
         out += ",\"bounces\":" + std::to_string(bounces);
+        out += ",\"hit_rate\":" + std::to_string(e.hit_rate);
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }

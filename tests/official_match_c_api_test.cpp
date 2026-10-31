@@ -24,15 +24,16 @@ int main() {
     check(gfo_match_abi_version() == 1 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
-    check(gfo_match_catalog_count() == 164 && gfo_match_gift_weight() == 351 && gfo_match_supported(6)
+    check(gfo_match_catalog_count() == 185 && gfo_match_gift_weight() == 372 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(14), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v5"
-        && std::string(gfo_match_scope()) == "experimental:164-models;not-official-server-equivalence", "explicit v5 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v6"
+        && std::string(gfo_match_scope()) == "experimental:185-models;not-official-server-equivalence", "explicit v6 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
-    for (auto id : {95, 181, 184}) check(!gfo_match_supported(id), "remaining chance/counter unsupported");
+    for (auto id : {112, 181, 184}) check(!gfo_match_supported(id), "death-passive chance and counter unsupported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
     for (auto id : {46, 66, 83, 143, 163, 173, 204, 231}) check(gfo_match_supported(id), "added composition membership");
     for (auto id : {21, 34, 114, 125, 137, 151, 164, 234}) check(gfo_match_supported(id), "added bounce membership");
+    for (auto id : {95, 96, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 225, 226, 227, 228, 229, 230}) check(gfo_match_supported(id), "added pure chance membership");
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
@@ -213,21 +214,21 @@ int main() {
     check(hand_count == 18, "free response refill clipped at hand cap");
     gfo_match_destroy(free_wall);
     // Public seeded reset contains Spring+FREE and Turbulence+FREE at MP0.
-    fixture.reset(setup, 16564);
+    fixture.reset(setup, 921);
     bool got_spring = false, got_cast_free = false, got_bounce = false, got_bounce_free = false;
     uint64_t cast_free_token = 0, bounce_token = 0, bounce_free_token = 0;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 235) { got_spring = true; spring_token = item.token; }
-        if (item.model == 163) { got_cast_free = true; cast_free_token = item.token; }
+        if (item.model == 173) { got_cast_free = true; cast_free_token = item.token; }
     }
     for (const auto& item : fixture.snapshot().state.players[1].items) {
         if (item.model == 234) { got_bounce = true; bounce_token = item.token; }
-        if (item.model == 46) { got_bounce_free = true; bounce_free_token = item.token; }
+        if (item.model == 143) { got_bounce_free = true; bounce_free_token = item.token; }
     }
     check(got_spring && got_cast_free && got_bounce && got_bounce_free, "public reset zero-MP bounce fixture");
     gfo_match* bounce_match = nullptr; gfo_match* bounce_replay = nullptr;
-    check(gfo_match_create(&cfg, players.data(), 2, 16564, &bounce_match) == 0
-        && gfo_match_create(&cfg, players.data(), 2, 16564, &bounce_replay) == 0, "bounce fixture create");
+    check(gfo_match_create(&cfg, players.data(), 2, 921, &bounce_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 921, &bounce_replay) == 0, "bounce fixture create");
     free_cast.target = 77; free_cast.items[0] = spring_token; free_cast.items[1] = cast_free_token;
     check(gfo_match_step(bounce_match, &free_cast, &free_result) == 0
         && gfo_match_step(bounce_replay, &free_cast, &replay_result) == 0 && equal(free_result, replay_result), "incoming recovery miracle opens bounce response");
@@ -252,13 +253,13 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v3\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v4\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
         "public bounce contract and separate redirect counters");
-    check(bounced_view.find("redirect_rng") == std::string::npos && bounced_view.find("redirects") == std::string::npos
-        && bounced_view.find("\"tokens\"") == std::string::npos, "private redirect replay evidence is not observed");
+    check(bounced_view.find("\"redirect_rng\":") == std::string::npos && bounced_view.find("\"redirects\":") == std::string::npos
+        && bounced_view.find("\"tokens\":") == std::string::npos, "private redirect replay evidence is not observed");
     check(bounced_view.find("\"token\":" + std::to_string(bounce_free_token) + ",") == std::string::npos
         && bounced_view.find("\"token\":" + std::to_string(bounce_token) + ",\"face\":234,\"reference\":234,\"disguised\":false,\"used\":true") != std::string::npos,
         "bounce FREE physical suffix consumed while miracle is retained");
@@ -277,6 +278,99 @@ int main() {
     while ((offset = complete_bounce.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
     check(hand_count == 18 && complete_bounce.find("\"pending\":null") != std::string::npos, "bounce final gift cap");
     gfo_match_destroy(bounce_match); gfo_match_destroy(bounce_replay);
+    // Chance commands use the existing ABI1 has_target=0 representation.
+    std::array<gfo_match_player, 4> chance_players{};
+    const std::array<official::PlayerSetup, 4> chance_setup{{{0, official::Team::one, "A"}, {77, official::Team::one, "B"},
+        {88, official::Team::solo, "C"}, {99, official::Team::two, "D"}}};
+    for (std::size_t i = 0; i < chance_players.size(); ++i) {
+        chance_players[i].id = chance_setup[i].id; chance_players[i].team = static_cast<uint8_t>(chance_setup[i].team);
+    }
+    fixture.reset(chance_setup, 12); uint64_t chance_token = 0; bool found_chance = false;
+    for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
+    check(found_chance, "public reset multi-target chance fixture");
+    gfo_match* chance_match = nullptr; gfo_match* chance_replay = nullptr;
+    check(gfo_match_create(&cfg, chance_players.data(), 4, 12, &chance_match) == 0
+        && gfo_match_create(&cfg, chance_players.data(), 4, 12, &chance_replay) == 0, "chance create");
+    gfo_match_command chance_command{}; chance_command.item_count = 1; chance_command.items[0] = chance_token;
+    auto explicit_target = chance_command; explicit_target.has_target = 1; explicit_target.target = 99;
+    const auto chance_before = observe(chance_match); result = status(chance_match); const auto chance_status = result;
+    check(gfo_match_legal(chance_match, &explicit_target, &legal) == 0 && !legal
+        && gfo_match_step(chance_match, &explicit_target, &result) == -2 && equal(result, chance_status)
+        && observe(chance_match) == chance_before, "explicit chance target is rejected atomically");
+    bool chance_sampled = false;
+    for (uint64_t policy_seed = 0; policy_seed < 4096 && !chance_sampled; ++policy_seed) {
+        uint64_t policy = policy_seed; gfo_match_command candidate{};
+        check(gfo_match_sample_action(chance_match, &policy, &candidate) == 0
+            && gfo_match_legal(chance_match, &candidate, &legal) == 0 && legal, "multi-target samples all legal");
+        chance_sampled = equal(candidate, chance_command);
+    }
+    check(chance_sampled, "C ABI sampler emits targetless chance command");
+    check(gfo_match_step(chance_match, &chance_command, &free_result) == 0
+        && gfo_match_step(chance_replay, &chance_command, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 1 && free_result.actor == 99 && free_result.owner == 0, "miss first enemy then response only for second enemy");
+    const auto chance_view = observe(chance_match, 0, 0); // Spectator: only public pending/privacy checks below.
+    check(chance_view.find("\"hit_rate\":75") != std::string::npos
+        && chance_view.find("\"chance_rule\":\"experimental:targetless-all-alive-enemies-in-input-order;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death\"") != std::string::npos,
+        "public chance metadata and hit display");
+    for (const auto* key : {"\"chance\":", "\"chance_rolls\":", "\"chance_hits\":", "\"targets\":", "\"cursor\":", "\"initial_state\":", "\"responses\":"})
+        check(chance_view.find(key) == std::string::npos, "private batch replay state stays hidden");
+    accept.actor = 99;
+    check(gfo_match_step(chance_match, &accept, &free_result) == 0
+        && gfo_match_step(chance_replay, &accept, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 0 && free_result.actor == 77 && free_result.owner == 77
+        && observe(chance_match) == observe(chance_replay), "batch completion defers gifts until all targets finish");
+    const auto complete_chance = observe(chance_match, 1, 0); // Explicit owner view includes replacement hand.
+    check(complete_chance.find("\"id\":99,\"name\":\"\",\"team\":2,\"dead\":false,\"fogged\":false,\"status\":{\"hp\":39") != std::string::npos,
+        "only hit enemy loses one HP");
+    hand_count = 0; offset = 0;
+    while ((offset = complete_chance.find("\"token\":", offset)) != std::string::npos) { ++hand_count; ++offset; }
+    check(hand_count == 18, "chance launch replacement counted once");
+    gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
+    fixture.reset(setup, 92); found_chance = false;
+    for (const auto& item : fixture.snapshot().state.players[0].items) if (item.model == 95) { chance_token = item.token; found_chance = true; }
+    check(found_chance && gfo_match_create(&cfg, players.data(), 2, 92, &chance_match) == 0, "all-miss fixture create");
+    chance_command.items[0] = chance_token;
+    check(gfo_match_step(chance_match, &chance_command, &result) == 0 && result.decisions == 1 && result.phase == 0
+        && result.actor == 77 && result.owner == 77 && observe(chance_match).find("\"pending\":null") != std::string::npos,
+        "all misses complete without any defense decision");
+    gfo_match_destroy(chance_match);
+    fixture.reset(setup, 2054);
+    bool got_chance_mc = false; got_cast_free = false; bool got_reflector = false;
+    for (const auto& item : fixture.snapshot().state.players[0].items) {
+        if (item.model == 225) { got_chance_mc = true; spring_token = item.token; }
+        if (item.model == 204) { got_cast_free = true; cast_free_token = item.token; }
+    }
+    for (const auto& item : fixture.snapshot().state.players[1].items) if (item.model == 39) { got_reflector = true; mirror_token = item.token; }
+    check(got_chance_mc && got_cast_free && got_reflector
+        && gfo_match_create(&cfg, players.data(), 2, 2054, &chance_match) == 0
+        && gfo_match_create(&cfg, players.data(), 2, 2054, &chance_replay) == 0, "zero-MP chance miracle/FREE fixture create");
+    chance_command.item_count = 2; chance_command.items[0] = spring_token; chance_command.items[1] = cast_free_token;
+    chance_sampled = false;
+    for (uint64_t policy_seed = 0; policy_seed < 4096 && !chance_sampled; ++policy_seed) {
+        uint64_t policy = policy_seed; gfo_match_command candidate{};
+        check(gfo_match_sample_action(chance_match, &policy, &candidate) == 0
+            && gfo_match_legal(chance_match, &candidate, &legal) == 0 && legal, "zero-MP chance-pair samples all legal");
+        chance_sampled = equal(candidate, chance_command);
+    }
+    check(chance_sampled && gfo_match_step(chance_match, &chance_command, &free_result) == 0
+        && gfo_match_step(chance_replay, &chance_command, &replay_result) == 0 && equal(free_result, replay_result)
+        && free_result.phase == 1 && free_result.actor == 77, "targetless chance miracle FREE sampled and hits");
+    reflect.items[0] = mirror_token;
+    check(gfo_match_step(chance_match, &reflect, &free_result) == 0 && gfo_match_step(chance_replay, &reflect, &replay_result) == 0
+        && equal(free_result, replay_result) && free_result.phase == 1 && free_result.actor == 0, "hit chance payload can be reflected without reroll");
+    const auto redirected_chance = observe(chance_match, 0, 0); // Spectator: origin/source/target and rate only.
+    check(redirected_chance.find("\"origin\":0,\"source\":77,\"target\":0") != std::string::npos
+        && redirected_chance.find("\"hit_rate\":75") != std::string::npos && redirected_chance.find("\"reflections\":1") != std::string::npos,
+        "redirect keeps original chance rate and owner evidence");
+    accept.actor = 0;
+    check(gfo_match_step(chance_match, &accept, &free_result) == 0 && gfo_match_step(chance_replay, &accept, &replay_result) == 0
+        && equal(free_result, replay_result) && observe(chance_match) == observe(chance_replay)
+        && observe(chance_match).find("\"hp\":35,\"mp\":0") != std::string::npos, "free chance reflection resolves once and keeps query/policy RNG separate");
+    const auto retained_chance = observe(chance_match);
+    check(retained_chance.find("\"token\":" + std::to_string(spring_token) + ",\"face\":225,\"reference\":225,\"disguised\":false,\"used\":true") != std::string::npos
+        && retained_chance.find("\"token\":" + std::to_string(cast_free_token) + ",") == std::string::npos,
+        "chance miracle learned once and physical FREE consumed once");
+    gfo_match_destroy(chance_match); gfo_match_destroy(chance_replay);
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
     gfo_match_destroy(short_match); gfo_match_destroy(a); gfo_match_destroy(b); gfo_match_destroy(nullptr);
