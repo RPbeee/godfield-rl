@@ -119,3 +119,8 @@ python3 scripts/check_official_vectors.py
 
 Node.js is needed only to regenerate the reference results. Normal C++/Python tests read the
 committed fixture offline. The fixture manifest pins its SHA256, source/catalog hashes and counts.
+
+Numeric fixture results stay within JavaScript's exact integer range (up to2^53-1).
+The native composition API also accepts larger values using exact, checked int64 arithmetic;
+that extension does not reproduce JavaScript Number rounding beyond its safe integer range.
+The fixture is not a claim of equivalence for arbitrary huge overrides or unbounded input lists.

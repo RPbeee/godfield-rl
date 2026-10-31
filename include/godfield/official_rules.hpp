@@ -10,6 +10,8 @@ enum class Reaction : std::uint8_t { none, bounce, reflect, block };
 
 // These functions reproduce public client composition/selection rules. They are
 // not a complete server simulator and do not decide hidden outcomes or turn order.
+// Numeric conformance fixtures stay within JavaScript's safe integer range.
+// Larger values use checked int64 arithmetic, an extension rather than JS rounding.
 [[nodiscard]] Attribute merge_elements(Attribute first, Attribute second) noexcept;
 [[nodiscard]] std::int64_t attack_power(std::span<const CardId> ordered, std::int64_t base_override = 0);
 [[nodiscard]] Attribute attack_element(std::span<const CardId> ordered);
