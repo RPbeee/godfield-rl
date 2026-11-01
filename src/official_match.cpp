@@ -98,9 +98,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 483>& gift_tickets() {
+const std::array<CardId, 485>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 483> values{};
+        std::array<CardId, 485> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -109,7 +109,7 @@ const std::array<CardId, 483>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 222) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 224) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -390,6 +390,10 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
         case Ability::boost_hp_or_deal_damage: change_resource(target, Resource::hp, effect.amount); break;
         case Ability::boost_mp: change_resource(target, Resource::mp, effect.amount); break;
+        case Ability::boost_mp_and_add_curse:
+            change_resource(target, Resource::mp, effect.amount);
+            add_curse(target, find_card(effect.models.front())->curse);
+            break;
         case Ability::boost_cp: change_resource(target, Resource::cp, effect.amount); break;
         case Ability::counter_boost2x_mp: change_resource(target, Resource::mp, effect.amount); break;
         case Ability::counter_take_cp:
@@ -541,6 +545,8 @@ void execute(MatchSnapshot& s, const Command& command) {
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
         consume(s, seat, command.items, false);
+        for (auto model : models) if (find_card(model)->ability == Ability::self_curse)
+            add_curse(s.state.players[seat], find_card(model)->curse);
         if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
             if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
             effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
@@ -779,6 +785,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
+            || c->ability == Ability::self_curse || c->ability == Ability::boost_mp_and_add_curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
@@ -960,7 +967,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v20\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v21\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -980,7 +987,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"removal_event_rule\":\""; out += removal_event_rule;
     out += "\",\"sell_rule\":\""; out += sell_rule;
     out += "\",\"buy_rule\":\""; out += buy_rule;
-    out += "\",\"disease_rule\":\""; out += disease_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"disease_rule\":\""; out += disease_rule;
+    out += "\",\"disease_item_rule\":\""; out += disease_item_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

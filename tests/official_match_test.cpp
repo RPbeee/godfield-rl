@@ -23,12 +23,12 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==222&&match_gift_weight()==483&&std::string_view(match_ruleset)=="official-execution-subset-v22"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"222model/483weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==224&&match_gift_weight()==485&&std::string_view(match_ruleset)=="official-execution-subset-v23"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"224model/485weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{3,102,74,16,27,0,0,0}&&weight==483,"exchange, sell and buy are admitted among trade cards");
+    check(counts==std::array<int,8>{3,102,75,17,27,0,0,0}&&weight==485,"exchange, sell and buy are admitted among trade cards");
     check(match_supported(3)&&match_supported(4)&&match_supported(5)&&!match_supported(1)&&!match_supported(2),"trade artifacts do not enable sacrifice");
-    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("heaven-herb"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("dreaming-hat"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v20\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v21\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -1020,6 +1020,54 @@ void disease_canonical_tick_guards_and_atomic_failure(){
     auto pending=fixture(scene({6},{}));pending.step(play(0,{0},7));auto forged=pending.snapshot();forged.last_tick=exact.last_tick;const auto old=pending.snapshot();rejected=false;try{pending.restore(forged);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==old,"pending action cannot carry a previous private disease tick");
 }
 
+void fever_mask_full_defense_copies_and_append_boundaries(){
+    auto m=fixture(scene({6},{168}));m.step(play(0,{0},7));reject(m,play(7,{0},0));m.step(defend(7,{0}));
+    check(m.snapshot().state.players[1].hp==40&&m.snapshot().state.players[1].curses==std::vector<Curse>{Curse::fever}&&!m.snapshot().last_tick,"ordinary mask fully blocks one damage but still applies Fever to its user, who is not the main owner");roundtrip(m);
+    auto copies=fixture(scene({6},{168,168,168,168,208,208}));copies.step(play(0,{0},7));copies.step(defend(7,{0,1,2,3}));
+    check(copies.snapshot().revivals==1&&copies.snapshot().state.players[1].hp==10&&copies.snapshot().state.players[1].curses==std::vector<Curse>{Curse::heaven}
+        &&std::any_of(copies.snapshot().state.players[1].items.begin(),copies.snapshot().state.players[1].items.end(),[](const auto&i){return i.token==5&&i.model==208;}),"four mask copies apply Fever/Hell/Heaven/fall in selection order, with one whole-body rescue rather than per-copy rescue");roundtrip(copies);
+    for(const auto ids:{std::vector<CardId>{168,190},std::vector<CardId>{190,168},std::vector<CardId>{168,233},std::vector<CardId>{233,168},std::vector<CardId>{168,234},std::vector<CardId>{189,168,190}}){
+        std::vector<VisibleSelection> prefix;bool accepted=true;for(auto id:ids){if(!can_append_response(prefix,{id,false},{false,Category::weapons,{},true})){accepted=false;break;}prefix.push_back({id,false});}check(!accepted,"mask cannot legally share a response with reflect/block/bounce, so prefix HP0 cannot escape as a waiting frame");}
+    const auto fire=elemental(Category::weapons,Element::fire);auto filter=fixture(scene({fire},{189,168}));filter.step(play(0,{0},7));reject(filter,defend(7,{1}));filter.step(defend(7,{0,1}));
+    check(filter.snapshot().state.players[1].curses==std::vector<Curse>{Curse::fever},"leading filter makes ordinary Fire mask eligible without disabling self-curse");roundtrip(filter);
+    auto flash=scene({6},{168,168});flash.players[1].curses={Curse::flash};auto one=fixture(flash);one.step(play(0,{0},7));reject(one,defend(7,{0,1}));one.step(defend(7,{0}));check(one.snapshot().state.players[1].curses==std::vector<Curse>{Curse::fever,Curse::flash},"Flash remains a one-card restriction independent of Fever");roundtrip(one);
+}
+
+void fever_mask_prefix_fall_body_counter_and_self_alias(){
+    auto st=scene({45},{168,184,208});st.players[1].curses={Curse::heaven};auto normal=fixture(st);normal.step(play(0,{0},7));normal.step(defend(7,{0,1}));
+    check(normal.snapshot().state.players[1].hp==10&&normal.snapshot().state.players[0].hp==42&&normal.snapshot().counter_created==0&&normal.snapshot().revivals==1,"nonalias prefix fall is excluded from target body loss and counter basis while source absorbs the positive remainder");roundtrip(normal);
+    auto state=scene({45,168,184,208},{});state.players[0].curses={Curse::heaven};Match self;self.load_scene(state,0,0);self.step(play(0,{0},0));self.step(defend(0,{1,2}));
+    check(self.snapshot().phase==MatchPhase::response&&self.snapshot().queue[0].is_counter&&self.snapshot().queue[0].power==4&&self.snapshot().state.players[0].hp==10
+        &&self.snapshot().revivals==1&&!self.snapshot().last_tick,"selfalias prefix0 then absorb2 then actual targetloss2 legitimately creates counter4 after whole-body rescue");roundtrip(self);
+    const auto exact=self.snapshot();for(int error=0;error<5;++error){auto bad=exact;if(error==0)bad.batch->responses[0].items={2};if(error==1)bad.batch->initial_state.players[0].curses={Curse::fever};
+        if(error==2)bad.state.players[0].hp=9;if(error==3)bad.state.players[0].curses={Curse::fever};if(error==4)bad.queue[0].power=0;bool rejected=false;try{self.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&self.snapshot()==exact,"journal replay includes self-curse prefix, temporary HP0, source-heal alias and derived counter basis");}
+    self.step(defend(0));check(self.snapshot().state.players[0].hp==11&&self.snapshot().last_tick&&self.snapshot().last_tick->before==Curse::heaven,"only after counter completion does original owner's Heaven tick heal five");roundtrip(self);
+}
+
+void heaven_herb_mp_first_reflection_rescue_and_cutoff(){
+    MatchConfig cap;cap.max_decisions=1;auto state=scene({198},{});state.players[0].mp=90;state.players[0].curses={Curse::cold};auto clipped=fixture(state,cap);const auto rng=clipped.snapshot().rng;clipped.step(play(0,{0},0));
+    check(clipped.snapshot().truncated&&clipped.snapshot().state.players[0].mp==99&&clipped.snapshot().state.players[0].hp==40&&clipped.snapshot().state.players[0].curses==std::vector<Curse>{Curse::heaven}
+        &&clipped.snapshot().rng==rng&&!clipped.snapshot().last_tick,"herb clips MP+20 before upgrading Cold to Heaven, with no fee/draw and cutoff before disease tick");roundtrip(clipped);
+    auto fatal=state;fatal.players[0].curses={Curse::heaven};auto die=fixture(fatal,cap);die.step(play(0,{0},0));check(die.snapshot().terminated&&!die.snapshot().truncated&&die.snapshot().state.players[0].hp==0
+        &&die.snapshot().state.players[0].mp==99&&!die.snapshot().last_tick,"Heaven reapplication death does not undo the prior MP gain and precedes cutoff/tick");roundtrip(die);
+    auto both=scene({198,208,208},{});both.players[0].mp=5;both.players[0].curses={Curse::heaven};Match double_rescue;double_rescue.load_scene(both,0,29);double_rescue.step(play(0,{0},0));
+    check(double_rescue.snapshot().state.players[0].mp==25&&double_rescue.snapshot().state.players[0].hp==10&&double_rescue.snapshot().revivals==2
+        &&double_rescue.snapshot().last_tick&&double_rescue.snapshot().last_tick->fallen&&double_rescue.snapshot().last_tick->revival_token==2,"herb body fall and later natural Heaven fall consume two different amulets without losing MP gain");roundtrip(double_rescue);
+    auto reflected=scene({198},{190,168});reflected.players[0].mp=90;reflected.players[1].mp=0;Match m;m.load_scene(reflected,0,0);m.step(play(0,{0},7));reject(m,defend(7,{1}));m.step(defend(7,{0}));roundtrip(m);m.step(defend(0));
+    check(m.snapshot().state.players[0].mp==99&&m.snapshot().state.players[0].hp==45&&m.snapshot().state.players[0].curses==std::vector<Curse>{Curse::heaven}
+        &&m.snapshot().state.players[1].mp==0&&m.snapshot().state.players[1].curses.empty()&&m.observe({}).find(disease_item_rule)!=std::string::npos,"reflected herb affects current receiver and only the completed original-owner action ticks");roundtrip(m);
+}
+
+void disease_items_nonuse_roles_and_atomic_failures(){
+    for(CardId model:{CardId{168},CardId{198}}){auto discard=fixture(scene({model},{}));if(model==168)reject(discard,play(0,{0},0));discard.step({0,CommandKind::discard,{0},{}});check(discard.snapshot().state.players[0].curses.empty()&&discard.snapshot().state.players[0].mp==10,"discarding disease items never invokes their use effect");roundtrip(discard);
+        auto sale=fixture(scene({4,model},{}));sale.step({0,CommandKind::sell,{0,1},7});sale.step(defend(7));check(sale.snapshot().state.players[0].curses.empty()&&sale.snapshot().state.players[1].curses.empty()&&sale.snapshot().state.players[1].mp==10,"selling mask/herb does not equip or cast its commodity");roundtrip(sale);
+        auto buy=fixture(scene({5},{model}));buy.step({0,CommandKind::buy,{0},7});buy.step(defend(7));buy.step({0,CommandKind::accept,{},{}});check(buy.snapshot().state.players[0].curses.empty()&&buy.snapshot().state.players[0].mp==10,"purchased mask/herb remains an unused artifact without applying disease or MP");roundtrip(buy);}
+    auto late=scene({6},{168,208});late.players[1].curses={Curse::heaven};late.update_count=max_wire_integer-1;auto masked=fixture(late);masked.step(play(0,{0},7));const auto before=masked.snapshot();bool failed=false;try{masked.step(defend(7,{0}));}catch(const MatchError&){failed=true;}
+    check(failed&&masked.snapshot()==before,"late response update failure restores mask, prefix fall, amulet rescue, reservations and full journal");
+    auto exhausted=scene({198},{});exhausted.players[0].items[0].token=max_wire_integer;exhausted.players[0].mp=90;exhausted.players[0].curses={Curse::cold};auto herb=fixture(exhausted);const auto original=herb.snapshot();failed=false;
+    try{herb.step(play(0,{max_wire_integer},0));}catch(const MatchError&){failed=true;}check(failed&&herb.snapshot()==original&&!herb.snapshot().last_tick,"late gift failure rolls back MP, disease upgrade, body consume and later Heaven tick/RNG");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -1131,6 +1179,10 @@ int main(){
     disease_action_boundaries_quotes_repeats_and_cutoff();
     disease_tick_revivals_and_body_accounting();
     disease_canonical_tick_guards_and_atomic_failure();
+    fever_mask_full_defense_copies_and_append_boundaries();
+    fever_mask_prefix_fall_body_counter_and_self_alias();
+    heaven_herb_mp_first_reflection_rescue_and_cutoff();
+    disease_items_nonuse_roles_and_atomic_failures();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (222subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (224subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

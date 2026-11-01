@@ -51,6 +51,7 @@ struct Stats {
     std::uint64_t buy_empty = 0, buy_insufficient_cp = 0, buy_cutoff = 0, buy_nominal_cp = 0;
     std::uint64_t disease_ticks = 0, disease_worsened = 0, disease_falls = 0, disease_tick_revivals = 0;
     std::uint64_t disease_hp_gained = 0, disease_hp_lost = 0;
+    std::uint64_t fever_mask_uses = 0, heaven_herb_plays = 0, heaven_herb_resolved = 0, heaven_herb_mp_gained = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -91,6 +92,8 @@ struct Stats {
         buy_cutoff += s.buy_cutoff; buy_nominal_cp += s.buy_nominal_cp;
         disease_ticks += s.disease_ticks; disease_worsened += s.disease_worsened; disease_falls += s.disease_falls;
         disease_tick_revivals += s.disease_tick_revivals; disease_hp_gained += s.disease_hp_gained; disease_hp_lost += s.disease_hp_lost;
+        fever_mask_uses += s.fever_mask_uses; heaven_herb_plays += s.heaven_herb_plays;
+        heaven_herb_resolved += s.heaven_herb_resolved; heaven_herb_mp_gained += s.heaven_herb_mp_gained;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -201,10 +204,12 @@ int main(int argc, char** argv) {
                         if (command.kind == CommandKind::play || command.kind == CommandKind::defend || command.kind == CommandKind::exchange) for (auto token : command.items) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
                             const auto& card = *find_card(item->model);
+                            if (command.kind == CommandKind::defend && card.ability == Ability::self_curse) ++stats.fever_mask_uses;
                             if (command.kind == CommandKind::play && card.ability == Ability::attack_every_enemy) wide_play = true;
                             if (command.kind == CommandKind::play && token == command.items.front()) {
                                 danger_play = card.ability == Ability::danger;
                                 if (card.ability == Ability::boost_hp_or_deal_damage) ++stats.random_hp_plays;
+                                if (card.ability == Ability::boost_mp_and_add_curse) ++stats.heaven_herb_plays;
                                 if (card.ability == Ability::attack_twice) ++stats.repeat_weapon_plays;
                                 if (card.ability == Ability::atk_by2x_mp) {
                                     ++stats.mana_weapon_plays; stats.mana_mp_spent += own.mp;
@@ -270,12 +275,21 @@ int main(int argc, char** argv) {
                             if (find_card(item->model)->ability == Ability::boost_hp_or_deal_damage) random_hp_target = command.actor;
                         }
                         const auto random_hp_before = random_hp_target ? find_player(before.state, *random_hp_target)->hp : 0;
+                        std::optional<PlayerId> herb_target;
+                        if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()
+                            && before.queue.front().ability == Ability::boost_mp_and_add_curse) herb_target = before.queue.front().target;
+                        else if (command.kind == CommandKind::play && command.target == command.actor && !command.items.empty()) {
+                            const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == command.items.front(); });
+                            if (find_card(item->model)->ability == Ability::boost_mp_and_add_curse) herb_target = command.actor;
+                        }
+                        const auto herb_mp_before = herb_target ? find_player(before.state, *herb_target)->mp : 0;
                         mix(hash, command.actor); mix(hash, static_cast<unsigned>(command.kind)); mix(hash, command.items.size());
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        if (herb_target) { ++stats.heaven_herb_resolved; stats.heaven_herb_mp_gained += find_player(match.snapshot().state, *herb_target)->mp - herb_mp_before; }
                         if (!had_purchase && match.snapshot().purchase) ++stats.buy_quotes;
                         if (buy_result_possible && match.snapshot().last_purchase) {
                             const auto& event = *match.snapshot().last_purchase;
@@ -396,6 +410,8 @@ int main(int argc, char** argv) {
         if (stats.disease_ticks > stats.main || stats.disease_worsened > stats.disease_ticks || stats.disease_falls > stats.disease_worsened
             || stats.disease_tick_revivals > stats.revivals || stats.disease_hp_gained > 5 * stats.disease_ticks || stats.disease_hp_lost > 99 * stats.disease_ticks)
             throw std::logic_error("inconsistent disease accounting");
+        if (stats.heaven_herb_resolved > stats.heaven_herb_plays || stats.heaven_herb_mp_gained > 20 * stats.heaven_herb_resolved)
+            throw std::logic_error("inconsistent Heaven herb accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -418,6 +434,7 @@ int main(int argc, char** argv) {
             << "\nsell_rule=" << sell_rule
             << "\nbuy_rule=" << buy_rule
             << "\ndisease_rule=" << disease_rule
+            << "\ndisease_item_rule=" << disease_item_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -464,6 +481,8 @@ int main(int argc, char** argv) {
             << "\ndisease_ticks=" << stats.disease_ticks << "\ndisease_worsened=" << stats.disease_worsened
             << "\ndisease_falls=" << stats.disease_falls << "\ndisease_tick_revivals=" << stats.disease_tick_revivals
             << "\ndisease_hp_gained=" << stats.disease_hp_gained << "\ndisease_hp_lost=" << stats.disease_hp_lost
+            << "\nfever_mask_uses=" << stats.fever_mask_uses << "\nheaven_herb_plays=" << stats.heaven_herb_plays
+            << "\nheaven_herb_resolved=" << stats.heaven_herb_resolved << "\nheaven_herb_mp_gained=" << stats.heaven_herb_mp_gained
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
