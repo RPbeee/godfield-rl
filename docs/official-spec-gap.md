@@ -33,11 +33,11 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v14` / `godfield::official::Match` | 209モデル/重み412、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v15` / `godfield::official::Match` | 210モデル/重み414、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI1 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
-限定した209モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
+限定した210モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
 配布・死亡・手番の権威的serverとの同等性、一般effect queue、吸収/閃光以外の固有効果付き確率攻撃、閃光/暗雲以外の災いcounter、取引、病気・霧・夢、
 守護神、終末/悪魔/超常現象等は未対応である。未対応局面を黙って通常効果へ置き換えず拒否する。
 read-only viewにはactive攻撃/購入表示・モード依存rating欄・増分履歴を投影していない。
@@ -172,7 +172,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v8の記録を現行v14の209モデルの速度・checksumの証拠として転記しない。
+v1〜v8の記録を現行v15の210モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -263,9 +263,20 @@ v14は追加専用奇跡232＜蜃気楼＞（MP5/isPlusAtk/ATK0/NE/率0）を加
 v14は全Release CTest129件/19.09秒・ASan/UBSan89件/50.23秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、Release/SAN/bench/SAN bench/bridgeの5ログはwarning/error0。focused Release3件/0.81秒（native0.32/C API0.01/Python0.47秒）・SAN2件/1.17秒（native0.83/C API0.34秒）が通過した。Python MatchはAST確認27ケース、native零引数40関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。
 seed42で2人100,000試合は3,868,837意思決定・勝数49,849/50,032・draw119/trunc0・checksum `7280126839917179986`。9人10,000試合は2,392,134意思決定・勝数1,105/1,102/1,109/1,125/1,107/1,109/1,135/1,093/1,092・draw23/trunc0・checksum `11171425924432160273`。
 232主動作/完了frameは2人9,727/9,793・9人8,167/45,210、14主動作/完了frameは2人7,389/14,631・9人4,587/9,563。完了はblock/完全防御0を含み、14+232は両集計で数えるため互いに排他的でなく、実被害hit数でもない。
-各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。観測最大redirect深度4は機能上の連鎖上限ではない。Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `9992836881741631580`、9人 `4056226161425745428`。詳細は[限定実行器v14記録](official-execution-subset.md#v14の検証と集計)。
+各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。観測最大redirect深度4は機能上の連鎖上限ではない。Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `9992836881741631580`、9人 `4056226161425745428`。詳細は[限定実行器v14記録](official-execution-subset.md#v14の過去の検証と集計)。
 
 競合を避けた独立Release・1 workerは、2人100,000試合が2.45876秒（1,573,490意思決定/秒）、9人10,000試合が2.69532秒（887,513意思決定/秒）。baselineと時間以外の全fieldが一致した。合法手sampler・実行・reset・各試合の終了snapshot検証込みで、合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。プールと方策が異なるため版間の速度改善倍率を主張しない。
+
+v15は202ドキドキ涙（雑貨/NE/ATK0/値10/p1/w2）を加え210モデル/重み414（97/74/14/25）。launch bounded2一度で0heal+10/1damage−10を固定、power0でsigned amountを応答前公開、self即時/他者190-only response、反射no-reroll、負でもnonattack/DEFfiltercounter無し、HPclip後死亡/自然終局優先/全action後giftとする。
+現行説明は+HP10または10damageで確率/抽選時点/前公開は未確定。旧237のCOMMAND.hp公開は参考資料であり、現行serverのdynamic attack.atk等も未排除なのでnegativeの防御不可も実験規約として分ける。旧244蘇生/tickは持ち込まない。
+`random_hp_rule='experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action'` を公開する。Snapshot15旧1〜14拒否/view-v13/C ABI1、Batchのlaunch前RNG anchorとrandom_hp_deltaから同executorでreplayし、符号/消費/反射/HP/gift/RNGを照合する。signed現在値は公開するが未来RNG/anchorは非公開、v14以前の計測は過去の証拠として保持する。
+
+v15は全Release CTest129件/18.87秒・ASan/UBSan89件/49.59秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridge-fixの6ログはwarning/error0。focused Release3件/0.63秒（native0.08/C API0.01/Python0.53秒）・SAN2件/1.00秒（native0.68/C API0.32秒）が通過した。Python MatchはAST確認29ケース、native零引数43関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。
+seed42で2人100,000試合は3,889,410意思決定・勝数49,760/50,115・draw125/trunc0・checksum `16376680674247028005`。9人10,000試合は2,403,179意思決定・勝数1,151/1,129/1,119/1,067/1,111/1,159/1,079/1,081/1,084・draw20/trunc0・checksum `8098081484010360106`。
+202使用/解決は2人10,938/10,938・9人8,180/8,180、heal/damageは2人5,513/5,425・9人4,073/4,107、clip後実HP増/減は2人55,130/52,236・9人40,728/38,842。分類件数と実増減を分け、resolved/heals/damages/gained/lostおよび既存mana/removal/wide/repeatのboundsを確認した。
+各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `3640146110508428199`、9人 `12830718056704997050`。観測最大redirect深度4は機能上の連鎖上限ではない。詳細は[限定実行器v15記録](official-execution-subset.md#v15の検証と集計)。
+
+競合を避けた独立Release・1 workerは、2人100,000試合が2.49299秒（1,560,140意思決定/秒）、9人10,000試合が2.65853秒（903,949意思決定/秒）。baselineと時間以外の全fieldが一致した。合法手sampler・実行・reset・各試合の終了snapshot検証込みで、合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。プールと方策が異なるため版間の速度改善倍率を主張しない。
 
 ## 差分表作成後の実装進捗
 
@@ -478,7 +489,7 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 ## 着手順と完了条件
 
-現行対応では209モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器/二回攻撃・全敵化を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
+現行対応では210モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器/二回攻撃・全敵化・HP増減を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
 一般effect queue、閃光/暗雲以外の災いcounter・吸収/閃光以外の固有効果付き確率攻撃・取引・状態変化・霧/夢・守護神・終末等への拡張である。
 9人state/view、限定した9人playable、公式全体への適合は別段階として検証し、学習器は現在の対象に追加しない。
 以下の番号付き手順は、差分表作成時の計画記録として読む。

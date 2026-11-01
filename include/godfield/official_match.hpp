@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v14";
-inline constexpr const char* match_scope = "experimental:209-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v15";
+inline constexpr const char* match_scope = "experimental:210-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -22,7 +22,8 @@ inline constexpr const char* removal_rule = "experimental:unused-hand-max3;used-
 inline constexpr const char* mana_weapon_rule = "experimental:base-2x-mp-after-composed-miracle-cost;ordered-boosts;consume-all-mp-once-at-launch;redirects-no-repayment";
 inline constexpr const char* repeat_attack_rule = "experimental:two-fresh-passes-over-initial-targets;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action";
 inline constexpr const char* wide_attack_rule = "experimental:initial-alive-enemies-in-input-order;optional-alive-target-does-not-alter-roster;repeat-by-full-roster-pass;single-payment;counter-fifo-before-next-target;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action";
-inline constexpr std::uint32_t match_snapshot_version = 14;
+inline constexpr const char* random_hp_rule = "experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action";
+inline constexpr std::uint32_t match_snapshot_version = 15;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -81,6 +82,7 @@ struct ActionBatch {
     Command attack;
     std::vector<CardId> models;
     std::vector<PlayerId> targets; // Ordered launch roster; attackTwice repeats the whole roster.
+    int random_hp_delta = 0; // Drawn once at launch; zero for other abilities.
     std::size_t cursor = 0; // Next initial target; counter frames do not advance it.
     bool chance = false;
     std::size_t counters_created = 0;

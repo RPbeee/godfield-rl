@@ -23,10 +23,10 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==209&&match_gift_weight()==412&&std::string_view(match_ruleset)=="official-execution-subset-v14"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"209model/412weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==210&&match_gift_weight()==414&&std::string_view(match_ruleset)=="official-execution-subset-v15"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"210model/414weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,97,74,13,25,0,0,0}&&weight==412,"normal weapon/armor/simple sundry/miracle pool only");
+    check(counts==std::array<int,8>{0,97,74,14,25,0,0,0}&&weight==414,"normal weapon/armor/simple sundry/miracle pool only");
     check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("sun-amulet"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
@@ -141,8 +141,8 @@ void reflection_chain_exceeds_legacy_limit(){
     }
     check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u,11u,12u,13u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1 through v13 checkpoints are explicitly rejected atomically by wide v14 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u,11u,12u,13u,14u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"v1 through v14 checkpoints are explicitly rejected atomically by random-HP v15 schema");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -254,7 +254,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v12\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v13\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -579,6 +579,26 @@ void wide_counter_death_and_journal(){
     auto late=exact;late.state.update_count=max_wire_integer;late.batch->initial_state.update_count=max_wire_integer-(late.decisions-late.batch->decisions);pending.restore(late);const auto before=pending.snapshot();bool rejected=false;try{pending.step(defend(7));}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"late Wide response failure restores current body, roster, journal, costs and RNG");
 }
 
+void random_hp_sign_clips_and_death(){
+    const auto tear=image("thump-thump-tear");MatchConfig limit;limit.max_decisions=2;for(const auto trial:{std::pair<std::uint64_t,int>{0,-10},{2,10}}){Match m(limit);m.load_scene(scene({tear},{}),0,trial.first);m.step(play(0,{0},7));check(m.snapshot().queue[0].amount==trial.second&&m.snapshot().batch->random_hp_delta==trial.second&&m.snapshot().queue[0].power==0&&m.snapshot().queue[0].category==Category::sundries&&m.snapshot().rng==trial.first+0x9e3779b97f4a7c15ULL,"random HP launch maps zero bit to plus10 and one bit to minus10 with one signed nonattack payload draw");roundtrip(m);m.step(defend(7));check(m.snapshot().state.players[1].hp==40+trial.second&&m.snapshot().state.players[0].hp==40&&m.snapshot().state.players[0].mp==10&&m.snapshot().counter_created==0&&m.snapshot().truncated&&m.snapshot().rng==trial.first+0x9e3779b97f4a7c15ULL,"signed HP body applies once without defense/counters and cutoff suppresses gift RNG");roundtrip(m);}
+    MatchConfig one;one.max_decisions=1;auto cap=scene({tear},{});cap.players[0].hp=95;Match healing(one);healing.load_scene(cap,0,2);healing.step(play(0,{0},0));check(healing.snapshot().state.players[0].hp==99&&healing.snapshot().truncated&&healing.snapshot().rng==std::uint64_t{2}+0x9e3779b97f4a7c15ULL,"self immediate plus10 caps99 and still consumes only one launch draw before cutoff");roundtrip(healing);
+    for(bool self:{false,true}){auto state=scene({tear},{});state.players[self?0:1].hp=5;MatchConfig death_limit;death_limit.max_decisions=self?1:2;Match dead(death_limit);dead.load_scene(state,0,0);dead.step(play(0,{0},self?0:7));if(!self)dead.step(defend(7));check(dead.snapshot().terminated&&!dead.snapshot().truncated&&dead.snapshot().state.players[self?0:1].hp==0&&dead.snapshot().winners==std::vector<PlayerId>{self?PlayerId{7}:PlayerId{0}}&&dead.snapshot().gifts==std::vector<std::uint32_t>{0,0},"negative HP clip kills correct current recipient with fixed winners and natural outcome before cutoff");roundtrip(dead);}
+}
+
+void random_hp_reflections_fixed_and_journal(){
+    const auto tear=image("thump-thump-tear");auto state=scene({tear,image("super-mirror")},{image("super-mirror"),image("aqua-shoes"),image("rainbow-curtain"),image("saturn-ring"),image("wall"),image("turbulence"),image("moonlight-axe")});Match m;m.load_scene(state,0,0);m.step(play(0,{0},7));const auto rng=m.snapshot().rng;for(ItemToken token:{1u,2u,3u,4u,5u,6u})reject(m,defend(7,{token}));m.step(defend(7,{0}));roundtrip(m);m.step(defend(0,{1}));check(m.snapshot().queue[0].amount==-10&&m.snapshot().batch->random_hp_delta==-10&&m.snapshot().rng==rng&&m.snapshot().queue[0].target==7&&m.snapshot().queue[0].redirects.size()==2&&m.snapshot().state.players[0].hp==40&&m.snapshot().state.players[1].hp==40,"two universal reflections preserve original sign and never redraw or apply HP before final pass");roundtrip(m);
+    check(m.observe(0).find(random_hp_rule)!=std::string::npos&&m.observe(0).find("\"amount\":-10")!=std::string::npos,"signed result and explicit random HP contract are public while launch anchor stays privileged");const auto exact=m.snapshot();for(int error=0;error<9;++error){auto bad=exact;if(error==0)bad.batch->random_hp_delta=10;if(error==1)bad.queue[0].amount=10;if(error==2)bad.batch->rng^=1;if(error==3)bad.rng^=1;if(error==4)bad.queue[0].power=10;if(error==5)bad.queue[0].ability=Ability::boost_hp;if(error==6)bad.batch->responses.clear();if(error==7)++bad.batch->initial_state.players[0].hp;if(error==8)bad.queue[0].tokens[0]=1;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"journal recomputes random sign and rejects signed payload, RNG, type and history forgery atomically");}
+    m.step(defend(7));check(m.snapshot().state.players[1].hp==30&&m.snapshot().state.players[0].hp==40&&m.snapshot().counter_created==0&&!m.snapshot().batch,"reflected negative nonattack body applies original minus10 once with no counter");roundtrip(m);
+}
+
+void random_hp_query_cutoff_and_rollback(){
+    const auto tear=image("thump-thump-tear");auto state=scene({tear,image("aqua-shoes")},{});Match m;m.load_scene(state,0,0);const auto initial=m.snapshot();for(int i=0;i<16;++i)check(m.legal(play(0,{0},7))&&m.snapshot()==initial,"legal random HP queries do not sample future RNG");reject(m,play(0,{0},999));reject(m,play(0,{0,0},7));reject(m,play(0,{0,1},7));
+    MatchConfig one;one.max_decisions=1;Match cut(one);cut.load_scene(state,0,0);cut.step(play(0,{0},7));check(cut.snapshot().truncated&&!cut.snapshot().batch&&cut.snapshot().queue.empty()&&cut.snapshot().state.players[1].hp==40&&cut.snapshot().rng==0x9e3779b97f4a7c15ULL&&cut.snapshot().gifts==std::vector<std::uint32_t>{0,0},"foreign launch cutoff preserves one sign draw while canceling unresponded HP body and gifts");roundtrip(cut);
+    auto failed_state=state;failed_state.update_count=max_wire_integer;Match failed;failed.load_scene(failed_state,0,0);const auto before=failed.snapshot();bool rejected=false;try{failed.step(play(0,{0},7));}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late launch counter failure rolls back RNG sign, consumption, journal and gift request");
+    m.step(play(0,{0},7));auto late=m.snapshot();late.state.update_count=max_wire_integer;late.batch->initial_state.update_count=max_wire_integer-(late.decisions-late.batch->decisions);m.restore(late);const auto pending=m.snapshot();rejected=false;try{m.step(defend(7));}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==pending,"late body failure rolls back HP change and accepted response while preserving previously committed random sign");
+    auto exhausted=scene({tear},{});exhausted.players[0].items[0].token=max_wire_integer;Match tokens;tokens.load_scene(exhausted,0,0);tokens.step(play(0,{max_wire_integer},7));const auto token_before=tokens.snapshot();rejected=false;try{tokens.step(defend(7));}catch(const MatchError&){rejected=true;}check(rejected&&tokens.snapshot()==token_before,"late gift exhaustion restores random HP body, pending sign, counters and environment RNG");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -662,6 +682,9 @@ int main(){
     wide_target_modes_payment_and_free();
     wide_twice_sixteen_fresh_frames();
     wide_counter_death_and_journal();
+    random_hp_sign_clips_and_death();
+    random_hp_reflections_fixed_and_journal();
+    random_hp_query_cutoff_and_rollback();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (209subset/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (210subset/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

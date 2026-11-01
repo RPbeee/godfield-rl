@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。現行の[限定実行器v14](official-execution-subset.md)は全敵化232を加えた209モデル/重み412。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。現行の[限定実行器v15](official-execution-subset.md)はHP増減202を加えた210モデル/重み414。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -209,7 +209,21 @@ v14はtarget無し/任意の既知alive targetを受理し、指定はrosterに�
 
 公開 `wide_attack_rule` は `experimental:initial-alive-enemies-in-input-order;optional-alive-target-does-not-alter-roster;repeat-by-full-roster-pass;single-payment;counter-fifo-before-next-target;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action`、更新した `repeat_attack_rule` は `experimental:two-fresh-passes-over-initial-targets;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action`。最大target entriesは2*(n−1)=16、response boundは最大3,725。Snapshot14は旧1〜13拒否/view-v12/C ABI1、209モデル/重み412（97/74/13/25）。target入力のserver受理、無draw、全体scheduleは未確認である。
 
-v14は全Release CTest129件/19.09秒・ASan/UBSan89件/50.23秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、Release/SAN/bench/SAN bench/bridgeの5ログはwarning/error0。focused Release3件/0.81秒（native0.32/C API0.01/Python0.47秒）・SAN2件/1.17秒（native0.83/C API0.34秒）が通過した。Python MatchはAST確認27ケース、native零引数40関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v14記録](official-execution-subset.md#v14の検証と集計)へ分ける。
+v14は全Release CTest129件/19.09秒・ASan/UBSan89件/50.23秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、Release/SAN/bench/SAN bench/bridgeの5ログはwarning/error0。focused Release3件/0.81秒（native0.32/C API0.01/Python0.47秒）・SAN2件/1.17秒（native0.83/C API0.34秒）が通過した。Python MatchはAST確認27ケース、native零引数40関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v14記録](official-execution-subset.md#v14の過去の検証と集計)へ分ける。
+
+## ドキドキ涙：増減表示とv15規約
+
+202ドキドキ涙/Thump-thump Tearはsundries・boostHPOrDealDamage・abilityValue10・価格1・giftRate2、欠損属性はNE、ATK/DEF/MP/率0。JA/ENのカード表示は `a4`（9376行付近）がboostHPとorDealDamageを組み合わせるもので、HP+10または10damageまでを説明し、50/50は明記しない。このability文字列は固定JSでは表示箇所だけに現れ、抽選処理はない。
+
+`p3`（3653行付近）はattack.atk/hitRate/mp/cp等をdecodeするが、202固有のsigned HP結果欄は無い。`boostHP/dealDamage`（11247–11301行付近）は受信eventが指定する人物、または現在targetへ `eW` のHP加減/0〜99clipを適用する。これだけで符号がいつ決まり、応答前に何を公開するかは確定しない。汎用attack.atk等に動的結果が届く可能性も排除できず、公式では必ず符号非公開とも断定しない。`eW` はdeadを自動設定せず、`die` は別の受信eventである。
+
+現在のモデル列を `gf3` へ渡すとATK0のsundryはnonattackとなり、`ev/e1` では190だけが適合する。単独mainは `gkN` が許す一方、追加役割/isPlusAtk/MC費用は無く、追加boost/FREEへは使わない。ただしserverが負の結果を動的attackとして表現する場合の実際の受理は未照合である。
+
+旧Flash237はlaunch時にrandrange(0,2)で±10を固定し、COMMAND.hpで応答前公開、clone反射で保持、最終targetへ一度適用する参考実装を持つ。これは現行一次資料ではなく、旧0damage/1healのbit対応もv15の0heal/1damageとは区別する。旧244蘇生や病気tick順を現行へ流用しない。
+
+v15はlaunch bounded2を一度引き0で+10/1で−10、power0の固定signed amountを応答前に公開する。self即時/他者response、190反射で符号維持・再抽選無し、負でもnonattackでDEF/filter/counter無し、最終targetのHPだけ0〜99clip、全body後dead/自然終局優先/全action後giftとする**実験規約**を採る。`random_hp_rule` は `experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action`。210モデル/重み414（97/74/14/25）、Snapshot15旧1〜14拒否/view-v13/C ABI1で、符号前公開を公式確認済みの観測仕様と呼ばない。
+
+v15は全Release CTest129件/18.87秒・ASan/UBSan89件/49.59秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridge-fixの6ログはwarning/error0。focused Release3件/0.63秒（native0.08/C API0.01/Python0.53秒）・SAN2件/1.00秒（native0.68/C API0.32秒）が通過した。Python MatchはAST確認29ケース、native零引数43関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v15記録](official-execution-subset.md#v15の検証と集計)へ分ける。
 
 ## 霧：何が見えなくなるか
 

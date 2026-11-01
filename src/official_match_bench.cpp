@@ -40,6 +40,8 @@ struct Stats {
     std::uint64_t mana_weapon_plays = 0, mana_mp_spent = 0, mana_base_mp = 0;
     std::uint64_t repeat_weapon_plays = 0, repeat_frames_completed = 0;
     std::uint64_t wide_plays = 0, wide_frames_completed = 0;
+    std::uint64_t random_hp_plays = 0, random_hp_resolved = 0, random_hp_heals = 0, random_hp_damages = 0;
+    std::uint64_t random_hp_gained = 0, random_hp_lost = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -66,6 +68,9 @@ struct Stats {
         mana_weapon_plays += s.mana_weapon_plays; mana_mp_spent += s.mana_mp_spent; mana_base_mp += s.mana_base_mp;
         repeat_weapon_plays += s.repeat_weapon_plays; repeat_frames_completed += s.repeat_frames_completed;
         wide_plays += s.wide_plays; wide_frames_completed += s.wide_frames_completed;
+        random_hp_plays += s.random_hp_plays; random_hp_resolved += s.random_hp_resolved;
+        random_hp_heals += s.random_hp_heals; random_hp_damages += s.random_hp_damages;
+        random_hp_gained += s.random_hp_gained; random_hp_lost += s.random_hp_lost;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -163,6 +168,7 @@ int main(int argc, char** argv) {
                             const auto& card = *find_card(item->model);
                             if (command.kind == CommandKind::play && card.ability == Ability::attack_every_enemy) wide_play = true;
                             if (command.kind == CommandKind::play && token == command.items.front()) {
+                                if (card.ability == Ability::boost_hp_or_deal_damage) ++stats.random_hp_plays;
                                 if (card.ability == Ability::attack_twice) ++stats.repeat_weapon_plays;
                                 if (card.ability == Ability::atk_by2x_mp) {
                                     ++stats.mana_weapon_plays; stats.mana_mp_spent += own.mp;
@@ -219,10 +225,25 @@ int main(int argc, char** argv) {
                                 ++stats.self_damage_positive_resolutions; stats.self_damage_nominal_hp += remaining;
                             }
                         }
+                        std::optional<PlayerId> random_hp_target;
+                        if (command.kind == CommandKind::defend && !response_stops_payload
+                            && before.queue.front().ability == Ability::boost_hp_or_deal_damage)
+                            random_hp_target = before.queue.front().target;
+                        else if (command.kind == CommandKind::play && command.target == command.actor && !command.items.empty()) {
+                            const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == command.items.front(); });
+                            if (find_card(item->model)->ability == Ability::boost_hp_or_deal_damage) random_hp_target = command.actor;
+                        }
+                        const auto random_hp_before = random_hp_target ? find_player(before.state, *random_hp_target)->hp : 0;
                         mix(hash, command.actor); mix(hash, static_cast<unsigned>(command.kind)); mix(hash, command.items.size());
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        if (random_hp_target) {
+                            ++stats.random_hp_resolved;
+                            const auto delta = find_player(match.snapshot().state, *random_hp_target)->hp - random_hp_before;
+                            if (delta < 0) { ++stats.random_hp_damages; stats.random_hp_lost += -delta; }
+                            else { ++stats.random_hp_heals; stats.random_hp_gained += delta; }
+                        }
                         if (removal_target) {
                             const auto& after = *find_player(match.snapshot().state, *removal_target);
                             std::uint64_t removed = 0;
@@ -266,6 +287,9 @@ int main(int argc, char** argv) {
         std::uint64_t wins = 0; for (auto value : stats.wins) wins += value;
         if (stats.games != games || stats.main + stats.responses != stats.decisions || wins + stats.draws + stats.truncations != games)
             throw std::logic_error("inconsistent scoped benchmark accounting");
+        if (stats.random_hp_heals + stats.random_hp_damages != stats.random_hp_resolved || stats.random_hp_resolved > stats.random_hp_plays
+            || stats.random_hp_gained > 10 * stats.random_hp_heals || stats.random_hp_lost > 10 * stats.random_hp_damages)
+            throw std::logic_error("inconsistent random HP accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -280,6 +304,7 @@ int main(int argc, char** argv) {
             << "\nmana_weapon_rule=" << mana_weapon_rule
             << "\nrepeat_attack_rule=" << repeat_attack_rule
             << "\nwide_attack_rule=" << wide_attack_rule
+            << "\nrandom_hp_rule=" << random_hp_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -308,6 +333,9 @@ int main(int argc, char** argv) {
             << "\nmana_weapon_plays=" << stats.mana_weapon_plays << "\nmana_mp_spent=" << stats.mana_mp_spent << "\nmana_base_mp=" << stats.mana_base_mp
             << "\nrepeat_weapon_plays=" << stats.repeat_weapon_plays << "\nrepeat_frames_completed=" << stats.repeat_frames_completed
             << "\nwide_plays=" << stats.wide_plays << "\nwide_frames_completed=" << stats.wide_frames_completed
+            << "\nrandom_hp_plays=" << stats.random_hp_plays << "\nrandom_hp_resolved=" << stats.random_hp_resolved
+            << "\nrandom_hp_heals=" << stats.random_hp_heals << "\nrandom_hp_damages=" << stats.random_hp_damages
+            << "\nrandom_hp_gained=" << stats.random_hp_gained << "\nrandom_hp_lost=" << stats.random_hp_lost
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
