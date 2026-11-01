@@ -1,6 +1,6 @@
 # Godfield RL core
 
-**配信最新版との差分確認（2026-11-02）:** fresh取得の公式JA/JSは固定snapshotとhashが異なる。296モデルの数値・能力・curse・giftRateは比較済みで変更0、差は画像名19/26/117と117の表記「石版→石板」等である。これら表示名/画像名の追従は未反映とし、既存pinsを維持する。JAにはスペイン語の言語項目追加とcostMP/priceCP文言の再編もある。最新版の除去handler・描画・reveal・decode経路は識別子を正規化した制御構造/リテラル比較と手読で照合したが、新JS全体の同値性は保証しない。[取得物と差分証跡](data/official-v1/upstream-review-2026-11-02.json)を参照。過去のfresh一致記録を今日のhash一致として扱わない。 v20/v21/v22/v23の再取得もこのNov2 reviewの新hash/bytesと一致し、新しい変更は検出していない。元pinsとの差が解消したという意味ではない。
+**配信最新版との差分確認（2026-11-02）:** fresh取得の公式JA/JSは固定snapshotとhashが異なる。296モデルの数値・能力・curse・giftRateは比較済みで変更0、差は画像名19/26/117と117の表記「石版→石板」等である。これら表示名/画像名の追従は未反映とし、既存pinsを維持する。JAにはスペイン語の言語項目追加とcostMP/priceCP文言の再編もある。最新版の除去handler・描画・reveal・decode経路は識別子を正規化した制御構造/リテラル比較と手読で照合したが、新JS全体の同値性は保証しない。[取得物と差分証跡](data/official-v1/upstream-review-2026-11-02.json)を参照。過去のfresh一致記録を今日のhash一致として扱わない。 v20/v21/v22/v23/v24の再取得もこのNov2 reviewの新hash/bytesと一致し、新しい変更は検出していない。元pinsとの差が解消したという意味ではない。
 
 God Fieldを強化学習で扱うための、C++20製ローカルシミュレーターです。
 描画・通信・外部ライブラリに依存せず、自己対戦を高速に回すための基盤を用意しています。
@@ -15,16 +15,16 @@ God Fieldを強化学習で扱うための、C++20製ローカルシミュレー
 `gfo_*` ABI1とPython `OfficialData` は台帳・合成計算、追加の `gfo_state_*` と
 Python `official_state.py` は入力スナップショットの読み取り・view・選択照会を公開します。
 これらのread-only APIに加え、`godfield::official::Match` / `gfo_match_*` / Python `Match` で
-224モデル・重み485に限定した2〜9人/チーム対局を実行できます。
+228モデル・重み489に限定した2〜9人/チーム対局を実行できます。
 配布・死亡・手番のscheduleは実験規約であり、公式サーバー同等性は未検証です。
 
 [公式一次調査](docs/official-current-rules.md)、[状態と表示の契約](docs/official-state-view.md)、
 [限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v1/README.md)を参照してください。
-限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198を扱います。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択を扱います。
 公式の237モデル全配布や全固有効果、多段queue、
-吸収/閃光以外の固有効果付き確率攻撃、閃光/暗雲以外の災いcounter、自己購入・満杯配送等の未対応取引、霧・夢、守護神・終末は実行できません。
+未対応の固有効果付き確率攻撃、Fog/閃光/暗雲以外の災いcounter、自己購入・満杯配送等の未対応取引、夢、守護神・終末は実行できません。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
@@ -32,7 +32,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v1` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v23` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 224モデル/重み485、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・満杯配送を除く売却4・自己対象/満杯配送を除く購入5・病気4状態/付与6種・168/198、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v24` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 228モデル/重み489、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・満杯配送を除く売却4・自己対象/満杯配送を除く購入5・病気4状態/付与6種・168/198・Fog4種、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -247,10 +247,10 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 ## 公式データによる限定対局実行器
 
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
-224モデル/重み485を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
-奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種・閃光付与/反撃/解除7種・暗雲・除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入5・病気4状態/付与6種・168/198、2〜9人とチームを扱います。
-rulesetは `official-execution-subset-v23`、scopeは `experimental:224-models;not-official-server-equivalence` です。
-対象外のモデル・fake・病気4種/閃光/暗雲以外の災い・守護神・混乱・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
+228モデル/重み489を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
+奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種・閃光付与/反撃/解除7種・暗雲・除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入5・病気4状態/付与6種・168/198・Fog4種、2〜9人とチームを扱います。
+rulesetは `official-execution-subset-v24`、scopeは `experimental:228-models;not-official-server-equivalence` です。
+対象外のモデル・fake・病気4種/Fog/閃光/暗雲以外の災い・守護神・混乱・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
 read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
 
 主動作から応答へ進み、body効果・死亡の後に自然終局/cutoffを優先します。全action完了時に元ownerの病気tickと再死亡/終局判定を挟み、継続なら補充・次ownerへ進みます。
@@ -262,7 +262,7 @@ read-onlyな `OfficialState` が表示できる局面を、全てこの実行器
 
 反射は元のpower/category/abilityとownerを保ち、現在のsource/targetだけを交換します。
 属性消去は反射後も無属性を維持し、原発奇跡の再課金・新sourceへの取得は行いません。
-各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version23の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22は拒否します。
+各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version24の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23は拒否します。
 普通防具→反射は現行clientの追加条件で不受理で、反射前に許すのは連続した属性消去だけです。
 自己反射にもresponseを作るのは明示的な実験規約です。公開viewに未来RNG・消費token来歴は出しません。
 
@@ -279,7 +279,7 @@ matching遮断は現在のpayload全体を取消し、原発者のMPや既消費
 ＜壁＞は通常は初回/再使用とも6MP、初回はused保持し、空きがあれば補充1・満杯なら0。v4では直後のFREEで費用0にもできます。
 遮断後は未終局・未打切りの場合だけまとめて補充してownerを巡回します。
 blockイベントが元効果をどう取り消すかはclientの演出だけで証明できず、この実行器の明示規約です。
-公開JSONは `official-execution-view-v21`、Snapshot23、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
+公開JSONは `official-execution-view-v22`、Snapshot24、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
 
 FREEは直前のMCだけを無料化し、複数MC→FREEペアも全て免除します。MP不足のMCを含む途中prefixでは拒否せず、完成列の最終費用を検証します。
 壁233→FREEは全選択を消費/used保持する契約で、旧版の「特殊後FREE未消費」は採用しません。
@@ -373,7 +373,7 @@ v22は病気4状態Cold/Fever/Hell/Heavenと付与六モデル30/33/48/62/219/22
 元ownerの全action完了後advance冒頭だけ、生存/病気ありなら固定5%（bounded100<5）で悪化→変化後Cold−1/Fever−2/Hell−5/Heaven+5、HeavenfallはHP0でheal無し→208/死亡→自然終局→gift/次owner。body自然終局/decision cutoff成立時はtickせず、反射/連撃/全体/counter/BUY見積の途中にもtickしません。購入決定で完了しても元ownerだけが対象です。教典の5%/継続量と、このrank/抽選順/境界のserver未確認実験規約を区別し、旧worseChance増加式は採用しません。
 native last_tickはbodyとtickのHP変化・蘇生を分ける特権情報で、内部record/token/RNGは公開しません。公開はdisease_ruleとboardの状態だけです。
 
-公開 `disease_rule` は `experimental:one-disease-plus-flash-and-darkcloud;reapply-max-incoming-or-next;heaven-reapplication-hp0;owner-only-after-whole-action;natural-and-cutoff-before-tick;fixed5-percent-before-hp;post-upgrade-tick;post-tick-revival-before-gifts`。raw stateは病気最大一種→Flash→DarkCloudのenum順・重複無し、最大三curseのcanonical集合だけを受理する。tick recordは次main受理でclearし、現在の公開boardから過去のroll/tokenを復元して返す機能は作らない。 現行clientの病気表示は新たな受信curseで旧病気一種を置き換え、非病気Flash/DarkCloudは独立に残す。旧FlashのHeaven中に非病気を付けても転落させる挙動は流用しない。
+v22/23時点の公開 `disease_rule` は `experimental:one-disease-plus-flash-and-darkcloud;reapply-max-incoming-or-next;heaven-reapplication-hp0;owner-only-after-whole-action;natural-and-cutoff-before-tick;fixed5-percent-before-hp;post-upgrade-tick;post-tick-revival-before-gifts`。v22/23のraw stateは病気最大一種→Flash→DarkCloudのenum順・重複無し、最大三curseのcanonical集合だった。v24のFog拡張は後述する。tick recordは次main受理でclearし、現在の公開boardから過去のroll/tokenを復元して返す機能は作らない。 現行clientの病気表示は新たな受信curseで旧病気一種を置き換え、非病気Flash/DarkCloudは独立に残す。旧FlashのHeaven中に非病気を付けても転落させる挙動は流用しない。
 
 ベンチの `disease_ticks` / `disease_worsened` / `disease_falls` はtick/自然悪化/Heavenfall件数、`disease_tick_revivals` はtick由来208救済数。`disease_hp_gained/lost` は復活前のtick HP増減を集計し、救済時はrawAfter=0として208の+10を除き、Heavenfallの実HP損失も含める。累計 `revivals` はbody由来とtick由来を含む。HP増減202のbody集計からtick HPdeltaとtick救済を外し、205/206のtoken消失数から同targetのtick208消費を除いて公開除去eventと照合する。これらの内部会計のためにlast_tick/tokenを利用しても、公開JSONには出さない。
 
@@ -381,6 +381,14 @@ v23は168熱狂仮面（Fire普通DEF10/自己Fever/p10w1）と198天国草（NE
 168はmain不可、属性適合時の普通防御に複数copy可、Flashは一枚、filter前置可/特殊反応併用不可。全response消費後に選択順で自己Feverを各copy一回→incoming body→208/死亡とし、完全防御でも自己付与します。prefixHeavenfallでHP0になっても本体前に蘇生せず、HP0&&!deadを待機snapshotに許しません。counterはbodyのtarget HP実損失だけで、prefix落下を加算しません。自己吸収aliasがHP0→回復→被害を起こす場合の正のbody損失は別に数えます。
 198はmain play専用（response品には不可）でMP20clip99→Heaven付与→救済/死亡、自己即時/他人190のみ。能力自体にRNG/holding/FREEは無く、後のowner tick/giftは別。discard/売買商品では両品のabilityは発動しません。v22の病気/5%/owner境界・自然終局/cutoff・救済順を維持します。
 公開 `disease_item_rule='experimental:response-self-curse-in-selection-order-after-consumption;prefix-before-body;death-and-revival-after-whole-body;counter-basis-body-target-loss-only;mp-boost-before-disease;no-trigger-on-trade-or-discard'` に付与順を実験規約として明示します。現行selfCurseはevent.indexの演出だけで、198のtooltip/独立MP・curse受信handlerもserverの付与順/HP0/208までを証明しません。 198は全response後のbodyでMPを増やし、nonattackへの反応は190だけなので同batchの有償MP反応予算を増やさない。journal上界は非BUY3,725/BUY3,726の保守的上界を維持する。新ベンチ `fever_mask_uses` は応答で使った168コピー数、`heaven_herb_plays` は198のmain開始数で、捨てる/商品移動を含めない。`heaven_herb_resolved` は自己即時または他者空応答の最終body解決数（190反射途中は除く）、`heaven_herb_mp_gained` は当該targetのMP after-before実増分で、99cap後の値を数える。同body後のtick/giftはMPを変えないため分離でき、名目20倍値に置き換えない。resolved<=plays/実増<=20*resolvedを検査する。未解決cutoffなら開始だけ、解決済みcutoffならbody実増も計上する。
+
+v24はFog付与72/97/182/221を加え228モデル/重み489（trade3/104武器/76防具/17雑貨/28奇跡）、Snapshot24旧1〜23拒否/view-v22にします。Match ABI2の幅/kinds0〜8/phase3は据置。病気一種+Fog+Flash+DarkCloudの最大四curse、mildCold/Fever/Fog/Flash・all全七種、非病気FogはHeavenfallや単独tickを起こしません。
+Fogのmain play/buyで敵を明示したlaunchだけalive敵input順一様draw1（単独候補も1）、202なら続いて符号draw。自己/味方は維持、%/Wide/Dangerは除外し、14は同じ選択先へ二回、redirect/counter/YESNOは再選択しません。分布・順序・例外はserver未確認の実験規約で、privileged last_fogやRNGは公開しません。
+生存Fog本人/未終局の生存敵statusだけnullにし、自己/味方/dead敵/観戦/dead viewer/終局は可視。名前/team/usedモデルは別paneの公開情報です。forced_hitは命中時initial_targetのpaneが隠れるならtrue/false両方nullとし、可視selfへの反射後も漏らしません。公開payload/quote/除去・売却eventは別経路で残しますがfanoutは未照合です。
+Fogのforeign SELLは敵/味方とも容量peek前に-5・自己可、samplerのSELLは全状態で自己に固定します。非Fogmanual foreign SELLの容量依存gapは残り、全query/全profile非干渉を主張しません。
+ベンチの `fog_main_commands` は受理main前のownerがFogだった全kind、`fog_launches` はそのmainでlast_fogを生成した数、`fog_target_changed` はintended!=selectedの数。response中のrecord残存を重複計上せず、changed<=launches<=fog_main_commands<=main_commandsを検査する。2人戦の候補一人で対象不変でも、launch drawは一回消費する。view-v22のforced_hitはbool/nullの三状態として読み、nullをfalseと同一視しない。
+
+公開 `fog_rule='experimental:launch-once-for-explicit-enemy-target;uniform-alive-enemies-in-input-order;one-draw-including-singleton;self-and-allies-unchanged;chance-wide-danger-excluded;redirects-no-reselection;fog-foreign-sell-unsupported;sampler-sell-self-only'`、更新した `disease_rule='experimental:one-disease-plus-fog-flash-and-darkcloud;reapply-max-incoming-or-next;heaven-reapplication-hp0;owner-only-after-whole-action;natural-and-cutoff-before-tick;fixed5-percent-before-hp;post-upgrade-tick;post-tick-revival-before-gifts'` に実験規約を明示します。
 
 意思決定の打切りは自然終局と分け、報酬0です。不正・未対応入力で状態/RNG/出力を一部更新しません。
 raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していません。
@@ -390,7 +398,7 @@ raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していま
 これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
 
 以下は過去の **v1・132モデル/重み308** のRelease計測（seed42、1 worker）です。
-現行v23の性能やchecksumを示すものではありません。
+現行v24の性能やchecksumを示すものではありません。
 
 | 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -428,7 +436,7 @@ Python Match10ケースも通過。公式assetsの再取得hashと296モデルfa
 9人10,000試合が2.46832秒（1,154,300意思決定/秒）で、上表の全決定的fieldを維持しました。
 合法手sampler・実行・終了snapshot検証を含みます。Release/SAN各1,000試合の時間以外の全集計も一致しました。
 勝数・反射/消去の集計は[契約文書のv3記録](docs/official-execution-subset.md#v3の過去の検証と集計)へ記載しています。
-これらのv1〜v8結果は現行v23の224モデルの速度・checksumではありません。
+これらのv1〜v8結果は現行v24の228モデルの速度・checksumではありません。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過しました（各 `-j4` 同時実行）。Python Matchは11ケースです。
 その後、0MPの追加Aura+FREE pairを生成する専用native局面を追加し、Release/SAN各1件も通過しました（0.26/0.57秒）。coreの追加変更はありません。
@@ -446,7 +454,7 @@ FREE品使用数は通常の武器/防具役割での使用も含み、無料化
 合法手sampler・実行・終了snapshot検証込みです。プールとsamplerが異なるためv3との速度比を改善率として扱いません。
 Release/SANの2人・9人各1,000試合も時間以外の全集計が一致しました。
 勝数・Aura/setter等は[契約文書のv4記録](docs/official-execution-subset.md#v4の過去の検証と集計)へ記載しています。
-以上のv4計測も過去の証拠として保持し、224モデルのv23の計測とは分けます。
+以上のv4計測も過去の証拠として保持し、228モデルのv24の計測とは分けます。
 v5は全Release CTest129件/20.03秒、ASan/UBSan89件/51.49秒、focused Release3件/1.09秒・SAN2件/1.20秒が通過しました。最終全ソースfreeze後の全体suiteは各 `-j4` のRelease/SAN同時実行です。Python MatchはASTで12ケース、公式assets再取得hashと296モデルfactsも一致し、compile warningはありませんでした。
 
 | v5人数 | 試合数 | 意思決定数 | draw / 打切り | bounce / 乱気流 初 / 再 | checksum |
@@ -685,7 +693,7 @@ seed42の2人100,000試合/9人10,000試合を各1 worker/4 workersで実行し�
 
 詳細は[限定実行器v22記録](docs/official-execution-subset.md#v22の過去の検証と病気tick集計)。
 
-## v23の検証と仮面/天国草集計
+## v23の過去の検証と仮面/天国草集計
 
 v23は全source/test最終freeze後のfull build・focused・full suiteで、Release CTest129件/19.51秒・ASan/UBSan89件/49.90秒が通過した（各 `-j4` 同時、大規模benchは先に完了）。最終Release/SAN buildはwarning/error0。focused Release3件/1.29秒（native0.08/C API0.26/Python0.94秒）・SAN2件/1.05秒（native0.61/C API0.44秒）が通過した。native零引数72関数のmain各1回登録/unused guard、Python AST51ケースの重複無し、Release/SAN双方の固定query384完走を確認した。
 
@@ -706,7 +714,25 @@ v23は全source/test最終freeze後のfull build・focused・full suiteで、Rel
 
 seed42の2人100,000試合/9人10,000試合を各1 worker/4 workersで実行し、worker数・時間以外の全fieldが一致した。全終了snapshot（自然終局/打切り）を復元し、新旧会計boundsを確認した。Release/SAN seed42各1,000試合も非時間fieldが一致し、2人checksum `15297651180555030086`（168コピー45/198開始36/実MP720）、9人checksum `16876268204354222509`（168コピー350/198開始352/実MP7,040）。この大規模seedで198開始数と解決数が一致したことを、未解決cutoffが起きない保証にはしない。公式serverの病気順や乱数の測定結果ではない。今回はquiet速度を再計測せず、v23の速度値や版間改善倍率を掲載しない。
 
-詳細は[限定実行器v23記録](docs/official-execution-subset.md#v23の検証と仮面天国草集計)。
+詳細は[限定実行器v23記録](docs/official-execution-subset.md#v23の過去の検証と仮面天国草集計)。
+
+## v24の検証とFog集計
+
+v24の最終検証でRelease CTest129/129件（55.56秒）・ASan/UBSan89/89件（85.03秒）が通過した。時間は並行suite実行の経過であり、エンジンの性能値や版間速度比較には使わない。native零引数77関数のmain登録、Python AST55ケースの重複無し、新bridge Fog4ケース、C API固定6×64 query384完走を確認した。動的Wall+FREE fixtureは最初のseed8990へ届くよう探索上限を8192から16384へ広げて実行した。source/native/benchの独立read-only監査で重大な指摘は無かった。
+
+| v24人数 | 試合数 | 意思決定数 | 勝数 | draw / 打切り | checksum |
+| --- | --- | --- | --- | --- | --- |
+| 2 | 100,000 | 3,947,197 | 49,585 / 50,310 | 105 / 0 | `15312008538106736201` |
+| 9 | 10,000 | 2,506,619 | 1,102 / 1,134 / 1,104 / 1,057 / 1,129 / 1,099 / 1,106 / 1,102 / 1,154 | 11 / 2 | `1417387029820349467` |
+
+| 人数 | Fog本人main | Fog launch draw | intendedから対象変更 |
+| --- | --- | --- | --- |
+| 2 | 112,904 | 30,180 | 0 |
+| 9 | 102,818 | 49,146 | 34,241 |
+
+seed42の2人100,000試合/9人10,000試合を各1 worker/4 workersで実行し、worker数・時間以外の全fieldが一致した。全終了snapshot（自然終局/打切り）を復元し、新旧会計boundsを確認した。2人戦の変更0でもlaunchの一候補drawは消費する。Release/SAN seed42各1,000試合の非時間fieldも一致し、checksumは2人 `788222134307769052` / 9人 `57481880523464303`。Fogのroll/対象分布やsampler変更を含むローカル集計で、公式serverの測定や旧版との全profile非干渉の証明ではない。今回quiet速度は再計測せず、v24の速度値・改善倍率は掲載しない。
+
+詳細は[限定実行器v24記録](docs/official-execution-subset.md#v24の検証とfog集計)。
 
 ## 旧版を参考にした中立ルールセット
 
@@ -974,7 +1000,7 @@ Gymnasium/PettingZooアダプターやPPOはまだ同梱していません。
 
 1. 固定した公式データ・表示関数・部分viewを、出典付きfixtureで継続照合する。
 2. 限定実行器の実験的な配布・死亡・手番順を一次の対局結果と照合し、一般effect queueと未対応効果へ広げる。
-3. 閃光/暗雲以外の災いcounter・吸収/閃光以外の固有効果付き確率攻撃・自己購入・満杯配送等の未対応取引・霧/夢・守護神・終末等を含む9人/チームの全範囲へ広げる。限定playableと公式全体の一致を別に検証する。
+3. 夢と夢の反撃、守護神付与等の未対応固有攻撃・死亡時効果、自己購入・満杯配送等の未対応取引、守護神・終末を含む9人/チームの残りの範囲へ広げる。限定playableと公式全体の一致を別に検証する。
 
 学習器は現在の実装範囲に含めません。旧37profileのEnvとAPIは比較用に保存します。
 

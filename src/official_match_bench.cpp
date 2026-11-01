@@ -52,6 +52,7 @@ struct Stats {
     std::uint64_t disease_ticks = 0, disease_worsened = 0, disease_falls = 0, disease_tick_revivals = 0;
     std::uint64_t disease_hp_gained = 0, disease_hp_lost = 0;
     std::uint64_t fever_mask_uses = 0, heaven_herb_plays = 0, heaven_herb_resolved = 0, heaven_herb_mp_gained = 0;
+    std::uint64_t fog_main_commands = 0, fog_launches = 0, fog_target_changed = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -94,6 +95,7 @@ struct Stats {
         disease_tick_revivals += s.disease_tick_revivals; disease_hp_gained += s.disease_hp_gained; disease_hp_lost += s.disease_hp_lost;
         fever_mask_uses += s.fever_mask_uses; heaven_herb_plays += s.heaven_herb_plays;
         heaven_herb_resolved += s.heaven_herb_resolved; heaven_herb_mp_gained += s.heaven_herb_mp_gained;
+        fog_main_commands += s.fog_main_commands; fog_launches += s.fog_launches; fog_target_changed += s.fog_target_changed;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -155,6 +157,8 @@ int main(int argc, char** argv) {
                         else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
                         const auto& own = *find_player(before.state, command.actor);
+                        const auto fog_main = before.phase == MatchPhase::main && std::find(own.curses.begin(), own.curses.end(), Curse::fog) != own.curses.end();
+                        if (fog_main) ++stats.fog_main_commands;
                         if (command.kind == CommandKind::sell) { ++stats.sell_plays; ++stats.physical; }
                         if (command.kind == CommandKind::buy) { ++stats.buy_plays; ++stats.physical; }
                         const auto had_purchase = before.purchase.has_value();
@@ -289,6 +293,10 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        if (fog_main && match.snapshot().last_fog) {
+                            ++stats.fog_launches;
+                            if (match.snapshot().last_fog->intended != match.snapshot().last_fog->target) ++stats.fog_target_changed;
+                        }
                         if (herb_target) { ++stats.heaven_herb_resolved; stats.heaven_herb_mp_gained += find_player(match.snapshot().state, *herb_target)->mp - herb_mp_before; }
                         if (!had_purchase && match.snapshot().purchase) ++stats.buy_quotes;
                         if (buy_result_possible && match.snapshot().last_purchase) {
@@ -412,6 +420,8 @@ int main(int argc, char** argv) {
             throw std::logic_error("inconsistent disease accounting");
         if (stats.heaven_herb_resolved > stats.heaven_herb_plays || stats.heaven_herb_mp_gained > 20 * stats.heaven_herb_resolved)
             throw std::logic_error("inconsistent Heaven herb accounting");
+        if (stats.fog_target_changed > stats.fog_launches || stats.fog_launches > stats.fog_main_commands || stats.fog_main_commands > stats.main)
+            throw std::logic_error("inconsistent Fog selection accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -435,6 +445,7 @@ int main(int argc, char** argv) {
             << "\nbuy_rule=" << buy_rule
             << "\ndisease_rule=" << disease_rule
             << "\ndisease_item_rule=" << disease_item_rule
+            << "\nfog_rule=" << fog_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -483,6 +494,7 @@ int main(int argc, char** argv) {
             << "\ndisease_hp_gained=" << stats.disease_hp_gained << "\ndisease_hp_lost=" << stats.disease_hp_lost
             << "\nfever_mask_uses=" << stats.fever_mask_uses << "\nheaven_herb_plays=" << stats.heaven_herb_plays
             << "\nheaven_herb_resolved=" << stats.heaven_herb_resolved << "\nheaven_herb_mp_gained=" << stats.heaven_herb_mp_gained
+            << "\nfog_main_commands=" << stats.fog_main_commands << "\nfog_launches=" << stats.fog_launches << "\nfog_target_changed=" << stats.fog_target_changed
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

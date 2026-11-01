@@ -41,7 +41,7 @@ bool has_curse(const PlayerState& p, Curse curse) {
     return std::find(p.curses.begin(), p.curses.end(), curse) != p.curses.end();
 }
 bool disease(Curse curse) { return curse >= Curse::cold && curse <= Curse::heaven; }
-bool supported_curse(Curse curse) { return disease(curse) || curse == Curse::flash || curse == Curse::darkcloud; }
+bool supported_curse(Curse curse) { return disease(curse) || curse == Curse::fog || curse == Curse::flash || curse == Curse::darkcloud; }
 void add_curse(PlayerState& p, Curse curse) {
     require(supported_curse(curse), "unsupported effect curse");
     if (disease(curse)) {
@@ -65,8 +65,8 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         require(p.items.size() <= c.hand_limit, "scene inventory exceeds configured display limit");
         if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return !supported_curse(curse); })
             || p.guardian != Guardian::none || p.confusion_count)
-            unsupported("only diseases, Flash and DarkCloud are implemented among scoped curses, guardians and confusion");
-        require(p.curses.size() <= 3 && std::count_if(p.curses.begin(), p.curses.end(), disease) <= 1 && std::is_sorted(p.curses.begin(), p.curses.end())
+            unsupported("only diseases, Fog, Flash and DarkCloud are implemented among scoped curses, guardians and confusion");
+        require(p.curses.size() <= 4 && std::count_if(p.curses.begin(), p.curses.end(), disease) <= 1 && std::is_sorted(p.curses.begin(), p.curses.end())
             && std::adjacent_find(p.curses.begin(), p.curses.end()) == p.curses.end(), "noncanonical scoped curses");
         for (const auto& item : p.items) {
             if (item.fake_model || !match_supported(item.model)) unsupported("unsupported or disguised match model");
@@ -98,9 +98,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 485>& gift_tickets() {
+const std::array<CardId, 489>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 485> values{};
+        std::array<CardId, 489> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -109,7 +109,7 @@ const std::array<CardId, 485>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 224) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 228) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -213,6 +213,7 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         require(!commodity->used && can_append_main(std::array<VisibleSelection,1>{{{4,false}}}, {commodity->model,false}), "used miracles cannot be sold");
         const auto& buyer = s.state.players[index(s, *command.target)];
         require(!buyer.dead, "sale target is dead");
+        if (has_curse(own, Curse::fog) && buyer.id != own.id) unsupported("foreign sell under Fog is not implemented");
         if (buyer.id != own.id && buyer.items.size() == s.config.hand_limit) unsupported("sell overflow selection is not implemented");
         return models;
     }
@@ -402,7 +403,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             break;
         case Ability::add_curse: case Ability::counter_curse: add_curse(target, find_card(effect.models.front())->curse); break;
         case Ability::remove_mild_curses:
-            std::erase_if(target.curses, [](auto curse) { return curse == Curse::cold || curse == Curse::fever || curse == Curse::flash; });
+            std::erase_if(target.curses, [](auto curse) { return curse == Curse::cold || curse == Curse::fever || curse == Curse::fog || curse == Curse::flash; });
             break;
         case Ability::remove_all_curses: target.curses.clear(); break;
         case Ability::remove_items: case Ability::remove_used_miracles:
@@ -533,7 +534,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
-    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); }
+    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); s.last_fog.reset(); }
     bool completed = false;
     if (s.phase == MatchPhase::purchase) {
         s.batch->responses.push_back(command);
@@ -571,9 +572,18 @@ void execute(MatchSnapshot& s, const Command& command) {
         // Preserve the pre-draw anchor for journal replay. Payload construction
         // stays pure so activating a frame cannot draw the outcome a second time.
         const auto launch_rng = s.rng;
+        auto target = command.target.value_or(s.owner);
+        const auto& base = *find_card(models.front());
+        if ((command.kind == CommandKind::play || command.kind == CommandKind::buy) && command.target
+            && has_curse(s.state.players[seat], Curse::fog) && is_enemy(s.state.players[seat], s.state.players[index(s, target)])
+            && !base.hit_rate && base.ability != Ability::danger && !has_wide(models)) {
+            const auto enemies = enemy_targets(s);
+            const auto intended = target;
+            target = enemies[bounded(s.rng, enemies.size())];
+            s.last_fog = FogTarget{s.owner,intended,target,models};
+        }
         const auto random_hp_delta = find_card(models.front())->ability == Ability::boost_hp_or_deal_damage
             ? (bounded(s.rng, 2) == 0 ? 10 : -10) : 0;
-        auto target = command.target.value_or(s.owner);
         std::optional<ItemToken> mortar;
         if (find_card(models.front())->ability == Ability::danger) {
             for (const auto& player : s.state.players) if (!player.dead) {
@@ -679,6 +689,18 @@ void validate_snapshot(const MatchSnapshot& s) {
         }
         require(!has_wide(event.models) && event.power == attack_power(event.models, event.mortar ? 99 : 30)
             && event.element == attack_element(event.models), "invalid danger event payload");
+    }
+    if (s.last_fog) {
+        const auto& event = *s.last_fog;
+        const auto& owner = s.state.players[index(s, event.owner)];
+        require(s.decisions > 0 && !s.last_danger && !s.last_sale
+            && is_enemy(owner, s.state.players[index(s, event.intended)]) && is_enemy(owner, s.state.players[index(s, event.target)]), "invalid Fog selection endpoints");
+        require(!event.models.empty() && event.models.size() <= s.config.hand_limit, "invalid Fog selection models");
+        std::vector<VisibleSelection> prefix;
+        for (auto model : event.models) { require(match_supported(model) && can_append_main(prefix,{model,false}), "invalid Fog selection composition"); prefix.push_back({model,false}); }
+        const auto& base = *find_card(event.models.front());
+        require(!base.hit_rate && base.ability != Ability::danger && base.ability != Ability::exchange && base.ability != Ability::sell
+            && !has_wide(event.models) && (base.ability != Ability::buy || event.models.size() == 1), "invalid Fog selection role");
     }
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
@@ -912,10 +934,9 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         std::size_t eligible = 0;
         for (const auto& commodity : own.items) if (commodity.token != proposal.first && !commodity.used) commodities[eligible++] = commodity.token;
         selected.items.push_back(commodities[bounded(rng, eligible)]);
-        std::array<PlayerId, player_capacity> targets;
-        std::size_t alive = 0;
-        for (const auto& target : data_.state.players) if (!target.dead && (target.id == actor || target.items.size() < data_.config.hand_limit)) targets[alive++] = target.id;
-        selected.target = targets[bounded(rng, alive)];
+        // Foreign hand capacity is hidden even without Fog. The canonical
+        // API retains its explicit overflow gap; the policy uses only self.
+        selected.target = actor;
     }
     if (proposal.items && (selected.kind == CommandKind::play || selected.kind == CommandKind::defend)) {
         const auto* base = instance(own, proposal.first);
@@ -967,7 +988,8 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v21\",\"ruleset\":\"";
+    const auto board = project_view(data_.state, viewer);
+    std::string out = "{\"schema\":\"official-execution-view-v22\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -988,12 +1010,13 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"sell_rule\":\""; out += sell_rule;
     out += "\",\"buy_rule\":\""; out += buy_rule;
     out += "\",\"disease_rule\":\""; out += disease_rule;
-    out += "\",\"disease_item_rule\":\""; out += disease_item_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"disease_item_rule\":\""; out += disease_item_rule;
+    out += "\",\"fog_rule\":\""; out += fog_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
     out += ",\"truncated\":"; out += data_.truncated ? "true" : "false";
-    out += ",\"decisions\":" + std::to_string(data_.decisions) + ",\"board\":" + view_json(project_view(data_.state, viewer));
+    out += ",\"decisions\":" + std::to_string(data_.decisions) + ",\"board\":" + view_json(board);
     out += ",\"last_danger\":";
     if (!data_.last_danger) out += "null";
     else {
@@ -1056,7 +1079,10 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"bounces\":" + std::to_string(bounces);
         out += ",\"hit_rate\":" + std::to_string(e.hit_rate);
         out += ",\"counter\":"; out += e.is_counter ? "true" : "false";
-        out += ",\"forced_hit\":"; out += e.forced_hit ? "true" : "false";
+        // The flag belongs to activation, before any reflection. Redirection
+        // to a visible pane must not reveal the original hidden recipient.
+        const auto hidden_activation = std::any_of(board.players.begin(), board.players.end(), [&](const auto& player) { return player.id == e.initial_target && player.fogged; });
+        out += ",\"forced_hit\":"; out += hidden_activation ? "null" : e.forced_hit ? "true" : "false";
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);
         out += "\",\"amount\":" + std::to_string(e.amount) + '}';
     }
