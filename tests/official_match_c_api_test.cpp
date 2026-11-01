@@ -29,7 +29,7 @@ int main() {
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
     check(gfo_match_catalog_count() == 214 && gfo_match_gift_weight() == 437 && gfo_match_supported(6)
         && !gfo_match_supported(112) && !gfo_match_supported(30), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v18"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v19"
         && std::string(gfo_match_scope()) == "experimental:214-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {112, 182, 183}) check(!gfo_match_supported(id), "death-passive chance and curse counters unsupported");
@@ -260,7 +260,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v16\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v17\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -794,7 +794,7 @@ int main() {
         && observe(effect_match, 1, 77).find("\"curses\":[\"darkcloud\"]") != std::string::npos,
         "positive lethal target HP loss also records DarkCloud");
     gfo_match_destroy(effect_match);
-    // Removal observes only completed own-hand changes, never foreign victims.
+    // Resolved removals publish model order to all viewers, without private sampling state.
     for (auto id : {205, 206}) check(gfo_match_supported(id), "removal membership");
     const auto hand_size = [&](gfo_match* match, uint64_t player) {
         const auto view = observe(match, 1, player); std::size_t count = 0, at = 0;
@@ -814,6 +814,8 @@ int main() {
     const auto removal_view = observe(effect_match, 0, 0);
     check(removal_view.find("\"removal_rule\":\"experimental:unused-hand-max3;used-miracles-max2;uniform-without-replacement-in-inventory-order;bounded-draw-per-removal;empty-no-draw;no-removal-gifts\"") != std::string::npos
         && removal_view.find("\"power\":0") != std::string::npos && removal_view.find("\"amount\":3") != std::string::npos, "public removal scope and derived amount");
+    check(removal_view.find("\"last_removal\":null") != std::string::npos
+        && removal_view.find(official::removal_event_rule) != std::string::npos, "unresolved removal has no result event and publishes the event contract");
     for (uint64_t seed{}; seed < 64; ++seed) {
         ++fixed_query_probes;
         uint64_t policy = seed; gfo_match_command candidate{};
@@ -827,8 +829,11 @@ int main() {
     std::size_t removed_count = 0;
     for (const auto& item : fixture.snapshot().state.players[1].items) if (!has_token(effect_match, 77, item.token)) ++removed_count;
     check(removed_count == 3, "without-replacement removes three distinct physical copies");
-    for (const auto* key : {"\"removed\":", "\"removed_models\":", "\"removed_slots\":", "\"removal_rng\":", "\"batch\":"})
-        check(observe(effect_match, 0, 0).find(key) == std::string::npos, "removal adds no foreign victim or sampling-state observation");
+    for (const auto* key : {"\"removed\":", "\"removed_slots\":", "\"removal_rng\":", "\"batch\":"})
+        check(observe(effect_match, 0, 0).find(key) == std::string::npos, "removal exposes no private slot, token selection or sampling state");
+    for (const uint64_t viewer : {uint64_t{0}, uint64_t{77}})
+        check(observe(effect_match, 1, viewer).find("\"last_removal\":{\"origin\":0,\"source\":0,\"target\":77,\"model\":205,\"removed_models\":[40,83,93]}") != std::string::npos, "Broom publicly preserves actual draw order");
+    check(observe(effect_match, 0, 0).find("\"removed_models\":[40,83,93]") != std::string::npos, "spectator receives the same removed models");
     gfo_match_destroy(effect_match); gfo_match_destroy(effect_replay);
     fixture.reset(setup, 516335);
     check(gfo_match_create(&cfg, players.data(), 2, 516335, &effect_match) == 0
@@ -871,6 +876,7 @@ int main() {
     remove_command.items[0] = receipt_token(0, 206); both_step(remove_command);
     check(hand_size(effect_match, 0) == 16 && !has_token(effect_match, 0, duplicate_springs[0]) && !has_token(effect_match, 0, duplicate_springs[1])
         && observe(effect_match).find("\"used\":true") == std::string::npos, "Soap removes copies rather than only one model type");
+    check(observe(effect_match, 0, 0).find("\"last_removal\":{\"origin\":0,\"source\":0,\"target\":0,\"model\":206,\"removed_models\":[235,235]}") != std::string::npos, "Soap public result retains duplicate model copies");
     gfo_match_destroy(effect_match); gfo_match_destroy(effect_replay);
     fixture.reset(setup, 28460);
     check(gfo_match_create(&cfg, players.data(), 2, 28460, &effect_match) == 0
@@ -882,6 +888,7 @@ int main() {
     both_step(removal_mirror); remove_pass.actor = 0; both_step(remove_pass);
     check(!has_token(effect_match, 0, learn_command.items[0]) && hand_size(effect_match, 0) == 17 && hand_size(effect_match, 77) == 17
         && observe(effect_match) == observe(effect_replay), "universal reflection changes whose retained copy is removed");
+    check(observe(effect_match, 0, 0).find("\"last_removal\":{\"origin\":0,\"source\":77,\"target\":0,\"model\":206,\"removed_models\":[235]}") != std::string::npos, "reflected result distinguishes immutable origin and current source");
     gfo_match_destroy(effect_match); gfo_match_destroy(effect_replay);
     cfg.initial_hand = 1; cfg.initial_mp = 0;
     // With no retained copies, Soap ignores the recipient's unused miracle/carrier.
@@ -1306,6 +1313,36 @@ int main() {
             &&observe(effect_match).find(seed==7?"\"hp\":10,\"mp\":5,\"cp\":0":"\"hp\":0,\"mp\":5,\"cp\":0")!=std::string::npos
             &&hand_size(effect_match,0)==(seed==7?16u:17u),"HP0 exchange resolves revival or natural loss before cutoff without issuing deferred gifts");
         gfo_match_destroy(effect_match);}
+    // Empty resolved events survive rejected calls, then clear on the next accepted main.
+    cfg.initial_hand = 1; cfg.hand_limit = 18; cfg.initial_hp = 40; cfg.initial_mp = 0; cfg.initial_cp = 20; cfg.max_decisions = 512;
+    check(gfo_match_create(&cfg, players.data(), 2, 60, &effect_match) == 0
+        && observe(effect_match).find("\"last_removal\":null") != std::string::npos, "removal result starts null");
+    gfo_match_command empty_broom{}; empty_broom.item_count = 1; empty_broom.items[0] = 0; empty_broom.has_target = 1;
+    check(gfo_match_step(effect_match, &empty_broom, &result) == 0
+        && observe(effect_match).find("\"last_removal\":{\"origin\":0,\"source\":0,\"target\":0,\"model\":205,\"removed_models\":[]}") != std::string::npos, "self Broom consumes first and records an empty result");
+    const auto empty_event = observe(effect_match); const auto empty_status = status(effect_match);
+    gfo_match_command clear_removal{}; clear_removal.actor = 77; clear_removal.kind = 2; clear_removal.item_count = 1; clear_removal.items[0] = 1;
+    auto wrong_actor = clear_removal; wrong_actor.actor = 0; result = empty_status;
+    check(gfo_match_step(effect_match, &wrong_actor, &result) == -2 && equal(result, empty_status)
+        && observe(effect_match) == empty_event, "invalid main preserves the completed removal event");
+    check(gfo_match_step(effect_match, &clear_removal, nullptr) != 0 && observe(effect_match) == empty_event
+        && equal(status(effect_match), empty_status), "invalid output pointer preserves the removal event");
+    check(gfo_match_step(effect_match, &clear_removal, &result) == 0
+        && observe(effect_match).find("\"last_removal\":null") != std::string::npos, "accepted next main clears removal result");
+    check(gfo_match_reset(effect_match, players.data(), 2, 60, &result) == 0
+        && observe(effect_match).find("\"last_removal\":null") != std::string::npos, "reset clears removal result");
+    gfo_match_destroy(effect_match);
+    cfg.max_decisions = 2;
+    check(gfo_match_create(&cfg, players.data(), 2, 430938, &effect_match) == 0, "cutoff public removal fixture");
+    empty_broom.target = 77;
+    check(gfo_match_step(effect_match, &empty_broom, &result) == 0
+        && observe(effect_match).find("\"last_removal\":null") != std::string::npos, "pending foreign removal still has no result");
+    remove_pass.actor = 77;
+    check(gfo_match_step(effect_match, &remove_pass, &result) == 0 && result.truncated
+        && hand_size(effect_match, 0) == 0 && hand_size(effect_match, 77) == 0
+        && observe(effect_match, 0, 0).find("\"last_removal\":{\"origin\":0,\"source\":0,\"target\":77,\"model\":205,\"removed_models\":[224]}") != std::string::npos,
+        "cutoff retains resolved public result while cancelling gifts");
+    gfo_match_destroy(effect_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

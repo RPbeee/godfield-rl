@@ -9,7 +9,7 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v18";
+inline constexpr const char* match_ruleset = "official-execution-subset-v19";
 inline constexpr const char* match_scope = "experimental:214-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
@@ -26,7 +26,8 @@ inline constexpr const char* random_hp_rule = "experimental:launch-once;uniform-
 inline constexpr const char* revival_rule = "experimental:post-body-input-order;hp0-and-not-dead;two-not-dead-required;first-copy-once-per-boundary;hp-plus10;one-deferred-gift;counter-basis-pre-revival-loss;passive-and-undiscardable;full-hand-prayer-no-draw";
 inline constexpr const char* danger_rule = "experimental:launch-once;first-alive-mortar-in-input-order;otherwise-uniform-all-alive;optional-alive-target-ignored;base99-before-ordered-boosts;consume-one-mortar-with-deferred-gift;attracted-body-no-response;redirects-no-reselection;wide-combination-unsupported";
 inline constexpr const char* exchange_rule = "experimental:single-owned-exchange;targetless-self;three-resources-0-99;sum-conserved-before-revival;zero-mp-fee;no-response;one-deferred-gift;death-and-revival-before-gift";
-inline constexpr std::uint32_t match_snapshot_version = 18;
+inline constexpr const char* removal_event_rule = "experimental:resolved-body-only;public-removed-models-in-draw-order;duplicates-and-empty-preserved;clear-on-next-accepted-main;no-tokens-or-rng";
+inline constexpr std::uint32_t match_snapshot_version = 19;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -106,6 +107,12 @@ struct DangerEvent {
     Attribute element;
     bool operator==(const DangerEvent&) const = default;
 };
+struct RemovalEvent {
+    PlayerId origin = 0, source = 0, target = 0;
+    CardId model = 0;
+    std::vector<CardId> removed_models; // Public resolved results, in removal order; no physical tokens.
+    bool operator==(const RemovalEvent&) const = default;
+};
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
     MatchConfig config;
@@ -123,6 +130,7 @@ struct MatchSnapshot {
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0; // Activated without environmental RNG.
     std::uint64_t revivals = 0; // Completed passive consumptions, never a policy observation.
     std::optional<DangerEvent> last_danger; // Current main action's public launch result, without physical tokens.
+    std::optional<RemovalEvent> last_removal; // Current main action's resolved removal, including an empty result.
     bool terminated = false, truncated = false;
     std::vector<double> rewards; // Fixed player vector order, never actor-relative.
     std::vector<PlayerId> winners;

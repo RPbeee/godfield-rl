@@ -12,12 +12,12 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v18"); self.assertIn("214-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v19"); self.assertIn("214-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (214, 437))
         self.assertIn(212, match.supported_models); self.assertNotIn(112, match.supported_models); self.assertNotIn(30, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v16")
+        self.assertEqual(own["schema"], "official-execution-view-v17")
         self.assertEqual(own["board"]["players"][0]["name"], "A\0B")
         self.assertEqual(len(own["board"]["hand"]), 9); self.assertEqual(spectator["board"]["hand"], [])
         self.assertIsNone(own["pending"])
@@ -209,7 +209,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v16")
+        self.assertEqual(event["schema"], "official-execution-view-v17")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -735,6 +735,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(game.step(cast), reference.step(cast))
         event = game.observe(); self.assertEqual(event["removal_rule"], rule)
         self.assertEqual((event["pending"]["power"], event["pending"]["amount"]), (0, 3))
+        self.assertIsNone(event["last_removal"])
         before = game.observe(1)
         for seed in range(64):
             proposal, rng = game.sample_action(seed)
@@ -745,6 +746,9 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((len(remaining), len(original - remaining)), (15, 3)); self.assertTrue(remaining <= original)
         self.assertEqual(len(items(game, 0)), 18)
         self.assertEqual(game.observe(0), reference.observe(0)); self.assertEqual(game.observe(1), reference.observe(1))
+        removed_event = {"origin": 0, "source": 0, "target": 1, "model": 205, "removed_models": [40, 83, 93]}
+        for viewer in (None, 0, 1):
+            self.assertEqual(game.observe(viewer)["last_removal"], removed_event)
         for key in ("removed", "removed_models", "removed_slots", "removal_rng", "batch", "rng", "targets"):
             self.assertNotIn(key, game.observe()); self.assertNotIn(key, game.observe()["board"])
         game = self.match(config=config, seed=1878)
@@ -811,12 +815,16 @@ class MatchTests(unittest.TestCase):
         game.step(Command(0, "play", (soap,), 0))
         self.assertEqual(len(items(game, 0)), 16); self.assertTrue(set(copies).isdisjoint(i["token"] for i in items(game, 0)))
         self.assertFalse(any(i["used"] for i in items(game, 0)))
+        self.assertEqual(game.observe()["last_removal"],
+                         {"origin": 0, "source": 0, "target": 0, "model": 206, "removed_models": [235, 235]})
         game = self.match(config=config, seed=28460)
         spring, soap, mirror = token(game, 0, 235), token(game, 0, 206), token(game, 1, 190)
         game.step(Command(0, "play", (spring,), 0)); yield_other(game, reserved=(mirror,))
         game.step(Command(0, "play", (soap,), 1)); game.step(Command(1, "defend", (mirror,))); game.step(Command(0, "defend"))
         self.assertEqual([len(items(game, seat)) for seat in (0, 1)], [17, 17])
         self.assertNotIn(spring, {i["token"] for i in items(game, 0)})
+        self.assertEqual(game.observe()["last_removal"],
+                         {"origin": 0, "source": 1, "target": 0, "model": 206, "removed_models": [235]})
         # All initially unplayed miracles are ineligible, including after self consumption.
         for target in (0, 1):
             game = self.match(config=Config(initial_hand=1), seed=260773)
@@ -827,6 +835,48 @@ class MatchTests(unittest.TestCase):
             self.assertEqual([len(items(game, seat)) for seat in (0, 1)], [1, 1])
             self.assertFalse(any(i["used"] for i in items(game, 0)))
             self.assertEqual(items(game, 1), original_other)
+
+    def test_removal_event_lifecycle_empty_and_invalid_calls(self):
+        rule = "experimental:resolved-body-only;public-removed-models-in-draw-order;duplicates-and-empty-preserved;clear-on-next-accepted-main;no-tokens-or-rng"
+        game = self.match(config=Config(initial_hand=1, initial_mp=0), seed=60)
+        self.assertIsNone(game.observe()["last_removal"])
+        self.assertEqual(game.observe()["removal_event_rule"], rule)
+        self.assertEqual(game.observe(0)["board"]["hand"][0]["face"], 205)
+        game.step(Command(0, "play", (0,), 0))
+        expected = {"origin": 0, "source": 0, "target": 0, "model": 205, "removed_models": []}
+        for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_removal"], expected)
+        before, status = game.observe(0), game.status
+        invalid = Command(0, "pray")  # The accepted removal already advanced to player1.
+        self.assertFalse(game.legal(invalid))
+        with self.assertRaises(InvalidMatchError): game.step(invalid)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        detached = game.observe(); detached["last_removal"]["removed_models"].append(999)
+        self.assertEqual(game.observe()["last_removal"], expected)
+        other = game.observe(1)["board"]["hand"][0]
+        self.assertEqual((other["token"], other["face"]), (1, 232))
+        game.step(Command(1, "discard", (other["token"],)))
+        self.assertIsNone(game.observe()["last_removal"])
+        game.reset(60)
+        self.assertIsNone(game.observe()["last_removal"])
+
+    def test_removal_event_pending_and_resolved_cutoff(self):
+        game = self.match(config=Config(initial_hand=1, initial_mp=0, max_decisions=2), seed=430938)
+        self.assertEqual(game.observe(1)["board"]["hand"][0]["face"], 224)
+        game.step(Command(0, "play", (0,), 1))
+        for viewer in (None, 0, 1): self.assertIsNone(game.observe(viewer)["last_removal"])
+        before, status = game.observe(1), game.status
+        invalid = Command(0, "defend")
+        self.assertFalse(game.legal(invalid))
+        with self.assertRaises(InvalidMatchError): game.step(invalid)
+        self.assertEqual((game.observe(1), game.status), (before, status))
+        game.step(Command(1, "defend"))
+        self.assertTrue(game.status.truncated); self.assertFalse(game.status.terminated)
+        expected = {"origin": 0, "source": 0, "target": 1, "model": 205, "removed_models": [224]}
+        for viewer in (None, 0, 1):
+            event = game.observe(viewer)["last_removal"]
+            self.assertEqual(event, expected)
+            self.assertEqual(set(event), {"origin", "source", "target", "model", "removed_models"})
+        self.assertEqual([game.observe(seat)["board"]["hand"] for seat in (0, 1)], [[], []])
 
     def test_mana_weapon_zero_mp_ordered_cost_free_and_redirect(self):
         rule = "experimental:base-2x-mp-after-composed-miracle-cost;ordered-boosts;consume-all-mp-once-at-launch;redirects-no-repayment"

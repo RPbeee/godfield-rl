@@ -37,6 +37,7 @@ struct Stats {
     std::uint64_t flash_added = 0, flash_removed = 0, flash_response_commands = 0;
     std::uint64_t darkcloud_added = 0, darkcloud_removed = 0, chance_forced_hits = 0, counter_forced_hits = 0;
     std::uint64_t hand_removal_resolved = 0, hand_items_removed = 0, used_removal_resolved = 0, used_miracles_removed = 0;
+    std::uint64_t removal_events = 0, empty_removal_events = 0, removal_event_checksum = 0;
     std::uint64_t mana_weapon_plays = 0, mana_mp_spent = 0, mana_base_mp = 0;
     std::uint64_t repeat_weapon_plays = 0, repeat_frames_completed = 0;
     std::uint64_t wide_plays = 0, wide_frames_completed = 0;
@@ -68,6 +69,7 @@ struct Stats {
         chance_forced_hits += s.chance_forced_hits; counter_forced_hits += s.counter_forced_hits;
         hand_removal_resolved += s.hand_removal_resolved; hand_items_removed += s.hand_items_removed;
         used_removal_resolved += s.used_removal_resolved; used_miracles_removed += s.used_miracles_removed;
+        removal_events += s.removal_events; empty_removal_events += s.empty_removal_events; removal_event_checksum += s.removal_event_checksum;
         mana_weapon_plays += s.mana_weapon_plays; mana_mp_spent += s.mana_mp_spent; mana_base_mp += s.mana_base_mp;
         repeat_weapon_plays += s.repeat_weapon_plays; repeat_frames_completed += s.repeat_frames_completed;
         wide_plays += s.wide_plays; wide_frames_completed += s.wide_frames_completed;
@@ -284,6 +286,17 @@ int main(int argc, char** argv) {
                                 if (std::none_of(after.items.begin(), after.items.end(), [&](const auto& item) { return item.token == removal_tokens[i]; })) ++removed;
                             if (removal_ability == Ability::remove_items) { ++stats.hand_removal_resolved; stats.hand_items_removed += removed; }
                             else { ++stats.used_removal_resolved; stats.used_miracles_removed += removed; }
+                            const auto& event = match.snapshot().last_removal;
+                            if (!event || event->target != *removal_target || event->removed_models.size() != removed
+                                || event->model != (removal_ability == Ability::remove_items ? 205 : 206))
+                                throw std::logic_error("public removal event disagrees with resolved physical copies");
+                            ++stats.removal_events;
+                            if (event->removed_models.empty()) ++stats.empty_removal_events;
+                            std::uint64_t event_hash = 14695981039346656037ULL;
+                            mix(event_hash, event->origin); mix(event_hash, event->source); mix(event_hash, event->target);
+                            mix(event_hash, event->model); mix(event_hash, event->removed_models.size());
+                            for (auto model : event->removed_models) mix(event_hash, model);
+                            stats.removal_event_checksum += event_hash;
                         }
                         for (std::size_t seat = 0; seat < count; ++seat) {
                             const auto& curses = match.snapshot().state.players[seat].curses;
@@ -323,6 +336,9 @@ int main(int argc, char** argv) {
         if (stats.random_hp_heals + stats.random_hp_damages != stats.random_hp_resolved || stats.random_hp_resolved > stats.random_hp_plays
             || stats.random_hp_gained > 10 * stats.random_hp_heals || stats.random_hp_lost > 10 * stats.random_hp_damages)
             throw std::logic_error("inconsistent random HP accounting");
+        if (stats.removal_events != stats.hand_removal_resolved + stats.used_removal_resolved
+            || stats.empty_removal_events > stats.removal_events)
+            throw std::logic_error("inconsistent removal event accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -341,6 +357,7 @@ int main(int argc, char** argv) {
             << "\nrevival_rule=" << revival_rule
             << "\ndanger_rule=" << danger_rule
             << "\nexchange_rule=" << exchange_rule
+            << "\nremoval_event_rule=" << removal_event_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -366,6 +383,8 @@ int main(int argc, char** argv) {
             << "\nchance_forced_hits=" << stats.chance_forced_hits << "\ncounter_forced_hits=" << stats.counter_forced_hits
             << "\nhand_removal_resolved=" << stats.hand_removal_resolved << "\nhand_items_removed=" << stats.hand_items_removed
             << "\nused_removal_resolved=" << stats.used_removal_resolved << "\nused_miracles_removed=" << stats.used_miracles_removed
+            << "\nremoval_events=" << stats.removal_events << "\nempty_removal_events=" << stats.empty_removal_events
+            << "\nremoval_event_checksum=" << stats.removal_event_checksum
             << "\nmana_weapon_plays=" << stats.mana_weapon_plays << "\nmana_mp_spent=" << stats.mana_mp_spent << "\nmana_base_mp=" << stats.mana_base_mp
             << "\nrepeat_weapon_plays=" << stats.repeat_weapon_plays << "\nrepeat_frames_completed=" << stats.repeat_frames_completed
             << "\nwide_plays=" << stats.wide_plays << "\nwide_frames_completed=" << stats.wide_frames_completed

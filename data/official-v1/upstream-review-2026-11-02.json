@@ -1,0 +1,218 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-11-02",
+  "review_kind": "Read-only comparison of ordinary public official HTTP assets. No account, match connection or server execution.",
+  "pin_policy": "This review does not replace official-v1 manifest.json, cards.json, generated C++, fixture sources or their hashes. The executable remains based on the original pinned facts and client.",
+  "pinned_assets": {
+    "observed_on": "2026-11-01",
+    "ja_json": {
+      "url": "https://godfield.net/i18n/ja.json",
+      "sha256": "03a4782dc6899aeedd9b7986a49bd3c0217b96ac38c0779deb588bc94cca3e7c",
+      "bytes": 49137,
+      "last_modified": "Thu, 29 Oct 2026 07:43:52 GMT",
+      "etag": "\"7203e5fc74f99f66f8c9292c948c4fd66734900318f1bb6dc00a26451d0620d0\""
+    },
+    "client_js": {
+      "url": "https://godfield.net/main.dart.js",
+      "sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd",
+      "bytes": 440238,
+      "last_modified": null,
+      "etag": null
+    },
+    "client_last_modified_note": "The original client Last-Modified/ETag were not retained in the pinned manifest or available original response headers. Null means unknown; the JSON Last-Modified is not reused for JavaScript."
+  },
+  "reviewed_assets": {
+    "response_date": "Sun, 01 Nov 2026 16:00:47 GMT",
+    "ja_json": {
+      "url": "https://godfield.net/i18n/ja.json",
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "bytes": 49240,
+      "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+      "etag": "\"603e2c27b9ce82df18db251881d9731c5409d4a179d5d8cf4ed8b00d10f9289b\""
+    },
+    "client_js": {
+      "url": "https://godfield.net/main.dart.js",
+      "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+      "bytes": 440420,
+      "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+      "etag": "\"eee0fd31f9de4c2975db90e00685294056d09407308ba3e0249dbd40b3c47998\""
+    }
+  },
+  "catalog_comparison": {
+    "method": "Compare all source items records at the same array index; official ID is index+1. Compare the union of source keys, preserving omitted fields. All changes are listed below.",
+    "pinned_records": 296,
+    "reviewed_records": 296,
+    "changed_records": 3,
+    "changes": [
+      {
+        "id": 19,
+        "fields": {
+          "imageName": {
+            "pinned": "chain-sickle",
+            "reviewed": "kusarigama"
+          }
+        }
+      },
+      {
+        "id": 26,
+        "fields": {
+          "imageName": {
+            "pinned": "glaive-classic",
+            "reviewed": "naginata-classic"
+          }
+        }
+      },
+      {
+        "id": 117,
+        "fields": {
+          "imageName": {
+            "pinned": "slate",
+            "reviewed": "stone-tablet"
+          },
+          "name": {
+            "pinned": "石版",
+            "reviewed": "石板"
+          }
+        }
+      }
+    ],
+    "all_other_item_fields_equal": true,
+    "numeric_effect_and_distribution_changes": 0,
+    "unchanged_fields": [
+      "category",
+      "element",
+      "atk",
+      "isPlusAtk",
+      "hitRate",
+      "def",
+      "ability",
+      "abilityValue",
+      "curse",
+      "guardian",
+      "price",
+      "cost",
+      "giftRate",
+      "appearanceRate",
+      "guardianAttackRate"
+    ],
+    "positive_gift_models": 237,
+    "total_gift_weight": 500,
+    "execution_pool_impact": "No numerical, effect, price, eligibility or distribution changes for the v18/v19 subset: 214 models, normalized gift weight437. Labels/image paths still differ for the three listed models.",
+    "other_locale_changes": "Spanish language/translation credit entries were added. game.cost became a short label with new game.costMP; game.price was replaced by game.priceCP. No item effect descriptions changed in this Japanese locale comparison."
+  },
+  "removal_client_review": {
+    "line_number_basis": "One-based lines of the complete assets identified above. Identifiers are compiler-generated and must be resolved separately for each client hash.",
+    "regions": [
+      {
+        "region": "Event decoder",
+        "pinned": {
+          "function": "A.tl",
+          "lines": [
+            3515,
+            3574
+          ]
+        },
+        "reviewed": {
+          "function": "A.to",
+          "lines": [
+            3508,
+            3567
+          ]
+        },
+        "finding": "Same event wire keys and item arrays/default empty arrays; nested item decoder keeps id/modelId/fakeModelId/used."
+      },
+      {
+        "region": "removeItems handler",
+        "pinned": {
+          "lines": [
+            11495,
+            11518
+          ]
+        },
+        "reviewed": {
+          "lines": [
+            11520,
+            11542
+          ]
+        },
+        "finding": "Same item-array rendering path and timing/control flow; helper calls ds/e6 renamed dr/e5."
+      },
+      {
+        "region": "removeUsedMiracles handler",
+        "pinned": {
+          "lines": [
+            11519,
+            11544
+          ]
+        },
+        "reviewed": {
+          "lines": [
+            11543,
+            11568
+          ]
+        },
+        "finding": "Same rendering and used-miracle panel update; helpers ds/e8/e6 renamed dr/e7/e5."
+      },
+      {
+        "region": "Removed item rendering",
+        "pinned": {
+          "functions": [
+            "ds",
+            "kr"
+          ],
+          "lines": [
+            11802,
+            11835
+          ]
+        },
+        "reviewed": {
+          "functions": [
+            "dr",
+            "kq"
+          ],
+          "lines": [
+            11829,
+            11860
+          ]
+        },
+        "finding": "Iterate event.items in received order, preserving duplicate copies and count. Draw each item for the receiving viewer; only the affected local owner removes the corresponding physical token. Fake models are initially shown when present, then the true-model reveal helper runs. Empty arrays perform zero item iterations."
+      },
+      {
+        "region": "True-model reveal",
+        "pinned": {
+          "functions": [
+            "cA",
+            "bZ"
+          ],
+          "lines": [
+            11758,
+            11774
+          ]
+        },
+        "reviewed": {
+          "functions": [
+            "cA",
+            "bZ"
+          ],
+          "lines": [
+            11784,
+            11799
+          ]
+        },
+        "finding": "Read item.modelId and render that actual model after any fake-model display; hand/display method names a5/dK renamed a6/dJ."
+      }
+    ],
+    "comparison_method": "Read the relevant call chains on both versions and compare control structure, operators and literal values after compiler-identifier normalization. This is local inspection, not a full-client execution equivalence proof.",
+    "local_conclusion": "No semantic change found in the inspected removal decoder, handlers, ordered rendering or true-model reveal. Their compiler-generated identifiers changed.",
+    "whole_client_audit": "Not performed. The complete JavaScript contains widespread compiler-identifier changes and UI changes; this report does not claim the entire client or official server is behaviorally unchanged.",
+    "evidence_scope": "A viewer that receives the removal event is shown the event item models in order, including a true-model reveal for fake items. This supports exposing resolved removed model IDs in the scoped local Match; it does not disclose unremoved inventory."
+  },
+  "unverified_and_experimental": [
+    "Official server event fanout is not established by the public client. Unconditional rendering on receipt does not prove every player or spectator receives every removal event.",
+    "An empty event.items array is accepted and rendered without item iterations. It is not established that the server always emits a removal event for an empty result.",
+    "The local removal draw order, per-copy bounded RNG consumption, empty-no-draw behavior and gift scheduling remain explicit experimental rules rather than verified server behavior.",
+    "Local last_removal records only a resolved body, including an empty result. In the current single-body205/206 scope it is retained after action completion and resolved cutoff, then clears on the next accepted main command, reset or load_scene; an unresolved cutoff leaves it null. Its lifetime is a local observation contract, not a public-client/server lifetime guarantee.",
+    "The public local event omits physical tokens, original inventory slots, candidate population, RNG state/tickets and future outcomes. This review adds no permission to expose those values."
+  ],
+  "archive_policy": "Only hashes, HTTP validators, metadata differences and research conclusions are archived here. No complete official locale text, JavaScript implementation or image assets are bundled."
+}

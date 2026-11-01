@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==214&&match_gift_weight()==437&&std::string_view(match_ruleset)=="official-execution-subset-v18"
+    const auto pool=match_catalog();check(pool.size()==214&&match_gift_weight()==437&&std::string_view(match_ruleset)=="official-execution-subset-v19"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"214model/437weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{1,98,74,16,25,0,0,0}&&weight==437,"only exchange is admitted among trade cards");
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v16\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v17\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -786,6 +786,58 @@ void exchange_cutoff_and_atomic_failures(){
         try{pending.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==exact,"non-exchange journal commands cannot smuggle resource allocations");}
 }
 
+void removal_event_public_order_duplicates_and_reflection(){
+    MatchConfig cap;cap.max_decisions=2;auto state=scene({205},{6,189,235,6});
+    for(auto& item:state.players[1].items)item.token+=1000000;
+    Match m(cap);m.load_scene(state,0,0);m.step(play(0,{0},7));
+    check(!m.snapshot().last_removal&&m.observe({}).find("\"last_removal\":null")!=std::string::npos,"pending removal never reveals future selected artifacts");
+    m.step(defend(7));const RemovalEvent expected{0,0,7,205,{6,6,235}};
+    check(m.snapshot().last_removal==expected&&m.snapshot().state.players[1].items.size()==1&&m.snapshot().state.players[1].items[0].model==189
+        &&m.snapshot().rng==3*0x9e3779b97f4a7c15ULL,"public model order follows actual draws, preserves duplicates and leaves the unselected artifact secret");roundtrip(m);
+    const std::string event="\"last_removal\":{\"origin\":0,\"source\":0,\"target\":7,\"model\":205,\"removed_models\":[6,6,235]}";
+    for(const auto viewer:{std::optional<PlayerId>{},std::optional<PlayerId>{0},std::optional<PlayerId>{7}}){const auto view=m.observe(viewer);
+        check(view.find(event)!=std::string::npos&&view.find(removal_event_rule)!=std::string::npos&&(viewer==7||view.find("100000")==std::string::npos)
+            &&view.find("redirect_rng")==std::string::npos,"all viewers see the same resolved model event without removal tokens or RNG");}
+    auto soap=scene({206},{235,235,223,235});soap.players[1].items[0].used=true;soap.players[1].items[1].used=true;
+    auto wash=fixture(soap);wash.step(play(0,{0},7));wash.step(defend(7));
+    check(wash.snapshot().last_removal==RemovalEvent{0,0,7,206,{235,235}},"soap reveals each removed used-miracle copy, leaving unused miracles outside its pool");roundtrip(wash);
+    auto reflected=fixture(scene({205,6,6},{190}));reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));
+    check(!reflected.snapshot().last_removal,"redirected removal still has no result before final response");roundtrip(reflected);reflected.step(defend(0));
+    check(reflected.snapshot().last_removal==RemovalEvent{0,7,0,205,{6,6}},"resolved event keeps immutable origin but final reflected source and target");roundtrip(reflected);
+}
+
+void removal_event_lifetime_empty_and_rollback(){
+    for(int kind=0;kind<4;++kind){auto m=fixture(scene({206},{3,199}));m.step(play(0,{0},7));m.step(defend(7));
+        check(m.snapshot().last_removal==RemovalEvent{0,0,7,206,{}},"resolved empty soap creates an explicit empty event");roundtrip(m);
+        reject(m,pray(0));const auto exact=m.snapshot();std::uint64_t policy=42;(void)m.sample_action(policy);
+        check(m.snapshot()==exact,"queries and rejected actions preserve the previous public event");
+        const auto command=kind==0?play(7,{1},7):kind==1?Command{7,CommandKind::discard,{0},{}}:kind==2?pray(7)
+            :Command{7,CommandKind::exchange,{0},{},ResourceAllocation{40,10,20}};
+        check(m.legal(command),"every tested next-main command is feasible");m.step(command);check(!m.snapshot().last_removal,"any accepted main clears the previous removal event");roundtrip(m);}
+    auto m=fixture(scene({206},{}));m.step(play(0,{0},7));m.step(defend(7));auto exhausted=m.snapshot();exhausted.state.update_count=max_wire_integer;m.restore(exhausted);const auto before=m.snapshot();
+    bool threw=false;try{m.step(pray(7));}catch(const MatchError&){threw=true;}check(threw&&m.snapshot()==before,"late next-main failure restores the cleared previous event atomically");
+    m.load_scene(scene(),0,1234);check(!m.snapshot().last_removal,"load_scene clears the previous event");
+    const std::array<PlayerSetup,2> setup{{{0,Team::solo,"a"},{7,Team::solo,"b"}}};m.reset(setup,0);check(!m.snapshot().last_removal,"reset clears removal event");
+    MatchConfig cap;cap.max_decisions=1;auto cut=fixture(scene({205},{}),cap);const auto rng=cut.snapshot().rng;cut.step(play(0,{0},0));
+    check(cut.snapshot().last_removal==RemovalEvent{0,0,0,205,{}}&&cut.snapshot().truncated&&cut.snapshot().rng==rng,"self-removal excludes consumed broom, records empty result and survives cutoff without gift draws");roundtrip(cut);
+    auto pending=fixture(scene({205},{6}),cap);pending.step(play(0,{0},7));check(pending.snapshot().truncated&&!pending.snapshot().last_removal,"launch cutoff before resolution never invents removal results");roundtrip(pending);
+    auto failed=scene({205},{6,6});failed.players[0].items[0].token=max_wire_integer;auto tokens=fixture(failed);tokens.step(play(0,{max_wire_integer},7));const auto saved=tokens.snapshot();threw=false;
+    try{tokens.step(defend(7));}catch(const MatchError&){threw=true;}check(threw&&tokens.snapshot()==saved&&!tokens.snapshot().last_removal,"late gift failure rolls back newly revealed models along with removal state and RNG");
+}
+
+void removal_event_snapshot_guards(){
+    auto m=fixture(scene({206},{235,235}));auto state=m.snapshot().state;for(auto& item:state.players[1].items)item.used=true;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));const auto exact=m.snapshot();
+    for(int error=0;error<10;++error){auto bad=exact;auto& event=*bad.last_removal;
+        if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;if(error==4)event.model=199;
+        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={112};
+        if(error==9)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};
+        bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"removal event boundaries/endpoints/kind/count/unsupported or nonmiracle IDs and danger coexistence reject atomically");}
+    auto broom=fixture(scene({205},{6,6,6,6}));broom.step(play(0,{0},7));broom.step(defend(7));auto oversized=broom.snapshot();oversized.last_removal->removed_models.push_back(6);bool rejected=false;
+    try{broom.restore(oversized);}catch(const MatchError&){rejected=true;}check(rejected,"broom event cannot exceed three results");
+    auto pending=fixture(scene({205},{6}));pending.step(play(0,{0},7));auto forged=pending.snapshot();forged.last_removal=RemovalEvent{0,0,7,205,{6}};const auto before=pending.snapshot();rejected=false;
+    try{pending.restore(forged);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"pending journal cannot forge an already resolved removal event");roundtrip(pending);
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -881,6 +933,9 @@ int main(){
     exchange_allocation_fee_revival_and_noop();
     exchange_invalid_roles_and_policy_allocations();
     exchange_cutoff_and_atomic_failures();
+    removal_event_public_order_duplicates_and_reflection();
+    removal_event_lifetime_empty_and_rollback();
+    removal_event_snapshot_guards();
     checkpoint_cutoff_and_seeded_multiplayer();
     std::cout<<"Experimental official match passed (214subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

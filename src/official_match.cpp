@@ -249,7 +249,10 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
     }
     return result;
 }
-void remove_items(MatchSnapshot& s, PlayerState& target, Ability ability, int count) {
+void remove_items(MatchSnapshot& s, PlayerState& target, const EffectFrame& effect) {
+    RemovalEvent event{effect.origin, effect.source, effect.target, effect.models.front(), {}};
+    const auto ability = effect.ability;
+    const auto count = effect.amount;
     for (int removed = 0; removed < count; ++removed) {
         std::array<std::size_t, visible_hand_capacity> candidates;
         std::size_t size = 0;
@@ -262,8 +265,10 @@ void remove_items(MatchSnapshot& s, PlayerState& target, Ability ability, int co
         if (!size) break;
         const auto selected = candidates[bounded(s.rng, size)];
         // Stable inventory order and physical-copy identity are part of the local RNG contract.
+        event.removed_models.push_back(target.items[selected].model);
         target.items.erase(target.items.begin() + static_cast<std::ptrdiff_t>(selected));
     }
+    s.last_removal = std::move(event);
 }
 void finalize_deaths(MatchSnapshot& s) {
     auto alive = std::count_if(s.state.players.begin(), s.state.players.end(), [](const auto& player) { return !player.dead; });
@@ -317,7 +322,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             break;
         case Ability::remove_all_curses: target.curses.clear(); break;
         case Ability::remove_items: case Ability::remove_used_miracles:
-            remove_items(s, target, effect.ability, effect.amount);
+            remove_items(s, target, effect);
             break;
         default: unsupported("effect has no scoped resolver");
         }
@@ -411,7 +416,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
-    if (s.phase == MatchPhase::main) s.last_danger.reset();
+    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); }
     bool completed = false;
     if (s.phase == MatchPhase::response) {
         s.batch->responses.push_back(command);
@@ -510,6 +515,15 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
+    if (s.last_removal) {
+        require(s.decisions > 0 && s.phase != MatchPhase::response && !s.last_danger, "invalid removal event boundary");
+        const auto& event = *s.last_removal;
+        (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
+        require(event.model == 205 || event.model == 206, "invalid removal event model");
+        require(event.removed_models.size() <= (event.model == 205 ? 3u : 2u), "oversized removal event");
+        for (auto model : event.removed_models)
+            require(match_supported(model) && (event.model != 206 || find_card(model)->category == Category::miracles), "invalid removed model");
+    }
     if (s.last_danger) {
         require(s.decisions > 0, "danger event precedes any accepted action");
         const auto& event = *s.last_danger;
@@ -758,7 +772,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v16\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v17\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -774,7 +788,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"random_hp_rule\":\""; out += random_hp_rule;
     out += "\",\"revival_rule\":\""; out += revival_rule;
     out += "\",\"danger_rule\":\""; out += danger_rule;
-    out += "\",\"exchange_rule\":\""; out += exchange_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"exchange_rule\":\""; out += exchange_rule;
+    out += "\",\"removal_event_rule\":\""; out += removal_event_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -790,6 +805,15 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"power\":" + std::to_string(event.power) + ",\"element\":";
         if (event.element) { out += '"'; out += element_name(*event.element); out += '"'; } else out += "null";
         out += '}';
+    }
+    out += ",\"last_removal\":";
+    if (!data_.last_removal) out += "null";
+    else {
+        const auto& event = *data_.last_removal;
+        out += "{\"origin\":" + std::to_string(event.origin) + ",\"source\":" + std::to_string(event.source)
+            + ",\"target\":" + std::to_string(event.target) + ",\"model\":" + std::to_string(event.model) + ",\"removed_models\":[";
+        bool first = true; for (auto model : event.removed_models) { if (!first) out += ','; first = false; out += std::to_string(model); }
+        out += "]}";
     }
     out += ",\"pending\":";
     if (data_.queue.empty()) out += "null";

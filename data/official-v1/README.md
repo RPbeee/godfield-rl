@@ -165,3 +165,15 @@ its scheduling. The executable132-model pool and its308 normalized gift weight,
 turn/death/gift policies, unsupported boundaries and API are documented separately
 in [the experimental execution contract](../../docs/official-execution-subset.md).
 The full published pool remains237 positive-gift models with total weight500.
+
+
+## Upstream review on2026-11-02
+
+[The upstream review](upstream-review-2026-11-02.json) records newer public JSON/JS
+fingerprints without replacing the original immutable `official-v1` pins. All296
+item rows were compared: three image/name metadata rows changed, while numerical
+values, abilities and gift weights stayed equal. The inspected removal handlers,
+ordered item display and true-model reveal also stayed locally equivalent after
+compiler renaming; the complete new client was not audited. Server event fanout,
+empty-result emission and the local removal-history lifetime remain unverified or
+explicit experimental contracts.

@@ -1,5 +1,7 @@
 # God Field 仕様差分表
 
+**配信最新版との差分確認（2026-11-02）:** fresh取得の公式JA/JSは固定snapshotとhashが異なる。296モデルの数値・能力・curse・giftRateは比較済みで変更0、差は画像名19/26/117と117の表記「石版→石板」等である。これら表示名/画像名の追従は未反映とし、既存pinsを維持する。JAにはスペイン語の言語項目追加とcostMP/priceCP文言の再編もある。最新版の除去handler・描画・reveal・decode経路は識別子を正規化した制御構造/リテラル比較と手読で照合したが、新JS全体の同値性は保証しない。[取得物と差分証跡](../data/official-v1/upstream-review-2026-11-02.json)を参照。過去のfresh一致記録を今日のhash一致として扱わない。
+
 作成日: 2026-10-30。比較対象: ローカルの `synthetic-neutral-duel-v1`、commit `ddc627f6225fabe93c77ab296e9ee85860ea67ab`。
 
 **これは公式対応に向けた作業表であり、現行公式仕様を完全に確定した仕様書ではない。**
@@ -8,7 +10,7 @@
 追記: 比較後に `legacy-neutral-subset-v1` を追加した。以下の差分表の「現在のC++」欄は
 上記commitの比較基準として保持する。新しい実装の進捗と制限は次節に記載。
 
-## 現行公式の一次対応範囲（2026-11-01）
+## 現行公式の一次対応範囲（2026-11-02）
 
 [公式公開データ/クライアント調査](official-current-rules.md)、
 [fresh state/viewの契約](official-state-view.md)と
@@ -33,7 +35,7 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v18` / `godfield::official::Match` | 214モデル/重み437、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v19` / `godfield::official::Match` | 214モデル/重み437、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI2 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
@@ -172,7 +174,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v8の記録を現行v18の214モデルの速度・checksumの証拠として転記しない。
+v1〜v8の記録を現行v19の214モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -237,7 +239,7 @@ seed42の2人100,000試合は3,940,299意思決定・勝数49,555/50,307・draw1
 
 v12は205/206を加え206モデル/重み409（95/74/13/24）。現行説明の205はused除外の手札（未使用MC含む）最大3、206はusedMCコピー最大2。abilityValue0から説明3/2を派生したpending.amountは上限で、実除去数ではない。inventory順eligibleを毎回再構築→逐次uniform without replacement/stable erase、empty除去draw0/sole1bounded draw、自己は使用品消費後、除去gift0/既予約gift維持とするserver未確認の実験規約を定義する。
 両品はNEsundry/power0で自己即時/他者190only。206はretained tokenを消すだけで付与済みcurse解除や原発費用巻戻しをしない。removal_ruleは `experimental:unused-hand-max3;used-miracles-max2;uniform-without-replacement-in-inventory-order;bounded-draw-per-removal;empty-no-draw;no-removal-gifts`。Snapshot12旧1〜11拒否/view-v10/C ABI1維持、counter/MP予算は不変。
-公開clientのremoveイベントは指定itemsを表示するが、Match.observeは除去履歴を未投影のままとし、他者unused削除models/slots/RNGを追加しない。本人手札/公開used_modelsの現状態だけを反映する。除去はatomic bodyで中間snapshot無し、pending replayは除去前の消費/反射/RNG/payloadを検査するが、完了後任意rawstateの公式到達履歴は証明しない。replayテストではbody抽選と後続giftの同一性を検査する。
+公開clientのremoveイベントは指定itemsを表示する。v12〜18で欠けていたMatch.observeの除去結果はv19のlast_removalで公開する。直近の解決済みmodelsに限定し、slots/RNG・候補母数・非除去手札は公開しない。除去はatomic bodyで中間snapshot無し、pending replayは除去前の消費/反射/RNG/payloadを検査するが、完了後任意rawstateの公式到達履歴は証明しない。replayテストではbody抽選と後続giftの同一性を検査する。
 
 v12は全Release CTest129件/18.63秒・ASan/UBSan89件/49.95秒（各 `-j4` 同時実行）、focused Release3件/0.58秒・SAN2件/1.28秒が通過した。全source/test最終freeze後の最終2full build/全検証・warning/error0、Python MatchはAST確認23ケース、native零引数テスト34関数main明示登録、公式assetsのfresh取得hash/296facts一致を確認した。
 seed42の2人100,000試合は3,942,252意思決定・勝数49,913/49,954・draw133/trunc0・checksum `6915174992826563900`。9人10,000試合は2,511,295意思決定・勝数1,105/1,094/1,142/1,025/1,096/1,096/1,107/1,175/1,138・draw20/trunc2・checksum `2152079972708342754`。
@@ -309,9 +311,32 @@ Snapshot18旧1〜17拒否/view-v16、gfo_match ABI2（command168→184・末尾i
 v18は全Release CTest129件/17.79秒・ASan/UBSan89件/46.30秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridgeの6ログはwarning/error0。focused Release3件/1.08秒（native0.29/C API0.02/Python0.77秒）・SAN2件/1.36秒（native1.00/C API0.35秒）が通過した。Python MatchはAST確認36ケース、native零引数52関数は全てmainへ明示登録を確認した。既存C API384照会guardも完走し、公式assetsのfresh取得hash/296モデルfactsも一致した。
 seed42で2人100,000試合は3,839,935意思決定・勝数49,689/50,169・draw142/trunc0・checksum `4941009284767353250`。9人10,000試合は2,428,289意思決定・勝数1,111/1,116/1,077/1,145/1,154/1,099/1,155/1,028/1,091・draw23/trunc1・checksum `11062027547654796276`。
 両替使用/希望HP0は2人69,512/1,229・9人31,266/601、配分前sum合計は4,247,506/1,782,132。希望配分と復活後のHPを分け、sumは価格5や救済分を混ぜない。physical_usedはplay/defend/exchange選択の非MC数となり自動208/209は別。新exchangeと既存各集計のboundsを確認した。
-各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `1463939626686470704`、9人 `375287159278559213`。最大redirect深度は各表に示す観測値で、機能上の連鎖上限ではない。詳細は[限定実行器v18記録](official-execution-subset.md#v18の検証と集計)。
+各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `1463939626686470704`、9人 `375287159278559213`。最大redirect深度は各表に示す観測値で、機能上の連鎖上限ではない。詳細は[限定実行器v18記録](official-execution-subset.md#v18の過去の検証と集計)。
 
 競合を避けた独立Release・1 workerは、2人100,000試合が2.31177秒（1,661,030意思決定/秒）、9人10,000試合が2.58239秒（940,327意思決定/秒）。baselineと時間以外の全fieldが一致した。合法手sampler・実行・reset・各試合の終了snapshot検証込みで、合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。プールと方策が異なるため版間の速度改善倍率を主張しない。
+
+### v19：公開除去結果のgap解消
+
+v19はモデル/重みを増やさず214/437（trade1/98武器/74防具/16雑貨/25奇跡）を維持し、除去結果の公開gapを解消する。rulesetは `official-execution-subset-v19`、Snapshot19（旧1〜18拒否）、公開schemaは `official-execution-view-v17`。Match ABI2/command184/config24/status248、catalog/state ABI1・legacy37は維持する。
+
+`last_removal` はnullまたは `{origin,source,target,model,removed_models}`。originは原発者、source/targetは反射後を含む解決時の現在座標、modelは205または206の単一整数ID、removed_modelsは実際の抽選順の整数ID配列で同モデルのコピー重複を残す。最終bodyが解決したときだけ作り、候補0の解決も空配列[]のeventを残す。使用品自体の消費や後のgiftをremoved_modelsへ混ぜない。
+
+次のmain commandの受理で消去し、不正/失敗commandでは保持する。response処理自体は消去契機ではないが、現205/206は単一bodyのaction完了時にeventを作るため、response phaseとeventは同居しない。reset/load_sceneで消去する。解決後のcutoffではeventを残し、未解決でcutoffした場合はnullのままとする。token/slot・RNG・元eligible数・非除去の他者手札を公開しない。これは全履歴の蓄積ではない。
+
+公開 `removal_event_rule` は `experimental:resolved-body-only;public-removed-models-in-draw-order;duplicates-and-empty-preserved;clear-on-next-accepted-main;no-tokens-or-rng`。他者が対象でもeventを受信したviewerに除去品を表示する経路には公開clientの根拠がある。ただし全参加者/観戦者へのserver配信や空結果eventの必ずの発行は確認していない。ローカル抽選順をevent順とすること・履歴寿命・cutoffの保持は**公式server未検証の実験規約**である。配布プール、除去抽選、資源/死亡/gift/手番の遷移はv18から変更しない。
+
+復元時はdecisions>0、全endpointが既知、model205/206、countが各3/2以下、対応モデルIDだけ、206なら奇跡のみを検査する。response phaseのevent、last_dangerとの同居は拒否する。完了raw snapshotは構造整合を確認するだけで、その公開結果が過去の公式またはローカル対局で実際に起きたことまで証明しない。pendingはevent無しを要求し、既存の全action replayを維持する。
+
+v19は全source/test最終freeze後のfull Release CTest129件/21.01秒・ASan/UBSan89件/51.62秒が通過した（各 `-j4` 同時、rolloutとの競合あり）。最終Release/SAN full buildはwarning/error0。focused Release3件/1.27秒（native0.46/C API0.02/Python0.79秒）・SAN2件/1.18秒（native1.03/C API0.15秒）が通過した。native零引数55関数のmain明示登録/unused guard、Python AST38ケース、Release/SAN双方の `fixed_query_probes==384` 完走を確認した。公式配信assetは上記の差分確認であり、fresh hash一致とは記録しない。
+
+| v19人数 | 試合数 | 意思決定数 | 遷移checksum | 解決済み除去event | 空結果event | 除去event checksum |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 100,000 | 3,839,935 | `4941009284767353250` | 10,194 | 4,120 | `16555731515668663194` |
+| 9 | 10,000 | 2,428,289 | `11062027547654796276` | 7,817 | 2,655 | `13048935337781861835` |
+
+seed42の2人100,000試合/9人10,000試合を各1 worker/4 workersで実行し、worker数・時間以外の全fieldが一致した。v18 baselineともruleset・時間等の計測fieldを除く既存fieldがchecksumまで全一致し、除去結果の公開追加が遷移/抽選/既存集計を変えないことを確認した。全試合の終了snapshotを復元できた。`removal_events=hand_removal_resolved+used_removal_resolved` と公開removed_modelsの累計数が実除去コピー数に一致するguardも通過した。空結果は0候補でも解決したbodyのeventで、未解決cutoffを含めない。Release/SAN seed42各1,000試合も時間以外の全fieldが一致し、v18の既存非時間fieldとも一致した。遷移checksumは2人 `1463939626686470704` / 9人 `375287159278559213`、新除去event checksumは2人 `17881167250890207477` / 9人 `11841601995346163861`。今回はquiet速度を再計測せず、v19の速度値や改善倍率を主張しない。
+
+詳細は[限定実行器v19記録](official-execution-subset.md#v19の検証と公開除去結果)。
 
 ## 差分表作成後の実装進捗
 
