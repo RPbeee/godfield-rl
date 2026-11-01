@@ -13,7 +13,8 @@
 namespace official = godfield::official;
 struct gfo_match { official::Match value; explicit gfo_match(official::MatchConfig c) : value(c) {} };
 static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8);
-static_assert(sizeof(gfo_match_command) == 168 && offsetof(gfo_match_command, items) == 24);
+static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
+    && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
@@ -59,10 +60,12 @@ std::vector<official::PlayerSetup> setup(const gfo_match_player* players, std::s
     return result;
 }
 official::Command command(const gfo_match_command& c) {
-    valid(zero(c.reserved) && c.kind <= 3 && c.has_target <= 1 && c.item_count <= official::visible_hand_capacity
+    valid(zero(c.reserved) && zero(c.reserved_tail) && c.kind <= 4 && c.has_target <= 1 && c.has_allocation <= 1
+        && (c.has_allocation || (!c.hp && !c.mp && !c.cp)) && c.item_count <= official::visible_hand_capacity
         && c.actor <= official::max_wire_integer && c.target <= official::max_wire_integer && (c.has_target || !c.target));
     official::Command result; result.actor = c.actor; result.kind = static_cast<official::CommandKind>(c.kind);
     if (c.has_target) result.target = c.target;
+    if (c.has_allocation) result.allocation = official::ResourceAllocation{c.hp,c.mp,c.cp};
     for (std::size_t i = 0; i < 18; ++i) {
         if (i < c.item_count) { valid(c.items[i] <= official::max_wire_integer); result.items.push_back(c.items[i]); }
         else valid(c.items[i] == 0);
@@ -70,10 +73,15 @@ official::Command command(const gfo_match_command& c) {
     return result;
 }
 gfo_match_command encode(const official::Command& c) {
-    valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 3
+    valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 4
+        && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
         && c.actor <= official::max_wire_integer && (!c.target || *c.target <= official::max_wire_integer));
+    if (c.allocation) valid(c.allocation->hp >= 0 && c.allocation->hp <= 99 && c.allocation->mp >= 0 && c.allocation->mp <= 99
+        && c.allocation->cp >= 0 && c.allocation->cp <= 99);
     gfo_match_command out{}; out.actor = c.actor; out.kind = static_cast<uint8_t>(c.kind);
     out.has_target = c.target.has_value(); out.target = c.target.value_or(0); out.item_count = static_cast<uint8_t>(c.items.size());
+    out.has_allocation = c.allocation.has_value();
+    if (c.allocation) { out.hp = c.allocation->hp; out.mp = c.allocation->mp; out.cp = c.allocation->cp; }
     for (std::size_t i = 0; i < c.items.size(); ++i) { valid(c.items[i] <= official::max_wire_integer); out.items[i] = c.items[i]; }
     return out;
 }
@@ -93,7 +101,7 @@ gfo_match_status status(const official::Match& match) {
 }
 }
 extern "C" {
-int gfo_match_abi_version(void) { return 1; }
+int gfo_match_abi_version(void) { return 2; }
 const char* gfo_match_ruleset(void) { return official::match_ruleset; }
 const char* gfo_match_scope(void) { return official::match_scope; }
 int gfo_match_catalog_count(void) { int n = 0; for (const auto& c : official::catalog()) n += official::match_supported(c.id); return n; }

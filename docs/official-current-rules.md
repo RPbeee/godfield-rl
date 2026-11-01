@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。現行の[限定実行器v17](official-execution-subset.md)は杵94/臼209を加えた213モデル/重み417。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。現行の[限定実行器v18](official-execution-subset.md)は両替3を加えた214モデル/重み437。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -253,7 +253,19 @@ v16検証範囲の訂正：C APIの固定seed照会6本の開始値を誤って2
 
 公開clientが許す94+232だけは優先規則未確定としてruntime明示unsupported（-5）、他の対応boost/MC/FREEは扱う。209は手動play/response/discard不可だが、205のunused強制除去には含む。`danger_rule` は `experimental:launch-once;first-alive-mortar-in-input-order;otherwise-uniform-all-alive;optional-alive-target-ignored;base99-before-ordered-boosts;consume-one-mortar-with-deferred-gift;attracted-body-no-response;redirects-no-reselection;wide-combination-unsupported`。Snapshot17旧1〜16拒否/view-v15/C ABI1、213モデル/重み417（98/74/16/25）。公開last_dangerは実行済launchのorigin/target/models/mortar/power/elementに限定し、response中も初期選択を保ち次main受理で消す。未選択の臼所持者・token・RNGは返さない。
 
-v17は全Release CTest129件/18.30秒・ASan/UBSan89件/48.50秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridgeの6ログはwarning/error0。focused Release3件/0.76秒（native0.32/C API0.01/Python0.43秒）・SAN2件/1.25秒（native0.93/C API0.31秒）が通過した。Python MatchはAST確認33ケース、native零引数49関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。修正C APIの6本×64照会はRelease/SANで `fixed_query_probes==384` の完走を確認した。 独立速度と大規模集計は[限定実行器v17記録](official-execution-subset.md#v17の検証と集計)へ分ける。
+v17は全Release CTest129件/18.30秒・ASan/UBSan89件/48.50秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridgeの6ログはwarning/error0。focused Release3件/0.76秒（native0.32/C API0.01/Python0.43秒）・SAN2件/1.25秒（native0.93/C API0.31秒）が通過した。Python MatchはAST確認33ケース、native零引数49関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。修正C APIの6本×64照会はRelease/SANで `fixed_query_probes==384` の完走を確認した。 独立速度と大規模集計は[限定実行器v17記録](official-execution-subset.md#v17の過去の検証と集計)へ分ける。
+
+## 両替：入力範囲とv18規約
+
+現行3両替/Exchangeはtrade/exchange・価格5/giftRate20。JA/ENはHP1=MP1=CP1の交換と説明する。旧2の価格10と区別し、価格5を操作費用として差し引かない。`tj/fo/fp`（3582/11864–11921行）はHP↔MP・HP↔CPを±1/±10で動かし、各0〜99で停止、総和を保存する。HP1から0へ減らす操作も可能。
+
+submit（9635行付近）は配分のmp/cpだけを送ってhpは送らず、exchange event（11080–11100行）は受信hp/mp/cpをsource paneへ直接代入する。従ってtypedな3値を総和検査すれば現行のmp/cpへ一意に射影できるが、serverのHP導出/入力検査の全実装が得られたわけではない。`ev` はtrade基底へ追加品を許さず単品、`la` はMCを含まない列の費用0、`ee` は物理消費/補充用空枠1で、奇跡保持化をしない。sourceの自己配分には表示根拠がある一方、target指定を送る一般経路は残るため、target無し限定をserver入力禁止とは断定しない。
+
+v18は新kind exchange=4、本人所有の3一token、target無し、allocation=(HP,MP,CP)各0〜99/配分前総和保存/同値可を採る。物理消費/gift1予約→直接3値代入→既存finalize_deaths→自然終局/cutoff優先→全action後gift/次手番で、反応・counter・FREE・MPfeeは無い。HP0の自殺/208救済も既存規約へ接続し、総和保存は復活+10の前までとする。配分選択に環境RNGを使わず、samplerはpolicy RNGで可行配分を選ぶ。
+
+`exchange_rule` は `experimental:single-owned-exchange;targetless-self;three-resources-0-99;sum-conserved-before-revival;zero-mp-fee;no-response;one-deferred-gift;death-and-revival-before-gift`。範囲/総和/自己表示と、死亡・復活・gift/手番のserver未確認scheduleを分ける。214モデル/重み437（trade1/98/74/16/25）、Snapshot18旧1〜17拒否/view-v16。Match ABI2のcommandは168→184byteで型付き配分を追加し、呼出前のversion/size検査と旧Match ABI1 clientの移行が必要。catalog/state ABI1・legacy37は維持し、終末専用sacrificeと94+Wideは未対応のままにする。
+
+v18は全Release CTest129件/17.79秒・ASan/UBSan89件/46.30秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridgeの6ログはwarning/error0。focused Release3件/1.08秒（native0.29/C API0.02/Python0.77秒）・SAN2件/1.36秒（native1.00/C API0.35秒）が通過した。Python MatchはAST確認36ケース、native零引数52関数は全てmainへ明示登録を確認した。既存C API384照会guardも完走し、公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v18記録](official-execution-subset.md#v18の検証と集計)へ分ける。
 
 ## 霧：何が見えなくなるか
 

@@ -16,7 +16,7 @@ except ImportError:
     from official_data import OfficialData
 
 MAX_WIRE_INTEGER = 9007199254740991
-KINDS = ("play", "defend", "discard", "pray")
+KINDS = ("play", "defend", "discard", "pray", "exchange")
 PHASES = ("main", "response", "finished")
 
 class MatchError(ValueError):
@@ -63,6 +63,7 @@ class Command:
     kind: str
     items: tuple[int, ...] = ()
     target: int | None = None
+    allocation: tuple[int, int, int] | None = None
 
 @dataclass(frozen=True)
 class MatchStatus:
@@ -89,7 +90,8 @@ class _Player(c.Structure):
     _fields_ = [("id", c.c_uint64), ("name", c.c_char_p), ("name_size", c.c_size_t), ("team", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _Command(c.Structure):
     _fields_ = [("actor", c.c_uint64), ("target", c.c_uint64), ("kind", c.c_uint8), ("has_target", c.c_uint8),
-        ("item_count", c.c_uint8), ("reserved", c.c_uint8 * 5), ("items", c.c_uint64 * 18)]
+        ("item_count", c.c_uint8), ("reserved", c.c_uint8 * 5), ("items", c.c_uint64 * 18),
+        ("hp", c.c_int32), ("mp", c.c_int32), ("cp", c.c_int32), ("has_allocation", c.c_uint8), ("reserved_tail", c.c_uint8 * 3)]
 class _Status(c.Structure):
     _fields_ = [("decisions", c.c_uint64), ("owner", c.c_uint64), ("actor", c.c_uint64),
         ("player_ids", c.c_uint64 * 9), ("rewards", c.c_double * 9), ("winners", c.c_uint64 * 9),
@@ -132,6 +134,11 @@ def _command(value):
     for token in iterator:
         if result.item_count == 18: raise InvalidMatchError("at most18 selected tokens")
         result.items[result.item_count] = _integer(token, "item token"); result.item_count += 1
+    if value.allocation is not None:
+        if type(value.allocation) not in (tuple, list) or len(value.allocation) != 3:
+            raise InvalidMatchError("allocation needs a tuple or list of three integer resources")
+        for name, amount in zip(("hp", "mp", "cp"), value.allocation): setattr(result, name, _integer(amount, name, 0, 99))
+        result.has_allocation = 1
     return result
 
 def _decode_status(value):
@@ -142,9 +149,13 @@ def _decode_status(value):
         tuple(value.winners[:value.winner_count]), bool(value.terminated), bool(value.truncated))
 
 def _decode_command(value):
-    if value.item_count > 18 or value.kind > 3 or value.has_target > 1:
+    if value.item_count > 18 or value.kind >= len(KINDS) or value.has_target > 1 or value.has_allocation > 1:
         raise MatchError("invalid native command descriptor", -3)
-    return Command(value.actor, KINDS[value.kind], tuple(value.items[:value.item_count]), value.target if value.has_target else None)
+    if (value.kind == 4) != bool(value.has_allocation) or any(value.reserved_tail) or (not value.has_allocation and (value.hp or value.mp or value.cp)):
+        raise MatchError("invalid native allocation descriptor", -3)
+    allocation = (value.hp, value.mp, value.cp) if value.has_allocation else None
+    if allocation is not None and any(amount < 0 or amount > 99 for amount in allocation): raise MatchError("invalid native resource allocation", -3)
+    return Command(value.actor, KINDS[value.kind], tuple(value.items[:value.item_count]), value.target if value.has_target else None, allocation)
 
 class Match:
     """Owned mutable experimental match. Successful commands commit individually.
@@ -166,7 +177,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 1 or self.ruleset != "official-execution-subset-v17"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v18"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)):

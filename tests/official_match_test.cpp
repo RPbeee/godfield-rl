@@ -23,10 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==213&&match_gift_weight()==417&&std::string_view(match_ruleset)=="official-execution-subset-v17"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"213model/417weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==214&&match_gift_weight()==437&&std::string_view(match_ruleset)=="official-execution-subset-v18"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"214model/437weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,98,74,16,25,0,0,0}&&weight==417,"normal weapon/armor/simple sundry/miracle pool only");
+    check(counts==std::array<int,8>{1,98,74,16,25,0,0,0}&&weight==437,"only exchange is admitted among trade cards");
+    check(match_supported(3)&&!match_supported(1)&&!match_supported(2)&&!match_supported(4)&&!match_supported(5),"exchange does not enable sacrifice, sell or buy");
     check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("heaven-herb"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
@@ -254,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v15\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v16\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -732,6 +733,59 @@ void danger_selection_gap_journal_and_atomicity(){
     try{tokens.step(play(0,{max_wire_integer},7));}catch(const MatchError&){rejected=true;}check(rejected&&tokens.snapshot()==original,"late gift failure rolls back attracted body, both passives, event and revival counter");
 }
 
+void exchange_allocation_fee_revival_and_noop(){
+    auto state=scene({3,image("sun-amulet"),image("spring"),image("spiritual-doll")},{});state.players[0].curses={Curse::flash,Curse::darkcloud};
+    Command command{0,CommandKind::exchange,{0},{},ResourceAllocation{50,0,20}};auto m=fixture(state);m.step(command);
+    check(m.snapshot().state.players[0].hp==50&&m.snapshot().state.players[0].mp==0&&m.snapshot().state.players[0].cp==20
+        &&m.snapshot().state.players[0].items.size()==4&&m.snapshot().state.players[0].curses==state.players[0].curses
+        &&m.snapshot().owner==7&&m.snapshot().queue.empty()&&!m.snapshot().batch&&m.snapshot().counter_created==0,
+        "exchange directly reallocates sum70 without price or MP fee, response, retention or curse changes");roundtrip(m);
+    auto revived=fixture(state);command.allocation=ResourceAllocation{0,70,0};revived.step(command);
+    check(revived.snapshot().state.players[0].hp==10&&revived.snapshot().state.players[0].mp==70&&revived.snapshot().state.players[0].cp==0
+        &&revived.snapshot().revivals==1&&revived.snapshot().state.players[0].items.size()==4&&!revived.done(),
+        "HP0 allocation runs the normal passive revival hook after sum conservation, reserving separate card and amulet gifts");roundtrip(revived);
+    MatchConfig limit;limit.max_decisions=1;auto dying=fixture(scene({3},{}),limit);const auto rng=dying.snapshot().rng;dying.step(command);
+    check(dying.snapshot().terminated&&!dying.snapshot().truncated&&dying.snapshot().winners==std::vector<PlayerId>{7}
+        &&dying.snapshot().state.players[0].mp==70&&dying.snapshot().rng==rng&&dying.snapshot().state.players[0].items.empty(),
+        "HP0 without revival is a natural loss before cutoff, with no debt cascade or terminal replacement");roundtrip(dying);
+    auto noop=fixture(scene({3},{}));command.allocation=ResourceAllocation{40,10,20};noop.step(command);
+    check(noop.snapshot().decisions==1&&noop.snapshot().owner==7&&noop.snapshot().state.players[0].items.size()==1
+        &&noop.snapshot().state.players[0].items[0].token!=0&&noop.snapshot().state.players[0].hp==40,
+        "same-value exchange still consumes its physical card, receives one replacement and advances the turn");roundtrip(noop);
+}
+
+void exchange_invalid_roles_and_policy_allocations(){
+    auto state=scene({3,image("spring"),image("spiritual-doll")},{});auto m=fixture(state);const auto before=m.snapshot();
+    const Command valid{0,CommandKind::exchange,{0},{},ResourceAllocation{30,30,10}};
+    for(int error=0;error<10;++error){auto bad=valid;if(error==0)bad.allocation.reset();if(error==1)bad.target=0;
+        if(error==2)bad.items={1};if(error==3)bad.items={0,2};if(error==4)bad.items={0,0};if(error==5)bad.items.clear();
+        if(error==6)bad.allocation=ResourceAllocation{-1,51,20};if(error==7)bad.allocation=ResourceAllocation{100,0,0};
+        if(error==8)bad.allocation=ResourceAllocation{30,30,11};if(error==9)bad.items={999};reject(m,bad);}
+    reject(m,play(0,{0},0));auto unrelated=pray(0);unrelated.allocation=ResourceAllocation{40,10,20};reject(m,unrelated);
+    for(std::uint64_t seed=0;seed<128;++seed){auto policy=seed;const auto command=m.sample_action(policy);check(m.legal(command)&&m.snapshot()==before,"exchange proposals never consume environmental RNG or hidden state");
+        if(command.kind==CommandKind::exchange){const auto& a=*command.allocation;check(!command.target&&command.items==std::vector<ItemToken>{0}
+            &&a.hp>=0&&a.hp<=99&&a.mp>=0&&a.mp<=99&&a.cp>=0&&a.cp<=99&&a.hp+a.mp+a.cp==70,"sampled exchange is a feasible allocation for the current sum");}
+        else check(!command.allocation,"ordinary sampled commands have no allocation payload");}
+    for(const auto values:{ResourceAllocation{99,99,99},ResourceAllocation{1,0,0}}){auto bounded=scene({3},{});bounded.players[0].hp=values.hp;bounded.players[0].mp=values.mp;bounded.players[0].cp=values.cp;auto a=fixture(bounded);bool found=false;
+        for(std::uint64_t seed=0;seed<64;++seed){auto policy=seed;const auto command=a.sample_action(policy);check(a.legal(command),"boundary resource sums produce valid sampled commands");if(command.kind==CommandKind::exchange){found=true;const auto& r=*command.allocation;check(r.hp+r.mp+r.cp==values.hp+values.mp+values.cp,"policy conserves both minimum and saturated resource sums");}}
+        check(found,"exchange is reachable from the sampler even for extreme sums");}
+    auto response=fixture(scene({image("bronze-club")},{3}));response.step(play(0,{0},7));auto bad=valid;bad.actor=7;reject(response,bad);
+}
+
+void exchange_cutoff_and_atomic_failures(){
+    const Command command{0,CommandKind::exchange,{0},{},ResourceAllocation{10,60,0}};MatchConfig limit;limit.max_decisions=1;auto cut=fixture(scene({3},{}),limit);const auto rng=cut.snapshot().rng;cut.step(command);
+    check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().state.players[0].hp==10&&cut.snapshot().state.players[0].mp==60
+        &&cut.snapshot().state.players[0].items.empty()&&cut.snapshot().gifts==std::vector<std::uint32_t>{0,0}&&cut.snapshot().rng==rng,
+        "exchange commits allocation and physical consumption before cutoff cancels the deferred gift");roundtrip(cut);
+    auto late=scene({3},{});late.update_count=max_wire_integer;auto failed=fixture(late);const auto before=failed.snapshot();bool rejected=false;
+    try{failed.step(command);}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late exchange update failure restores all three resources, card and gift reservation");
+    auto exhausted=scene({3,image("sun-amulet")},{});exhausted.players[0].items[0].token=max_wire_integer;auto tokens=fixture(exhausted);const auto original=tokens.snapshot();auto zero=command;zero.items={max_wire_integer};zero.allocation=ResourceAllocation{0,70,0};rejected=false;
+    try{tokens.step(zero);}catch(const MatchError&){rejected=true;}check(rejected&&tokens.snapshot()==original,"gift failure rolls back allocation, exchange card, automatic amulet consumption and revival counter");
+    auto pending=fixture(scene({image("bronze-club")},{image("super-mirror")}));pending.step(play(0,{0},7));pending.step(defend(7,{0}));const auto exact=pending.snapshot();
+    for(bool response:{false,true}){auto bad=exact;if(response)bad.batch->responses[0].allocation=ResourceAllocation{40,10,20};else bad.batch->attack.allocation=ResourceAllocation{40,10,20};rejected=false;
+        try{pending.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==exact,"non-exchange journal commands cannot smuggle resource allocations");}
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -824,6 +878,9 @@ int main(){
     danger_random_targets_reflections_and_visibility();
     danger_mortar_priority_composition_and_revival();
     danger_selection_gap_journal_and_atomicity();
+    exchange_allocation_fee_revival_and_noop();
+    exchange_invalid_roles_and_policy_allocations();
+    exchange_cutoff_and_atomic_failures();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (213subset/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (214subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

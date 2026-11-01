@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v17";
-inline constexpr const char* match_scope = "experimental:213-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v18";
+inline constexpr const char* match_scope = "experimental:214-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -25,7 +25,8 @@ inline constexpr const char* wide_attack_rule = "experimental:initial-alive-enem
 inline constexpr const char* random_hp_rule = "experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action";
 inline constexpr const char* revival_rule = "experimental:post-body-input-order;hp0-and-not-dead;two-not-dead-required;first-copy-once-per-boundary;hp-plus10;one-deferred-gift;counter-basis-pre-revival-loss;passive-and-undiscardable;full-hand-prayer-no-draw";
 inline constexpr const char* danger_rule = "experimental:launch-once;first-alive-mortar-in-input-order;otherwise-uniform-all-alive;optional-alive-target-ignored;base99-before-ordered-boosts;consume-one-mortar-with-deferred-gift;attracted-body-no-response;redirects-no-reselection;wide-combination-unsupported";
-inline constexpr std::uint32_t match_snapshot_version = 17;
+inline constexpr const char* exchange_rule = "experimental:single-owned-exchange;targetless-self;three-resources-0-99;sum-conserved-before-revival;zero-mp-fee;no-response;one-deferred-gift;death-and-revival-before-gift";
+inline constexpr std::uint32_t match_snapshot_version = 18;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -41,12 +42,17 @@ struct PlayerSetup {
     std::string name;
 };
 enum class MatchPhase : std::uint8_t { main, response, finished };
-enum class CommandKind : std::uint8_t { play, defend, discard, pray };
+enum class CommandKind : std::uint8_t { play, defend, discard, pray, exchange };
+struct ResourceAllocation {
+    std::int32_t hp = 0, mp = 0, cp = 0;
+    bool operator==(const ResourceAllocation&) const = default;
+};
 struct Command {
     PlayerId actor = 0;
     CommandKind kind = CommandKind::play;
     std::vector<ItemToken> items;
     std::optional<PlayerId> target;
+    std::optional<ResourceAllocation> allocation = std::nullopt;
     bool operator==(const Command&) const = default;
 };
 struct RedirectFrame {

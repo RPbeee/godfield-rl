@@ -5,8 +5,9 @@
 extern "C" {
 #endif
 
-// ABI1 additive execution extension. Explicit experimental local turn/gift/death
-// contract, NOT authoritative official-server equivalence. Existing gfo_* unchanged.
+// Match ABI2: query gfo_match_abi_version before using any command structure.
+// ABI1 match clients must migrate; catalog/state ABI1 remains unchanged.
+// Experimental local scheduling, NOT authoritative official-server equivalence.
 typedef struct gfo_match gfo_match;
 typedef struct gfo_match_config {
     uint32_t max_decisions;
@@ -21,8 +22,10 @@ typedef struct gfo_match_player {
 } gfo_match_player;
 typedef struct gfo_match_command {
     uint64_t actor, target;
-    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3
+    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3/exchange4
     uint64_t items[18]; // Own physical tokens, unused tail must be0. Token0 valid.
+    int32_t hp, mp, cp; // Allocation for exchange only; otherwise all0.
+    uint8_t has_allocation, reserved_tail[3]; // Required for exchange, forbidden otherwise.
 } gfo_match_command;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;

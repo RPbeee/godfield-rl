@@ -89,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 417>& gift_tickets() {
+const std::array<CardId, 437>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 417> values{};
+        std::array<CardId, 437> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 417>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 213) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 214) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -146,7 +146,8 @@ ResponseContext response_context(const MatchSnapshot& s) {
 }
 std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
-    if (static_cast<unsigned>(command.kind) > 3) unsupported("unsupported match command kind");
+    if (static_cast<unsigned>(command.kind) > 4) unsupported("unsupported match command kind");
+    require(command.kind == CommandKind::exchange || !command.allocation, "only exchange accepts a resource allocation");
     const auto& own = s.state.players[index(s, command.actor)];
     require(!own.dead, "dead actor");
     require(command.items.size() <= s.config.hand_limit, "too many selected items");
@@ -179,7 +180,16 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         for (auto id : models) require(discardable(*find_card(id)), "cannot discard weapons or passive artifacts");
         return models;
     }
+    if (command.kind == CommandKind::exchange) {
+        require(!command.target && command.allocation && models.size() == 1 && find_card(models.front())->ability == Ability::exchange,
+            "exchange requires one owned exchange card, allocation and no target");
+        const auto& a = *command.allocation;
+        require(a.hp >= 0 && a.hp <= 99 && a.mp >= 0 && a.mp <= 99 && a.cp >= 0 && a.cp <= 99, "exchange allocation outside0..99");
+        require(std::int64_t{a.hp} + a.mp + a.cp == own.hp + own.mp + own.cp, "exchange must conserve the current resource sum");
+        return models;
+    }
     require(!models.empty(), "play needs items");
+    require(find_card(models.front())->ability != Ability::exchange, "exchange needs its explicit allocation command");
     if (find_card(models.front())->ability == Ability::danger) {
         if (has_wide(models)) unsupported("danger with Wide is outside the scoped runtime");
         if (command.target) require(!s.state.players[index(s, *command.target)].dead, "target is dead");
@@ -423,6 +433,12 @@ void execute(MatchSnapshot& s, const Command& command) {
         consume(s, seat, command.items, true); completed = true;
     } else if (command.kind == CommandKind::pray) {
         request_gift(s, seat); completed = true;
+    } else if (command.kind == CommandKind::exchange) {
+        consume(s, seat, command.items, true); request_gift(s, seat);
+        const auto& allocation = *command.allocation;
+        auto& own = s.state.players[seat];
+        own.hp = allocation.hp; own.mp = allocation.mp; own.cp = allocation.cp;
+        finalize_deaths(s); completed = true;
     } else {
         // Preserve the pre-draw anchor for journal replay. Payload construction
         // stays pure so activating a frame cannot draw the outcome a second time.
@@ -575,7 +591,7 @@ bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
     const auto curse = c && supported_curse(c->curse)
         && (c->ability == Ability::add_curse_on_damage || c->ability == Ability::counter_curse || c->ability == Ability::add_curse);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles)
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles || (c->category == Category::trade && c->ability == Ability::exchange))
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
@@ -588,7 +604,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
-            || c->ability == Ability::danger || c->ability == Ability::attract_danger);
+            || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -680,7 +696,8 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         for (const auto& item : own.items) {
             const auto& c = *find_card(item.model);
             if (discardable(c)) add(CommandKind::discard, item.token, {});
-            if (can_start_main(item.model)) {
+            if (c.ability == Ability::exchange) add(CommandKind::exchange, item.token, {});
+            else if (can_start_main(item.model)) {
                 if (c.hit_rate) add_usable(CommandKind::play, item, {});
                 else for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
             }
@@ -688,7 +705,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     }
     require(count != 0, "no scoped action available");
     const auto proposal = proposals[bounded(rng, count)];
-    Command selected{actor, proposal.kind, {}, proposal.has_target ? std::optional<PlayerId>{proposal.target} : std::nullopt};
+    Command selected{actor, proposal.kind, {}, proposal.has_target ? std::optional<PlayerId>{proposal.target} : std::nullopt, {}};
     if (proposal.items) selected.items.push_back(proposal.first);
     if (proposal.items == 2) selected.items.push_back(proposal.second);
     if (proposal.items && (selected.kind == CommandKind::play || selected.kind == CommandKind::defend)) {
@@ -727,12 +744,21 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
             return find_card(item.model)->ability == Ability::attack_every_enemy;
         }))) selected.target.reset();
     }
+    if (selected.kind == CommandKind::exchange) {
+        const auto total = own.hp + own.mp + own.cp;
+        const auto hp_min = std::max<std::int64_t>(0, total - 198), hp_max = std::min<std::int64_t>(99, total);
+        const auto hp = hp_min + static_cast<std::int64_t>(bounded(rng, hp_max - hp_min + 1));
+        const auto remaining = total - hp;
+        const auto mp_min = std::max<std::int64_t>(0, remaining - 99), mp_max = std::min<std::int64_t>(99, remaining);
+        const auto mp = mp_min + static_cast<std::int64_t>(bounded(rng, mp_max - mp_min + 1));
+        selected.allocation = ResourceAllocation{static_cast<std::int32_t>(hp),static_cast<std::int32_t>(mp),static_cast<std::int32_t>(remaining - mp)};
+    }
     policy_rng = rng;
     return selected;
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v15\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v16\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -747,7 +773,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"wide_attack_rule\":\""; out += wide_attack_rule;
     out += "\",\"random_hp_rule\":\""; out += random_hp_rule;
     out += "\",\"revival_rule\":\""; out += revival_rule;
-    out += "\",\"danger_rule\":\""; out += danger_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"danger_rule\":\""; out += danger_rule;
+    out += "\",\"exchange_rule\":\""; out += exchange_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
