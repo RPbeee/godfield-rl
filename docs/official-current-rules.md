@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。現行の[限定実行器v15](official-execution-subset.md)はHP増減202を加えた210モデル/重み414。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。現行の[限定実行器v16](official-execution-subset.md)は自動復活208を加えた211モデル/重み415。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -223,7 +223,21 @@ v14は全Release CTest129件/19.09秒・ASan/UBSan89件/50.23秒が通過した�
 
 v15はlaunch bounded2を一度引き0で+10/1で−10、power0の固定signed amountを応答前に公開する。self即時/他者response、190反射で符号維持・再抽選無し、負でもnonattackでDEF/filter/counter無し、最終targetのHPだけ0〜99clip、全body後dead/自然終局優先/全action後giftとする**実験規約**を採る。`random_hp_rule` は `experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action`。210モデル/重み414（97/74/14/25）、Snapshot15旧1〜14拒否/view-v13/C ABI1で、符号前公開を公式確認済みの観測仕様と呼ばない。
 
-v15は全Release CTest129件/18.87秒・ASan/UBSan89件/49.59秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridge-fixの6ログはwarning/error0。focused Release3件/0.63秒（native0.08/C API0.01/Python0.53秒）・SAN2件/1.00秒（native0.68/C API0.32秒）が通過した。Python MatchはAST確認29ケース、native零引数43関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v15記録](official-execution-subset.md#v15の検証と集計)へ分ける。
+v15は全Release CTest129件/18.87秒・ASan/UBSan89件/49.59秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridge-fixの6ログはwarning/error0。focused Release3件/0.63秒（native0.08/C API0.01/Python0.53秒）・SAN2件/1.00秒（native0.68/C API0.32秒）が通過した。Python MatchはAST確認29ケース、native零引数43関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v15記録](official-execution-subset.md#v15の過去の検証と集計)へ分ける。
+
+## 太陽のお守り：HP0と脱落の境界
+
+現行208はsun-amulet/sundries/revive/abilityValue10・価格10/giftRate1。JA/ENはHP0になるとHP+10、教典は手動discard禁止と説明する。`gkN`（13024行付近）もreviveのmain開始を拒否し、`ev`（9499行付近）はdiscard対象から除く。ATK/DEF/追加役割は無く、response品としても使わない。
+
+revive handler（11617–11649行）は受信event.itemのinstance idを本人手札で選び、`d_`→`ee(null)`（12743/12694行付近）で通常の物理消費と補充用空枠を作る。fakeならflip表示もある。どのcopyかは受信itemで既に決まっており、inventory最初を選ぶ抽選/探索をhandlerが行うわけではない。handler自体はHP加算やdead取消をせず、boostHPとdieは別の受信event。実gift発行数・HP0の発火時点・複数瀕死/終局との順は未確定である。
+
+[旧244調査](legacy-revival-rules.md)は固定seat順、各時点のnot.dead人数2以上、最初copy一枚、直接discard/gift0を示す。両HP0でseat1だけ244なら救われない非対称も旧実装の挙動であり、現行一次根拠ではない。旧版は手動discard可なので、その合法性も現行へ移さない。現行死亡時攻撃は112昇天弓で、旧117と別ID。revive/die/attackDyingly各dispatchのコード上の並びは、serverの発行順を示さない。
+
+v16は全body後に入力seat順でHP0&&!deadを調べ、各時点not.dead>=2なら最初208一枚を消費/HP+10/1gift予約、失敗ならdead確定とする**実験規約**を採る。1境界1人1copy、次のbodyで再びHP0なら残りcopyを使える。既deadを復活させず、MP/CP/usedMC/curseを変えない。giftは全action後まで遅延、terminal/cutoffなら取消す。targetの実損失は復活前の被害段階を保ち、復活後survivorならcounterを許す。
+
+公開 `revival_rule` は `experimental:post-body-input-order;hp0-and-not-dead;two-not-dead-required;first-copy-once-per-boundary;hp-plus10;one-deferred-gift;counter-basis-pre-revival-loss;passive-and-undiscardable;full-hand-prayer-no-draw`。武器が無い時の祈り選択は公開clientと既存selection_readyに沿って満杯でも許すが、満杯gift0/環境RNG0・手番進行はローカル規約である。211モデル/重み415（97/74/15/25）、Snapshot16旧1〜15拒否/view-v14/C ABI1。privilegedな累計revivals/anchor/tokenは観測へ出さない。202のHP増減集計は復活healを除いたbody増減を使い、負の202から復活してnet正でもdamage分類を保つ。
+
+v16は全Release CTest129件/17.77秒・ASan/UBSan89件/47.15秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、release/sanitize/bench/SAN bench/native/bridgeの6ログはwarning/error0。focused Release3件/0.62秒（native0.08/C API0.01/Python0.53秒）・SAN2件/1.21秒（native0.90/C API0.31秒）が通過した。Python MatchはAST確認31ケース、native零引数46関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。 独立速度と大規模集計は[限定実行器v16記録](official-execution-subset.md#v16の検証と集計)へ分ける。
 
 ## 霧：何が見えなくなるか
 

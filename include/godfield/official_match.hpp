@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v15";
-inline constexpr const char* match_scope = "experimental:210-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v16";
+inline constexpr const char* match_scope = "experimental:211-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -23,7 +23,8 @@ inline constexpr const char* mana_weapon_rule = "experimental:base-2x-mp-after-c
 inline constexpr const char* repeat_attack_rule = "experimental:two-fresh-passes-over-initial-targets;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action";
 inline constexpr const char* wide_attack_rule = "experimental:initial-alive-enemies-in-input-order;optional-alive-target-does-not-alter-roster;repeat-by-full-roster-pass;single-payment;counter-fifo-before-next-target;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action";
 inline constexpr const char* random_hp_rule = "experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action";
-inline constexpr std::uint32_t match_snapshot_version = 15;
+inline constexpr const char* revival_rule = "experimental:post-body-input-order;hp0-and-not-dead;two-not-dead-required;first-copy-once-per-boundary;hp-plus10;one-deferred-gift;counter-basis-pre-revival-loss;passive-and-undiscardable;full-hand-prayer-no-draw";
+inline constexpr std::uint32_t match_snapshot_version = 16;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -79,6 +80,7 @@ struct ActionBatch {
     std::uint64_t rng = 0, decisions = 0, next_token = 0, chance_rolls = 0, chance_hits = 0;
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0;
+    std::uint64_t revivals = 0; // Privileged cumulative count before the launch.
     Command attack;
     std::vector<CardId> models;
     std::vector<PlayerId> targets; // Ordered launch roster; attackTwice repeats the whole roster.
@@ -104,6 +106,7 @@ struct MatchSnapshot {
     std::uint64_t chance_rolls = 0, chance_hits = 0; // Actual percentage draws/successes, excluding forced hits.
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0; // Activated without environmental RNG.
+    std::uint64_t revivals = 0; // Completed passive consumptions, never a policy observation.
     bool terminated = false, truncated = false;
     std::vector<double> rewards; // Fixed player vector order, never actor-relative.
     std::vector<PlayerId> winners;

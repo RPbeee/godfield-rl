@@ -23,11 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==210&&match_gift_weight()==414&&std::string_view(match_ruleset)=="official-execution-subset-v15"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"210model/414weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==211&&match_gift_weight()==415&&std::string_view(match_ruleset)=="official-execution-subset-v16"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"211model/415weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,97,74,14,25,0,0,0}&&weight==414,"normal weapon/armor/simple sundry/miracle pool only");
-    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("sun-amulet"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(counts==std::array<int,8>{0,97,74,15,25,0,0,0}&&weight==415,"normal weapon/armor/simple sundry/miracle pool only");
+    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("dangerous-mortar"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -67,7 +67,7 @@ void recovery_retention_capacity_and_atomicity(){
     auto cp=scene({image("treasure")},{});cp.players[0].cp=98;cp.players[0].mp=5;auto money=fixture(cp);money.step(play(0,{0},0));check(money.snapshot().state.players[0].cp==99&&money.snapshot().state.players[0].mp==0,"simple CP miracle uses declared amount/cost and cap");roundtrip(money);
     auto full=scene({},{});for(unsigned n=0;n<18;++n)full.players[0].items.push_back({n,image(n==0?"spring":"aqua-shoes"),{},n==0});
     auto packed=fixture(full);const auto rng=packed.snapshot().rng;packed.step(play(0,{0},0));check(packed.snapshot().state.players[0].items.size()==18&&packed.snapshot().rng==rng,"retained cast at18 creates no overflowing draw request in local contract");roundtrip(packed);
-    auto no_room=fixture(full);reject(no_room,pray(0));
+    auto no_room=fixture(full);const auto full_rng=no_room.snapshot().rng;no_room.step(pray(0));check(no_room.snapshot().state.players[0].items.size()==18&&no_room.snapshot().rng==full_rng&&no_room.snapshot().owner==7,"full no-weapon hand prayer advances turn without draw or overflow");roundtrip(no_room);
     auto discard=fixture(scene({image("aqua-shoes"),image("aqua-shoes")},{}));const auto oldrng=discard.snapshot().rng;
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
@@ -141,8 +141,8 @@ void reflection_chain_exceeds_legacy_limit(){
     }
     check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u,11u,12u,13u,14u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1 through v14 checkpoints are explicitly rejected atomically by random-HP v15 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u,11u,12u,13u,14u,15u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"v1 through v15 checkpoints are explicitly rejected atomically by revival v16 schema");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -254,7 +254,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v13\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v14\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -599,6 +599,79 @@ void random_hp_query_cutoff_and_rollback(){
     auto exhausted=scene({tear},{});exhausted.players[0].items[0].token=max_wire_integer;Match tokens;tokens.load_scene(exhausted,0,0);tokens.step(play(0,{max_wire_integer},7));const auto token_before=tokens.snapshot();rejected=false;try{tokens.step(defend(7));}catch(const MatchError&){rejected=true;}check(rejected&&tokens.snapshot()==token_before,"late gift exhaustion restores random HP body, pending sign, counters and environment RNG");
 }
 
+void revival_passive_boundaries_and_prayer(){
+    const auto amulet=image("sun-amulet");
+    for(const auto attack:{image("bronze-club"),image("pri-pri-pricker"),image("thump-thump-tear")}){
+        auto state=scene({attack},{amulet});state.players[1].hp=attack==image("pri-pri-pricker")?40:1;
+        state.players[1].curses={Curse::flash,Curse::darkcloud};Match m;m.load_scene(state,0,0);
+        m.step(play(0,{0},7));reject(m,defend(7,{0}));roundtrip(m);m.step(defend(7));
+        check(m.snapshot().revivals==1&&!m.snapshot().state.players[1].dead&&m.snapshot().state.players[1].hp==10
+            &&m.snapshot().state.players[1].curses==state.players[1].curses&&m.snapshot().state.players[1].items.size()==1
+            &&m.snapshot().state.players[1].items[0].token!=0&&m.snapshot().owner==7&&!m.done(),
+            "normal, Dark and negative HP bodies consume passive amulet, preserve curses and replace it only after the action");roundtrip(m);
+    }
+    auto full=scene();for(ItemToken i=0;i<18;++i)full.players[0].items.push_back({i,amulet,{},false});auto prayer=fixture(full);
+    reject(prayer,play(0,{0},0));reject(prayer,{0,CommandKind::discard,{0},{}});const auto before=prayer.snapshot();
+    for(std::uint64_t seed=0;seed<16;++seed){auto rng=seed;const auto command=prayer.sample_action(rng);
+        check(command==pray(0)&&prayer.legal(command)&&prayer.snapshot()==before,"eighteen passive amulets still have exactly one legal prayer proposal");}
+    prayer.step(pray(0));check(prayer.snapshot().state.players[0].items==before.state.players[0].items&&prayer.snapshot().rng==before.rng
+        &&prayer.snapshot().next_token==before.next_token&&prayer.snapshot().owner==7&&prayer.snapshot().revivals==0,
+        "full nonweapon prayer advances owner without consuming amulet, allocating gifts or drawing environmental RNG");roundtrip(prayer);
+    auto dead=scene({image("bronze-club")},{amulet});dead.players[1].hp=0;dead.players[1].dead=true;dead.players.push_back(player(9));auto untouched=fixture(dead);
+    untouched.step(play(0,{0},9));untouched.step(defend(9));check(untouched.snapshot().revivals==0&&untouched.snapshot().state.players[1].dead
+        &&untouched.snapshot().state.players[1].items==dead.players[1].items,"already-dead holder is never revived by a later body's death scan");roundtrip(untouched);
+}
+
+void revival_counters_repeats_and_simultaneous(){
+    const auto amulet=image("sun-amulet");auto state=scene({image("evil-broadsword")},{amulet,image("saturn-ring")});state.players[1].hp=5;
+    auto counter=fixture(state);counter.step(play(0,{0},7));counter.step(defend(7,{1}));
+    check(counter.snapshot().revivals==1&&counter.snapshot().state.players[1].hp==10&&!counter.snapshot().state.players[1].dead
+        &&counter.snapshot().queue[0].is_counter&&counter.snapshot().queue[0].power==10&&counter.snapshot().actor==0
+        &&counter.snapshot().gifts==std::vector<std::uint32_t>{1,2}&&counter.snapshot().state.players[1].items.empty(),
+        "revived survivor counters from pre-revival actual loss five while amulet and ring gifts remain deferred");roundtrip(counter);
+    counter.step(defend(0));check(counter.snapshot().state.players[0].hp==16&&counter.snapshot().counter_created==1
+        &&counter.snapshot().state.players[1].items.size()==2,"source self-damage, survivor counter and deferred revival gift each apply once");roundtrip(counter);
+    auto repeated=scene({image("saw-boom-boom"),image("strength-powder")},{amulet,amulet});repeated.players[1].hp=1;auto twice=fixture(repeated);
+    twice.step(play(0,{0,1},7));const auto rng=twice.snapshot().rng;twice.step(defend(7));
+    check(twice.snapshot().revivals==1&&twice.snapshot().state.players[1].hp==10&&twice.snapshot().state.players[1].items.size()==1
+        &&twice.snapshot().state.players[1].items[0].token==1&&twice.snapshot().gifts[1]==1&&twice.snapshot().rng==rng,
+        "first lethal repeat hit consumes only the first copy with one gift reserved and no revival RNG");roundtrip(twice);
+    twice.step(defend(7));check(twice.snapshot().revivals==2&&twice.snapshot().state.players[1].hp==10&&!twice.done()
+        &&twice.snapshot().state.players[1].items.size()==2&&twice.snapshot().owner==7,"second lethal hit can consume the next amulet before the single whole-action gift phase");roundtrip(twice);
+    for(unsigned mask=0;mask<4;++mask)for(unsigned owner=0;owner<2;++owner){SnapshotState both;both.players={player(0),player(7)};
+        for(unsigned seat=0;seat<2;++seat){both.players[seat].hp=5;if(mask&(1u<<seat))both.players[seat].items.push_back({0,amulet,{},false});}
+        both.players[owner].items.push_back({10,image("evil-broadsword"),{},false});Match m;m.load_scene(both,both.players[owner].id,77);
+        m.step(play(both.players[owner].id,{10},both.players[1-owner].id));m.step(defend(both.players[1-owner].id));
+        const bool first=(mask&1)!=0,second=first&&(mask&2)!=0;
+        check(m.snapshot().state.players[0].dead==!first&&m.snapshot().state.players[1].dead==!second
+            &&m.snapshot().revivals==static_cast<unsigned>(first)+static_cast<unsigned>(second),
+            "simultaneous HP0 uses input-seat order and current not-dead count independently of the original owner's seat");
+        if(mask==2)check(m.snapshot().state.players[1].items.size()==1,"last not-dead holder keeps its unusable amulet rather than reviving alone");roundtrip(m);
+    }
+}
+
+void revival_journal_cutoff_and_rollback(){
+    const auto amulet=image("sun-amulet");auto state=scene({image("saw-boom-boom"),image("strength-powder")},{amulet,amulet});state.players[1].hp=1;
+    auto m=fixture(state);m.step(play(0,{0,1},7));m.step(defend(7));const auto exact=m.snapshot();
+    check(m.observe(0).find(revival_rule)!=std::string::npos&&m.observe(0).find("\"revivals\"")==std::string::npos,"revival contract is public while native consumption counter stays privileged");
+    for(int error=0;error<9;++error){auto bad=exact;if(error==0)bad.revivals=0;if(error==1)bad.batch->revivals=1;
+        if(error==2)bad.state.players[1].hp=0;if(error==3)bad.state.players[1].items.push_back({0,amulet,{},false});
+        if(error==4)bad.gifts[1]=0;if(error==5)bad.rng^=1;if(error==6)bad.batch->initial_state.players[1].items.erase(bad.batch->initial_state.players[1].items.begin());
+        if(error==7)++bad.queue[0].power;if(error==8)bad.batch->responses.clear();bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}
+        check(rejected&&m.snapshot()==exact,"whole-action replay rejects forged revival count, anchor, HP, consumed copy, gift reservation and response history");}
+    MatchConfig limit;limit.max_decisions=2;auto cut=fixture(state,limit);cut.step(play(0,{0,1},7));const auto rng=cut.snapshot().rng;cut.step(defend(7));
+    check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().revivals==1&&cut.snapshot().state.players[1].hp==10
+        &&cut.snapshot().state.players[1].items.size()==1&&cut.snapshot().gifts==std::vector<std::uint32_t>{0,0}&&cut.snapshot().rng==rng,
+        "cutoff preserves committed revival and consumption while canceling the next hit and all deferred gifts");roundtrip(cut);
+    auto late=exact;late.state.update_count=max_wire_integer;late.batch->initial_state.update_count=max_wire_integer-(late.decisions-late.batch->decisions);m.restore(late);
+    const auto before=m.snapshot();bool rejected=false;try{m.step(defend(7));}catch(const MatchError&){rejected=true;}
+    check(rejected&&m.snapshot()==before,"late update failure rolls back the second revival, copy consumption, gifts, HP and counters");
+    state.players[0].items[0].token=max_wire_integer;state.players[0].items[1].token=max_wire_integer-1;auto exhausted=fixture(state);
+    exhausted.step(play(0,{max_wire_integer,max_wire_integer-1},7));exhausted.step(defend(7));const auto pending=exhausted.snapshot();rejected=false;
+    try{exhausted.step(defend(7));}catch(const MatchError&){rejected=true;}
+    check(rejected&&exhausted.snapshot()==pending,"late gift token exhaustion rolls back the final body and auto-consumption exactly");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -685,6 +758,9 @@ int main(){
     random_hp_sign_clips_and_death();
     random_hp_reflections_fixed_and_journal();
     random_hp_query_cutoff_and_rollback();
+    revival_passive_boundaries_and_prayer();
+    revival_counters_repeats_and_simultaneous();
+    revival_journal_cutoff_and_rollback();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (210subset/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (211subset/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

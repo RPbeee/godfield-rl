@@ -42,6 +42,7 @@ struct Stats {
     std::uint64_t wide_plays = 0, wide_frames_completed = 0;
     std::uint64_t random_hp_plays = 0, random_hp_resolved = 0, random_hp_heals = 0, random_hp_damages = 0;
     std::uint64_t random_hp_gained = 0, random_hp_lost = 0;
+    std::uint64_t revivals = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -71,6 +72,7 @@ struct Stats {
         random_hp_plays += s.random_hp_plays; random_hp_resolved += s.random_hp_resolved;
         random_hp_heals += s.random_hp_heals; random_hp_damages += s.random_hp_damages;
         random_hp_gained += s.random_hp_gained; random_hp_lost += s.random_hp_lost;
+        revivals += s.revivals;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -100,6 +102,7 @@ int main(int argc, char** argv) {
                         const auto created_before = before.counter_created, started_before = before.counter_started;
                         const auto counter_rolls_before = before.counter_rolls, counter_hits_before = before.counter_hits;
                         const auto forced_before = before.chance_forced_hits, counter_forced_before = before.counter_forced_hits;
+                        const auto revivals_before = before.revivals;
                         std::array<bool, player_capacity> flashed_before{};
                         std::array<bool, player_capacity> clouded_before{};
                         for (std::size_t seat = 0; seat < count; ++seat) {
@@ -238,9 +241,15 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        const auto revived = match.snapshot().revivals - revivals_before;
+                        stats.revivals += revived;
                         if (random_hp_target) {
                             ++stats.random_hp_resolved;
-                            const auto delta = find_player(match.snapshot().state, *random_hp_target)->hp - random_hp_before;
+                            if (revived > 1) throw std::logic_error("random HP body revived multiple recipients");
+                            // A negative body may revive from HP0 to10; remove
+                            // that separate boost before classifying its actual HP loss.
+                            const auto delta = find_player(match.snapshot().state, *random_hp_target)->hp - random_hp_before
+                                - 10 * static_cast<std::int64_t>(revived);
                             if (delta < 0) { ++stats.random_hp_damages; stats.random_hp_lost += -delta; }
                             else { ++stats.random_hp_heals; stats.random_hp_gained += delta; }
                         }
@@ -305,6 +314,7 @@ int main(int argc, char** argv) {
             << "\nrepeat_attack_rule=" << repeat_attack_rule
             << "\nwide_attack_rule=" << wide_attack_rule
             << "\nrandom_hp_rule=" << random_hp_rule
+            << "\nrevival_rule=" << revival_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -336,6 +346,7 @@ int main(int argc, char** argv) {
             << "\nrandom_hp_plays=" << stats.random_hp_plays << "\nrandom_hp_resolved=" << stats.random_hp_resolved
             << "\nrandom_hp_heals=" << stats.random_hp_heals << "\nrandom_hp_damages=" << stats.random_hp_damages
             << "\nrandom_hp_gained=" << stats.random_hp_gained << "\nrandom_hp_lost=" << stats.random_hp_lost
+            << "\nrevivals=" << stats.revivals
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

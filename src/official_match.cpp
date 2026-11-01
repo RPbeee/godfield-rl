@@ -89,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 414>& gift_tickets() {
+const std::array<CardId, 415>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 414> values{};
+        std::array<CardId, 415> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 414>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 210) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 211) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -126,6 +126,9 @@ void consume(MatchSnapshot& s, std::size_t seat, const std::vector<ItemToken>& t
     }
 }
 bool damaging(const EffectFrame& effect) { return effect.power > 0 || effect.category == Category::weapons; }
+bool discardable(const Card& card) {
+    return card.category != Category::weapons && card.ability != Ability::revive && card.ability != Ability::attract_danger;
+}
 bool has_wide(std::span<const CardId> models) {
     return std::any_of(models.begin(), models.end(), [](auto model) { return find_card(model)->ability == Ability::attack_every_enemy; });
 }
@@ -168,13 +171,12 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     require(command.kind != CommandKind::defend, "defend outside response phase");
     if (command.kind == CommandKind::pray) {
         require(command.items.empty() && !command.target, "pray takes no items or target");
-        require(own.items.size() < s.config.hand_limit, "full-hand prayer overflow is outside scoped runtime");
         require(std::none_of(own.items.begin(), own.items.end(), [](const auto& item) { return find_card(item.model)->category == Category::weapons; }), "visible weapon prevents prayer");
         return models;
     }
     if (command.kind == CommandKind::discard) {
         require(!models.empty() && !command.target, "discard needs items and no target");
-        for (auto id : models) require(find_card(id)->category != Category::weapons, "cannot discard weapons");
+        for (auto id : models) require(discardable(*find_card(id)), "cannot discard weapons or passive artifacts");
         return models;
     }
     require(!models.empty(), "play needs items");
@@ -250,8 +252,25 @@ void remove_items(MatchSnapshot& s, PlayerState& target, Ability ability, int co
         target.items.erase(target.items.begin() + static_cast<std::ptrdiff_t>(selected));
     }
 }
-// Counter generation uses the target damage stage, rather than the net HP
-// change across source healing/self-damage when source and target alias.
+void finalize_deaths(MatchSnapshot& s) {
+    auto alive = std::count_if(s.state.players.begin(), s.state.players.end(), [](const auto& player) { return !player.dead; });
+    for (std::size_t seat = 0; seat < s.state.players.size(); ++seat) {
+        auto& player = s.state.players[seat];
+        if (player.dead || player.hp) continue;
+        const auto amulet = std::find_if(player.items.begin(), player.items.end(), [](const auto& item) {
+            return find_card(item.model)->ability == Ability::revive;
+        });
+        if (alive >= 2 && amulet != player.items.end()) {
+            const auto amount = find_card(amulet->model)->ability_value;
+            player.items.erase(amulet);
+            change_resource(player, Resource::hp, amount);
+            request_gift(s, seat);
+            ++s.revivals;
+        } else { player.dead = true; --alive; }
+    }
+}
+// Counter generation uses the target damage stage before passive revival,
+// rather than net HP across source healing/self-damage and revival.
 std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) {
     auto& target = s.state.players[index(s, effect.target)];
     std::int64_t target_damage = 0;
@@ -290,7 +309,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         default: unsupported("effect has no scoped resolver");
         }
     }
-    for (auto& p : s.state.players) if (!p.hp) p.dead = true;
+    finalize_deaths(s);
     return target_damage;
 }
 void advance(MatchSnapshot& s) {
@@ -417,6 +436,7 @@ void execute(MatchSnapshot& s, const Command& command) {
             batch.counter_created = s.counter_created; batch.counter_started = s.counter_started;
             batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
             batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
+            batch.revivals = s.revivals;
             batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
             batch.targets = batch.chance || has_wide(models) ? enemy_targets(s) : std::vector<PlayerId>{*command.target};
             if (original.ability == Ability::attack_twice) {
@@ -450,6 +470,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.counter_hits <= s.counter_started && s.counter_started <= s.counter_created
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
+    require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
     for (std::size_t i = 0; i < n; ++i) {
@@ -483,6 +504,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             && batch.targets.size() <= 2 * (n - 1) && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid action batch shape");
         require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
             && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
+        require(batch.revivals <= s.revivals && s.revivals - batch.revivals <= n * s.config.hand_limit, "invalid action revival count");
         require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
             // Up to n*cap physical redirects, n*cap counter completions, and
             // paid Turbulence funded by initial MP plus <=99 per MP counter.
@@ -497,6 +519,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.counter_created = batch.counter_created; replay.counter_started = batch.counter_started;
         replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
         replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
+        replay.revivals = batch.revivals;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
         require(batch.attack.kind == CommandKind::play && find_card(batch.models.front()), "action journal has no valid launch");
@@ -528,7 +551,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
-            || c->ability == Ability::boost_hp_or_deal_damage);
+            || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -616,10 +639,10 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         }
     } else {
         const auto weapon = std::any_of(own.items.begin(), own.items.end(), [](const auto& item) { return find_card(item.model)->category == Category::weapons; });
-        if (!weapon && own.items.size() < config_.hand_limit) add(CommandKind::pray, {}, {});
+        if (!weapon) add(CommandKind::pray, {}, {});
         for (const auto& item : own.items) {
             const auto& c = *find_card(item.model);
-            if (c.category != Category::weapons) add(CommandKind::discard, item.token, {});
+            if (discardable(c)) add(CommandKind::discard, item.token, {});
             if (can_start_main(item.model)) {
                 if (c.hit_rate) add_usable(CommandKind::play, item, {});
                 else for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
@@ -671,7 +694,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v13\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v14\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -684,7 +707,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"mana_weapon_rule\":\""; out += mana_weapon_rule;
     out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule;
     out += "\",\"wide_attack_rule\":\""; out += wide_attack_rule;
-    out += "\",\"random_hp_rule\":\""; out += random_hp_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"random_hp_rule\":\""; out += random_hp_rule;
+    out += "\",\"revival_rule\":\""; out += revival_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
