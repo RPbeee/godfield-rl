@@ -40,9 +40,18 @@ const ItemInstance* instance(const PlayerState& p, ItemToken token) {
 bool has_curse(const PlayerState& p, Curse curse) {
     return std::find(p.curses.begin(), p.curses.end(), curse) != p.curses.end();
 }
-bool supported_curse(Curse curse) { return curse == Curse::flash || curse == Curse::darkcloud; }
+bool disease(Curse curse) { return curse >= Curse::cold && curse <= Curse::heaven; }
+bool supported_curse(Curse curse) { return disease(curse) || curse == Curse::flash || curse == Curse::darkcloud; }
 void add_curse(PlayerState& p, Curse curse) {
     require(supported_curse(curse), "unsupported effect curse");
+    if (disease(curse)) {
+        const auto current = std::find_if(p.curses.begin(), p.curses.end(), disease);
+        if (current != p.curses.end()) {
+            if (*current == Curse::heaven) { p.hp = 0; return; }
+            curse = std::max(curse, static_cast<Curse>(static_cast<int>(*current) + 1));
+            p.curses.erase(current);
+        }
+    }
     if (!has_curse(p, curse)) p.curses.insert(std::lower_bound(p.curses.begin(), p.curses.end(), curse), curse);
 }
 void closed_state(const SnapshotState& s, const MatchConfig& c) {
@@ -56,8 +65,8 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         require(p.items.size() <= c.hand_limit, "scene inventory exceeds configured display limit");
         if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return !supported_curse(curse); })
             || p.guardian != Guardian::none || p.confusion_count)
-            unsupported("only Flash and DarkCloud are implemented among scoped curses, guardians and confusion");
-        require(p.curses.size() <= 2 && std::is_sorted(p.curses.begin(), p.curses.end())
+            unsupported("only diseases, Flash and DarkCloud are implemented among scoped curses, guardians and confusion");
+        require(p.curses.size() <= 3 && std::count_if(p.curses.begin(), p.curses.end(), disease) <= 1 && std::is_sorted(p.curses.begin(), p.curses.end())
             && std::adjacent_find(p.curses.begin(), p.curses.end()) == p.curses.end(), "noncanonical scoped curses");
         for (const auto& item : p.items) {
             if (item.fake_model || !match_supported(item.model)) unsupported("unsupported or disguised match model");
@@ -89,9 +98,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 477>& gift_tickets() {
+const std::array<CardId, 483>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 477> values{};
+        std::array<CardId, 483> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +109,7 @@ const std::array<CardId, 477>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 216) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 222) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -389,7 +398,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             break;
         case Ability::add_curse: case Ability::counter_curse: add_curse(target, find_card(effect.models.front())->curse); break;
         case Ability::remove_mild_curses:
-            std::erase(target.curses, Curse::flash);
+            std::erase_if(target.curses, [](auto curse) { return curse == Curse::cold || curse == Curse::fever || curse == Curse::flash; });
             break;
         case Ability::remove_all_curses: target.curses.clear(); break;
         case Ability::remove_items: case Ability::remove_used_miracles:
@@ -415,6 +424,26 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
     return target_damage;
 }
 void advance(MatchSnapshot& s) {
+    auto& owner = s.state.players[index(s, s.owner)];
+    const auto current = std::find_if(owner.curses.begin(), owner.curses.end(), disease);
+    if (!owner.dead && current != owner.curses.end()) {
+        DiseaseTick tick; tick.owner = owner.id; tick.before = *current; tick.hp_before = static_cast<int>(owner.hp);
+        tick.worsened = bounded(s.rng, 100) < 5;
+        if (tick.worsened) { tick.fallen = tick.before == Curse::heaven; add_curse(owner, tick.before); }
+        tick.after = *std::find_if(owner.curses.begin(), owner.curses.end(), disease);
+        if (!tick.fallen) {
+            const auto amount = tick.after == Curse::cold ? -1 : tick.after == Curse::fever ? -2 : tick.after == Curse::hell ? -5 : 5;
+            change_resource(owner, Resource::hp, amount);
+        }
+        const auto revivals_before = s.revivals;
+        if (!owner.hp) for (const auto& item : owner.items) if (find_card(item.model)->ability == Ability::revive) { tick.revival_token = item.token; break; }
+        finalize_deaths(s);
+        if (s.revivals == revivals_before) tick.revival_token.reset();
+        tick.hp_after = static_cast<int>(owner.hp);
+        s.last_tick = tick;
+        const auto natural = outcome(s.state);
+        if (natural.terminal) { finish(s, natural); return; }
+    }
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
         while (s.gifts[seat]) {
             if (!s.state.players[seat].dead) gift(s, seat);
@@ -500,7 +529,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
-    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); }
+    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); }
     bool completed = false;
     if (s.phase == MatchPhase::purchase) {
         s.batch->responses.push_back(command);
@@ -650,6 +679,20 @@ void validate_snapshot(const MatchSnapshot& s) {
     for (std::size_t i = 0; i < n; ++i) {
         require(s.gifts[i] <= s.config.hand_limit && s.state.players[i].items.size() + s.gifts[i] <= s.config.hand_limit, "invalid reserved gifts");
         for (const auto& item : s.state.players[i].items) require(item.token < s.next_token, "next token collides with a live instance");
+    }
+    if (s.last_tick) {
+        const auto& tick = *s.last_tick;
+        const auto& owner = s.state.players[index(s, tick.owner)];
+        require(s.decisions > 0 && (s.phase == MatchPhase::main || s.phase == MatchPhase::finished) && !s.truncated
+            && disease(tick.before) && disease(tick.after) && has_curse(owner, tick.after)
+            && tick.hp_before >= 1 && tick.hp_before <= 99 && tick.hp_after >= 0 && tick.hp_after <= 99 && owner.hp == tick.hp_after
+            && owner.dead == (tick.hp_after == 0),
+            "invalid disease tick boundary");
+        const auto after = tick.worsened && tick.before != Curse::heaven ? static_cast<Curse>(static_cast<int>(tick.before) + 1) : tick.before;
+        require(tick.after == after && tick.fallen == (tick.worsened && tick.before == Curse::heaven), "invalid disease tick progression");
+        const auto amount = tick.after == Curse::cold ? -1 : tick.after == Curse::fever ? -2 : tick.after == Curse::hell ? -5 : 5;
+        const auto hp = tick.fallen ? 0 : std::clamp(tick.hp_before + amount, 0, 99);
+        require(tick.hp_after == (tick.revival_token ? 10 : hp) && (!tick.revival_token || (hp == 0 && s.revivals > 0 && *tick.revival_token < s.next_token && !instance(owner, *tick.revival_token))), "invalid disease tick HP or revival");
     }
     require(s.purchase.has_value() == (s.phase == MatchPhase::purchase), "purchase escrow outside purchase phase");
     if (s.purchase) {
@@ -917,7 +960,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v19\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v20\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -936,7 +979,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"exchange_rule\":\""; out += exchange_rule;
     out += "\",\"removal_event_rule\":\""; out += removal_event_rule;
     out += "\",\"sell_rule\":\""; out += sell_rule;
-    out += "\",\"buy_rule\":\""; out += buy_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"buy_rule\":\""; out += buy_rule;
+    out += "\",\"disease_rule\":\""; out += disease_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

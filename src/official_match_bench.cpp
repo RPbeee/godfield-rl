@@ -49,6 +49,8 @@ struct Stats {
     std::uint64_t sell_plays = 0, sell_resolved = 0, sell_nominal_cp = 0, sold_miracles = 0;
     std::uint64_t buy_plays = 0, buy_quotes = 0, purchase_commands = 0, bought = 0, declined = 0;
     std::uint64_t buy_empty = 0, buy_insufficient_cp = 0, buy_cutoff = 0, buy_nominal_cp = 0;
+    std::uint64_t disease_ticks = 0, disease_worsened = 0, disease_falls = 0, disease_tick_revivals = 0;
+    std::uint64_t disease_hp_gained = 0, disease_hp_lost = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -87,6 +89,8 @@ struct Stats {
         buy_plays += s.buy_plays; buy_quotes += s.buy_quotes; purchase_commands += s.purchase_commands;
         bought += s.bought; declined += s.declined; buy_empty += s.buy_empty; buy_insufficient_cp += s.buy_insufficient_cp;
         buy_cutoff += s.buy_cutoff; buy_nominal_cp += s.buy_nominal_cp;
+        disease_ticks += s.disease_ticks; disease_worsened += s.disease_worsened; disease_falls += s.disease_falls;
+        disease_tick_revivals += s.disease_tick_revivals; disease_hp_gained += s.disease_hp_gained; disease_hp_lost += s.disease_hp_lost;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -302,13 +306,24 @@ int main(int argc, char** argv) {
                         }
                         const auto revived = match.snapshot().revivals - revivals_before;
                         stats.revivals += revived;
+                        const auto& tick = match.snapshot().last_tick;
+                        const auto tick_revived = tick && tick->revival_token ? 1u : 0u;
+                        if (tick) {
+                            ++stats.disease_ticks;
+                            if (tick->worsened) ++stats.disease_worsened;
+                            if (tick->fallen) ++stats.disease_falls;
+                            stats.disease_tick_revivals += tick_revived;
+                            const auto delta = (tick_revived ? 0 : tick->hp_after) - tick->hp_before;
+                            if (delta < 0) stats.disease_hp_lost += -delta; else stats.disease_hp_gained += delta;
+                        }
                         if (random_hp_target) {
                             ++stats.random_hp_resolved;
-                            if (revived > 1) throw std::logic_error("random HP body revived multiple recipients");
+                            if (revived < tick_revived || revived - tick_revived > 1) throw std::logic_error("random HP body revived multiple recipients");
                             // A negative body may revive from HP0 to10; remove
                             // that separate boost before classifying its actual HP loss.
                             const auto delta = find_player(match.snapshot().state, *random_hp_target)->hp - random_hp_before
-                                - 10 * static_cast<std::int64_t>(revived);
+                                - 10 * static_cast<std::int64_t>(revived - tick_revived)
+                                - (tick && tick->owner == *random_hp_target ? tick->hp_after - tick->hp_before : 0);
                             if (delta < 0) { ++stats.random_hp_damages; stats.random_hp_lost += -delta; }
                             else { ++stats.random_hp_heals; stats.random_hp_gained += delta; }
                         }
@@ -316,7 +331,8 @@ int main(int argc, char** argv) {
                             const auto& after = *find_player(match.snapshot().state, *removal_target);
                             std::uint64_t removed = 0;
                             for (std::size_t i = 0; i < removal_token_count; ++i)
-                                if (std::none_of(after.items.begin(), after.items.end(), [&](const auto& item) { return item.token == removal_tokens[i]; })) ++removed;
+                                if (!(tick && tick->owner == *removal_target && tick->revival_token == removal_tokens[i])
+                                    && std::none_of(after.items.begin(), after.items.end(), [&](const auto& item) { return item.token == removal_tokens[i]; })) ++removed;
                             if (removal_ability == Ability::remove_items) { ++stats.hand_removal_resolved; stats.hand_items_removed += removed; }
                             else { ++stats.used_removal_resolved; stats.used_miracles_removed += removed; }
                             const auto& event = match.snapshot().last_removal;
@@ -377,6 +393,9 @@ int main(int argc, char** argv) {
         if (stats.bought + stats.declined != stats.purchase_commands || stats.purchase_commands > stats.buy_quotes
             || stats.buy_quotes > stats.buy_plays || stats.bought + stats.declined + stats.buy_empty + stats.buy_insufficient_cp + stats.buy_cutoff > stats.buy_plays)
             throw std::logic_error("inconsistent purchase accounting");
+        if (stats.disease_ticks > stats.main || stats.disease_worsened > stats.disease_ticks || stats.disease_falls > stats.disease_worsened
+            || stats.disease_tick_revivals > stats.revivals || stats.disease_hp_gained > 5 * stats.disease_ticks || stats.disease_hp_lost > 99 * stats.disease_ticks)
+            throw std::logic_error("inconsistent disease accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -398,6 +417,7 @@ int main(int argc, char** argv) {
             << "\nremoval_event_rule=" << removal_event_rule
             << "\nsell_rule=" << sell_rule
             << "\nbuy_rule=" << buy_rule
+            << "\ndisease_rule=" << disease_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -441,6 +461,9 @@ int main(int argc, char** argv) {
             << "\nbuy_plays=" << stats.buy_plays << "\nbuy_quotes=" << stats.buy_quotes << "\npurchase_commands=" << stats.purchase_commands
             << "\nbought=" << stats.bought << "\ndeclined=" << stats.declined << "\nbuy_empty=" << stats.buy_empty
             << "\nbuy_insufficient_cp=" << stats.buy_insufficient_cp << "\nbuy_cutoff=" << stats.buy_cutoff << "\nbuy_nominal_cp=" << stats.buy_nominal_cp
+            << "\ndisease_ticks=" << stats.disease_ticks << "\ndisease_worsened=" << stats.disease_worsened
+            << "\ndisease_falls=" << stats.disease_falls << "\ndisease_tick_revivals=" << stats.disease_tick_revivals
+            << "\ndisease_hp_gained=" << stats.disease_hp_gained << "\ndisease_hp_lost=" << stats.disease_hp_lost
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

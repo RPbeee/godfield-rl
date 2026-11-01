@@ -23,10 +23,10 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==216&&match_gift_weight()==477&&std::string_view(match_ruleset)=="official-execution-subset-v21"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"216model/477weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==222&&match_gift_weight()==483&&std::string_view(match_ruleset)=="official-execution-subset-v22"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"222model/483weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{3,98,74,16,25,0,0,0}&&weight==477,"exchange, sell and buy are admitted among trade cards");
+    check(counts==std::array<int,8>{3,102,74,16,27,0,0,0}&&weight==483,"exchange, sell and buy are admitted among trade cards");
     check(match_supported(3)&&match_supported(4)&&match_supported(5)&&!match_supported(1)&&!match_supported(2),"trade artifacts do not enable sacrifice");
     check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("heaven-herb"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
@@ -74,7 +74,7 @@ void recovery_retention_capacity_and_atomicity(){
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
     const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("mercury-ring");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
-        if(error==2)bad.players[0].curses={Curse::cold};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
+        if(error==2)bad.players[0].curses={Curse::fog};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
 
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v19\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v20\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -495,7 +495,7 @@ void darkcloud_counter_fifo_forced_and_selection(){
 
 void darkcloud_canonical_journal_and_cutoff(){
     auto state=scene({image("spark-bag")},{});state.players[1].curses={Curse::darkcloud};Match m;m.load_scene(state,0,123);m.step(chance_play(0,{0}));const auto exact=m.snapshot();for(int error=0;error<12;++error){auto bad=exact;if(error==0)bad.queue[0].forced_hit=false;if(error==1)bad.queue[0].hit_rate=100;if(error==2)bad.chance_forced_hits=0;if(error==3)bad.chance_rolls=1;if(error==4)bad.chance_hits=1;if(error==5)++bad.batch->chance_forced_hits;if(error==6)bad.batch->initial_state.players[1].curses.clear();if(error==7)bad.batch->rng^=1;if(error==8)bad.queue[0].redirect_rng^=1;if(error==9)++bad.rng;if(error==10)bad.state.players[1].curses.clear();if(error==11)++bad.counter_forced_hits;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"replay rejects forged forced proof, counters, initial curse, RNG anchors and current state atomically");}
-    for(const auto curses:{std::vector<Curse>{Curse::darkcloud,Curse::darkcloud},std::vector<Curse>{Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::flash,Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::cold,Curse::darkcloud}}){auto invalid=scene();invalid.players[0].curses=curses;bool rejected=false;try{m.load_scene(invalid,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"runtime accepts only sorted unique supported Flash/Dark state and rejects other curses");}
+    for(const auto curses:{std::vector<Curse>{Curse::darkcloud,Curse::darkcloud},std::vector<Curse>{Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::flash,Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::fog,Curse::darkcloud}}){auto invalid=scene();invalid.players[0].curses=curses;bool rejected=false;try{m.load_scene(invalid,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"runtime rejects duplicate, unsorted and unsupported curses");}
     auto late=state;late.update_count=max_wire_integer;Match failed;failed.load_scene(late,0,123);const auto before=failed.snapshot();check(failed.legal(chance_play(0,{0})),"forced launch can fail only at late transport boundary");bool rejected=false;try{failed.step(chance_play(0,{0}));}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late launch rollback restores consumed item, forced counter, RNG and new journal");
     MatchConfig limit;limit.max_decisions=1;Match cut(limit);cut.load_scene(state,0,123);cut.step(chance_play(0,{0}));check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().chance_forced_hits==1&&cut.snapshot().chance_rolls==0&&cut.snapshot().chance_hits==0&&cut.snapshot().rng==123&&!cut.snapshot().batch&&cut.snapshot().queue.empty()&&cut.snapshot().state.players[1].hp==40,"forced hit survives launch cutoff accounting while no response HP or gifts execute");roundtrip(cut);
     auto counter_state=scene({image("bronze-club")},{image("pluto-ring"),image("mars-ring")});MatchConfig counter_limit;counter_limit.max_decisions=4;Match counter(counter_limit);counter.load_scene(counter_state,0,123);counter.step(play(0,{0},7));counter.step(defend(7,{0,1}));counter.step(defend(0));counter.step(defend(0));check(counter.snapshot().truncated&&counter.snapshot().counter_forced_hits==1&&counter.snapshot().counter_rolls==0&&counter.snapshot().counter_hits==0&&counter.snapshot().state.players[0].hp==39&&counter.snapshot().rng==123&&!counter.snapshot().batch,"counter forced-hit metric and no-draw RNG persist through command-boundary cutoff");roundtrip(counter);
@@ -958,6 +958,68 @@ void buy_roles_cutoff_returns_and_late_failure(){
     active.load_scene(scene(),0,0);check(!active.snapshot().purchase&&!active.snapshot().last_purchase,"scene loading clears offer and public result");
 }
 
+void disease_reapplication_cures_and_damage_counter_basis(){
+    for(const auto before:{Curse::none,Curse::cold,Curse::fever,Curse::hell,Curse::heaven}){auto state=scene({219},{});state.players[0].mp=99;if(before!=Curse::none)state.players[1].curses={before};state.players.push_back(player(99));MatchConfig cap;cap.max_decisions=2;auto m=fixture(state,cap);m.step(play(0,{0},7));m.step(defend(7));
+        const auto after=before==Curse::none?Curse::cold:before==Curse::heaven?Curse::heaven:static_cast<Curse>(static_cast<int>(before)+1);
+        check(m.snapshot().state.players[1].curses==std::vector<Curse>{after}&&m.snapshot().state.players[1].hp==(before==Curse::heaven?0:40)&&!m.snapshot().last_tick,"Cold reapplication advances one disease, Heaven reapplication falls to0, and command cutoff skips owner tick");roundtrip(m);}
+    auto higher=fixture(scene({220},{}));auto st=higher.snapshot().state;st.players[0].mp=99;st.players[1].curses={Curse::cold};higher.load_scene(st,0,0);higher.step(play(0,{0},7));higher.step(defend(7));
+    check(higher.snapshot().state.players[1].curses==std::vector<Curse>{Curse::heaven}&&higher.snapshot().state.players[1].hp==40,"higher incoming disease wins without premature Heaven fall");roundtrip(higher);
+    for(const auto status:{Curse::cold,Curse::fever,Curse::hell,Curse::heaven})for(bool all:{false,true}){auto state=scene({all?CardId{238}:CardId{237}},{});state.players[0].curses={status,Curse::flash,Curse::darkcloud};MatchConfig cap;cap.max_decisions=1;auto m=fixture(state,cap);m.step(play(0,{0},0));
+        const auto expected=all?std::vector<Curse>{}:status==Curse::cold||status==Curse::fever?std::vector<Curse>{Curse::darkcloud}:std::vector<Curse>{status,Curse::darkcloud};
+        check(m.snapshot().state.players[0].curses==expected&&m.snapshot().state.players[0].hp==40&&!m.snapshot().last_tick,"mild removes Cold/Fever/Flash only; all removes Heaven without reapplication fall");roundtrip(m);}
+    auto blocked=fixture(scene({33},{176}));blocked.step(play(0,{0},7));blocked.step(defend(7,{0}));check(blocked.snapshot().state.players[1].hp==40&&blocked.snapshot().state.players[1].curses.empty(),"fully defended disease weapon does not add a curse");
+    auto cursed=scene({33},{208,184});cursed.players[1].curses={Curse::heaven};auto counter=fixture(cursed);counter.step(play(0,{0},7));counter.step(defend(7,{1}));
+    check(counter.snapshot().state.players[1].hp==10&&counter.snapshot().revivals==1&&counter.snapshot().queue[0].power==18&&counter.snapshot().counter_created==1,"Heaven fall can revive before survivor counter, whose basis is regular9 damage rather than fall damage");roundtrip(counter);counter.step(defend(0));roundtrip(counter);
+}
+
+void disease_fixed_roll_post_upgrade_owner_tick(){
+    for(bool worsen:{false,true})for(const auto status:{Curse::cold,Curse::fever,Curse::hell,Curse::heaven}){auto state=scene({235},{});state.players[0].items[0].used=true;state.players[0].curses={status};state.players[1].curses={Curse::heaven};MatchConfig cap;cap.hand_limit=cap.initial_hand=1;Match m(cap);const auto seed=worsen?29u:0u;m.load_scene(state,0,seed);m.step(pray(0));
+        const auto next=worsen&&status!=Curse::heaven?static_cast<Curse>(static_cast<int>(status)+1):status;const auto fallen=worsen&&status==Curse::heaven;
+        const auto amount=next==Curse::cold?-1:next==Curse::fever?-2:next==Curse::hell?-5:5;
+        check(m.snapshot().last_tick&&m.snapshot().last_tick->owner==0&&m.snapshot().last_tick->before==status&&m.snapshot().last_tick->after==next
+            &&m.snapshot().last_tick->worsened==worsen&&m.snapshot().last_tick->fallen==fallen&&m.snapshot().state.players[0].hp==(fallen?0:40+amount)
+            &&m.snapshot().state.players[1].hp==40&&m.snapshot().rng==std::uint64_t{seed}+0x9e3779b97f4a7c15ULL,"only owner ticks once with fixed5 percent, upgrade before HP and no Heaven heal after fall");
+        check(m.observe({}).find(disease_rule)!=std::string::npos&&m.observe({}).find("last_tick")==std::string::npos&&m.observe({}).find("revival_token")==std::string::npos,"public board/rule never exposes private tick accounting or physical tokens");roundtrip(m);}
+    auto capstate=scene({235},{});capstate.players[0].items[0].used=true;capstate.players[0].curses={Curse::heaven};capstate.players[0].hp=98;MatchConfig full;full.hand_limit=full.initial_hand=1;Match cap(full);cap.load_scene(capstate,0,0);cap.step(pray(0));check(cap.snapshot().state.players[0].hp==99,"Heaven healing clips at99");
+    auto other=scene({235},{});other.players[0].items[0].used=true;other.players[0].curses={Curse::flash,Curse::darkcloud};Match no_tick(full);no_tick.load_scene(other,0,0);no_tick.step(pray(0));check(!no_tick.snapshot().last_tick&&no_tick.snapshot().rng==0,"non-disease curses never consume natural disease draws");roundtrip(no_tick);
+}
+
+void disease_action_boundaries_quotes_repeats_and_cutoff(){
+    auto state=scene({14},{});state.players[0].curses={Curse::cold};Match m;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));check(!m.snapshot().last_tick&&m.snapshot().state.players[0].hp==40,"first repeat hit has no owner tick");roundtrip(m);m.step(defend(7));check(m.snapshot().last_tick&&m.snapshot().state.players[0].hp==39,"whole two-hit action has exactly one owner tick");roundtrip(m);
+    auto buy=scene({5},{6});buy.players[0].curses={Curse::cold};auto quote=fixture(buy);quote.step({0,CommandKind::buy,{0},7});quote.step(defend(7));const auto before=quote.snapshot();check(before.purchase&&!before.last_tick&&before.state.players[0].hp==40,"BUY offer does not advance disease time");quote.step({0,CommandKind::decline,{},{}});check(quote.snapshot().last_tick&&quote.snapshot().last_tick->owner==0&&quote.snapshot().state.players[0].hp<40,"purchase decision finishes the original owner's action before ticking");roundtrip(quote);
+    auto reflected=scene({5,6},{190});reflected.players[0].curses={Curse::cold};reflected.players[1].curses={Curse::heaven};auto r=fixture(reflected);r.step({0,CommandKind::buy,{0},7});r.step(defend(7,{0}));r.step(defend(0));r.step({7,CommandKind::decline,{},{}});
+    check(r.snapshot().last_tick&&r.snapshot().last_tick->owner==0&&r.snapshot().state.players[1].hp==40,"reflected purchase decision still ticks main owner, not the current buyer");roundtrip(r);
+    for(bool lethal:{false,true}){auto st=scene({6},{});st.players[0].hp=1;st.players[0].curses={Curse::hell};if(lethal)st.players[1].hp=1;MatchConfig cap;cap.max_decisions=2;auto c=fixture(st,cap);const auto rng=c.snapshot().rng;c.step(play(0,{0},7));c.step(defend(7));
+        check(!c.snapshot().last_tick&&c.snapshot().rng==rng&&c.snapshot().state.players[0].hp==1&&(lethal?c.snapshot().terminated:c.snapshot().truncated),"body natural outcome and decision cutoff take priority over a completed-action disease tick");roundtrip(c);}
+    auto dying=scene({53},{184});dying.players[0].hp=1;dying.players[0].curses={Curse::cold};auto dead=fixture(dying);dead.step(play(0,{0},7));dead.step(defend(7,{0}));
+    check(dead.snapshot().terminated&&!dead.snapshot().last_tick,"owner dead from action body never draws a disease roll");roundtrip(dead);
+}
+
+void disease_tick_revivals_and_body_accounting(){
+    auto state=scene({202,208,208},{});state.players[0].hp=1;state.players[0].curses={Curse::heaven};Match m;m.load_scene(state,0,0);m.step(play(0,{0},0));
+    check(m.snapshot().revivals==2&&m.snapshot().last_tick&&m.snapshot().last_tick->fallen&&m.snapshot().last_tick->revival_token==2
+        &&m.snapshot().last_tick->hp_before==10&&m.snapshot().last_tick->hp_after==10&&m.snapshot().state.players[0].hp==10,"randomHP body rescue and subsequent Heaven-fall rescue use distinct physical amulets at two boundaries");
+    const auto& t=*m.snapshot().last_tick;const auto body_delta=m.snapshot().state.players[0].hp-1-10*static_cast<std::int64_t>(m.snapshot().revivals-1)-(t.hp_after-t.hp_before);
+    check(body_delta==-1,"tick HP and tick rescue can be separated from randomHP body loss");roundtrip(m);
+    auto swept=scene({205,208,6,6,6},{});swept.players[0].hp=1;swept.players[0].curses={Curse::cold};Match broom;broom.load_scene(swept,0,2);broom.step(play(0,{0},0));
+    check(broom.snapshot().last_removal==RemovalEvent{0,0,0,205,{6,6,6}}&&broom.snapshot().last_tick&&broom.snapshot().last_tick->revival_token==1
+        &&broom.snapshot().revivals==1,"self broom removes three copies while a fourth physical disappearance is the independent tick amulet");roundtrip(broom);
+    auto fatal=scene();fatal.players[0].hp=1;fatal.players[0].curses={Curse::cold};Match end;end.load_scene(fatal,0,0);end.step(pray(0));
+    check(end.snapshot().terminated&&end.snapshot().winners==std::vector<PlayerId>{7}&&end.snapshot().last_tick&&end.snapshot().last_tick->hp_after==0
+        &&end.snapshot().state.players[0].items.empty()&&end.snapshot().gifts==std::vector<std::uint32_t>{0,0}&&end.snapshot().rng==0x9e3779b97f4a7c15ULL,"tick death cancels the pending prayer gift without its draw");roundtrip(end);
+}
+
+void disease_canonical_tick_guards_and_atomic_failure(){
+    auto s=scene();s.players[0].curses={Curse::cold,Curse::flash,Curse::darkcloud};auto valid=fixture(s);roundtrip(valid);
+    for(const auto& curses:std::vector<std::vector<Curse>>{{Curse::cold,Curse::fever},{Curse::flash,Curse::cold},{Curse::cold,Curse::cold},{Curse::fog}}){auto bad=s;bad.players[0].curses=curses;const auto exact=valid.snapshot();bool rejected=false;try{valid.load_scene(bad,0,0);}catch(const MatchError&){rejected=true;}check(rejected&&valid.snapshot()==exact,"only one sorted unique disease and supported non-diseases form a canonical state");}
+    auto full=scene({235},{});full.players[0].items[0].used=true;full.players[0].curses={Curse::cold};MatchConfig cap;cap.hand_limit=cap.initial_hand=1;Match m(cap);m.load_scene(full,0,0);m.step(pray(0));const auto exact=m.snapshot();
+    for(int error=0;error<8;++error){auto bad=exact;auto& tick=*bad.last_tick;if(error==0)tick.before=Curse::none;if(error==1)tick.after=Curse::hell;if(error==2)tick.hp_before=0;if(error==3){tick.hp_after=99;bad.state.players[0].hp=99;}
+        if(error==4)tick.worsened=true;if(error==5)tick.fallen=true;if(error==6)tick.revival_token=0;if(error==7)tick.owner=999;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"private tick validates disease progression, HP, endpoints and vanished revival copy without claiming complete history");}
+    auto late=scene({3},{});late.players[0].hp=5;late.players[0].curses={Curse::cold};late.players[0].items[0].token=max_wire_integer;auto failed=fixture(late);const auto before=failed.snapshot();bool rejected=false;
+    try{failed.step({0,CommandKind::exchange,{max_wire_integer},{},ResourceAllocation{5,10,20}});}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before&&!failed.snapshot().last_tick,"late gift failure rolls back completed action, owner tick HP and random draw atomically");
+    auto pending=fixture(scene({6},{}));pending.step(play(0,{0},7));auto forged=pending.snapshot();forged.last_tick=exact.last_tick;const auto old=pending.snapshot();rejected=false;try{pending.restore(forged);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==old,"pending action cannot carry a previous private disease tick");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -1064,6 +1126,11 @@ int main(){
     buy_empty_affordability_and_unused_miracles();
     buy_reflection_ownership_and_quote_journal();
     buy_roles_cutoff_returns_and_late_failure();
+    disease_reapplication_cures_and_damage_counter_basis();
+    disease_fixed_roll_post_upgrade_owner_tick();
+    disease_action_boundaries_quotes_repeats_and_cutoff();
+    disease_tick_revivals_and_body_accounting();
+    disease_canonical_tick_guards_and_atomic_failure();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (216subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (222subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }
