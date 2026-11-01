@@ -91,16 +91,16 @@ Outcome outcome(const SnapshotState& state) {
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     s.terminated = true; s.truncated = false; s.state.is_over = true;
-    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.purchase.reset();
+    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.deaths.clear(); s.purchase.reset();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
     s.winners = result.winners;
     s.rewards.assign(s.state.players.size(), 0);
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 489>& gift_tickets() {
+const std::array<CardId, 490>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 489> values{};
+        std::array<CardId, 490> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -109,7 +109,7 @@ const std::array<CardId, 489>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 228) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 229) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -307,6 +307,7 @@ void remove_items(MatchSnapshot& s, PlayerState& target, const EffectFrame& effe
     s.last_removal = std::move(event);
 }
 void finalize_deaths(MatchSnapshot& s) {
+    std::vector<std::size_t> died;
     auto alive = std::count_if(s.state.players.begin(), s.state.players.end(), [](const auto& player) { return !player.dead; });
     for (std::size_t seat = 0; seat < s.state.players.size(); ++seat) {
         auto& player = s.state.players[seat];
@@ -320,7 +321,27 @@ void finalize_deaths(MatchSnapshot& s) {
             change_resource(player, Resource::hp, amount);
             request_gift(s, seat);
             ++s.revivals;
-        } else { player.dead = true; --alive; }
+        } else { player.dead = true; --alive; died.push_back(seat); }
+    }
+    // The public client renders a server-provided posthumous attack. Its gate,
+    // copy count and scheduling here are the explicit local death_rule.
+    if (outcome(s.state).terminal) return;
+    for (auto seat : died) {
+        auto& source = s.state.players[seat];
+        for (auto item = source.items.begin(); item != source.items.end();) {
+            if (find_card(item->model)->ability != Ability::attack_dyingly) { ++item; continue; }
+            const auto token = item->token;
+            item = source.items.erase(item); // No replacement for a dead user.
+            ++s.death_bows;
+            for (const auto& target : s.state.players) if (!target.dead && is_enemy(source, target)) {
+                EffectFrame effect;
+                effect.origin = effect.source = source.id; effect.target = effect.initial_target = target.id;
+                effect.models = {112}; effect.tokens = {token}; effect.category = Category::weapons;
+                effect.element = Element::light; effect.power = 30; effect.ability = Ability::attack_dyingly;
+                effect.hit_rate = 75; effect.is_death = true;
+                s.deaths.push_back(std::move(effect)); ++s.death_created;
+            }
+        }
     }
 }
 const char* purchase_reason_name(PurchaseReason reason) {
@@ -428,10 +449,11 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
     finalize_deaths(s);
     return target_damage;
 }
+bool next_action_effect(MatchSnapshot& s);
 void advance(MatchSnapshot& s) {
     auto& owner = s.state.players[index(s, s.owner)];
     const auto current = std::find_if(owner.curses.begin(), owner.curses.end(), disease);
-    if (!owner.dead && current != owner.curses.end()) {
+    if (!s.batch->tick_processed && !owner.dead && current != owner.curses.end()) {
         DiseaseTick tick; tick.owner = owner.id; tick.before = *current; tick.hp_before = static_cast<int>(owner.hp);
         tick.worsened = bounded(s.rng, 100) < 5;
         if (tick.worsened) { tick.fallen = tick.before == Curse::heaven; add_curse(owner, tick.before); }
@@ -449,12 +471,15 @@ void advance(MatchSnapshot& s) {
         const auto natural = outcome(s.state);
         if (natural.terminal) { finish(s, natural); return; }
     }
+    s.batch->tick_processed = true;
+    if (next_action_effect(s)) return;
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
         while (s.gifts[seat]) {
             if (!s.state.players[seat].dead) gift(s, seat);
             --s.gifts[seat];
         }
     }
+    s.batch.reset();
     const auto old = index(s, s.owner);
     for (std::size_t offset = 1; offset <= s.state.players.size(); ++offset) {
         const auto seat = (old + offset) % s.state.players.size();
@@ -470,6 +495,20 @@ void advance(MatchSnapshot& s) {
 bool next_action_effect(MatchSnapshot& s) {
     auto& batch = *s.batch;
     if (s.state.players[index(s, batch.owner)].dead) batch.cursor = batch.targets.size();
+    while (!s.deaths.empty()) {
+        auto effect = std::move(s.deaths.front()); s.deaths.erase(s.deaths.begin());
+        if (s.state.players[index(s, effect.target)].dead) continue;
+        effect.forced_hit = has_curse(s.state.players[index(s, effect.target)], Curse::darkcloud);
+        if (effect.forced_hit) ++s.death_forced_hits;
+        else {
+            ++s.death_rolls;
+            if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(effect.hit_rate)) continue;
+            ++s.death_hits;
+        }
+        ++s.death_started; effect.redirect_rng = s.rng;
+        s.actor = effect.target; s.phase = MatchPhase::response; s.queue.push_back(std::move(effect));
+        return true;
+    }
     while (!s.counters.empty()) {
         auto effect = std::move(s.counters.front()); s.counters.erase(s.counters.begin());
         if (s.state.players[index(s, effect.source)].dead || s.state.players[index(s, effect.target)].dead) continue;
@@ -486,7 +525,7 @@ bool next_action_effect(MatchSnapshot& s) {
         s.actor = effect.target; s.phase = MatchPhase::response; s.queue.push_back(std::move(effect));
         return true;
     }
-    const auto rate = find_card(batch.models.front())->hit_rate;
+    const auto rate = batch.models.empty() ? 0 : find_card(batch.models.front())->hit_rate;
     while (batch.cursor < batch.targets.size()) {
         const auto target = batch.targets[batch.cursor++];
         if (s.state.players[index(s, target)].dead) continue;
@@ -505,7 +544,6 @@ bool next_action_effect(MatchSnapshot& s) {
         s.actor = target; s.phase = MatchPhase::response;
         return true;
     }
-    s.batch.reset();
     return false;
 }
 void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Command& response,
@@ -536,6 +574,20 @@ void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
     if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); s.last_fog.reset(); }
     bool completed = false;
+    if (s.phase == MatchPhase::main) {
+        ActionBatch batch;
+        batch.initial_state = s.state; batch.owner = s.owner; batch.rng = s.rng;
+        batch.decisions = s.decisions; batch.next_token = s.next_token;
+        batch.chance_rolls = s.chance_rolls; batch.chance_hits = s.chance_hits;
+        batch.counter_created = s.counter_created; batch.counter_started = s.counter_started;
+        batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
+        batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
+        batch.revivals = s.revivals;
+        batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
+        batch.death_rolls = s.death_rolls; batch.death_hits = s.death_hits; batch.death_forced_hits = s.death_forced_hits;
+        batch.attack = command; batch.models = models;
+        s.batch = std::move(batch);
+    }
     if (s.phase == MatchPhase::purchase) {
         s.batch->responses.push_back(command);
         complete_purchase(s, command.kind == CommandKind::accept ? PurchaseReason::bought : PurchaseReason::declined);
@@ -550,7 +602,9 @@ void execute(MatchSnapshot& s, const Command& command) {
             add_curse(s.state.players[seat], find_card(model)->curse);
         if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
             if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
-            effect.redirects.push_back({command.actor, models, command.items, effect.target}); s.actor = effect.target;
+            effect.redirects.push_back({command.actor, models, command.items, effect.target});
+            if (s.state.players[index(s, effect.target)].dead) { s.queue.clear(); completed = true; }
+            else s.actor = effect.target;
         } else {
             if (response.reaction == Reaction::none) {
                 const auto damage = resolve(s, effect, response.defense);
@@ -584,6 +638,7 @@ void execute(MatchSnapshot& s, const Command& command) {
         }
         const auto random_hp_delta = find_card(models.front())->ability == Ability::boost_hp_or_deal_damage
             ? (bounded(s.rng, 2) == 0 ? 10 : -10) : 0;
+        s.batch->random_hp_delta = random_hp_delta;
         std::optional<ItemToken> mortar;
         if (find_card(models.front())->ability == Ability::danger) {
             for (const auto& player : s.state.players) if (!player.dead) {
@@ -609,22 +664,15 @@ void execute(MatchSnapshot& s, const Command& command) {
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
-            ActionBatch batch;
-            batch.initial_state = s.state; batch.owner = s.owner; batch.rng = launch_rng;
+            auto& batch = *s.batch;
+            require(batch.rng == launch_rng, "launch journal lost its pre-draw anchor");
             batch.random_hp_delta = random_hp_delta;
-            batch.decisions = s.decisions; batch.next_token = s.next_token;
-            batch.chance_rolls = s.chance_rolls; batch.chance_hits = s.chance_hits;
-            batch.counter_created = s.counter_created; batch.counter_started = s.counter_started;
-            batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
-            batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
-            batch.revivals = s.revivals;
-            batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
+            batch.chance = find_card(models.front())->hit_rate != 0;
             batch.targets = batch.chance || (command.kind != CommandKind::sell && has_wide(models)) ? enemy_targets(s) : std::vector<PlayerId>{target};
             if (original.ability == Ability::attack_twice) {
                 const auto first_pass = batch.targets;
                 batch.targets.insert(batch.targets.end(), first_pass.begin(), first_pass.end());
             }
-            s.batch = std::move(batch);
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
             completed = !next_action_effect(s);
         } else {
@@ -637,9 +685,9 @@ void execute(MatchSnapshot& s, const Command& command) {
     if (natural.terminal) finish(s, natural);
     else if (s.decisions == s.config.max_decisions) {
         if (s.purchase) complete_purchase(s, PurchaseReason::cutoff);
-        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
+        s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.deaths.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
     } else if (completed) {
-        if (!s.batch || !next_action_effect(s)) advance(s);
+        if (!next_action_effect(s)) advance(s);
     }
 }
 void validate_snapshot(const MatchSnapshot& s) {
@@ -653,8 +701,13 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
+    const auto death_bound = player_capacity * (player_capacity - 1) * s.config.hand_limit;
+    require(s.death_bows <= player_capacity * s.config.hand_limit && s.death_bows <= s.death_created
+        && s.death_created <= (player_capacity - 1) * s.death_bows && s.death_created <= death_bound && s.death_hits <= s.death_rolls
+        && s.death_rolls <= s.death_created && s.death_started == s.death_hits + s.death_forced_hits
+        && s.death_forced_hits <= s.death_created - s.death_rolls && s.deaths.size() <= s.death_created, "invalid posthumous counts");
     if (s.last_removal) {
-        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_sale && !s.last_purchase, "invalid removal event boundary");
+        require(s.decisions > 0 && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_sale && !s.last_purchase, "invalid removal event boundary");
         const auto& event = *s.last_removal;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
         require(event.model == 205 || event.model == 206, "invalid removal event model");
@@ -663,13 +716,13 @@ void validate_snapshot(const MatchSnapshot& s) {
             require(match_supported(model) && (event.model != 206 || find_card(model)->category == Category::miracles), "invalid removed model");
     }
     if (s.last_sale) {
-        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_removal && !s.last_purchase, "invalid sale event boundary");
+        require(s.decisions > 0 && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_removal && !s.last_purchase, "invalid sale event boundary");
         const auto& event = *s.last_sale;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
         require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid sale event commodity or price");
     }
     if (s.last_purchase) {
-        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase
+        require(s.decisions > 0 && s.phase != MatchPhase::purchase
             && !s.last_danger && !s.last_removal && !s.last_sale, "invalid purchase event boundary");
         const auto& event = *s.last_purchase;
         (void)index(s, event.origin); (void)index(s, event.buyer); (void)index(s, event.seller);
@@ -711,7 +764,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     if (s.last_tick) {
         const auto& tick = *s.last_tick;
         const auto& owner = s.state.players[index(s, tick.owner)];
-        require(s.decisions > 0 && (s.phase == MatchPhase::main || s.phase == MatchPhase::finished) && !s.truncated
+        require(s.decisions > 0 && (s.phase == MatchPhase::main || s.phase == MatchPhase::finished || (s.batch && s.batch->tick_processed))
             && disease(tick.before) && disease(tick.after) && has_curse(owner, tick.after)
             && tick.hp_before >= 1 && tick.hp_before <= 99 && tick.hp_after >= 0 && tick.hp_after <= 99 && owner.hp == tick.hp_after
             && owner.dead == (tick.hp_after == 0),
@@ -737,7 +790,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     }
     const auto natural = outcome(s.state);
     if (s.phase == MatchPhase::finished) {
-        require(!s.actor && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
+        require(!s.actor && s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
         require(s.terminated != s.truncated && s.state.is_over == s.terminated, "invalid episode boundary");
         if (s.terminated) {
             require(natural.terminal && s.winners == natural.winners, "invalid natural outcome");
@@ -750,16 +803,16 @@ void validate_snapshot(const MatchSnapshot& s) {
         && std::all_of(s.rewards.begin(), s.rewards.end(), [](auto v) { return v == 0; }), "invalid running match");
     require(s.actor && !s.state.players[index(s, *s.actor)].dead, "missing live actor");
     if (s.phase == MatchPhase::main) {
-        require(*s.actor == s.owner && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
+        require(*s.actor == s.owner && s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
         return;
     }
     require((s.phase == MatchPhase::response && s.queue.size() == 1) || (s.phase == MatchPhase::purchase && s.queue.empty()), "invalid match phase/queue");
     {
         require(s.batch.has_value(), "pending effect is missing its launch journal");
         const auto& batch = *s.batch;
-        require(batch.owner == s.owner && batch.initial_state.players.size() == n && !batch.models.empty()
+        require(batch.owner == s.owner && batch.initial_state.players.size() == n
             && batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()
-            && batch.targets.size() <= 2 * (n - 1) && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid action batch shape");
+            && batch.targets.size() <= 2 * (n - 1) && batch.cursor <= batch.targets.size(), "invalid action batch shape");
         require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
             && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
         require(batch.revivals <= s.revivals && s.revivals - batch.revivals <= n * s.config.hand_limit, "invalid action revival count");
@@ -768,7 +821,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             // paid Turbulence funded by initial MP plus <=99 per MP counter.
             && batch.responses.size() <= 2 * n * s.config.hand_limit
                 + 99 * n * (s.config.hand_limit + 1) / 5 + batch.targets.size()
-                + (batch.attack.kind == CommandKind::buy ? 1 : 0), "invalid action journal length");
+                + death_bound + (batch.attack.kind == CommandKind::buy ? 1 : 0), "invalid action journal length");
         for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
         MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
@@ -779,9 +832,12 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
         replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
         replay.revivals = batch.revivals;
+        replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
+        replay.death_rolls = batch.death_rolls; replay.death_hits = batch.death_hits; replay.death_forced_hits = batch.death_forced_hits;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
-        require((batch.attack.kind == CommandKind::play || batch.attack.kind == CommandKind::sell || batch.attack.kind == CommandKind::buy) && find_card(batch.models.front()), "action journal has no valid launch");
+        require(batch.attack.kind != CommandKind::defend && batch.attack.kind != CommandKind::accept
+            && batch.attack.kind != CommandKind::decline, "action journal has no valid main command");
         execute(replay, batch.attack);
         for (const auto& response : batch.responses) {
             require(replay.batch.has_value(), "action journal continues after its batch ended");
@@ -798,7 +854,7 @@ bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
     const auto curse = c && supported_curse(c->curse)
         && (c->ability == Ability::add_curse_on_damage || c->ability == Ability::counter_curse || c->ability == Ability::add_curse);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles || (c->category == Category::trade && (c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy)))
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || c->ability == Ability::attack_dyingly || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles || (c->category == Category::trade && (c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy)))
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
@@ -806,7 +862,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::bounce_weapon || c->ability == Ability::bounce_miracle
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
-            || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
+            || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || c->ability == Ability::attack_dyingly || curse
             || c->ability == Ability::self_curse || c->ability == Ability::boost_mp_and_add_curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
@@ -989,7 +1045,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v22\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v23\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -1011,7 +1067,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"buy_rule\":\""; out += buy_rule;
     out += "\",\"disease_rule\":\""; out += disease_rule;
     out += "\",\"disease_item_rule\":\""; out += disease_item_rule;
-    out += "\",\"fog_rule\":\""; out += fog_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"fog_rule\":\""; out += fog_rule;
+    out += "\",\"death_rule\":\""; out += death_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -1081,6 +1138,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"counter\":"; out += e.is_counter ? "true" : "false";
         // The flag belongs to activation, before any reflection. Redirection
         // to a visible pane must not reveal the original hidden recipient.
+        out += ",\"death\":"; out += e.is_death ? "true" : "false";
         const auto hidden_activation = std::any_of(board.players.begin(), board.players.end(), [&](const auto& player) { return player.id == e.initial_target && player.fogged; });
         out += ",\"forced_hit\":"; out += hidden_activation ? "null" : e.forced_hit ? "true" : "false";
         out += ",\"power\":" + std::to_string(e.power) + ",\"ability\":\""; out += ability_name(e.ability);

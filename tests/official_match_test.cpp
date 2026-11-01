@@ -23,12 +23,12 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==228&&match_gift_weight()==489&&std::string_view(match_ruleset)=="official-execution-subset-v24"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"228model/489weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==229&&match_gift_weight()==490&&std::string_view(match_ruleset)=="official-execution-subset-v25"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"229model/490weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{3,104,76,17,28,0,0,0}&&weight==489,"exchange, sell and buy are admitted among trade cards");
+    check(counts==std::array<int,8>{3,105,76,17,28,0,0,0}&&weight==490,"exchange, sell and buy are admitted among trade cards");
     check(match_supported(3)&&match_supported(4)&&match_supported(5)&&!match_supported(1)&&!match_supported(2),"trade artifacts do not enable sacrifice");
-    check(!match_supported(0)&&!match_supported(image("jupiter-ring"))&&!match_supported(image("dreaming-hat"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(!match_supported(0)&&!match_supported(image("jupiter-ring"))&&!match_supported(image("dreaming-hat"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v22\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v23\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -829,7 +829,7 @@ void removal_event_snapshot_guards(){
     auto m=fixture(scene({206},{235,235}));auto state=m.snapshot().state;for(auto& item:state.players[1].items)item.used=true;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));const auto exact=m.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;auto& event=*bad.last_removal;
         if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;if(error==4)event.model=199;
-        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={112};
+        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={222};
         if(error==9)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"removal event boundaries/endpoints/kind/count/unsupported or nonmiracle IDs and danger coexistence reject atomically");}
     auto broom=fixture(scene({205},{6,6,6,6}));broom.step(play(0,{0},7));broom.step(defend(7));auto oversized=broom.snapshot();oversized.last_removal->removed_models.push_back(6);bool rejected=false;
@@ -889,7 +889,7 @@ void sell_invalid_roles_sampler_and_journal(){
 void sell_event_guards_and_atomic_late_failures(){
     const Command self{0,CommandKind::sell,{0,1},0};auto m=fixture(scene({4,27},{}));m.step(self);const auto exact=m.snapshot();
     for(int error=0;error<8;++error){auto bad=exact;auto& event=*bad.last_sale;if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;
-        if(error==4)event.model=112;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
+        if(error==4)event.model=222;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
         try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"sale public event validates price, supported product, endpoints, positive decision and exclusive event type");}
     reject(m,pray(0));auto exhausted=exact;exhausted.state.update_count=max_wire_integer;m.restore(exhausted);const auto previous=m.snapshot();bool failed=false;try{m.step(pray(7));}catch(const MatchError&){failed=true;}
     check(failed&&m.snapshot()==previous,"late next-main failure restores prior sale event");m.restore(exact);m.step(pray(7));check(!m.snapshot().last_sale,"accepted next main clears prior sale event");roundtrip(m);
@@ -1171,6 +1171,117 @@ void fog_application_cures_journal_and_atomicity(){
     try{gifts.step(defend(7));}catch(const MatchError&){failed=true;}check(failed&&gifts.snapshot()==pending,"late gift failure preserves already selected Fog target, RNG and pending journal");roundtrip(gifts);
 }
 
+void death_main_rate_copies_and_target_roster(){
+    check(match_supported(112),"112 is admitted with both normal and posthumous roles");
+    auto normal=scene({112},{});normal.players[1].curses={Curse::darkcloud};MatchConfig cap;cap.max_decisions=2;Match main(cap);main.load_scene(normal,0,0);
+    main.step({0,CommandKind::play,{0},{}});check(main.snapshot().queue[0].power==1&&main.snapshot().queue[0].hit_rate==25
+        &&main.snapshot().queue[0].element==Element::light&&!main.snapshot().queue[0].is_death&&main.snapshot().rng==0,"ordinary112 is a targetless Light1/25 percent weapon, distinct from its death payload");roundtrip(main);
+    reject(main,play(0,{0},7));main.step(defend(7));check(main.snapshot().state.players[1].hp==39&&main.snapshot().death_created==0,"ordinary112 body does not create death work without an actual death");roundtrip(main);
+    for(const auto trial:{std::pair<std::uint64_t,std::uint64_t>{0,0},{2,1}}){MatchConfig one;one.max_decisions=1;Match rolled(one);rolled.load_scene(scene({112},{}),0,trial.first);rolled.step({0,CommandKind::play,{0},{}});
+        check(rolled.snapshot().chance_rolls==1&&rolled.snapshot().chance_hits==trial.second&&rolled.snapshot().rng==trial.first+0x9e3779b97f4a7c15ULL&&rolled.snapshot().death_created==0,"ordinary112 draws at25 percent once before launch cutoff");roundtrip(rolled);}
+    SnapshotState unforced;unforced.players={player(0,{64}),player(7,{112}),player(42)};unforced.players[0].hp=unforced.players[2].hp=99;Match miss;miss.load_scene(unforced,0,4);miss.step(play(0,{0},7));miss.step(defend(7));
+    check(miss.snapshot().actor==42&&miss.snapshot().death_rolls==2&&miss.snapshot().death_hits==1&&miss.snapshot().death_started==1&&!miss.snapshot().queue[0].forced_hit
+        &&miss.snapshot().rng==4+2*0x9e3779b97f4a7c15ULL,"death75 rolls78 miss then4 hit in input target order, separately from main25");roundtrip(miss);
+    SnapshotState state;state.players={player(0,{64}),player(7,{112,112},Team::one),player(9,{},Team::one),player(42,{},Team::two),player(55,{},Team::two)};
+    for(auto seat:{0u,3u}){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}state.players[4].dead=true;state.players[4].hp=0;
+    Match m;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));const auto start=m.snapshot();
+    check(start.state.players[1].dead&&start.state.players[1].items.empty()&&start.death_created==4&&start.deaths.size()==3&&start.gifts[1]==0
+        &&start.queue[0].is_death&&!start.queue[0].is_counter&&start.queue[0].origin==7&&start.queue[0].source==7&&start.queue[0].target==0
+        &&start.queue[0].power==30&&start.queue[0].hit_rate==75&&start.queue[0].element==Element::light&&start.queue[0].tokens==std::vector<ItemToken>{0}
+        &&start.deaths[0].target==42&&start.deaths[1].tokens==std::vector<ItemToken>{1}&&start.deaths[1].target==0,
+        "all copies are consumed without gifts, copy-then-live-enemy roster excludes allies and dead targets");roundtrip(m);
+    for(PlayerId target:{0u,42u,0u,42u}){check(m.snapshot().actor==target,"posthumous FIFO follows copy and input seat order");m.step(defend(target));roundtrip(m);}
+    check(m.snapshot().state.players[0].hp==39&&m.snapshot().state.players[3].hp==39&&m.snapshot().state.players[2].hp==40
+        &&m.snapshot().death_started==4&&m.snapshot().death_forced_hits==4&&m.snapshot().death_rolls==0&&m.snapshot().owner==9,
+        "dead origin continues all copies while ordinary owner/next-seat and team effects remain distinct");
+    const auto public_view=start;Match visible;visible.restore(public_view);const auto json=visible.observe(0);
+    check(json.find(death_rule)!=std::string::npos&&json.find("\"death\":true")!=std::string::npos&&json.find("death_created")==std::string::npos
+        &&json.find("tick_processed")==std::string::npos&&json.find("\"deaths\"")==std::string::npos,"only active death flag and payload are public, not future FIFO/counters/journal");
+}
+
+void death_redirects_counters_and_origin_death_chains(){
+    SnapshotState state;state.players={player(0,{64,190}),player(7,{112}),player(42)};state.players[0].hp=state.players[2].hp=99;
+    state.players[0].curses=state.players[2].curses={Curse::darkcloud};auto mirror=fixture(state);mirror.step(play(0,{0},7));mirror.step(defend(7));const auto rng=mirror.snapshot().rng;
+    mirror.step(defend(0,{1}));check(mirror.snapshot().actor==42&&mirror.snapshot().queue[0].is_death&&mirror.snapshot().queue[0].origin==7
+        &&mirror.snapshot().death_started==2&&mirror.snapshot().rng==rng,"reflection back to dead origin ends that frame immediately and never asks a dead actor to respond");roundtrip(mirror);mirror.step(defend(42));roundtrip(mirror);
+    for(CardId ring:{CardId{187},CardId{188}}){state.players[0]=player(0,{64,189,ring});state.players[0].hp=99;state.players[0].mp=0;state.players[0].curses={Curse::darkcloud};auto m=fixture(state);
+        m.step(play(0,{0},7));m.step(defend(7));m.step(defend(0,{1,2}));check(m.snapshot().actor==42&&m.snapshot().queue[0].is_death&&m.snapshot().counter_created==1,"reserved normal counter waits behind remaining death FIFO");roundtrip(m);m.step(defend(42));
+        if(ring==187){check(m.snapshot().actor==0&&!m.snapshot().queue[0].is_death&&m.snapshot().queue[0].is_counter&&m.snapshot().queue[0].amount==60,"surviving defender self-MP counter can follow a dead-source attack");roundtrip(m);m.step(defend(0));check(m.snapshot().state.players[0].mp==60,"normal MP counter applies exactly once");}
+        else check(m.snapshot().phase==MatchPhase::main&&m.snapshot().counter_started==0,"normal CP counter aimed at dead incoming source still skips");roundtrip(m);}
+    state.players[0]=player(0,{64,189,21});state.players[0].hp=99;state.players[0].curses={Curse::darkcloud};Match bounce;bounce.load_scene(state,0,0);bounce.step(play(0,{0},7));bounce.step(defend(7));bounce.step(defend(0,{1,2}));
+    check(bounce.snapshot().actor==42&&bounce.snapshot().queue[0].source==0&&bounce.snapshot().queue[0].origin==7&&bounce.snapshot().queue[0].is_death
+        &&bounce.snapshot().queue[0].hit_rate==75&&bounce.snapshot().rng==0x9e3779b97f4a7c15ULL,"neutralized death payload bounces only among alive seats without rerolling its percentage or origin");roundtrip(bounce);
+    SnapshotState chain;chain.players={player(0,{64,112}),player(7,{112}),player(42),player(55)};chain.players[0].hp=10;
+    for(auto& p:chain.players){p.curses={Curse::darkcloud};if(p.id>=42)p.hp=99;}auto m=fixture(chain);m.step(play(0,{0},7));m.step(defend(7));
+    for(PlayerId target:{0u,42u,55u,42u,55u}){check(m.snapshot().actor==target&&m.snapshot().queue[0].is_death,"new actual-death work appends behind the existing death roster even after original owner dies");m.step(defend(target));roundtrip(m);}
+    check(m.snapshot().state.players[0].dead&&m.snapshot().state.players[1].dead&&m.snapshot().state.players[2].hp==39&&m.snapshot().state.players[3].hp==39
+        &&m.snapshot().death_created==5&&m.snapshot().death_forced_hits==5&&m.snapshot().owner==42,"posthumous chain survives owner death while original normal roster is canceled");
+}
+
+void death_general_main_and_single_owner_tick_journals(){
+    SnapshotState state;state.players={player(0,{3,112}),player(7),player(42)};for(auto& p:state.players)if(p.id){p.hp=99;p.curses={Curse::darkcloud};}
+    auto exchange=fixture(state);exchange.step({0,CommandKind::exchange,{0},{},ResourceAllocation{0,5,65}});
+    check(exchange.snapshot().state.players[0].dead&&exchange.snapshot().queue[0].is_death&&exchange.snapshot().batch->attack.kind==CommandKind::exchange
+        &&exchange.snapshot().batch->targets.empty()&&!exchange.snapshot().batch->tick_processed,"HP0 exchange has a general pre-state journal even without an original attack roster");roundtrip(exchange);
+    exchange.step(defend(7));exchange.step(defend(42));check(exchange.snapshot().owner==7&&!exchange.snapshot().last_tick,"dead exchange owner has no later disease tick");roundtrip(exchange);
+    state.players[0]=player(0,{118,112});state.players[0].hp=1;state.players[0].curses={Curse::cold};Match tick;tick.load_scene(state,0,0);tick.step({0,CommandKind::discard,{0},{}});
+    const auto pending=tick.snapshot();check(pending.last_tick&&pending.last_tick->hp_after==0&&pending.batch->tick_processed&&pending.queue[0].is_death
+        &&pending.batch->attack.kind==CommandKind::discard&&pending.death_created==2&&pending.rng==0x9e3779b97f4a7c15ULL,"discard-triggered owner tick can die and suspend in death response with exactly one worsening draw");roundtrip(tick);
+    tick.step(defend(7));tick.step(defend(42));check(tick.snapshot().rng==pending.rng&&tick.snapshot().last_tick==pending.last_tick&&tick.snapshot().owner==7,"post-tick death responses never tick the dead owner again");roundtrip(tick);
+    MatchConfig cap;cap.max_decisions=2;Match cut(cap);cut.load_scene(state,0,0);cut.step({0,CommandKind::discard,{0},{}});cut.step(defend(7));
+    check(cut.snapshot().truncated&&cut.snapshot().last_tick&&cut.snapshot().deaths.empty()&&cut.snapshot().death_started==1,"later cutoff preserves completed owner tick while canceling unresolved posthumous work");roundtrip(cut);
+    bool broom_seen=false;for(std::uint64_t seed=0;seed<64&&!broom_seen;++seed){auto broom_state=state;broom_state.players[0]=player(0,{205,112,118,118,118,118});broom_state.players[0].hp=1;broom_state.players[0].curses={Curse::cold};Match broom;broom.load_scene(broom_state,0,seed);broom.step(play(0,{0},0));
+        if(broom.snapshot().death_bows){broom_seen=true;check(broom.snapshot().last_removal&&broom.snapshot().last_removal->removed_models.size()==3&&broom.snapshot().state.players[0].items.size()==1
+            &&broom.snapshot().last_tick&&broom.snapshot().batch->tick_processed&&broom.snapshot().queue[0].is_death,"self broom event excludes later owner-tick bow consumption while both records persist through death response");roundtrip(broom);}}
+    check(broom_seen,"seeded broom can leave112 for the later owner tick");
+    state.players[0]=player(0,{202,112});state.players[0].hp=5;Match random;random.load_scene(state,0,0);random.step(play(0,{0},0));
+    check(random.snapshot().state.players[0].dead&&random.snapshot().batch->random_hp_delta==-10&&random.snapshot().queue[0].is_death,"self random-HP lethal body retains sign and full immediate-action journal");roundtrip(random);
+    state.players[0]=player(0,{4,27,112});state.players[0].hp=1;state.players[0].mp=state.players[0].cp=0;auto sale=fixture(state);sale.step({0,CommandKind::sell,{0,1},0});
+    check(sale.snapshot().last_sale&&sale.snapshot().phase==MatchPhase::response&&sale.snapshot().state.players[0].dead&&sale.snapshot().queue[0].is_death,"self sale debt can retain public invoice while dead buyer starts posthumous responses");roundtrip(sale);
+}
+
+void death_natural_cutoff_revival_and_simultaneous_boundaries(){
+    auto duel=fixture(scene({64},{112}));duel.step(play(0,{0},7));duel.step(defend(7));
+    check(duel.snapshot().terminated&&duel.snapshot().winners==std::vector<PlayerId>{0}&&duel.snapshot().state.players[1].items.size()==1&&duel.snapshot().death_created==0,"natural duel outcome precedes bow consumption and does not cause a speculative posthumous draw");roundtrip(duel);
+    SnapshotState state;state.players={player(0,{64}),player(7,{112,208}),player(42)};auto saved=fixture(state);saved.step(play(0,{0},7));saved.step(defend(7));
+    check(!saved.snapshot().state.players[1].dead&&saved.snapshot().state.players[1].hp==10&&saved.snapshot().death_created==0&&saved.snapshot().revivals==1
+        &&std::any_of(saved.snapshot().state.players[1].items.begin(),saved.snapshot().state.players[1].items.end(),[](const auto& i){return i.model==112;}),"208 revival occurs first and leaves surviving112 untriggered");roundtrip(saved);
+    state.players[1]=player(7,{112});MatchConfig cap;cap.max_decisions=2;Match cut(cap);cut.load_scene(state,0,0);cut.step(play(0,{0},7));cut.step(defend(7));
+    check(cut.snapshot().truncated&&cut.snapshot().state.players[1].items.empty()&&cut.snapshot().death_created==2&&cut.snapshot().death_started==0
+        &&cut.snapshot().death_rolls==0&&cut.snapshot().rng==0&&cut.snapshot().deaths.empty(),"nonterminal body reserves/consumes112 before cutoff cancels activation without RNG or response");roundtrip(cut);
+    SnapshotState pair;pair.players={player(0,{53,112}),player(7,{112}),player(42),player(55)};pair.players[0].hp=pair.players[1].hp=1;
+    for(auto seat:{2u,3u}){pair.players[seat].hp=99;pair.players[seat].curses={Curse::darkcloud};}auto both=fixture(pair);both.step(play(0,{0},7));both.step(defend(7));
+    check(both.snapshot().death_created==4&&both.snapshot().queue[0].origin==0&&both.snapshot().deaths[1].origin==7&&both.snapshot().state.players[0].dead&&both.snapshot().state.players[1].dead,
+        "simultaneous self-damage and target death finalize all flags before input-seat posthumous roster collection");roundtrip(both);
+    state.players[1].dead=true;state.players[1].hp=0;auto loaded=fixture(state);check(loaded.snapshot().death_created==0&&loaded.snapshot().state.players[1].items.size()==1,"loading an already dead scene never replays an earlier death transition");roundtrip(loaded);
+}
+
+void death_snapshot_adversaries_and_atomic_late_failures(){
+    SnapshotState state;state.players={player(0,{64}),player(7,{112,112}),player(42)};for(auto seat:{0u,2u}){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}
+    auto m=fixture(state);m.step(play(0,{0},7));m.step(defend(7));const auto exact=m.snapshot();
+    for(int error=0;error<16;++error){auto bad=exact;
+        if(error==0)bad.queue[0].is_death=false;if(error==1)bad.queue[0].power=1;if(error==2)bad.queue[0].hit_rate=25;if(error==3)bad.queue[0].source=0;
+        if(error==4)bad.queue[0].tokens[0]=999;if(error==5)bad.deaths.clear();if(error==6)std::swap(bad.deaths[0],bad.deaths[1]);if(error==7)++bad.death_created;
+        if(error==8)--bad.death_forced_hits;if(error==9)bad.rng^=1;if(error==10)++bad.batch->death_created;if(error==11)bad.batch->tick_processed=true;
+        if(error==12)bad.batch->attack.kind=CommandKind::pray;if(error==13)bad.batch->initial_state.players[1].items.pop_back();if(error==14)bad.queue[0].is_counter=true;
+        if(error==15)bad.death_created=player_capacity*(player_capacity-1)*bad.config.hand_limit+1;
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"full death replay rejects flag/rate/power/consumed-copy/roster/RNG/anchor/stage/stat forgery");}
+    auto late=state;late.update_count=max_wire_integer-1;auto update=fixture(late);update.step(play(0,{0},7));const auto before=update.snapshot();bool failed=false;
+    try{update.step(defend(7));}catch(const MatchError&){failed=true;}check(failed&&update.snapshot()==before,"late update exhaustion rolls back victim death, all bow consumption, death FIFO and activation RNG/stats");roundtrip(update);
+    state.players[1]=player(7,{112});state.players[0].items[0].token=max_wire_integer;auto gifts=fixture(state);gifts.step(play(0,{max_wire_integer},7));gifts.step(defend(7));gifts.step(defend(0));const auto pending=gifts.snapshot();failed=false;
+    try{gifts.step(defend(42));}catch(const MatchError&){failed=true;}check(failed&&gifts.snapshot()==pending,"late gift token failure restores last posthumous body, queue, counters, owner and RNG");roundtrip(gifts);
+}
+
+void death_nine_seat_large_fifo_and_natural_cancellation(){
+    SnapshotState state;for(unsigned seat=0;seat<9;++seat){auto p=player(seat?100+seat:0);p.hp=1;p.curses={Curse::darkcloud};
+        for(ItemToken token=0;token<18;++token)p.items.push_back({token,seat==0&&token==0?CardId{64}:CardId{112},{},false});state.players.push_back(std::move(p));}
+    Match m;m.load_scene(state,0,0);m.step(play(0,{0},101));m.step(defend(101));check(m.snapshot().death_created==144&&m.snapshot().deaths.size()==143,"18 physical copies expand to144 frames, above old32 limits");roundtrip(m);
+    for(PlayerId target:{0u,102u,103u,104u,105u,106u,107u}){check(m.snapshot().actor==target&&m.snapshot().queue[0].is_death,"large death FIFO skips dead targets and remains active after owner death");m.step(defend(target));roundtrip(m);}
+    check(m.snapshot().terminated&&m.snapshot().winners==std::vector<PlayerId>{108}&&m.snapshot().death_created==623&&m.snapshot().death_started==7
+        &&m.snapshot().death_forced_hits==7&&m.snapshot().death_rolls==0&&m.snapshot().rng==0&&m.snapshot().deaths.empty()
+        &&m.snapshot().state.players[7].items.size()==18,"last natural outcome cancels remaining FIFO and leaves final-terminal death bows unconsumed without extra rolls");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -1291,6 +1402,12 @@ int main(){
     fog_projection_and_query_noninterference();
     fog_forced_hit_redaction_survives_reflection();
     fog_application_cures_journal_and_atomicity();
+    death_main_rate_copies_and_target_roster();
+    death_redirects_counters_and_origin_death_chains();
+    death_general_main_and_single_owner_tick_journals();
+    death_natural_cutoff_revival_and_simultaneous_boundaries();
+    death_snapshot_adversaries_and_atomic_late_failures();
+    death_nine_seat_large_fifo_and_natural_cancellation();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (228subset/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (229subset/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

@@ -53,6 +53,7 @@ struct Stats {
     std::uint64_t disease_hp_gained = 0, disease_hp_lost = 0;
     std::uint64_t fever_mask_uses = 0, heaven_herb_plays = 0, heaven_herb_resolved = 0, heaven_herb_mp_gained = 0;
     std::uint64_t fog_main_commands = 0, fog_launches = 0, fog_target_changed = 0;
+    std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0, death_responses = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -96,6 +97,8 @@ struct Stats {
         fever_mask_uses += s.fever_mask_uses; heaven_herb_plays += s.heaven_herb_plays;
         heaven_herb_resolved += s.heaven_herb_resolved; heaven_herb_mp_gained += s.heaven_herb_mp_gained;
         fog_main_commands += s.fog_main_commands; fog_launches += s.fog_launches; fog_target_changed += s.fog_target_changed;
+        death_bows += s.death_bows; death_created += s.death_created; death_started += s.death_started;
+        death_rolls += s.death_rolls; death_hits += s.death_hits; death_forced_hits += s.death_forced_hits; death_responses += s.death_responses;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -126,6 +129,10 @@ int main(int argc, char** argv) {
                         const auto counter_rolls_before = before.counter_rolls, counter_hits_before = before.counter_hits;
                         const auto forced_before = before.chance_forced_hits, counter_forced_before = before.counter_forced_hits;
                         const auto revivals_before = before.revivals;
+                        const auto tick_already_processed = before.batch && before.batch->tick_processed;
+                        const auto death_bows_before = before.death_bows, death_created_before = before.death_created, death_started_before = before.death_started;
+                        const auto death_rolls_before = before.death_rolls, death_hits_before = before.death_hits, death_forced_before = before.death_forced_hits;
+                        if (command.kind == CommandKind::defend && !before.queue.empty() && before.queue.front().is_death) ++stats.death_responses;
                         std::array<bool, player_capacity> flashed_before{};
                         std::array<bool, player_capacity> clouded_before{};
                         for (std::size_t seat = 0; seat < count; ++seat) {
@@ -293,6 +300,12 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        stats.death_bows += match.snapshot().death_bows - death_bows_before;
+                        stats.death_created += match.snapshot().death_created - death_created_before;
+                        stats.death_started += match.snapshot().death_started - death_started_before;
+                        stats.death_rolls += match.snapshot().death_rolls - death_rolls_before;
+                        stats.death_hits += match.snapshot().death_hits - death_hits_before;
+                        stats.death_forced_hits += match.snapshot().death_forced_hits - death_forced_before;
                         if (fog_main && match.snapshot().last_fog) {
                             ++stats.fog_launches;
                             if (match.snapshot().last_fog->intended != match.snapshot().last_fog->target) ++stats.fog_target_changed;
@@ -328,7 +341,8 @@ int main(int argc, char** argv) {
                         }
                         const auto revived = match.snapshot().revivals - revivals_before;
                         stats.revivals += revived;
-                        const auto& tick = match.snapshot().last_tick;
+                        const auto& tick_record = match.snapshot().last_tick;
+                        const auto* tick = tick_record && !tick_already_processed ? &*tick_record : nullptr;
                         const auto tick_revived = tick && tick->revival_token ? 1u : 0u;
                         if (tick) {
                             ++stats.disease_ticks;
@@ -355,6 +369,13 @@ int main(int argc, char** argv) {
                             for (std::size_t i = 0; i < removal_token_count; ++i)
                                 if (!(tick && tick->owner == *removal_target && tick->revival_token == removal_tokens[i])
                                     && std::none_of(after.items.begin(), after.items.end(), [&](const auto& item) { return item.token == removal_tokens[i]; })) ++removed;
+                            // A same-action owner tick may consume112 after
+                            // removal, before its posthumous responses. Those
+                            // physical copies are not part of the public broom event.
+                            const auto tick_bows = tick && tick->owner == *removal_target && after.dead && removal_ability == Ability::remove_items
+                                ? match.snapshot().death_bows - death_bows_before : 0;
+                            if (removed < tick_bows) throw std::logic_error("tick bow consumption exceeds missing removal copies");
+                            removed -= tick_bows;
                             if (removal_ability == Ability::remove_items) { ++stats.hand_removal_resolved; stats.hand_items_removed += removed; }
                             else { ++stats.used_removal_resolved; stats.used_miracles_removed += removed; }
                             const auto& event = match.snapshot().last_removal;
@@ -422,6 +443,11 @@ int main(int argc, char** argv) {
             throw std::logic_error("inconsistent Heaven herb accounting");
         if (stats.fog_target_changed > stats.fog_launches || stats.fog_launches > stats.fog_main_commands || stats.fog_main_commands > stats.main)
             throw std::logic_error("inconsistent Fog selection accounting");
+        if (stats.death_bows > stats.death_created || stats.death_created > (player_capacity - 1) * stats.death_bows
+            || stats.death_hits > stats.death_rolls || stats.death_rolls > stats.death_created
+            || stats.death_started != stats.death_hits + stats.death_forced_hits
+            || stats.death_forced_hits > stats.death_created - stats.death_rolls || stats.death_responses < stats.death_started)
+            throw std::logic_error("inconsistent posthumous accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -446,6 +472,7 @@ int main(int argc, char** argv) {
             << "\ndisease_rule=" << disease_rule
             << "\ndisease_item_rule=" << disease_item_rule
             << "\nfog_rule=" << fog_rule
+            << "\ndeath_rule=" << death_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -495,6 +522,9 @@ int main(int argc, char** argv) {
             << "\nfever_mask_uses=" << stats.fever_mask_uses << "\nheaven_herb_plays=" << stats.heaven_herb_plays
             << "\nheaven_herb_resolved=" << stats.heaven_herb_resolved << "\nheaven_herb_mp_gained=" << stats.heaven_herb_mp_gained
             << "\nfog_main_commands=" << stats.fog_main_commands << "\nfog_launches=" << stats.fog_launches << "\nfog_target_changed=" << stats.fog_target_changed
+            << "\ndeath_bows=" << stats.death_bows << "\ndeath_created=" << stats.death_created << "\ndeath_started=" << stats.death_started
+            << "\ndeath_rolls=" << stats.death_rolls << "\ndeath_hits=" << stats.death_hits << "\ndeath_misses=" << stats.death_rolls - stats.death_hits
+            << "\ndeath_forced_hits=" << stats.death_forced_hits << "\ndeath_responses=" << stats.death_responses
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

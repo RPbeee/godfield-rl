@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v24";
-inline constexpr const char* match_scope = "experimental:228-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v25";
+inline constexpr const char* match_scope = "experimental:229-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -32,7 +32,8 @@ inline constexpr const char* buy_rule = "experimental:foreign-only;one-operation
 inline constexpr const char* disease_rule = "experimental:one-disease-plus-fog-flash-and-darkcloud;reapply-max-incoming-or-next;heaven-reapplication-hp0;owner-only-after-whole-action;natural-and-cutoff-before-tick;fixed5-percent-before-hp;post-upgrade-tick;post-tick-revival-before-gifts";
 inline constexpr const char* disease_item_rule = "experimental:response-self-curse-in-selection-order-after-consumption;prefix-before-body;death-and-revival-after-whole-body;counter-basis-body-target-loss-only;mp-boost-before-disease;no-trigger-on-trade-or-discard";
 inline constexpr const char* fog_rule = "experimental:launch-once-for-explicit-enemy-target;uniform-alive-enemies-in-input-order;one-draw-including-singleton;self-and-allies-unchanged;chance-wide-danger-excluded;redirects-no-reselection;fog-foreign-sell-unsupported;sampler-sell-self-only";
-inline constexpr std::uint32_t match_snapshot_version = 24;
+inline constexpr const char* death_rule = "experimental:revival-before-actual-death;nonterminal-boundaries-only;consume-all-bows-in-inventory-order;copy-then-alive-enemies-in-input-order;light30-75-percent;death-fifo-before-counters-and-initial-roster;dead-source-allowed;darkcloud-forces-without-draw;redirects-no-reroll;dead-redirect-target-ends-frame;no-fog-reselection-or-gifts;owner-tick-once;natural-and-cutoff-cancel-pending";
+inline constexpr std::uint32_t match_snapshot_version = 25;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -82,6 +83,7 @@ struct EffectFrame {
     std::vector<RedirectFrame> redirects; // Reaction kind is derived from models and incoming payload.
     int hit_rate = 0; // Original display percentage; an active chance frame has already hit.
     bool is_counter = false;
+    bool is_death = false; // Posthumous112 has its own rate/power and allows a dead source.
     bool forced_hit = false; // DarkCloud bypassed the original percentage draw.
     bool operator==(const EffectFrame&) const = default;
 };
@@ -94,6 +96,8 @@ struct ActionBatch {
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0;
     std::uint64_t revivals = 0; // Privileged cumulative count before the launch.
+    std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
+    bool tick_processed = false; // Whole-action owner tick already ran before a posthumous response.
     Command attack;
     std::vector<CardId> models;
     std::vector<PlayerId> targets; // Ordered launch roster; attackTwice repeats the whole roster.
@@ -161,12 +165,14 @@ struct MatchSnapshot {
     std::vector<EffectFrame> queue; // One payload; redirects transfer it without cloning/recasting.
     std::optional<ActionBatch> batch;
     std::vector<EffectFrame> counters; // Reserved FIFO, never part of a policy observation.
+    std::vector<EffectFrame> deaths; // Posthumous FIFO, distinct from ordinary counters.
     std::vector<std::uint32_t> gifts;
     std::uint64_t rng = 0, decisions = 0, next_token = 0;
     std::uint64_t chance_rolls = 0, chance_hits = 0; // Actual percentage draws/successes, excluding forced hits.
     std::uint64_t counter_created = 0, counter_started = 0, counter_rolls = 0, counter_hits = 0;
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0; // Activated without environmental RNG.
     std::uint64_t revivals = 0; // Completed passive consumptions, never a policy observation.
+    std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
     std::optional<DangerEvent> last_danger; // Current main action's public launch result, without physical tokens.
     std::optional<RemovalEvent> last_removal; // Current main action's resolved removal, including an empty result.
     std::optional<SaleEvent> last_sale; // Resolved commodity and price, without its new physical token.
