@@ -16,8 +16,8 @@ except ImportError:
     from official_data import OfficialData
 
 MAX_WIRE_INTEGER = 9007199254740991
-KINDS = ("play", "defend", "discard", "pray", "exchange", "sell")
-PHASES = ("main", "response", "finished")
+KINDS = ("play", "defend", "discard", "pray", "exchange", "sell", "buy", "accept", "decline")
+PHASES = ("main", "response", "finished", "purchase")
 
 class MatchError(ValueError):
     def __init__(self, message, status=-2):
@@ -142,7 +142,7 @@ def _command(value):
     return result
 
 def _decode_status(value):
-    if value.player_count > 9 or value.winner_count > 9 or value.phase > 2 or value.has_actor > 1:
+    if value.player_count > 9 or value.winner_count > 9 or value.phase > 3 or value.has_actor > 1:
         raise MatchError("invalid native status descriptor", -3)
     return MatchStatus(value.decisions, value.owner, value.actor if value.has_actor else None, PHASES[value.phase],
         tuple(value.player_ids[:value.player_count]), tuple(value.rewards[:value.player_count]),
@@ -177,7 +177,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v20"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v21"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)):

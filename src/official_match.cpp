@@ -82,16 +82,16 @@ Outcome outcome(const SnapshotState& state) {
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     s.terminated = true; s.truncated = false; s.state.is_over = true;
-    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear();
+    s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.purchase.reset();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
     s.winners = result.winners;
     s.rewards.assign(s.state.players.size(), 0);
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 457>& gift_tickets() {
+const std::array<CardId, 477>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 457> values{};
+        std::array<CardId, 477> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 457>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 215) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 216) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -146,7 +146,7 @@ ResponseContext response_context(const MatchSnapshot& s) {
 }
 std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
-    if (static_cast<unsigned>(command.kind) > 5) unsupported("unsupported match command kind");
+    if (static_cast<unsigned>(command.kind) > 8) unsupported("unsupported match command kind");
     require(command.kind == CommandKind::exchange || !command.allocation, "only exchange accepts a resource allocation");
     const auto& own = s.state.players[index(s, command.actor)];
     require(!own.dead, "dead actor");
@@ -158,6 +158,16 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         require(item && selected.insert(token).second, "item missing or selected twice");
         models.push_back(item->model);
     }
+    if (s.phase == MatchPhase::purchase) {
+        require(s.purchase && (command.kind == CommandKind::accept || command.kind == CommandKind::decline)
+            && command.items.empty() && !command.target, "purchase needs a targetless accept or decline");
+        if (command.kind == CommandKind::accept) {
+            require(own.cp >= find_card(s.purchase->item.model)->price, "insufficient purchase CP");
+            if (own.items.size() == s.config.hand_limit) unsupported("purchase overflow selection is not implemented");
+        }
+        return models;
+    }
+    require(command.kind != CommandKind::accept && command.kind != CommandKind::decline, "purchase decision outside purchase phase");
     if (s.phase == MatchPhase::response) {
         require(command.kind == CommandKind::defend && !command.target, "response needs targetless defend");
         auto context = response_context(s);
@@ -197,8 +207,15 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         if (buyer.id != own.id && buyer.items.size() == s.config.hand_limit) unsupported("sell overflow selection is not implemented");
         return models;
     }
+    if (command.kind == CommandKind::buy) {
+        require(models.size() == 1 && models.front() == 5 && command.target, "buy needs one operation and explicit target");
+        const auto& seller = s.state.players[index(s, *command.target)];
+        require(!seller.dead, "purchase target is dead");
+        if (seller.id == own.id) unsupported("self purchase is not implemented");
+        return models;
+    }
     require(!models.empty(), "play needs items");
-    require(find_card(models.front())->ability != Ability::exchange && find_card(models.front())->ability != Ability::sell, "trade needs its explicit command");
+    require(find_card(models.front())->ability != Ability::exchange && find_card(models.front())->ability != Ability::sell && find_card(models.front())->ability != Ability::buy, "trade needs its explicit command");
     if (find_card(models.front())->ability == Ability::danger) {
         if (has_wide(models)) unsupported("danger with Wide is outside the scoped runtime");
         if (command.target) require(!s.state.players[index(s, *command.target)].dead, "target is dead");
@@ -296,6 +313,51 @@ void finalize_deaths(MatchSnapshot& s) {
         } else { player.dead = true; --alive; }
     }
 }
+const char* purchase_reason_name(PurchaseReason reason) {
+    switch (reason) {
+    case PurchaseReason::bought: return "bought";
+    case PurchaseReason::declined: return "declined";
+    case PurchaseReason::empty: return "empty";
+    case PurchaseReason::insufficient_cp: return "insufficient-cp";
+    case PurchaseReason::cutoff: return "cutoff";
+    }
+    invalid("unknown purchase result");
+}
+void complete_purchase(MatchSnapshot& s, PurchaseReason reason) {
+    const auto offer = *s.purchase;
+    const auto price = find_card(offer.item.model)->price;
+    auto& buyer = s.state.players[index(s, offer.buyer)];
+    auto& seller = s.state.players[index(s, offer.seller)];
+    if (reason == PurchaseReason::bought) {
+        require(buyer.cp >= price, "insufficient purchase CP");
+        if (buyer.items.size() == s.config.hand_limit) unsupported("purchase overflow selection is not implemented");
+        require(s.next_token <= max_wire_integer, "scoped item token exhausted");
+        change_resource(buyer, Resource::cp, -price);
+        change_resource(seller, Resource::cp, price);
+        buyer.items.push_back({s.next_token++,offer.item.model,{},false});
+        const auto seat = index(s, buyer.id);
+        s.gifts[seat] = std::min(s.gifts[seat], static_cast<std::uint32_t>(s.config.hand_limit - buyer.items.size()));
+    } else {
+        require(seller.items.size() < s.config.hand_limit && offer.slot <= seller.items.size(), "purchase return has no reserved slot");
+        seller.items.insert(seller.items.begin() + static_cast<std::ptrdiff_t>(offer.slot), offer.item);
+    }
+    s.last_purchase = PurchaseEvent{offer.origin,offer.buyer,offer.seller,offer.item.model,price,reason};
+    s.purchase.reset();
+    finalize_deaths(s);
+}
+void begin_purchase(MatchSnapshot& s, const EffectFrame& effect) {
+    auto& seller = s.state.players[index(s, effect.target)];
+    std::array<std::size_t, visible_hand_capacity> candidates;
+    std::size_t count = 0;
+    for (std::size_t i = 0; i < seller.items.size(); ++i) if (!seller.items[i].used) candidates[count++] = i;
+    if (!count) { s.last_purchase = PurchaseEvent{effect.origin,effect.source,effect.target,0,0,PurchaseReason::empty}; return; }
+    const auto slot = candidates[bounded(s.rng, count)];
+    s.purchase = PurchaseOffer{effect.origin,effect.source,effect.target,seller.items[slot],slot};
+    seller.items.erase(seller.items.begin() + static_cast<std::ptrdiff_t>(slot));
+    const auto& buyer = s.state.players[index(s, effect.source)];
+    if (buyer.cp < find_card(s.purchase->item.model)->price) complete_purchase(s, PurchaseReason::insufficient_cp);
+    else { s.phase = MatchPhase::purchase; s.actor = effect.source; }
+}
 // Counter generation uses the target damage stage before passive revival,
 // rather than net HP across source healing/self-damage and revival.
 std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t defense) {
@@ -345,6 +407,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             s.last_sale = SaleEvent{effect.origin,effect.source,effect.target,model,effect.amount};
             break;
         }
+        case Ability::buy: begin_purchase(s, effect); break;
         default: unsupported("effect has no scoped resolver");
         }
     }
@@ -437,9 +500,13 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
-    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); }
+    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); }
     bool completed = false;
-    if (s.phase == MatchPhase::response) {
+    if (s.phase == MatchPhase::purchase) {
+        s.batch->responses.push_back(command);
+        complete_purchase(s, command.kind == CommandKind::accept ? PurchaseReason::bought : PurchaseReason::declined);
+        completed = true;
+    } else if (s.phase == MatchPhase::response) {
         s.batch->responses.push_back(command);
         auto& effect = s.queue.front();
         const auto response = apply_response(effect, models);
@@ -453,7 +520,7 @@ void execute(MatchSnapshot& s, const Command& command) {
                 const auto damage = resolve(s, effect, response.defense);
                 reserve_counters(s, effect, command, models, damage);
             }
-            s.queue.clear(); completed = true;
+            s.queue.clear(); completed = !s.purchase;
         }
     } else if (command.kind == CommandKind::discard) {
         consume(s, seat, command.items, true); completed = true;
@@ -524,6 +591,7 @@ void execute(MatchSnapshot& s, const Command& command) {
     const auto natural = outcome(s.state);
     if (natural.terminal) finish(s, natural);
     else if (s.decisions == s.config.max_decisions) {
+        if (s.purchase) complete_purchase(s, PurchaseReason::cutoff);
         s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
     } else if (completed) {
         if (!s.batch || !next_action_effect(s)) advance(s);
@@ -541,7 +609,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     if (s.last_removal) {
-        require(s.decisions > 0 && s.phase != MatchPhase::response && !s.last_danger && !s.last_sale, "invalid removal event boundary");
+        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_sale && !s.last_purchase, "invalid removal event boundary");
         const auto& event = *s.last_removal;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
         require(event.model == 205 || event.model == 206, "invalid removal event model");
@@ -550,10 +618,19 @@ void validate_snapshot(const MatchSnapshot& s) {
             require(match_supported(model) && (event.model != 206 || find_card(model)->category == Category::miracles), "invalid removed model");
     }
     if (s.last_sale) {
-        require(s.decisions > 0 && s.phase != MatchPhase::response && !s.last_danger && !s.last_removal, "invalid sale event boundary");
+        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_removal && !s.last_purchase, "invalid sale event boundary");
         const auto& event = *s.last_sale;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
         require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid sale event commodity or price");
+    }
+    if (s.last_purchase) {
+        require(s.decisions > 0 && s.phase != MatchPhase::response && s.phase != MatchPhase::purchase
+            && !s.last_danger && !s.last_removal && !s.last_sale, "invalid purchase event boundary");
+        const auto& event = *s.last_purchase;
+        (void)index(s, event.origin); (void)index(s, event.buyer); (void)index(s, event.seller);
+        require(event.buyer != event.seller && static_cast<unsigned>(event.reason) <= 4, "invalid purchase result");
+        if (event.reason == PurchaseReason::empty) require(event.model == 0 && event.price == 0, "empty purchase has a commodity");
+        else require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid purchase result price");
     }
     if (s.last_danger) {
         require(s.decisions > 0, "danger event precedes any accepted action");
@@ -574,6 +651,19 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(s.gifts[i] <= s.config.hand_limit && s.state.players[i].items.size() + s.gifts[i] <= s.config.hand_limit, "invalid reserved gifts");
         for (const auto& item : s.state.players[i].items) require(item.token < s.next_token, "next token collides with a live instance");
     }
+    require(s.purchase.has_value() == (s.phase == MatchPhase::purchase), "purchase escrow outside purchase phase");
+    if (s.purchase) {
+        const auto& offer = *s.purchase;
+        (void)index(s, offer.origin);
+        const auto& buyer = s.state.players[index(s, offer.buyer)];
+        const auto& seller = s.state.players[index(s, offer.seller)];
+        require(offer.buyer != offer.seller && !buyer.dead && !seller.dead && s.actor == offer.buyer
+            && !s.last_danger && !s.last_removal && !s.last_sale && !s.last_purchase, "invalid purchase participants");
+        require(match_supported(offer.item.model) && !offer.item.used && !offer.item.fake_model
+            && offer.item.token < s.next_token && !instance(seller, offer.item.token) && offer.slot <= seller.items.size()
+            && seller.items.size() + s.gifts[index(s, offer.seller)] < s.config.hand_limit, "invalid purchase escrow");
+        require(buyer.cp >= find_card(offer.item.model)->price, "unaffordable purchase quote");
+    }
     const auto natural = outcome(s.state);
     if (s.phase == MatchPhase::finished) {
         require(!s.actor && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "finished snapshot has pending work");
@@ -592,7 +682,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(*s.actor == s.owner && s.queue.empty() && !s.batch && s.counters.empty() && std::all_of(s.gifts.begin(), s.gifts.end(), [](auto v) { return !v; }), "main phase has pending work");
         return;
     }
-    require(s.phase == MatchPhase::response && s.queue.size() == 1, "invalid match phase/queue");
+    require((s.phase == MatchPhase::response && s.queue.size() == 1) || (s.phase == MatchPhase::purchase && s.queue.empty()), "invalid match phase/queue");
     {
         require(s.batch.has_value(), "pending effect is missing its launch journal");
         const auto& batch = *s.batch;
@@ -606,7 +696,8 @@ void validate_snapshot(const MatchSnapshot& s) {
             // Up to n*cap physical redirects, n*cap counter completions, and
             // paid Turbulence funded by initial MP plus <=99 per MP counter.
             && batch.responses.size() <= 2 * n * s.config.hand_limit
-                + 99 * n * (s.config.hand_limit + 1) / 5 + batch.targets.size(), "invalid action journal length");
+                + 99 * n * (s.config.hand_limit + 1) / 5 + batch.targets.size()
+                + (batch.attack.kind == CommandKind::buy ? 1 : 0), "invalid action journal length");
         for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
         MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
@@ -619,7 +710,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.revivals = batch.revivals;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
-        require((batch.attack.kind == CommandKind::play || batch.attack.kind == CommandKind::sell) && find_card(batch.models.front()), "action journal has no valid launch");
+        require((batch.attack.kind == CommandKind::play || batch.attack.kind == CommandKind::sell || batch.attack.kind == CommandKind::buy) && find_card(batch.models.front()), "action journal has no valid launch");
         execute(replay, batch.attack);
         for (const auto& response : batch.responses) {
             require(replay.batch.has_value(), "action journal continues after its batch ended");
@@ -636,7 +727,7 @@ bool match_supported(CardId id) noexcept {
     const auto* c = find_card(id);
     const auto curse = c && supported_curse(c->curse)
         && (c->ability == Ability::add_curse_on_damage || c->ability == Ability::counter_curse || c->ability == Ability::add_curse);
-    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles || (c->category == Category::trade && (c->ability == Ability::exchange || c->ability == Ability::sell)))
+    return c && c->gift_rate > 0 && (!c->hit_rate || c->ability == Ability::none || c->ability == Ability::counter_atk || c->ability == Ability::absorb_hp || curse) && (c->category == Category::weapons || c->category == Category::armor || c->category == Category::sundries || c->category == Category::miracles || (c->category == Category::trade && (c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy)))
         && (c->ability == Ability::none || c->ability == Ability::boost_hp || c->ability == Ability::boost_mp || c->ability == Ability::boost_cp
             || c->ability == Ability::reflect_weapon || c->ability == Ability::reflect_miracle || c->ability == Ability::reflect_anything
             || c->ability == Ability::filter_atk_element || c->ability == Ability::block_weapon || c->ability == Ability::block_miracle
@@ -649,7 +740,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
-            || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell);
+            || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -703,6 +794,12 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     auto rng = policy_rng;
     const auto actor = *data_.actor;
     const auto& own = data_.state.players[index(data_, actor)];
+    if (data_.phase == MatchPhase::purchase) {
+        const auto accept = own.items.size() < data_.config.hand_limit && bounded(rng, 2) == 0;
+        Command selected{actor,accept ? CommandKind::accept : CommandKind::decline,{},{}};
+        policy_rng = rng;
+        return selected;
+    }
     struct Proposal { ItemToken first, second; PlayerId target; CommandKind kind; std::uint8_t items; bool has_target; };
     // A miracle and a FREE are disjoint instances: at most floor(H*H/4)
     // initial pairs, each with at most P live targets. Do not value-initialize
@@ -745,6 +842,9 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
             else if (c.ability == Ability::sell) {
                 if (std::any_of(own.items.begin(), own.items.end(), [&](const auto& commodity) { return commodity.token != item.token && !commodity.used; }))
                     add(CommandKind::sell, item.token, {});
+            }
+            else if (c.ability == Ability::buy) {
+                for (const auto& target : data_.state.players) if (!target.dead && target.id != actor) add(CommandKind::buy,item.token,target.id);
             }
             else if (can_start_main(item.model)) {
                 if (c.hit_rate) add_usable(CommandKind::play, item, {});
@@ -816,8 +916,8 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     return selected;
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
-    const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v18\",\"ruleset\":\"";
+    const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
+    std::string out = "{\"schema\":\"official-execution-view-v19\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -835,7 +935,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"danger_rule\":\""; out += danger_rule;
     out += "\",\"exchange_rule\":\""; out += exchange_rule;
     out += "\",\"removal_event_rule\":\""; out += removal_event_rule;
-    out += "\",\"sell_rule\":\""; out += sell_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"sell_rule\":\""; out += sell_rule;
+    out += "\",\"buy_rule\":\""; out += buy_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -867,6 +968,22 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         const auto& event = *data_.last_sale;
         out += "{\"origin\":" + std::to_string(event.origin) + ",\"source\":" + std::to_string(event.source) + ",\"target\":" + std::to_string(event.target)
             + ",\"model\":" + std::to_string(event.model) + ",\"price\":" + std::to_string(event.price) + '}';
+    }
+    out += ",\"purchase\":";
+    if (!data_.purchase) out += "null";
+    else {
+        const auto& offer = *data_.purchase;
+        out += "{\"origin\":" + std::to_string(offer.origin) + ",\"buyer\":" + std::to_string(offer.buyer) + ",\"seller\":" + std::to_string(offer.seller)
+            + ",\"model\":" + std::to_string(offer.item.model) + ",\"price\":" + std::to_string(find_card(offer.item.model)->price) + '}';
+    }
+    out += ",\"last_purchase\":";
+    if (!data_.last_purchase) out += "null";
+    else {
+        const auto& event = *data_.last_purchase;
+        out += "{\"origin\":" + std::to_string(event.origin) + ",\"buyer\":" + std::to_string(event.buyer) + ",\"seller\":" + std::to_string(event.seller)
+            + ",\"model\":" + std::to_string(event.model) + ",\"price\":" + std::to_string(event.price) + ",\"bought\":";
+        out += event.reason == PurchaseReason::bought ? "true" : "false";
+        out += ",\"reason\":\""; out += purchase_reason_name(event.reason); out += "\"}";
     }
     out += ",\"pending\":";
     if (data_.queue.empty()) out += "null";

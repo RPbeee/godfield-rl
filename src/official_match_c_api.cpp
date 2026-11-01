@@ -60,7 +60,7 @@ std::vector<official::PlayerSetup> setup(const gfo_match_player* players, std::s
     return result;
 }
 official::Command command(const gfo_match_command& c) {
-    valid(zero(c.reserved) && zero(c.reserved_tail) && c.kind <= 5 && c.has_target <= 1 && c.has_allocation <= 1
+    valid(zero(c.reserved) && zero(c.reserved_tail) && c.kind <= 8 && c.has_target <= 1 && c.has_allocation <= 1
         && (c.has_allocation || (!c.hp && !c.mp && !c.cp)) && c.item_count <= official::visible_hand_capacity
         && c.actor <= official::max_wire_integer && c.target <= official::max_wire_integer && (c.has_target || !c.target));
     official::Command result; result.actor = c.actor; result.kind = static_cast<official::CommandKind>(c.kind);
@@ -73,7 +73,7 @@ official::Command command(const gfo_match_command& c) {
     return result;
 }
 gfo_match_command encode(const official::Command& c) {
-    valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 5
+    valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
         && c.actor <= official::max_wire_integer && (!c.target || *c.target <= official::max_wire_integer));
     if (c.allocation) valid(c.allocation->hp >= 0 && c.allocation->hp <= 99 && c.allocation->mp >= 0 && c.allocation->mp <= 99

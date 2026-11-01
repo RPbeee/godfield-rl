@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v20";
-inline constexpr const char* match_scope = "experimental:215-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v21";
+inline constexpr const char* match_scope = "experimental:216-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -28,7 +28,8 @@ inline constexpr const char* danger_rule = "experimental:launch-once;first-alive
 inline constexpr const char* exchange_rule = "experimental:single-owned-exchange;targetless-self;three-resources-0-99;sum-conserved-before-revival;zero-mp-fee;no-response;one-deferred-gift;death-and-revival-before-gift";
 inline constexpr const char* removal_event_rule = "experimental:resolved-body-only;public-removed-models-in-draw-order;duplicates-and-empty-preserved;clear-on-next-accepted-main;no-tokens-or-rng";
 inline constexpr const char* sell_rule = "experimental:one-unused-commodity;explicit-alive-target;zero-mp-fee;one-operation-gift;foreign-response-and-reflection;buyer-debit-before-current-source-credit;fresh-token-delivery-before-death;full-recipient-unsupported";
-inline constexpr std::uint32_t match_snapshot_version = 20;
+inline constexpr const char* buy_rule = "experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-accept-unsupported";
+inline constexpr std::uint32_t match_snapshot_version = 21;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -43,8 +44,8 @@ struct PlayerSetup {
     Team team = Team::solo;
     std::string name;
 };
-enum class MatchPhase : std::uint8_t { main, response, finished };
-enum class CommandKind : std::uint8_t { play, defend, discard, pray, exchange, sell };
+enum class MatchPhase : std::uint8_t { main, response, finished, purchase };
+enum class CommandKind : std::uint8_t { play, defend, discard, pray, exchange, sell, buy, accept, decline };
 struct ResourceAllocation {
     std::int32_t hp = 0, mp = 0, cp = 0;
     bool operator==(const ResourceAllocation&) const = default;
@@ -120,6 +121,20 @@ struct SaleEvent {
     int price = 0;
     bool operator==(const SaleEvent&) const = default;
 };
+struct PurchaseOffer {
+    PlayerId origin = 0, buyer = 0, seller = 0;
+    ItemInstance item;
+    std::size_t slot = 0; // Privileged original inventory position, never part of a policy view.
+    bool operator==(const PurchaseOffer&) const = default;
+};
+enum class PurchaseReason : std::uint8_t { bought, declined, empty, insufficient_cp, cutoff };
+struct PurchaseEvent {
+    PlayerId origin = 0, buyer = 0, seller = 0;
+    CardId model = 0;
+    int price = 0;
+    PurchaseReason reason = PurchaseReason::empty;
+    bool operator==(const PurchaseEvent&) const = default;
+};
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
     MatchConfig config;
@@ -139,6 +154,8 @@ struct MatchSnapshot {
     std::optional<DangerEvent> last_danger; // Current main action's public launch result, without physical tokens.
     std::optional<RemovalEvent> last_removal; // Current main action's resolved removal, including an empty result.
     std::optional<SaleEvent> last_sale; // Resolved commodity and price, without its new physical token.
+    std::optional<PurchaseOffer> purchase; // Privileged escrow, anchored by the complete action journal.
+    std::optional<PurchaseEvent> last_purchase;
     bool terminated = false, truncated = false;
     std::vector<double> rewards; // Fixed player vector order, never actor-relative.
     std::vector<PlayerId> winners;

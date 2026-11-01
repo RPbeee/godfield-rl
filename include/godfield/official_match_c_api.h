@@ -22,7 +22,7 @@ typedef struct gfo_match_player {
 } gfo_match_player;
 typedef struct gfo_match_command {
     uint64_t actor, target;
-    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3/exchange4/sell5
+    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3/exchange4/sell5/buy6/accept7/decline8
     uint64_t items[18]; // Own physical tokens, unused tail must be0. Token0 valid.
     int32_t hp, mp, cp; // Allocation for exchange only; otherwise all0.
     uint8_t has_allocation, reserved_tail[3]; // Required for exchange, forbidden otherwise.
@@ -32,7 +32,7 @@ typedef struct gfo_match_status {
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
     double rewards[9];
     uint64_t winners[9];
-    uint8_t player_count, winner_count, phase, has_actor, terminated, truncated, reserved[2];
+    uint8_t player_count, winner_count, phase, has_actor, terminated, truncated, reserved[2]; // main0/response1/finished2/purchase3
 } gfo_match_status;
 
 int gfo_match_abi_version(void);

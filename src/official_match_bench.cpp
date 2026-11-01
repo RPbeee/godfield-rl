@@ -47,6 +47,8 @@ struct Stats {
     std::uint64_t danger_plays = 0, danger_mortar_plays = 0, danger_self_targets = 0, danger_ally_targets = 0;
     std::uint64_t exchange_plays = 0, zero_hp_exchanges = 0, exchanged_resource_total = 0;
     std::uint64_t sell_plays = 0, sell_resolved = 0, sell_nominal_cp = 0, sold_miracles = 0;
+    std::uint64_t buy_plays = 0, buy_quotes = 0, purchase_commands = 0, bought = 0, declined = 0;
+    std::uint64_t buy_empty = 0, buy_insufficient_cp = 0, buy_cutoff = 0, buy_nominal_cp = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -82,6 +84,9 @@ struct Stats {
         danger_self_targets += s.danger_self_targets; danger_ally_targets += s.danger_ally_targets;
         exchange_plays += s.exchange_plays; zero_hp_exchanges += s.zero_hp_exchanges; exchanged_resource_total += s.exchanged_resource_total;
         sell_plays += s.sell_plays; sell_resolved += s.sell_resolved; sell_nominal_cp += s.sell_nominal_cp; sold_miracles += s.sold_miracles;
+        buy_plays += s.buy_plays; buy_quotes += s.buy_quotes; purchase_commands += s.purchase_commands;
+        bought += s.bought; declined += s.declined; buy_empty += s.buy_empty; buy_insufficient_cp += s.buy_insufficient_cp;
+        buy_cutoff += s.buy_cutoff; buy_nominal_cp += s.buy_nominal_cp;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -138,10 +143,16 @@ int main(int argc, char** argv) {
                         bool response_redirected = false;
                         std::int64_t response_defense = 0;
                         auto incoming_element = before.queue.empty() ? Attribute{} : before.queue.front().element;
-                        if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
+                        if (before.phase == MatchPhase::main) ++stats.main;
+                        else if (before.phase == MatchPhase::purchase) ++stats.purchase_commands;
+                        else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
                         const auto& own = *find_player(before.state, command.actor);
                         if (command.kind == CommandKind::sell) { ++stats.sell_plays; ++stats.physical; }
+                        if (command.kind == CommandKind::buy) { ++stats.buy_plays; ++stats.physical; }
+                        const auto had_purchase = before.purchase.has_value();
+                        const auto buy_result_possible = before.phase == MatchPhase::purchase
+                            || (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty() && before.queue.front().ability == Ability::buy);
                         const auto sale_resolves = (command.kind == CommandKind::sell && command.target == command.actor)
                             || (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty() && before.queue.front().ability == Ability::sell);
                         if (command.kind == CommandKind::exchange) {
@@ -261,6 +272,17 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        if (!had_purchase && match.snapshot().purchase) ++stats.buy_quotes;
+                        if (buy_result_possible && match.snapshot().last_purchase) {
+                            const auto& event = *match.snapshot().last_purchase;
+                            switch (event.reason) {
+                            case PurchaseReason::bought: ++stats.bought; stats.buy_nominal_cp += event.price; break;
+                            case PurchaseReason::declined: ++stats.declined; break;
+                            case PurchaseReason::empty: ++stats.buy_empty; break;
+                            case PurchaseReason::insufficient_cp: ++stats.buy_insufficient_cp; break;
+                            case PurchaseReason::cutoff: ++stats.buy_cutoff; break;
+                            }
+                        }
                         if (sale_resolves) {
                             if (!match.snapshot().last_sale) throw std::logic_error("resolved sale has no public result");
                             const auto& event = *match.snapshot().last_sale;
@@ -342,7 +364,7 @@ int main(int argc, char** argv) {
         for (const auto& error : errors) if (error) std::rethrow_exception(error);
         Stats stats; for (const auto& local : results) stats.append(local);
         std::uint64_t wins = 0; for (auto value : stats.wins) wins += value;
-        if (stats.games != games || stats.main + stats.responses != stats.decisions || wins + stats.draws + stats.truncations != games)
+        if (stats.games != games || stats.main + stats.responses + stats.purchase_commands != stats.decisions || wins + stats.draws + stats.truncations != games)
             throw std::logic_error("inconsistent scoped benchmark accounting");
         if (stats.random_hp_heals + stats.random_hp_damages != stats.random_hp_resolved || stats.random_hp_resolved > stats.random_hp_plays
             || stats.random_hp_gained > 10 * stats.random_hp_heals || stats.random_hp_lost > 10 * stats.random_hp_damages)
@@ -352,6 +374,9 @@ int main(int argc, char** argv) {
             throw std::logic_error("inconsistent removal event accounting");
         if (stats.sell_resolved > stats.sell_plays || stats.sold_miracles > stats.sell_resolved)
             throw std::logic_error("inconsistent sale accounting");
+        if (stats.bought + stats.declined != stats.purchase_commands || stats.purchase_commands > stats.buy_quotes
+            || stats.buy_quotes > stats.buy_plays || stats.bought + stats.declined + stats.buy_empty + stats.buy_insufficient_cp + stats.buy_cutoff > stats.buy_plays)
+            throw std::logic_error("inconsistent purchase accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -372,6 +397,7 @@ int main(int argc, char** argv) {
             << "\nexchange_rule=" << exchange_rule
             << "\nremoval_event_rule=" << removal_event_rule
             << "\nsell_rule=" << sell_rule
+            << "\nbuy_rule=" << buy_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -412,6 +438,9 @@ int main(int argc, char** argv) {
             << "\nexchanged_resource_total=" << stats.exchanged_resource_total
             << "\nsell_plays=" << stats.sell_plays << "\nsell_resolved=" << stats.sell_resolved
             << "\nsell_nominal_cp=" << stats.sell_nominal_cp << "\nsold_miracles=" << stats.sold_miracles
+            << "\nbuy_plays=" << stats.buy_plays << "\nbuy_quotes=" << stats.buy_quotes << "\npurchase_commands=" << stats.purchase_commands
+            << "\nbought=" << stats.bought << "\ndeclined=" << stats.declined << "\nbuy_empty=" << stats.buy_empty
+            << "\nbuy_insufficient_cp=" << stats.buy_insufficient_cp << "\nbuy_cutoff=" << stats.buy_cutoff << "\nbuy_nominal_cp=" << stats.buy_nominal_cp
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }
