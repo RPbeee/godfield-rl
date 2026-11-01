@@ -89,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 409>& gift_tickets() {
+const std::array<CardId, 411>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 409> values{};
+        std::array<CardId, 411> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 409>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 206) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 208) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -189,11 +189,14 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     require(magic_cost(models) <= own.mp, "insufficient main MP");
     return models;
 }
-EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target, const std::vector<ItemToken>& tokens) {
+EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target,
+                      const std::vector<ItemToken>& tokens, std::int64_t launch_mp) {
     const auto& base = *find_card(models.front());
     const auto amount = base.ability == Ability::remove_items ? 3
         : base.ability == Ability::remove_used_miracles ? 2 : base.ability_value;
-    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), attack_power(models), base.ability, amount, target, s.rng, {}, base.hit_rate};
+    const auto power = base.ability == Ability::atk_by2x_mp
+        ? attack_power(models, 2 * (launch_mp - magic_cost(models))) : attack_power(models);
+    return {s.owner, s.owner, target, models, tokens, base.category, attack_element(models), power, base.ability, amount, target, s.rng, {}, base.hit_rate};
 }
 PlayerId sample_bounce_target(const MatchSnapshot& s, std::uint64_t& rng) {
     std::array<PlayerId, player_capacity> alive;
@@ -331,7 +334,10 @@ bool next_action_effect(MatchSnapshot& s) {
             if (bounded(s.rng, 100) >= static_cast<std::uint64_t>(rate)) continue;
             ++s.chance_hits;
         }
-        s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items));
+        // Original payloads use the launch anchor, never a source's later MP
+        // or a previous hit's redirected/filtered frame.
+        s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items,
+                                    find_player(batch.initial_state, batch.owner)->mp));
         s.queue.back().forced_hit = forced;
         s.actor = target; s.phase = MatchPhase::response;
         return true;
@@ -387,7 +393,8 @@ void execute(MatchSnapshot& s, const Command& command) {
     } else if (command.kind == CommandKind::pray) {
         request_gift(s, seat); completed = true;
     } else {
-        const auto original = effect_for(s, models, command.target.value_or(s.owner), command.items);
+        const auto original = effect_for(s, models, command.target.value_or(s.owner), command.items, s.state.players[seat].mp);
+        const auto play_cost = original.ability == Ability::atk_by2x_mp ? s.state.players[seat].mp : magic_cost(models);
         if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
             ActionBatch batch;
             batch.initial_state = s.state; batch.owner = s.owner; batch.rng = s.rng;
@@ -398,11 +405,12 @@ void execute(MatchSnapshot& s, const Command& command) {
             batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
             batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
             batch.targets = batch.chance ? chance_targets(s) : std::vector<PlayerId>{*command.target};
+            if (original.ability == Ability::attack_twice) batch.targets.push_back(*command.target);
             s.batch = std::move(batch);
-            change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
+            change_resource(s.state.players[seat], Resource::mp, -play_cost); consume(s, seat, command.items, false);
             completed = !next_action_effect(s);
         } else {
-            change_resource(s.state.players[seat], Resource::mp, -magic_cost(models)); consume(s, seat, command.items, false);
+            change_resource(s.state.players[seat], Resource::mp, -play_cost); consume(s, seat, command.items, false);
             resolve(s, original, 0); completed = true;
         }
     }
@@ -501,7 +509,8 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
-            || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles);
+            || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
+            || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -641,7 +650,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v10\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v11\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -650,7 +659,9 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"damage_effect_rule\":\""; out += damage_effect_rule;
     out += "\",\"flash_rule\":\""; out += flash_rule;
     out += "\",\"darkcloud_rule\":\""; out += darkcloud_rule;
-    out += "\",\"removal_rule\":\""; out += removal_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"removal_rule\":\""; out += removal_rule;
+    out += "\",\"mana_weapon_rule\":\""; out += mana_weapon_rule;
+    out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

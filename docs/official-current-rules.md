@@ -58,7 +58,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。現行の[限定実行器v12](official-execution-subset.md)は除去2種を加えた206モデル/重み409。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。現行の[限定実行器v13](official-execution-subset.md)はMP武器58と二回攻撃14を加えた208モデル/重み411。閃光/暗雲以外の災いcounterや233/234以外の反応奇跡等を含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -181,6 +181,21 @@ pending.amount=3/2は実除去数でなく上限。除去gift0でも使用品/19
 `texts.curseDescriptions` の継続量は風邪1、熱病2、地獄病5の被害、天国病5の回復。天国病の悪化はHP0と説明される。閃光は防御時の使用神器が1つに制限される。クライアント `ev`（9478–9481行）は閃光がある応答で2枚目の選択を拒否する。これは旧bot由来の制限しかなかった状態より強い現行一次根拠である。
 
 暗雲はja.jsonでは「全体攻撃」、en.jsonでは `%ATK` の受け手が必中になる説明である。文言だけから追加魔法WIDEに限定してはならない。JSの `hit` イベント処理（10934–10948行）は対象の暗雲を参照し、命中演出を分ける。命中を決めるサーバー抽選や、必中時に乱数を消費するかはこの表示処理から確定しない。
+
+## MP武器と二回攻撃：公開計算とv13規約
+
+58マジカルステッキは無属性weapon・基礎ATK0・atkBy2xMP・価格10/giftRate1、14のこぶんぶんは無属性weapon・ATK3・attackTwice・価格10/giftRate1。どちらもisPlusAtkを持たず追加品としては使わない。v13は計208モデル/重み411（97/74/13/24）となる。
+
+JSのpreview `dt`（9544–9557行）は完成モデル列の `la` 費用を自己MPから引き、`2*max(0,MP−cost)` を `aR` の基底overrideへ渡す。`dA.iJ`→`tw`（12280行付近/3971行付近）が後続boost・Auraを順適用し、FREEは攻撃威力/属性から除く。useAttackItems（10736–10749行）も完成列の費用を先に減算し、残MP×2で `bF/kn`（11774行付近）を再表示してMP表示を0にする。旧Flash MAGICALの「各有料MC後に途中威力reset」とは異なる。
+
+例えばMP10で58→boost3→有料Aura6なら基底8から22、58→Aura6→boost3なら19。58→Aura→FREEなら費用0・基底20から40。MP0でもweapon categoryなので `gf3` はattackと判定し、boost3を加えれば威力3になる。MCを追加してもweapon categoryを保ち、現在属性に応じた物理反応の対象となる。反射表示は元aggregateの動的overrideを保つが、権威的serverの全会計を証明するものではない。
+
+v13はlaunch時の元MPを費用込みで一度だけ全支払いし、完成列費用後の残MPをimmutableな基底にする。redirectや後続MP counterで再計算しない。`mana_weapon_rule` は `experimental:base-2x-mp-after-composed-miracle-cost;ordered-boosts;consume-all-mp-once-at-launch;redirects-no-repayment`。
+
+14はJA「二回攻撃する」/EN “Attack twice” までが説明上の根拠で、公開JSのnextAttackは受信attackを表示するだけで二発の権威的scheduleを計算しない。固定旧Flashのturn/AttackData/全364行にも同対象2hitのrepeat処理は見つからず、DOUBLE_ATKは威力倍化なので代用根拠にならない。
+v13は同じ指定targetへ原発payloadをfreshに二度作り、消費・MPは一度、counter FIFOを次hitより先、dead target skip・origin死亡で残り取消、自然終局/cutoff優先、補充は全action後とする**実験規約**を採る。filter/redirectは当該hitだけで、6damage一括ではない。`repeat_attack_rule` は `experimental:two-fresh-payloads-to-same-target;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action`。新RNG/MP増加源は無く、Snapshot13/view-v11/C ABI1で公開する。
+
+v13最終source/test freeze後の全Release CTest129件/20.39秒・ASan/UBSan89件/51.58秒、focused Release3件/0.94秒・SAN2件/1.52秒が通過した。Python25ケース・native零引数37関数main明示登録、最終2build/前段3ログwarning/error0、公式assetsのfresh hash/296 facts一致を確認。1/4 workersとRelease/SAN各1,000試合の全決定的fieldも一致した。独立速度と集計は[限定実行器v13記録](official-execution-subset.md#v13の検証と集計)へ分け、公式server同等性や版間速度改善率の証拠とはしない。
 
 ## 霧：何が見えなくなるか
 
