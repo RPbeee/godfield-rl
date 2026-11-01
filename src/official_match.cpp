@@ -89,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 411>& gift_tickets() {
+const std::array<CardId, 412>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 411> values{};
+        std::array<CardId, 412> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 411>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 208) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 209) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -126,7 +126,10 @@ void consume(MatchSnapshot& s, std::size_t seat, const std::vector<ItemToken>& t
     }
 }
 bool damaging(const EffectFrame& effect) { return effect.power > 0 || effect.category == Category::weapons; }
-std::vector<PlayerId> chance_targets(const MatchSnapshot& s) {
+bool has_wide(std::span<const CardId> models) {
+    return std::any_of(models.begin(), models.end(), [](auto model) { return find_card(model)->ability == Ability::attack_every_enemy; });
+}
+std::vector<PlayerId> enemy_targets(const MatchSnapshot& s) {
     const auto& owner = s.state.players[index(s, s.owner)];
     std::vector<PlayerId> targets;
     for (const auto& player : s.state.players) if (!player.dead && player.id != owner.id
@@ -176,7 +179,10 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
     }
     require(!models.empty(), "play needs items");
     if (find_card(models.front())->hit_rate) {
-        require(!command.target && !chance_targets(s).empty(), "chance play needs no target and at least one alive enemy");
+        require(!command.target && !enemy_targets(s).empty(), "chance play needs no target and at least one alive enemy");
+    } else if (has_wide(models)) {
+        require(!enemy_targets(s).empty(), "wide play needs at least one alive enemy");
+        if (command.target) require(!s.state.players[index(s, *command.target)].dead, "target is dead");
     } else {
         require(command.target.has_value(), "play needs explicit target");
         require(!s.state.players[index(s, *command.target)].dead, "target is dead");
@@ -404,8 +410,11 @@ void execute(MatchSnapshot& s, const Command& command) {
             batch.counter_rolls = s.counter_rolls; batch.counter_hits = s.counter_hits;
             batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
             batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
-            batch.targets = batch.chance ? chance_targets(s) : std::vector<PlayerId>{*command.target};
-            if (original.ability == Ability::attack_twice) batch.targets.push_back(*command.target);
+            batch.targets = batch.chance || has_wide(models) ? enemy_targets(s) : std::vector<PlayerId>{*command.target};
+            if (original.ability == Ability::attack_twice) {
+                const auto first_pass = batch.targets;
+                batch.targets.insert(batch.targets.end(), first_pass.begin(), first_pass.end());
+            }
             s.batch = std::move(batch);
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume(s, seat, command.items, false);
             completed = !next_action_effect(s);
@@ -463,7 +472,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& batch = *s.batch;
         require(batch.owner == s.owner && batch.initial_state.players.size() == n && !batch.models.empty()
             && batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()
-            && batch.targets.size() <= n && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid action batch shape");
+            && batch.targets.size() <= 2 * (n - 1) && batch.cursor > 0 && batch.cursor <= batch.targets.size(), "invalid action batch shape");
         require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
             && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
         require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
@@ -510,7 +519,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
-            || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice);
+            || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -644,13 +653,16 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
             selected.items.push_back(extra.token); prefix.push_back(visible); spent = next_spent;
             if (discount) { selected.items.push_back(discount->token); prefix.push_back({discount->model, discount->used}); }
         }
+        if (selected.kind == CommandKind::play && std::any_of(prefix.begin(), prefix.end(), [](const auto& item) {
+            return find_card(item.model)->ability == Ability::attack_every_enemy;
+        })) selected.target.reset();
     }
     policy_rng = rng;
     return selected;
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v11\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v12\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -661,7 +673,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"darkcloud_rule\":\""; out += darkcloud_rule;
     out += "\",\"removal_rule\":\""; out += removal_rule;
     out += "\",\"mana_weapon_rule\":\""; out += mana_weapon_rule;
-    out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule;
+    out += "\",\"wide_attack_rule\":\""; out += wide_attack_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

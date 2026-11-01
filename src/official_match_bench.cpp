@@ -39,6 +39,7 @@ struct Stats {
     std::uint64_t hand_removal_resolved = 0, hand_items_removed = 0, used_removal_resolved = 0, used_miracles_removed = 0;
     std::uint64_t mana_weapon_plays = 0, mana_mp_spent = 0, mana_base_mp = 0;
     std::uint64_t repeat_weapon_plays = 0, repeat_frames_completed = 0;
+    std::uint64_t wide_plays = 0, wide_frames_completed = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -64,6 +65,7 @@ struct Stats {
         used_removal_resolved += s.used_removal_resolved; used_miracles_removed += s.used_miracles_removed;
         mana_weapon_plays += s.mana_weapon_plays; mana_mp_spent += s.mana_mp_spent; mana_base_mp += s.mana_base_mp;
         repeat_weapon_plays += s.repeat_weapon_plays; repeat_frames_completed += s.repeat_frames_completed;
+        wide_plays += s.wide_plays; wide_frames_completed += s.wide_frames_completed;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -155,9 +157,11 @@ int main(int argc, char** argv) {
                             if (card.atk > 0 || card.category == Category::weapons) ++stats.self_attacks;
                         }
                         int preceding_miracle_cost = 0;
+                        bool wide_play = false;
                         if (command.kind == CommandKind::play || command.kind == CommandKind::defend) for (auto token : command.items) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
                             const auto& card = *find_card(item->model);
+                            if (command.kind == CommandKind::play && card.ability == Ability::attack_every_enemy) wide_play = true;
                             if (command.kind == CommandKind::play && token == command.items.front()) {
                                 if (card.ability == Ability::attack_twice) ++stats.repeat_weapon_plays;
                                 if (card.ability == Ability::atk_by2x_mp) {
@@ -199,8 +203,13 @@ int main(int argc, char** argv) {
                                 }
                             }
                         }
+                        if (wide_play) ++stats.wide_plays;
                         if (command.kind == CommandKind::defend && !response_redirected
                             && before.queue.front().ability == Ability::attack_twice) ++stats.repeat_frames_completed;
+                        if (command.kind == CommandKind::defend && !response_redirected && !before.queue.front().is_counter
+                            && std::any_of(before.queue.front().models.begin(), before.queue.front().models.end(), [](auto model) {
+                                return find_card(model)->ability == Ability::attack_every_enemy;
+                            })) ++stats.wide_frames_completed;
                         if (command.kind == CommandKind::defend && !response_stops_payload && incoming_element != Element::darkness) {
                             const auto& effect = before.queue.front();
                             const auto remaining = std::max<std::int64_t>(0, effect.power - response_defense);
@@ -270,6 +279,7 @@ int main(int argc, char** argv) {
             << "\nremoval_rule=" << removal_rule
             << "\nmana_weapon_rule=" << mana_weapon_rule
             << "\nrepeat_attack_rule=" << repeat_attack_rule
+            << "\nwide_attack_rule=" << wide_attack_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -297,6 +307,7 @@ int main(int argc, char** argv) {
             << "\nused_removal_resolved=" << stats.used_removal_resolved << "\nused_miracles_removed=" << stats.used_miracles_removed
             << "\nmana_weapon_plays=" << stats.mana_weapon_plays << "\nmana_mp_spent=" << stats.mana_mp_spent << "\nmana_base_mp=" << stats.mana_base_mp
             << "\nrepeat_weapon_plays=" << stats.repeat_weapon_plays << "\nrepeat_frames_completed=" << stats.repeat_frames_completed
+            << "\nwide_plays=" << stats.wide_plays << "\nwide_frames_completed=" << stats.wide_frames_completed
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

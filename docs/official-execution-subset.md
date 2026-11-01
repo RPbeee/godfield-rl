@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v13
+# 現行公式データによる限定実行器 v14
 
-この実行器の `official-execution-subset-v13` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:208-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v14` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:209-models;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
-v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。末尾のv1〜v12計測・検証記録は各版の歴史的な証拠として残し、v13の速度や一致結果へ読み替えない。
+v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。末尾のv1〜v13計測・検証記録は各版の歴史的な証拠として残し、v14の速度や一致結果へ読み替えない。
 
 一次根拠があるものと、動かすためにこの実行器が定義する規約を分ける。
 
@@ -17,7 +17,7 @@ v1は132モデル/重み308、v2は物理反射6種と属性消去189を加え�
 
 ## 対象モデルと拒否する機能
 
-[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv13の対象を定義する。対象は208モデル、正のgiftRateの合計411。category別はweapons97/armor74/sundries13/miracles24。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
+[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv14の対象を定義する。対象は209モデル、正のgiftRateの合計412。category別はweapons97/armor74/sundries13/miracles25。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
 
 v1の基礎集合は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかという条件である。固定済みの現行台帳に対するこの基礎条件が132モデル/重み308を作り、v2はさらに後述7モデルを加える。属性は省略属性を含む全7種類を扱う。確率攻撃は後述v6の21種とv9の吸収98とv10の閃光224に限り、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
 
@@ -128,6 +128,8 @@ v12は205夜空のホウキ（nocturnal-broom/removeItems）と206女神の石�
 
 v13は58マジカルステッキ（NE武器/基礎ATK0/atkBy2xMP/価格10/giftRate1）と14のこぶんぶん（NE武器/ATK3/attackTwice/価格10/giftRate1）を加える。どちらも追加ATK roleを持たない。
 
+v14は232＜蜃気楼＞（miracles/NE/ATK0/isPlusAtk/attackEveryEnemy/MP5/giftRate1）を加える。単独で使わず、必中weapon列への追加だけを扱う。
+
 全プレイヤーのraw手札を含め、実行状態に未対応モデル、fake、閃光/暗雲以外の災い、守護神、混乱、終末設定等があれば拒否する。本人に見えない他者の未対応カードでも、この実行器が将来通常品へ誤変換して進めることはない。`MatchError` の `unsupported` と、不正な入力を示す `invalid` は区別する。
 
 霧・夢・病気・守護神・閃光/暗雲以外の災い反撃・233/234以外の反応奇跡・取引・終末等を、台帳にあるという理由だけで実行可能とはしない。`official_state` のread-onlyな9人状態表示が扱う範囲と、この部分実行器が受理する局面は別である。
@@ -152,7 +154,7 @@ resetでは先頭プレイヤーをowner、GFを1にし、入力プレイヤー�
 
 `Command` はactor、kind、順序付きの本人instance token列、任意の明示targetを持つ。modelIdを物理tokenの代わりに使わない。同じモデルの別コピーと、同じtokenの重複を区別する。kindは `play`、`defend`、`discard`、`pray`。
 
-通常のplayは生存targetを明示する。v6の確率攻撃playだけはtarget無しに限定する。owner/actor/phaseと本人の所有品を検査する。表示モデルの選択・MP・category制約には公開クライアント由来の関数を使う。既存 `official_state` のappend照会だけで済ませず、実行器の現在phaseも検証する。
+通常のplayは生存targetを明示する。確率攻撃playはtarget無しに限定し、v14の232を含むweapon列はtarget無し/任意の既知alive targetを受理して指定をrosterに反映しない。owner/actor/phaseと本人の所有品を検査する。表示モデルの選択・MP・category制約には公開クライアント由来の関数を使う。既存 `official_state` のappend照会だけで済ませず、実行器の現在phaseも検証する。
 
 通常の武器やATK奇跡は、自己対象でも解決待ちのeffectとresponse phaseを作る。確率攻撃では各生存敵への命中を先に抽選し、hitした対象にだけresponseを作る。応答者はそのtargetであり、ownerとactorが同じ人でもphaseを分離する。普通防御では適合する品の選択順・合成と所有権を検証する。v2から物理反射と属性消去、v3から遮断、v5から跳ね返しを扱う。旧版の自己攻撃時の応答省略を暗黙に流用しない。
 
@@ -160,7 +162,7 @@ HP/MP/CPを増やす品は、自己対象なら即時解決する。他人を対
 
 prayは本人の手札に武器がなく、補充を受ける空きがあるときだけ許可する。discardは対象の制限を検査して捨て、補充予定を付けない。旧Flashの「捨て枚数に応じた配布」を公式ルールとして移さない。
 
-discardのitemsは擬似モデル「捨てる」自身を含めず、捨てる実instanceを1個以上列挙する。discard/pray/defendはtarget無し、prayはitemsも空である。自分、味方、敵のいずれであっても、通常playは生存targetを明示する。確率攻撃playにはtargetを付けず、明示target付きのaliasは拒否する。対象の敵味方による別制限をサーバーから検証した主張ではない。
+discardのitemsは擬似モデル「捨てる」自身を含めず、捨てる実instanceを1個以上列挙する。discard/pray/defendはtarget無し、prayはitemsも空である。自分、味方、敵のいずれであっても、通常playは生存targetを明示する。確率攻撃playにはtargetを付けず、明示target付きのaliasは拒否する。232を含むweapon列だけは前述の任意target規約を使う。対象の敵味方による別制限をサーバーから検証した主張ではない。
 
 ## 消費・奇跡保持・補充
 
@@ -450,15 +452,37 @@ MP10で58→boost3→有料Aura6なら基底8から22、Aura→boost3なら19。
 
 58は完成列MC費用差引後の残MP×2を基底overrideとしてから、順序付きboost/Auraを適用する。launchで元MP全額を一度だけ払い（MC費用と残MP burnの合計）、MP0も合法。原発MPはbatch.initial_stateのownerMPへ固定し、redirectや後続counter MP回復、現在sourceの変化によって再計算・再課金しない。元payloadのcategory/属性と既存反応規則は維持する。
 
-14は明示指定targetへ `targets={target,target}` として二つのfresh payloadを作る。モデル列・元威力・属性は各hitとも原発から構築し、hit1のfilter/redirectはhit2へ引き継がない。消費/MC支払い/原発の補充予約は一度だけ。各hitは独立responseを持ち、6damageの一括処理へ置換しない。counter FIFOを次hitより先に進め、dead targetならskip、origin死亡なら未開始hitを取消す一方、既予約の生存counterは従来どおり続ける。自然終局→受理command末尾cutoffを優先し、全actionが未終局・未打切りで完了した後だけaliveへ補充して次ownerへ進む。
+14単体は明示指定targetへ `targets={target,target}` として二つのfresh payloadを作る。モデル列・元威力・属性は各hitとも原発から構築し、hit1のfilter/redirectはhit2へ引き継がない。消費/MC支払い/原発の補充予約は一度だけ。各hitは独立responseを持ち、6damageの一括処理へ置換しない。counter FIFOを次hitより先に進め、dead targetならskip、origin死亡なら未開始hitを取消す一方、既予約の生存counterは従来どおり続ける。自然終局→受理command末尾cutoffを優先し、全actionが未終局・未打切りで完了した後だけaliveへ補充して次ownerへ進む。
 
 公開 `mana_weapon_rule` は `experimental:base-2x-mp-after-composed-miracle-cost;ordered-boosts;consume-all-mp-once-at-launch;redirects-no-repayment`、`repeat_attack_rule` は `experimental:two-fresh-payloads-to-same-target;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action`。二回という説明とクライアント算術以外のscheduleは公式server未検証の実験規約である。新RNGとMP増加源は無く、既存response boundのtargets.size()に14の2件を含めて全journal replayを行う。2件は同じtargetでも別の初期frameであり、rosterを集合としてdedupしない。
 
 ベンチの `mana_weapon_plays` は58の主動作数、`mana_mp_spent` はMC費用込みの全支払いMP、`mana_base_mp` は完成列MC費用後の残MP合計。`repeat_weapon_plays` は14の主動作数、`repeat_frames_completed` は各hitがredirect以外で終端応答を完了した数で、block/完全防御0も含む。未完了cutoffや次hit前のcounter死亡等では2未満になり、被害hit数とは異なる。`self_attacks` は自己宛攻撃の主動作数なので14でも1、ATK0の58もweaponとして含む。新しいpublic累計counterや特権schema fieldは追加しない。
 
+## v14の全敵化と二巡攻撃
+
+### 一次資料で確認できる部分
+
+232＜蜃気楼＞/MirageはJA/ENで全敵への攻撃と説明される。JSONはmiracles/isPlusAtk/attackEveryEnemy/cost5/giftRate1、欠損するatk/hitRate/element/priceは0/0/NE/0。`gkN`（13024行付近）はATK0のisPlusAtk奇跡の単独開始を拒否し、`ev`（9478行付近）は基底がweaponかつhitRate0の追加を許す。他の奇跡基底/確率武器には追加しない。
+
+`tw/l9/la`（3971–4007行）は232を通常ATK+0/NE合成として扱う。有色→232でNE、232→後続setterなら再着色する。各232の直後FREEだけがその費用を免除し、先頭FREEが後続232を自動無料化しない。別copyごとにMP/保持を数え、同commandで同tokenを重複選択する契約は追加しない。
+
+`ip`（9520行付近）の `glk` による対象自動選択は先頭1品時だけで、232を追加してもtargetを消す分岐は無い。submit（9639行付近）はtargetがあればtargetPlayerIdを送信する。受信setTargetPlayer（10910行付近）の `A.kr` は232の存在を調べ、霧の演出分岐から除く。候補列やserver抽選を生成する関数ではない。alive敵の表示集合を作る `dR/ce` の存在も、serverでの順序・対象入力受理の証明にはしない。
+
+### 明示する実験規約
+
+232を含む完成weapon列はtarget無し、または既知aliveの任意target指定を受理する。指定は表示用anchorとして扱い、展開roster/順序を変えない。自己/味方を指定しても、その人を初期rosterへ追加しない。unknown/dead targetは拒否し、samplerはcanonicalなtarget無しを出す。この受理範囲をserver検証済みとは主張しない。
+
+launch時alive敵を入力seat順に一度固定し、自己・同非Soloチームを除く。hitRate0の保証攻撃として各生存targetへresponseを作り、chance draw/暗雲forced累計を増やさない。旧Flash WIDEの100%化・毎対象の命中drawを流用しない。14が無ければrosterを一巡、14+232なら全roster二巡（A,B,A,B）とし、A,A,B,Bへ入れ替えない。複数232は対象拡大について冪等で、三巡目等を作らない。
+
+原発消費・MC費用/used保持・補充予約は一度だけ。232各copyの費用/保持は別に処理し、直後FREEのみ免除する。58は完成列費用後のlaunch MP×2をimmutable基底にして全payloadへ固定し、後続MP回復や現在sourceから再計算しない。各frameは原発からfreshに作り、前frameのfilter/redirectを持ち越さない。
+
+counter FIFOを次targetより先に処理し、dead targetは無draw skip、元owner死亡で未開始の初期rosterを取消す。既予約の生存counterは継続する。受理command末尾の自然終局→cutoffを優先し、全action完了後に未終局・未打切りならaliveへまとめてgiftして次ownerへ進む。展開の順・2pass・無draw・途中死亡/補充は**公式server未検証の実験規約**である。
+
+公開 `wide_attack_rule` は `experimental:initial-alive-enemies-in-input-order;optional-alive-target-does-not-alter-roster;repeat-by-full-roster-pass;single-payment;counter-fifo-before-next-target;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action`。`repeat_attack_rule` は `experimental:two-fresh-passes-over-initial-targets;single-consumption-and-payment;counter-fifo-before-next-hit;dead-target-skip;origin-death-cancels-rest;gifts-after-whole-action` へ更新し、14単体の同target2hitを保つ。最大targetsは2*(n−1)=16、response boundの `+targets.size()` を含め最大3,725となる。3,718はv8〜13時点の上限であり、14+232へ流用しない。Snapshot14は旧1〜13拒否/view-v12/C ABI1で、全ActionBatch再生がroster二巡・payload・HP/MP/used/gift/RNG・counter FIFOを検査する。新たな未来roster/cursor/anchor/journalや特権counterは公開observeへ出さない。
+
 ## APIと再現性の境界
 
-`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v13の `MatchSnapshot` はversion13を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2/3/4/5/6/7/8/9/10/11/12を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
+`Match::legal` はこのsubsetの現在局面に対する検査。`step` の不正入力・未対応入力では状態、乱数、意思決定数を変更しない。reset/load/restoreも検査とコピーを済ませてから置き換え、例外時に既存のmatchを一部更新しない。v14の `MatchSnapshot` はversion14を持ち、config、raw state、owner/actor/phase、待機effect、補充予定、乱数・token・意思決定数、終局結果を保持する。旧version1/2/3/4/5/6/7/8/9/10/11/12/13を自動移行せず拒否する。`restore` は対応範囲と構造・待機effectの整合を検査後に一括で置き換える。任意のraw sceneの履歴が公式サーバーで到達可能であることまで証明しない。
 
 応答待ちsnapshotには主動作command、全response journal、各現在frameの `RedirectFrame{defender,models,tokens,target}` を特権来歴として保存する。v7はActionBatchのlaunch前状態から全executeを再生し、主動作/防御の選択token重複・普通品消費・奇跡used保持・MP・各人の正確な補充予定に加え、派生counterのモデル/威力/originとFIFOを検証する。counterのモデルを主動作で直接使用したtoken列と取り違えない。`EffectFrame.redirect_rng` やActionBatchのRNG anchor、counter FIFO・journalは再現検査用であり、公開pendingへ出さない。v1の「owner以外の補充予定は必ず0」という条件は、反応者も品を消費する現行には適用しない。
 
@@ -466,7 +490,7 @@ raw snapshotには他人の手札や将来のローカル乱数状態がある�
 
 [official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI1と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。raw scene/checkpointのimport・restoreはこのC/Python公開APIへ追加していない。
 
-v13の `observe` はschema `official-execution-view-v11` を使い、C ABIは1を維持する。rulesetとscopeはv13/208モデルへ更新する。top-levelに `mana_weapon_rule` / `repeat_attack_rule` / `removal_rule` / `darkcloud_rule` / `flash_rule` / `damage_effect_rule` / `resource_counter_rule` / `counter_rule` / `chance_rule`（前述の実験規約）と `bounce_target_rule="experimental:uniform-all-alive-in-input-order;includes-self-and-teammates"` を明示する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に反射件数、`pending.bounces` に跳ね返し件数、`pending.hit_rate` に命中率（通常攻撃は0）、`pending.counter` に現在payloadがcounterか、`pending.forced_hit` に暗雲による無抽選必中だったかを返す。counter181の75は開始後の表示で、初期全敵chance攻撃とは区別する。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴token・action batchの将来roster/cursor/anchor/journal・counter FIFOは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
+v14の `observe` はschema `official-execution-view-v12` を使い、C ABIは1を維持する。rulesetとscopeはv14/209モデルへ更新する。top-levelに `wide_attack_rule` / `mana_weapon_rule` / `repeat_attack_rule` / `removal_rule` / `darkcloud_rule` / `flash_rule` / `damage_effect_rule` / `resource_counter_rule` / `counter_rule` / `chance_rule`（前述の実験規約）と `bounce_target_rule="experimental:uniform-all-alive-in-input-order;includes-self-and-teammates"` を明示する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、元の待機effectモデル/威力、`pending.reflections` に反射件数、`pending.bounces` に跳ね返し件数、`pending.hit_rate` に命中率（通常攻撃は0）、`pending.counter` に現在payloadがcounterか、`pending.forced_hit` に暗雲による無抽選必中だったかを返す。counter181の75は開始後の表示で、初期全敵chance攻撃とは区別する。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴token・action batchの将来roster/cursor/anchor/journal・counter FIFOは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
 
 実行例は `python3 python/official_match.py`。ライブラリパスを別に指定する場合は同スクリプトの引数へ渡す。これは初期化してローカルに進める例であり、公式対局traceの取得ではない。
 
@@ -474,9 +498,55 @@ v13の `observe` はschema `official-execution-view-v11` を使い、C ABIは1�
 
 ## 検証と計測
 
-次節にv13の検証・計測を示し、後続のv1〜v12記録は各版の歴史的証拠として保持する。過去の記録を208モデルのv13の結果へ読み替えない。
+次節にv14の検証・計測を示し、後続のv1〜v13記録は各版の歴史的証拠として保持する。過去の記録を209モデルのv14の結果へ読み替えない。
 
-### v13の検証と集計
+### v14の検証と集計
+
+v14（209モデル/重み412）。全Release CTest129件/19.09秒・ASan/UBSan89件/50.23秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、Release/SAN/bench/SAN bench/bridgeの5ログはwarning/error0。focused Release3件/0.81秒（native0.32/C API0.01/Python0.47秒）・SAN2件/1.17秒（native0.83/C API0.34秒）が通過した。Python MatchはAST確認27ケース、native零引数40関数は全てmainへ明示登録を確認した。公式assetsのfresh取得hash/296モデルfactsも一致した。
+
+追加native局面で、任意alive target指定の非干渉・unknown/dead拒否、複数232の保持/gift、0MPのFREE組合せsampler、58の有料/無料追加後の不変威力を検証した。9人の14+232では16frameの全step restore・各回fresh属性・暗雲でも無chance drawを確認し、counter FIFO・owner死亡取消・二巡目dead skip・cutoff・改ざん6例・後段更新失敗の完全rollbackも検証した。
+
+以下はseed42の大規模集計。
+
+| 人数 | 試合数 | 意思決定数 | 勝数 | draw | 打切り | checksum |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 100,000 | 3,868,837 | 49,849 / 50,032 | 119 | 0 | `7280126839917179986` |
+| 9 | 10,000 | 2,392,134 | 1,105 / 1,102 / 1,109 / 1,125 / 1,107 / 1,109 / 1,135 / 1,093 / 1,092 | 23 | 0 | `11171425924432160273` |
+
+| 人数 | 232使用 / 完了frame | 14使用 / 完了frame | 58使用 / 全支払いMP / 基底MP |
+| --- | --- | --- | --- |
+| 2 | 9,727 / 9,793 | 7,389 / 14,631 | 7,411 / 87,390 / 86,255 |
+| 9 | 8,167 / 45,210 | 4,587 / 9,563 | 4,506 / 55,197 / 54,345 |
+
+`wide_plays` は232を含む主動作数で、複数232でも1。完了frameは非counterの初期payloadが終端応答で完了した数で、block/完全防御0を含み、未完了cutoffを除く。14+232のframeはwide/repeatの両集計へ入り、互いに排他的な件数ではない。14完了の上限は2*(人数−1)*主動作数へ広がり、単体の2*主動作数を上限として使わない。58の支払いはMC費用込み、基底MPは完成列費用後の残額。
+
+| 人数 | chance攻撃 | chance実draw / hit / miss / forced | counter生成 / 開始 | counter実draw / hit / miss / forced | 反射 / bounce / 消去 / 遮断 | 最大redirect深度 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | 114,312 | 109,170 / 62,768 / 46,402 / 5,142 | 21,879 / 20,976 | 3,538 / 2,661 / 877 / 154 | 19,048 / 28,294 / 17,311 / 9,906 | 4 |
+| 9 | 43,901 | 164,811 / 94,751 / 70,060 / 11,754 | 15,630 / 14,988 | 2,527 / 1,913 / 614 / 122 | 15,304 / 22,379 / 14,508 / 10,405 | 4 |
+
+| 人数 | 205解決 / token除去 | 206解決 / token除去 | 閃光追加 / 解除 / 応答 | 暗雲追加 / 解除 |
+| --- | --- | --- | --- | --- |
+| 2 | 5,525 / 16,142 | 5,529 / 1,172 | 12,094 / 3,071 / 41,593 | 15,185 / 1,519 |
+| 9 | 4,179 / 12,430 | 3,904 / 1,581 | 9,030 / 3,382 / 44,579 | 11,249 / 1,807 |
+
+| 人数 | MP反撃解決 / 実増分 | CP反撃解決 / 名目額 | 吸収正解決 / 名目HP | 同被害正解決 / 名目HP |
+| --- | --- | --- | --- | --- |
+| 2 | 3,510 / 51,126 | 3,372 / 24,185 | 20,788 / 163,888 | 6,391 / 76,321 |
+| 9 | 2,418 / 33,791 | 2,363 / 16,400 | 17,603 / 121,765 | 3,968 / 46,287 |
+
+| 人数 | 乱気流 初 / 再 | 壁 初 / 再 | 自己bounce応答 | FREE品使用 main / response | 免除MP | Aura | setter |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 2 | 876 / 277 | 3,894 / 968 | 14,074 | 20,082 / 15,699 | 84,537 | 7,325 | 19,230 |
+| 9 | 1,372 / 461 | 3,072 / 1,402 | 3,702 | 15,417 / 11,930 | 70,178 | 6,654 | 11,554 |
+
+各人数の1 worker/4 workersでworker数・時間以外の全fieldが一致し、全試合の終了snapshot（自然終局または打切り）をrestoreできた。観測最大redirect深度4は機能上の連鎖上限ではない。
+
+Release/SAN seed42各1,000試合でも時間以外の全fieldが一致し、checksumは2人 `9992836881741631580`、9人 `4056226161425745428`。
+
+競合を避けた独立Release・1 workerは、2人100,000試合が2.45876秒（1,573,490意思決定/秒）、9人10,000試合が2.69532秒（887,513意思決定/秒）。baselineと時間以外の全fieldが一致した。合法手sampler・実行・reset・各試合の終了snapshot検証込みで、合成単体・Python学習・モデル推論/最適化・公式全モデルの速度ではない。プールと方策が異なるため版間の速度改善倍率を主張しない。
+
+### v13の過去の検証と集計
 
 v13（208モデル/重み411）。全Release CTest129件/20.39秒・ASan/UBSan89件/51.58秒が通過した（各suiteを `-j4` で同時実行）。全source/test最終freeze後のfull build/全検証で、focused Release3件/0.94秒（native0.38/C API0.01/Python0.55秒）・SAN2件/1.52秒（native1.17/C API0.35秒）が通過した。Python MatchはAST確認25ケース、native零引数37関数は全てmainへ明示登録を確認した。最終2buildと前段bridge/bench3ログのwarning/errorは0。公式assetsのfresh取得hash/296モデルfactsも一致した。
 
