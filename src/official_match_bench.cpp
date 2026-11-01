@@ -43,6 +43,7 @@ struct Stats {
     std::uint64_t random_hp_plays = 0, random_hp_resolved = 0, random_hp_heals = 0, random_hp_damages = 0;
     std::uint64_t random_hp_gained = 0, random_hp_lost = 0;
     std::uint64_t revivals = 0;
+    std::uint64_t danger_plays = 0, danger_mortar_plays = 0, danger_self_targets = 0, danger_ally_targets = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -73,6 +74,8 @@ struct Stats {
         random_hp_heals += s.random_hp_heals; random_hp_damages += s.random_hp_damages;
         random_hp_gained += s.random_hp_gained; random_hp_lost += s.random_hp_lost;
         revivals += s.revivals;
+        danger_plays += s.danger_plays; danger_mortar_plays += s.danger_mortar_plays;
+        danger_self_targets += s.danger_self_targets; danger_ally_targets += s.danger_ally_targets;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -166,11 +169,13 @@ int main(int argc, char** argv) {
                         }
                         int preceding_miracle_cost = 0;
                         bool wide_play = false;
+                        bool danger_play = false;
                         if (command.kind == CommandKind::play || command.kind == CommandKind::defend) for (auto token : command.items) {
                             const auto item = std::find_if(own.items.begin(), own.items.end(), [&](const auto& v) { return v.token == token; });
                             const auto& card = *find_card(item->model);
                             if (command.kind == CommandKind::play && card.ability == Ability::attack_every_enemy) wide_play = true;
                             if (command.kind == CommandKind::play && token == command.items.front()) {
+                                danger_play = card.ability == Ability::danger;
                                 if (card.ability == Ability::boost_hp_or_deal_damage) ++stats.random_hp_plays;
                                 if (card.ability == Ability::attack_twice) ++stats.repeat_weapon_plays;
                                 if (card.ability == Ability::atk_by2x_mp) {
@@ -241,6 +246,17 @@ int main(int argc, char** argv) {
                         for (auto token : command.items) mix(hash, token);
                         mix(hash, command.target.has_value()); if (command.target) mix(hash, *command.target);
                         const auto step = match.step(command); ++stats.decisions;
+                        if (danger_play) {
+                            ++stats.danger_plays;
+                            const auto& event = *match.snapshot().last_danger;
+                            if (event.mortar) ++stats.danger_mortar_plays;
+                            if (event.origin == event.target) ++stats.danger_self_targets;
+                            else {
+                                const auto& target = *find_player(match.snapshot().state, event.target);
+                                const auto& source = *find_player(match.snapshot().state, event.origin);
+                                if (source.team != Team::solo && source.team == target.team) ++stats.danger_ally_targets;
+                            }
+                        }
                         const auto revived = match.snapshot().revivals - revivals_before;
                         stats.revivals += revived;
                         if (random_hp_target) {
@@ -315,6 +331,7 @@ int main(int argc, char** argv) {
             << "\nwide_attack_rule=" << wide_attack_rule
             << "\nrandom_hp_rule=" << random_hp_rule
             << "\nrevival_rule=" << revival_rule
+            << "\ndanger_rule=" << danger_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -347,6 +364,8 @@ int main(int argc, char** argv) {
             << "\nrandom_hp_heals=" << stats.random_hp_heals << "\nrandom_hp_damages=" << stats.random_hp_damages
             << "\nrandom_hp_gained=" << stats.random_hp_gained << "\nrandom_hp_lost=" << stats.random_hp_lost
             << "\nrevivals=" << stats.revivals
+            << "\ndanger_plays=" << stats.danger_plays << "\ndanger_mortar_plays=" << stats.danger_mortar_plays
+            << "\ndanger_self_targets=" << stats.danger_self_targets << "\ndanger_ally_targets=" << stats.danger_ally_targets
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

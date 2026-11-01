@@ -23,11 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==211&&match_gift_weight()==415&&std::string_view(match_ruleset)=="official-execution-subset-v16"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"211model/415weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==213&&match_gift_weight()==417&&std::string_view(match_ruleset)=="official-execution-subset-v17"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"213model/417weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{0,97,74,15,25,0,0,0}&&weight==415,"normal weapon/armor/simple sundry/miracle pool only");
-    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("dangerous-mortar"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(counts==std::array<int,8>{0,98,74,16,25,0,0,0}&&weight==417,"normal weapon/armor/simple sundry/miracle pool only");
+    check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("heaven-herb"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
     std::vector<PlayerSetup> nine;for(unsigned i=0;i<9;++i)nine.push_back({i?100+i:0,static_cast<Team>(i%5),"seat"+std::to_string(i)});
@@ -141,8 +141,8 @@ void reflection_chain_exceeds_legacy_limit(){
     }
     check(chain.snapshot().queue[0].redirects.size()==35&&chain.snapshot().actor==0&&chain.snapshot().gifts==std::vector<std::uint32_t>{18,18}
         &&chain.snapshot().state.players[0].items.empty()&&chain.snapshot().state.players[1].items.empty(),"35 physical reflections exceed old duel32 limit while respecting both eighteen-card inventories");
-    const auto exact=chain.snapshot();for(std::uint32_t version:{1u,2u,3u,4u,5u,6u,7u,8u,9u,10u,11u,12u,13u,14u,15u}){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
-    check(rejected&&chain.snapshot()==exact,"v1 through v15 checkpoints are explicitly rejected atomically by revival v16 schema");}
+    const auto exact=chain.snapshot();for(std::uint32_t version=1;version<match_snapshot_version;++version){auto old=exact;old.version=version;bool rejected=false;try{chain.restore(old);}catch(const MatchError&){rejected=true;}
+    check(rejected&&chain.snapshot()==exact,"older checkpoints are explicitly rejected atomically");}
     chain.step(defend(0));check(chain.snapshot().state.players[0].hp==39&&chain.snapshot().state.players[0].items.size()==18&&chain.snapshot().state.players[1].items.size()==18&&chain.snapshot().owner==7,"long chain resolves original one-point payload and refills both hands exactly to capacity");roundtrip(chain);
 }
 
@@ -254,7 +254,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v14\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v15\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -672,6 +672,66 @@ void revival_journal_cutoff_and_rollback(){
     check(rejected&&exhausted.snapshot()==pending,"late gift token exhaustion rolls back the final body and auto-consumption exactly");
 }
 
+void danger_random_targets_reflections_and_visibility(){
+    const auto pestle=image("dangerous-pestle"),mirror=image("super-mirror");SnapshotState state;
+    for(auto id:{90u,2u,700u,17u,4u,99u,55u,3u,8u})state.players.push_back(player(id,{},id==90||id==2?Team::one:Team::solo));
+    state.players[0].items={{0,pestle,{},false},{1,mirror,{},false}};state.players[7].items={{0,mirror,{},false}};
+    Match m,hint;m.load_scene(state,90,0);hint.load_scene(state,90,0);m.step({90,CommandKind::play,{0},{}});hint.step(play(90,{0},90));
+    check(m.snapshot().actor==3&&m.snapshot().last_danger->target==3&&!m.snapshot().last_danger->mortar
+        &&m.snapshot().queue[0].power==30&&m.snapshot().queue[0].element==Element::light
+        &&m.snapshot().rng==0x9e3779b97f4a7c15ULL&&m.observe({})==hint.observe({}),"danger ignores alive hints and takes one bounded draw from all input-order alive seats");roundtrip(m);
+    const auto rng=m.snapshot().rng;m.step(defend(3,{0}));roundtrip(m);m.step(defend(90,{1}));roundtrip(m);
+    check(m.snapshot().rng==rng&&m.snapshot().last_danger->target==3&&m.snapshot().queue[0].target==3
+        &&m.snapshot().queue[0].power==30&&m.snapshot().queue[0].redirects.size()==2,"reflections preserve danger payload and initial public result without reselection");
+    m.step(defend(3));check(m.snapshot().state.players[7].hp==10&&m.snapshot().owner==2&&m.snapshot().last_danger.has_value(),"danger result remains after action completion");roundtrip(m);
+    m.step(pray(2));check(!m.snapshot().last_danger,"next accepted main action clears the public danger result");roundtrip(m);
+    std::set<PlayerId> seen;for(std::uint64_t seed=0;seed<128;++seed){Match a;a.load_scene(state,90,seed);a.step({90,CommandKind::play,{0},{}});seen.insert(*a.snapshot().actor);roundtrip(a);}
+    check(seen.size()==9&&seen.contains(90)&&seen.contains(2),"uniform danger proposals include the caster, teammates and all other live seats");
+}
+
+void danger_mortar_priority_composition_and_revival(){
+    const auto pestle=image("dangerous-pestle"),mortar=image("dangerous-mortar"),amulet=image("sun-amulet");
+    SnapshotState self;self.players={player(0,{pestle,image("aura"),image("spiritual-doll"),mortar,amulet}),player(7,{mortar}),player(9,{mortar})};self.players[0].mp=0;
+    MatchConfig cap;cap.max_decisions=1;auto m=fixture(self,cap);const auto rng=m.snapshot().rng;m.step(play(0,{0,1,2},9));
+    check(m.snapshot().truncated&&m.snapshot().last_danger->target==0&&m.snapshot().last_danger->mortar
+        &&m.snapshot().last_danger->power==198&&!m.snapshot().last_danger->element&&m.snapshot().rng==rng
+        &&m.snapshot().state.players[0].hp==10&&m.snapshot().revivals==1&&m.snapshot().state.players[0].items.size()==1
+        &&m.snapshot().state.players[1].items==self.players[1].items&&m.snapshot().state.players[2].items==self.players[2].items,
+        "first mortar can belong to the caster; base99 doubles before an immediate body, revival and cutoff without target RNG");roundtrip(m);
+    SnapshotState state;state.players={player(0,{pestle,image("crossbow"),image("aura"),image("spiritual-doll")}),player(7,{mortar,mortar,amulet}),player(9,{mortar})};state.players[0].mp=0;
+    auto boosted=fixture(state,cap);boosted.step({0,CommandKind::play,{0,1,2,3},{}});
+    check(boosted.snapshot().last_danger->target==7&&boosted.snapshot().last_danger->power==202
+        &&boosted.snapshot().state.players[1].hp==10&&boosted.snapshot().state.players[1].items.size()==1
+        &&boosted.snapshot().state.players[1].items[0].token==1&&boosted.snapshot().counter_created==0,
+        "first holder consumes just its first mortar; ordered boost and Aura operate on99 and the passive hit has no defense counter");roundtrip(boosted);
+    auto normal=fixture(state);normal.step(play(0,{0},7));check(normal.snapshot().last_danger->power==99&&!normal.snapshot().batch
+        &&normal.snapshot().state.players[0].items.size()==4&&normal.snapshot().state.players[1].items.size()==3
+        &&normal.snapshot().owner==7,"mortar and amulet reserve separate replacements until the whole immediate action ends");roundtrip(normal);
+    state.players[1].dead=true;state.players[1].hp=0;auto skip=fixture(state,cap);skip.step({0,CommandKind::play,{0},{}});
+    check(skip.snapshot().last_danger->target==9&&skip.snapshot().last_danger->power==99&&skip.snapshot().state.players[1].items==state.players[1].items,"dead mortar holder never takes priority or loses a copy");roundtrip(skip);
+}
+
+void danger_selection_gap_journal_and_atomicity(){
+    const auto pestle=image("dangerous-pestle"),mortar=image("dangerous-mortar");auto state=scene({pestle,image("super-mirror"),image("mirage")},{image("super-mirror")});
+    Match m;m.load_scene(state,0,0);const auto initial=m.snapshot();reject(m,play(0,{0},999));reject(m,{0,CommandKind::discard,{0},{}});
+    auto invented=initial;invented.last_danger=DangerEvent{0,7,{pestle},false,30,Element::light};bool initial_rejected=false;
+    try{m.restore(invented);}catch(const MatchError&){initial_rejected=true;}check(initial_rejected&&m.snapshot()==initial,"an unplayed initial scene cannot invent a danger launch result");
+    bool unsupported_gap=false;try{m.step({0,CommandKind::play,{0,2},{}});}catch(const MatchError& e){unsupported_gap=e.code==MatchErrorCode::unsupported;}
+    check(unsupported_gap&&m.snapshot()==initial,"client-valid danger plus Wide is explicitly unsupported, never silently prioritized");
+    for(std::uint64_t seed=0;seed<64;++seed){auto policy=seed;const auto command=m.sample_action(policy);check(m.legal(command)&&m.snapshot()==initial,"danger sampler only proposes supported operations without environmental draws");if(command.kind==CommandKind::play)check(!command.target&&command.items.size()==1,"danger sampler canonicalizes targetless and omits Wide");}
+    m.step({0,CommandKind::play,{0},{}});m.step(defend(7,{0}));const auto exact=m.snapshot();
+    for(int error=0;error<9;++error){auto bad=exact;if(error==0)++bad.last_danger->power;if(error==1)bad.last_danger->target=0;
+        if(error==2)bad.last_danger->mortar=true;if(error==3)bad.last_danger->models.push_back(image("mirage"));if(error==4)bad.last_danger->origin=7;
+        if(error==5)bad.batch->rng^=1;if(error==6)++bad.queue[0].power;if(error==7)bad.batch->targets[0]=0;
+        if(error==8){bad.batch->initial_state.players[0].items.push_back({3,mortar,{},false});bad.batch->next_token=4;}
+        bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"danger journal verifies random anchor, holder history, payload, original target and public event atomically");}
+    auto passive=fixture(scene({mortar},{}));reject(passive,play(0,{0},0));reject(passive,{0,CommandKind::discard,{0},{}});check(passive.legal(pray(0)),"mortar is passive and undiscardable but does not prevent prayer");
+    auto late=state;late.update_count=max_wire_integer;Match failed;failed.load_scene(late,0,0);const auto before=failed.snapshot();bool rejected=false;
+    try{failed.step({0,CommandKind::play,{0},{}});}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late launch failure restores target RNG, event and selected items");
+    auto exhausted=scene({pestle},{mortar,image("sun-amulet")});exhausted.players[0].items[0].token=max_wire_integer;auto tokens=fixture(exhausted);const auto original=tokens.snapshot();rejected=false;
+    try{tokens.step(play(0,{max_wire_integer},7));}catch(const MatchError&){rejected=true;}check(rejected&&tokens.snapshot()==original,"late gift failure rolls back attracted body, both passives, event and revival counter");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -761,6 +821,9 @@ int main(){
     revival_passive_boundaries_and_prayer();
     revival_counters_repeats_and_simultaneous();
     revival_journal_cutoff_and_rollback();
+    danger_random_targets_reflections_and_visibility();
+    danger_mortar_priority_composition_and_revival();
+    danger_selection_gap_journal_and_atomicity();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (211subset/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (213subset/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

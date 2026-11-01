@@ -89,9 +89,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 415>& gift_tickets() {
+const std::array<CardId, 417>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 415> values{};
+        std::array<CardId, 417> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -100,7 +100,7 @@ const std::array<CardId, 415>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 211) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 213) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -180,7 +180,10 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         return models;
     }
     require(!models.empty(), "play needs items");
-    if (find_card(models.front())->hit_rate) {
+    if (find_card(models.front())->ability == Ability::danger) {
+        if (has_wide(models)) unsupported("danger with Wide is outside the scoped runtime");
+        if (command.target) require(!s.state.players[index(s, *command.target)].dead, "target is dead");
+    } else if (find_card(models.front())->hit_rate) {
         require(!command.target && !enemy_targets(s).empty(), "chance play needs no target and at least one alive enemy");
     } else if (has_wide(models)) {
         require(!enemy_targets(s).empty(), "wide play needs at least one alive enemy");
@@ -398,6 +401,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
+    if (s.phase == MatchPhase::main) s.last_danger.reset();
     bool completed = false;
     if (s.phase == MatchPhase::response) {
         s.batch->responses.push_back(command);
@@ -425,9 +429,28 @@ void execute(MatchSnapshot& s, const Command& command) {
         const auto launch_rng = s.rng;
         const auto random_hp_delta = find_card(models.front())->ability == Ability::boost_hp_or_deal_damage
             ? (bounded(s.rng, 2) == 0 ? 10 : -10) : 0;
-        const auto original = effect_for(s, models, command.target.value_or(s.owner), command.items, s.state.players[seat].mp, random_hp_delta);
+        auto target = command.target.value_or(s.owner);
+        std::optional<ItemToken> mortar;
+        if (find_card(models.front())->ability == Ability::danger) {
+            for (const auto& player : s.state.players) if (!player.dead) {
+                const auto item = std::find_if(player.items.begin(), player.items.end(), [](const auto& value) {
+                    return find_card(value.model)->ability == Ability::attract_danger;
+                });
+                if (item != player.items.end()) { target = player.id; mortar = item->token; break; }
+            }
+            if (!mortar) target = sample_bounce_target(s, s.rng);
+        }
+        auto original = effect_for(s, models, target, command.items, s.state.players[seat].mp, random_hp_delta);
+        if (find_card(models.front())->ability == Ability::danger) {
+            if (mortar) original.power = attack_power(models, 99);
+            s.last_danger = DangerEvent{s.owner, target, models, mortar.has_value(), original.power, original.element};
+        }
         const auto play_cost = original.ability == Ability::atk_by2x_mp ? s.state.players[seat].mp : magic_cost(models);
-        if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
+        if (mortar) {
+            change_resource(s.state.players[seat], Resource::mp, -play_cost); consume(s, seat, command.items, false);
+            consume(s, index(s, target), {*mortar}, false);
+            resolve(s, original, 0); completed = true;
+        } else if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
             ActionBatch batch;
             batch.initial_state = s.state; batch.owner = s.owner; batch.rng = launch_rng;
             batch.random_hp_delta = random_hp_delta;
@@ -438,7 +461,7 @@ void execute(MatchSnapshot& s, const Command& command) {
             batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
             batch.revivals = s.revivals;
             batch.attack = command; batch.models = models; batch.chance = find_card(models.front())->hit_rate != 0;
-            batch.targets = batch.chance || has_wide(models) ? enemy_targets(s) : std::vector<PlayerId>{*command.target};
+            batch.targets = batch.chance || has_wide(models) ? enemy_targets(s) : std::vector<PlayerId>{target};
             if (original.ability == Ability::attack_twice) {
                 const auto first_pass = batch.targets;
                 batch.targets.insert(batch.targets.end(), first_pass.begin(), first_pass.end());
@@ -471,6 +494,19 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
+    if (s.last_danger) {
+        require(s.decisions > 0, "danger event precedes any accepted action");
+        const auto& event = *s.last_danger;
+        (void)index(s, event.origin); (void)index(s, event.target);
+        require(!event.models.empty() && event.models.size() <= s.config.hand_limit && event.models.front() == 94, "invalid danger event shape");
+        std::vector<VisibleSelection> prefix;
+        for (auto model : event.models) {
+            require(match_supported(model) && can_append_main(prefix, {model,false}), "invalid danger event composition");
+            prefix.push_back({model,false});
+        }
+        require(!has_wide(event.models) && event.power == attack_power(event.models, event.mortar ? 99 : 30)
+            && event.element == attack_element(event.models), "invalid danger event payload");
+    }
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
     for (std::size_t i = 0; i < n; ++i) {
@@ -551,7 +587,8 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
-            || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive);
+            || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
+            || c->ability == Ability::danger || c->ability == Ability::attract_danger);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -663,6 +700,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         for (const auto& extra : own.items) if (bounded(rng, 2)) {
             if (std::find(selected.items.begin(), selected.items.end(), extra.token) != selected.items.end()) continue;
             const auto& c = *find_card(extra.model);
+            if (find_card(base->model)->ability == Ability::danger && c.ability == Ability::attack_every_enemy) continue;
             const VisibleSelection visible{extra.model, extra.used};
             if (!append(prefix, visible)) continue;
             auto next_spent = spent + cost(c);
@@ -685,16 +723,16 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
             selected.items.push_back(extra.token); prefix.push_back(visible); spent = next_spent;
             if (discount) { selected.items.push_back(discount->token); prefix.push_back({discount->model, discount->used}); }
         }
-        if (selected.kind == CommandKind::play && std::any_of(prefix.begin(), prefix.end(), [](const auto& item) {
+        if (selected.kind == CommandKind::play && (find_card(base->model)->ability == Ability::danger || std::any_of(prefix.begin(), prefix.end(), [](const auto& item) {
             return find_card(item.model)->ability == Ability::attack_every_enemy;
-        })) selected.target.reset();
+        }))) selected.target.reset();
     }
     policy_rng = rng;
     return selected;
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : "finished";
-    std::string out = "{\"schema\":\"official-execution-view-v14\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v15\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -708,12 +746,24 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule;
     out += "\",\"wide_attack_rule\":\""; out += wide_attack_rule;
     out += "\",\"random_hp_rule\":\""; out += random_hp_rule;
-    out += "\",\"revival_rule\":\""; out += revival_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"revival_rule\":\""; out += revival_rule;
+    out += "\",\"danger_rule\":\""; out += danger_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
     out += ",\"truncated\":"; out += data_.truncated ? "true" : "false";
     out += ",\"decisions\":" + std::to_string(data_.decisions) + ",\"board\":" + view_json(project_view(data_.state, viewer));
+    out += ",\"last_danger\":";
+    if (!data_.last_danger) out += "null";
+    else {
+        const auto& event = *data_.last_danger;
+        out += "{\"origin\":" + std::to_string(event.origin) + ",\"target\":" + std::to_string(event.target) + ",\"models\":[";
+        bool first = true; for (auto model : event.models) { if (!first) out += ','; first = false; out += std::to_string(model); }
+        out += "],\"mortar\":"; out += event.mortar ? "true" : "false";
+        out += ",\"power\":" + std::to_string(event.power) + ",\"element\":";
+        if (event.element) { out += '"'; out += element_name(*event.element); out += '"'; } else out += "null";
+        out += '}';
+    }
     out += ",\"pending\":";
     if (data_.queue.empty()) out += "null";
     else {
