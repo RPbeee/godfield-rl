@@ -23,11 +23,11 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==214&&match_gift_weight()==437&&std::string_view(match_ruleset)=="official-execution-subset-v19"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"214model/437weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==215&&match_gift_weight()==457&&std::string_view(match_ruleset)=="official-execution-subset-v20"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"215model/457weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{1,98,74,16,25,0,0,0}&&weight==437,"only exchange is admitted among trade cards");
-    check(match_supported(3)&&!match_supported(1)&&!match_supported(2)&&!match_supported(4)&&!match_supported(5),"exchange does not enable sacrifice, sell or buy");
+    check(counts==std::array<int,8>{2,98,74,16,25,0,0,0}&&weight==457,"exchange and sell are admitted among trade cards");
+    check(match_supported(3)&&match_supported(4)&&!match_supported(1)&&!match_supported(2)&&!match_supported(5),"exchange and sell do not enable sacrifice or buy");
     check(!match_supported(0)&&!match_supported(image("mercury-ring"))&&!match_supported(image("heaven-herb"))&&!match_supported(image("ascension-bow"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match a,b;check(a.snapshot()==b.snapshot()&&!a.done()&&a.snapshot().state.players.size()==2,"default two-solo seed42 snapshot deterministic");
     for(const auto& p:a.snapshot().state.players)check(p.hp==40&&p.mp==10&&p.cp==20&&p.items.size()==9&&!p.dead,"local canonical initial resources/9hand, not a server-derived scheduling claim");
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v17\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v18\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -838,6 +838,67 @@ void removal_event_snapshot_guards(){
     try{pending.restore(forged);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"pending journal cannot forge an already resolved removal event");roundtrip(pending);
 }
 
+void sell_arithmetic_transfer_and_commodity_is_not_cast(){
+    const Command command{0,CommandKind::sell,{0,1},0};auto state=scene({4,27},{});state.players[0].mp=4;state.players[0].cp=3;auto self=fixture(state);self.step(command);
+    const auto& own=self.snapshot().state.players[0];check(own.hp==37&&own.mp==0&&own.cp==10&&own.items.size()==2&&own.items[0].token==2&&own.items[0].model==27
+        &&self.snapshot().last_sale==SaleEvent{0,0,0,27,10}&&self.snapshot().next_token==4,"self SELL pays CP then MP then HP before full nominal credit, remints commodity and draws only one operation replacement");roundtrip(self);
+    for(CardId product:{CardId{3},CardId{4},CardId{58},CardId{64},CardId{94},CardId{215},CardId{231},CardId{232}}){auto st=scene({4,product},{113});st.players[0].mp=0;st.players[0].cp=98;
+        st.players[1].cp=3;st.players[1].mp=4;Match m; m.load_scene(st,0,1234);m.step({0,CommandKind::sell,{0,1},7});const auto& e=m.snapshot().queue.front();
+        check(e.category==Category::trade&&!e.element&&e.power==0&&e.amount==find_card(product)->price&&m.snapshot().state.players[0].mp==0&&m.snapshot().state.players[0].hp==40
+            &&m.snapshot().gifts==std::vector<std::uint32_t>{1,0}&&m.snapshot().batch->targets==std::vector<PlayerId>{7},"sale fixes price but never inherits commodity damage, percent, MP, Wide, or magic cost; one gift only");
+        reject(m,defend(7,{0}));roundtrip(m);m.step(defend(7));const auto& buyer=m.snapshot().state.players[1];
+        check(m.snapshot().last_sale==SaleEvent{0,0,7,product,find_card(product)->price}&&buyer.items.back().model==product&&!buyer.items.back().used
+            &&m.snapshot().state.players[0].items.size()==1&&m.snapshot().state.players[0].mp==0&&m.snapshot().counter_created==0&&!m.snapshot().last_danger&&!m.snapshot().last_removal,"unused commodities transfer with fresh tokens and no cast, counter, danger, or removal effect");roundtrip(m);}
+    auto paid=scene({4,27},{});paid.players[0].cp=98;paid.players[1].cp=3;paid.players[1].mp=4;auto foreign=fixture(paid);foreign.step({0,CommandKind::sell,{0,1},7});foreign.step(defend(7));
+    check(foreign.snapshot().state.players[0].cp==99&&foreign.snapshot().state.players[1].hp==37&&foreign.snapshot().state.players[1].mp==0&&foreign.snapshot().state.players[1].cp==0,"foreign buyer debt does not reduce full seller credit, which clips at99");
+    auto full=scene({4,235},{});full.players[0].mp=0;MatchConfig cap;cap.hand_limit=cap.initial_hand=2;auto packed=fixture(full,cap);packed.step(command);
+    check(packed.snapshot().state.players[0].items.size()==2&&packed.snapshot().state.players[0].items[0].model==235&&!packed.snapshot().state.players[0].items[0].used
+        &&packed.snapshot().state.players[0].hp==40&&packed.snapshot().state.players[0].mp==0,"full self sale has post-consumption room, keeps commodity MC unused, and never pays its cast cost");roundtrip(packed);
+}
+
+void sell_reflections_delivery_revival_and_cutoff(){
+    auto state=scene({4,232,190},{190});state.players.push_back(player(99));auto m=fixture(state);m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7,{0}));roundtrip(m);m.step(defend(0,{2}));roundtrip(m);m.step(defend(7));
+    check(m.snapshot().last_sale==SaleEvent{0,0,7,232,0}&&m.snapshot().state.players[1].items.front().model==232&&m.snapshot().state.players[2].hp==40
+        &&!m.snapshot().batch&&m.snapshot().state.players[0].items.size()==2,"two universal reflections retain one commodity and one target; sold Wide never creates enemy roster or extra gifts");roundtrip(m);
+    MatchConfig cap;cap.max_decisions=2;auto revive=scene({4,208},{});revive.players[1].hp=5;revive.players[1].mp=revive.players[1].cp=0;auto saved=fixture(revive,cap);const auto rng=saved.snapshot().rng;saved.step({0,CommandKind::sell,{0,1},7});saved.step(defend(7));
+    check(saved.snapshot().truncated&&!saved.snapshot().terminated&&saved.snapshot().state.players[1].hp==10&&saved.snapshot().revivals==1
+        &&saved.snapshot().state.players[1].items.empty()&&saved.snapshot().last_sale==SaleEvent{0,0,7,208,10}&&saved.snapshot().rng==rng,"freshly delivered amulet can rescue invoice HP0 before cutoff; direct delivery and event survive, gifts are cancelled");roundtrip(saved);
+    auto lethal=scene({4,27},{});lethal.players[1].hp=5;lethal.players[1].mp=lethal.players[1].cp=0;auto dead=fixture(lethal,cap);dead.step({0,CommandKind::sell,{0,1},7});dead.step(defend(7));
+    check(dead.snapshot().terminated&&!dead.snapshot().truncated&&dead.snapshot().winners==std::vector<PlayerId>{0}&&dead.snapshot().state.players[1].items.back().model==27
+        &&dead.snapshot().last_sale==SaleEvent{0,0,7,27,10},"invoice death is finalized after commodity delivery; natural outcome wins over cutoff");roundtrip(dead);
+    MatchConfig launch;launch.max_decisions=1;auto pending=fixture(scene({4,27},{}),launch);const auto old=pending.snapshot();pending.step({0,CommandKind::sell,{0,1},7});
+    check(pending.snapshot().truncated&&!pending.snapshot().last_sale&&pending.snapshot().next_token==old.next_token&&pending.snapshot().rng==old.rng,"launch cutoff consumes both selections but never bills, delivers, draws or publishes a body result");roundtrip(pending);
+}
+
+void sell_invalid_roles_sampler_and_journal(){
+    auto m=fixture(scene({4,235,204},{}));Command valid{0,CommandKind::sell,{0,1},7};
+    for(int error=0;error<9;++error){auto bad=valid;if(error==0)bad.items.clear();if(error==1)bad.items={0};if(error==2)bad.items={0,1,2};if(error==3)bad.items={0,0};if(error==4)bad.items={1,0};
+        if(error==5)bad.target.reset();if(error==6)bad.target=999;if(error==7)bad.allocation=ResourceAllocation{40,10,20};if(error==8)bad.kind=CommandKind::play;reject(m,bad);}
+    auto st=m.snapshot().state;st.players[0].items[1].used=true;auto learned=fixture(st);reject(learned,valid);
+    auto full=scene({4,27},{});for(unsigned i=0;i<18;++i)full.players[1].items.push_back({i,113,{},false});auto blocked=fixture(full);const auto before=blocked.snapshot();bool unsupported=false;
+    try{blocked.step(valid);}catch(const MatchError& e){unsupported=e.code==MatchErrorCode::unsupported;}check(unsupported&&blocked.snapshot()==before&&!blocked.legal(valid),"full foreign recipient is an explicit unsupported gap and all state is preserved");
+    bool seen=false;for(std::uint64_t seed=0;seed<256;++seed){auto policy=seed;const auto command=blocked.sample_action(policy);check(blocked.legal(command)&&blocked.snapshot()==before,"policy sampling is pure and cannot launch a blocked sale");if(command.kind==CommandKind::sell){seen=true;check(command.target==0&&command.items.size()==2&&command.items[0]!=command.items[1]&&!command.allocation,"SELL policy only chooses a room-available target and unused distinct product");}}check(seen,"SELL is reachable without enumerating commodity-target cross products");
+    auto single=fixture(scene({4},{}));for(std::uint64_t seed=0;seed<64;++seed){auto policy=seed;check(single.sample_action(policy).kind!=CommandKind::sell,"operation alone cannot generate a sell command");}
+    auto active=fixture(scene({4,27},{190}));active.step(valid);active.step(defend(7,{0}));const auto exact=active.snapshot();
+    for(int error=0;error<9;++error){auto bad=exact;if(error==0)bad.batch->attack.kind=CommandKind::play;if(error==1)bad.batch->attack.items[1]=99;if(error==2)++bad.queue[0].amount;
+        if(error==3)bad.queue[0].power=7;if(error==4)bad.queue[0].element=Element::fire;if(error==5)bad.queue[0].models[1]=45;if(error==6)++bad.batch->next_token;
+        if(error==7)bad.last_sale=SaleEvent{0,7,0,27,10};if(error==8)bad.batch->attack.allocation=ResourceAllocation{40,10,20};bool rejected=false;
+        try{active.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&active.snapshot()==exact,"SELL anchor, price, product, prefix, token, allocation and premature public result are checked by full replay");}
+}
+
+void sell_event_guards_and_atomic_late_failures(){
+    const Command self{0,CommandKind::sell,{0,1},0};auto m=fixture(scene({4,27},{}));m.step(self);const auto exact=m.snapshot();
+    for(int error=0;error<8;++error){auto bad=exact;auto& event=*bad.last_sale;if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;
+        if(error==4)event.model=112;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
+        try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"sale public event validates price, supported product, endpoints, positive decision and exclusive event type");}
+    reject(m,pray(0));auto exhausted=exact;exhausted.state.update_count=max_wire_integer;m.restore(exhausted);const auto previous=m.snapshot();bool failed=false;try{m.step(pray(7));}catch(const MatchError&){failed=true;}
+    check(failed&&m.snapshot()==previous,"late next-main failure restores prior sale event");m.restore(exact);m.step(pray(7));check(!m.snapshot().last_sale,"accepted next main clears prior sale event");roundtrip(m);
+    m.load_scene(scene(),0,0);check(!m.snapshot().last_sale,"load clears sale event");
+    for(bool after_delivery:{false,true}){auto state=scene({4,27},{});state.players[0].items[0].token=max_wire_integer-(after_delivery?1:0);auto bad=fixture(state);const auto op=state.players[0].items[0].token;
+        bad.step({0,CommandKind::sell,{op,1},7});const auto before=bad.snapshot();failed=false;try{bad.step(defend(7));}catch(const MatchError&){failed=true;}
+        check(failed&&bad.snapshot()==before&&!bad.snapshot().last_sale,"late delivery or deferred gift token exhaustion rolls back invoice, commodity, public event, journal and RNG");}
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -936,6 +997,10 @@ int main(){
     removal_event_public_order_duplicates_and_reflection();
     removal_event_lifetime_empty_and_rollback();
     removal_event_snapshot_guards();
+    sell_arithmetic_transfer_and_commodity_is_not_cast();
+    sell_reflections_delivery_revival_and_cutoff();
+    sell_invalid_roles_sampler_and_journal();
+    sell_event_guards_and_atomic_late_failures();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (214subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (215subset/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

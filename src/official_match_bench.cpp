@@ -46,6 +46,7 @@ struct Stats {
     std::uint64_t revivals = 0;
     std::uint64_t danger_plays = 0, danger_mortar_plays = 0, danger_self_targets = 0, danger_ally_targets = 0;
     std::uint64_t exchange_plays = 0, zero_hp_exchanges = 0, exchanged_resource_total = 0;
+    std::uint64_t sell_plays = 0, sell_resolved = 0, sell_nominal_cp = 0, sold_miracles = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -80,6 +81,7 @@ struct Stats {
         danger_plays += s.danger_plays; danger_mortar_plays += s.danger_mortar_plays;
         danger_self_targets += s.danger_self_targets; danger_ally_targets += s.danger_ally_targets;
         exchange_plays += s.exchange_plays; zero_hp_exchanges += s.zero_hp_exchanges; exchanged_resource_total += s.exchanged_resource_total;
+        sell_plays += s.sell_plays; sell_resolved += s.sell_resolved; sell_nominal_cp += s.sell_nominal_cp; sold_miracles += s.sold_miracles;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -139,6 +141,9 @@ int main(int argc, char** argv) {
                         if (before.phase == MatchPhase::main) ++stats.main; else ++stats.responses;
                         if (!before.queue.empty() && before.queue.front().element == Element::darkness) ++stats.dark_responses;
                         const auto& own = *find_player(before.state, command.actor);
+                        if (command.kind == CommandKind::sell) { ++stats.sell_plays; ++stats.physical; }
+                        const auto sale_resolves = (command.kind == CommandKind::sell && command.target == command.actor)
+                            || (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty() && before.queue.front().ability == Ability::sell);
                         if (command.kind == CommandKind::exchange) {
                             ++stats.exchange_plays; stats.exchanged_resource_total += own.hp + own.mp + own.cp;
                             if (command.allocation->hp == 0) ++stats.zero_hp_exchanges;
@@ -256,6 +261,12 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        if (sale_resolves) {
+                            if (!match.snapshot().last_sale) throw std::logic_error("resolved sale has no public result");
+                            const auto& event = *match.snapshot().last_sale;
+                            ++stats.sell_resolved; stats.sell_nominal_cp += event.price;
+                            if (find_card(event.model)->category == Category::miracles) ++stats.sold_miracles;
+                        }
                         if (danger_play) {
                             ++stats.danger_plays;
                             const auto& event = *match.snapshot().last_danger;
@@ -339,6 +350,8 @@ int main(int argc, char** argv) {
         if (stats.removal_events != stats.hand_removal_resolved + stats.used_removal_resolved
             || stats.empty_removal_events > stats.removal_events)
             throw std::logic_error("inconsistent removal event accounting");
+        if (stats.sell_resolved > stats.sell_plays || stats.sold_miracles > stats.sell_resolved)
+            throw std::logic_error("inconsistent sale accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -358,6 +371,7 @@ int main(int argc, char** argv) {
             << "\ndanger_rule=" << danger_rule
             << "\nexchange_rule=" << exchange_rule
             << "\nremoval_event_rule=" << removal_event_rule
+            << "\nsell_rule=" << sell_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -396,6 +410,8 @@ int main(int argc, char** argv) {
             << "\ndanger_self_targets=" << stats.danger_self_targets << "\ndanger_ally_targets=" << stats.danger_ally_targets
             << "\nexchange_plays=" << stats.exchange_plays << "\nzero_hp_exchanges=" << stats.zero_hp_exchanges
             << "\nexchanged_resource_total=" << stats.exchanged_resource_total
+            << "\nsell_plays=" << stats.sell_plays << "\nsell_resolved=" << stats.sell_resolved
+            << "\nsell_nominal_cp=" << stats.sell_nominal_cp << "\nsold_miracles=" << stats.sold_miracles
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

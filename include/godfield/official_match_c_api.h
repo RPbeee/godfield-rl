@@ -22,7 +22,7 @@ typedef struct gfo_match_player {
 } gfo_match_player;
 typedef struct gfo_match_command {
     uint64_t actor, target;
-    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3/exchange4
+    uint8_t kind, has_target, item_count, reserved[5]; // play0/defend1/discard2/pray3/exchange4/sell5
     uint64_t items[18]; // Own physical tokens, unused tail must be0. Token0 valid.
     int32_t hp, mp, cp; // Allocation for exchange only; otherwise all0.
     uint8_t has_allocation, reserved_tail[3]; // Required for exchange, forbidden otherwise.
