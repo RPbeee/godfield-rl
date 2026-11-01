@@ -32,7 +32,7 @@ if(BUILD_TESTING)
   add_executable(godfield_official_vectors_tests tests/official_client_vectors_test.cpp)
   target_link_libraries(godfield_official_vectors_tests PRIVATE godfield)
   add_test(NAME official_client_vectors COMMAND godfield_official_vectors_tests
-    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/client-vectors.tsv)
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/client-vectors.tsv)
   add_executable(godfield_official_api_tests tests/official_c_api_test.cpp)
   target_link_libraries(godfield_official_api_tests PRIVATE godfield)
   add_test(NAME official_c_api COMMAND godfield_official_api_tests)
@@ -42,7 +42,7 @@ if(BUILD_TESTING)
   add_executable(godfield_official_state_vectors_tests tests/official_state_vectors_test.cpp)
   target_link_libraries(godfield_official_state_vectors_tests PRIVATE godfield)
   add_test(NAME official_state_vectors COMMAND godfield_official_state_vectors_tests
-    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/state-vectors.tsv)
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/state-vectors.tsv)
   add_executable(godfield_official_state_api_tests tests/official_state_c_api_test.cpp)
   target_link_libraries(godfield_official_state_api_tests PRIVATE godfield)
   add_test(NAME official_state_c_api COMMAND godfield_official_state_api_tests)
@@ -56,7 +56,7 @@ if(BUILD_TESTING)
   add_executable(godfield_official_resource_tests tests/official_resource_vectors_test.cpp)
   target_link_libraries(godfield_official_resource_tests PRIVATE godfield)
   add_test(NAME official_resource_vectors COMMAND godfield_official_resource_tests
-    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/resource-vectors.tsv)
+    ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/resource-vectors.tsv)
   add_executable(godfield_official_match_api_tests tests/official_match_c_api_test.cpp)
   target_link_libraries(godfield_official_match_api_tests PRIVATE godfield)
   add_test(NAME official_match_c_api COMMAND godfield_official_match_api_tests)
@@ -182,7 +182,9 @@ if(BUILD_TESTING)
   find_package(Python3 QUIET COMPONENTS Interpreter)
   if(Python3_Interpreter_FOUND)
     add_test(NAME official_catalog_integrity COMMAND ${Python3_EXECUTABLE}
-      ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v1/generate.py --check)
+      ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/generate.py --check)
+    add_test(NAME official_v1_archive_integrity COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_official_archive.py)
     add_test(NAME official_vectors_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/scripts/check_official_vectors.py)
     add_test(NAME catalog_integrity COMMAND ${Python3_EXECUTABLE}

@@ -44,12 +44,12 @@ void composition_and_cost() {
     check(attack_power(ids({"bronze-club","crossbow","crossbow"}))==5,"duplicate model IDs can represent distinct physical copies");
     std::vector<CardId> large(63,image("aura"));large[0]=image("bronze-club");
     check(attack_power(large)==(std::int64_t{1}<<62),"large ordered power remains exact int64");large.push_back(image("aura"));
-    throws([&]{attack_power(large);},"DOUBLE beyond int64 rejects overflow");
+    throws([&]{(void)attack_power(large);},"DOUBLE beyond int64 rejects overflow");
     const auto maximum=std::numeric_limits<std::int64_t>::max();check(attack_power(ids({"bronze-club"}),maximum)==maximum,"maximum raw override accepted without arithmetic");
-    throws([&]{attack_power(ids({"bronze-club","crossbow"}),maximum);},"additive power overflow rejects");
-    throws([&]{attack_power(ids({"bronze-club"}),-1);},"negative override rejected");
-    throws([&]{attack_power({});},"empty attack has no first model");
-    for(CardId bad:{CardId{0},CardId{297},CardId{65535}}){const std::array<CardId,1> x{bad};throws([&]{attack_power(x);},"unknown composition model rejects");throws([&]{magic_cost(x);},"unknown cost model rejects");}
+    throws([&]{(void)attack_power(ids({"bronze-club","crossbow"}),maximum);},"additive power overflow rejects");
+    throws([&]{(void)attack_power(ids({"bronze-club"}),-1);},"negative override rejected");
+    throws([&]{(void)attack_power({});},"empty attack has no first model");
+    for(CardId bad:{CardId{0},CardId{297},CardId{65535}}){const std::array<CardId,1> x{bad};throws([&]{(void)attack_power(x);},"unknown composition model rejects");throws([&]{(void)magic_cost(x);},"unknown cost model rejects");}
 }
 
 void merge_and_all_attributes() {
@@ -110,7 +110,7 @@ void response_append_order_and_flash() {
     neutral.flash=true;check(response({},"wall",neutral)&&!response({"wall"},"spiritual-doll",neutral)&&!response({"rainbow-curtain"},"rainbow-curtain",neutral),"flash is checked before FREE exception and limits full selected list");
     magic.incoming_is_attack=false;check(!response({},"aqua-shoes",magic)&&response({},"sky-boots",magic),"nonattack MAGIC permits reaction but no ordinary defense");
     const auto visible=next("aqua-shoes");check(can_append_response({},visible,ResponseContext{false,Category::weapons,Element::fire,true}),"selection consumes only the supplied visible model, not hidden physical identity");
-    throws([&]{reaction_for(0,Category::weapons,{});},"invalid reaction model rejected");
+    throws([&]{(void)reaction_for(0,Category::weapons,{});},"invalid reaction model rejected");
 }
 }
 int main(){composition_and_cost();merge_and_all_attributes();reaction_categories_and_visible_main_selection();response_append_order_and_flash();std::cout<<"Official rules passed (client composition/selection kernel, not complete server transitions).\n";}

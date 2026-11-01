@@ -1059,8 +1059,11 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v24\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v25\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
+    out += "\",\"catalog_version\":\""; out += catalog_version;
+    out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
+    out += "\",\"client_sha256\":\""; out += client_sha256;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
     out += "\",\"counter_rule\":\""; out += counter_rule;

@@ -464,6 +464,7 @@ int main(int argc, char** argv) {
             throw std::logic_error("inconsistent trade overflow accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
+            << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
             << "\nbounce_target_rule=" << bounce_target_rule
             << "\nchance_rule=" << chance_rule

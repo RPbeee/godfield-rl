@@ -1,8 +1,11 @@
-# official-v1: current public catalog facts
+# official-v1: archived public catalog facts
+
+**Archive:** The active catalog is now [official-v2](../official-v2/README.md). This directory preserves the original v1 facts, source pins, crosswalk and helper evidence. Its generation/archive checks validate historical artifacts, not equality with the active v2 C++ catalog. See the [versioned upgrade review](../official-v2/upgrade-review.json).
 
 Source: the ordinary public [Japanese data asset](https://godfield.net/i18n/ja.json) loaded by
 [the official browser client](https://godfield.net/main.dart.js), retrieved on2026-11-01.
 No account, authentication or game/match connection was used.
+Historical extraction requires a cached original bundle matching the v1 SHA256. The live URL now serves v2; fetching it cannot recover the old bytes. Current fetching and default extraction are documented in the v2 README.
 This catalog is independent from all legacy profiles and does not claim that a complete official simulator exists.
 
 `cards.json` archives only all296 item metadata records, preserving omitted source keys and adding
@@ -86,14 +89,13 @@ Old218/219/223 retain several elemental miracle candidates rather than force a g
 ## Reproduction
 
 ```sh
-python3 data/official-v1/generate.py --check
-python3 data/official-v1/fetch.py --cache /tmp/godfield-official-cache --require-match
+python3 data/official-v1/generate.py --check --archive-only
 ```
 
 The first command is offline and checks facts, generated C++, all37 frozen legacy catalogs and the
 entire derived crosswalk. The second performs only public HTTP GETs and writes full original assets
 outside the repository. A changed source hash fails `--require-match`; do not silently relabel it as this snapshot.
-Use `generate.py` without `--check` to regenerate C++ from the archived facts.
+The v1 generator is historical. On the current checkout use `--check --archive-only`; active C++ regeneration uses `data/official-v2/generate.py`.
 
 The catalog fixes metadata only. Actual client helper vectors are separately owned evidence in
 `client-vectors.tsv`/`client-vectors.manifest.json`; backend transitions, hidden information,
@@ -112,9 +114,9 @@ network APIs, user credentials, or room connection are provided. The fixture use
 model facts with the actual client loader. The executable client bundle remains outside the repo.
 
 ```sh
-python3 data/official-v1/fetch.py --cache /tmp/godfield-official-cache --require-match
-node scripts/official_client_oracle.cjs --client /tmp/godfield-official-cache/main.dart.js
-python3 scripts/check_official_vectors.py
+node scripts/official_client_oracle.cjs --client /path/to/archived-v1/main.dart.js --catalog-dir data/official-v1 --out-dir /tmp/godfield-official-v1-oracle
+cmp /tmp/godfield-official-v1-oracle/client-vectors.tsv data/official-v1/client-vectors.tsv
+python3 scripts/check_official_vectors.py --catalog-dir data/official-v1
 ```
 
 Node.js is needed only to regenerate the reference results. Normal C++/Python tests read the
@@ -135,8 +137,9 @@ Widget construction is stubbed where needed; this is not a whole DOM/game sessio
 The separate `state-vectors.manifest.json` records these limits and source fingerprints.
 
 ```sh
-node scripts/official_state_oracle.cjs --client /tmp/godfield-official-cache/main.dart.js
-python3 scripts/check_official_vectors.py
+node scripts/official_state_oracle.cjs --client /path/to/archived-v1/main.dart.js --catalog-dir data/official-v1 --out-dir /tmp/godfield-official-v1-oracle
+cmp /tmp/godfield-official-v1-oracle/state-vectors.tsv data/official-v1/state-vectors.tsv
+python3 scripts/check_official_vectors.py --catalog-dir data/official-v1
 python3 python/official_state.py
 ```
 
@@ -156,8 +159,9 @@ server capacity on foreign inventories or implement nine-player match transition
 never implicitly marks a player dead. Its fixture manifest pins the source hash.
 
 ```sh
-node scripts/official_resource_oracle.cjs --client /tmp/godfield-official-cache/main.dart.js
-python3 scripts/check_official_vectors.py
+node scripts/official_resource_oracle.cjs --client /path/to/archived-v1/main.dart.js --catalog-dir data/official-v1 --out-dir /tmp/godfield-official-v1-oracle
+cmp /tmp/godfield-official-v1-oracle/resource-vectors.tsv data/official-v1/resource-vectors.tsv
+python3 scripts/check_official_vectors.py --catalog-dir data/official-v1
 ```
 
 These results verify the delta arithmetic, not the server's choice of deltas or

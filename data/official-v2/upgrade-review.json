@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "old_catalog": "official-v1",
+  "new_catalog": "official-v2",
+  "reviewed_on": "2026-11-02",
+  "old_fingerprints": {
+    "catalog_version": "official-v1",
+    "manifest_sha256": "4de202993d6c6dcd8375f15a73acca69d5c4aae2cca073e2174138960204ff94",
+    "cards_sha256": "9ce45da9dd372da1ab30397068885a20bbd5927b0891946b5fc7bc07226fa1a8",
+    "source_raw_sha256": "03a4782dc6899aeedd9b7986a49bd3c0217b96ac38c0779deb588bc94cca3e7c",
+    "client_sha256": "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd",
+    "crosswalk_sha256": "91ee78028afebb86526f180c700d441881c04b657266f7f8fd44f8d9a22c5959",
+    "policy": "The complete official-v1 archive and legacy37 fingerprints stay frozen; v2 is a separately pinned generation."
+  },
+  "new_fingerprints": {
+    "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+    "source_raw_sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+    "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd"
+  },
+  "comparison": {
+    "records_old": 296,
+    "records_new": 296,
+    "id_order_unchanged": true,
+    "source_omission_presence_unchanged": true,
+    "changed_rows": 3,
+    "changed_fields": 4,
+    "non_display_field_changes": 0,
+    "gift_positive_models": 237,
+    "total_gift_rate": 500,
+    "category_counts": {
+      "trade": 5,
+      "weapons": 107,
+      "armor": 78,
+      "sundries": 19,
+      "miracles": 30,
+      "devils": 5,
+      "guardians": 42,
+      "phenomena": 10
+    }
+  },
+  "display_changes": [
+    {
+      "id": 19,
+      "fields": {
+        "imageName": {
+          "old": "chain-sickle",
+          "new": "kusarigama"
+        }
+      }
+    },
+    {
+      "id": 26,
+      "fields": {
+        "imageName": {
+          "old": "glaive-classic",
+          "new": "naginata-classic"
+        }
+      }
+    },
+    {
+      "id": 117,
+      "fields": {
+        "imageName": {
+          "old": "slate",
+          "new": "stone-tablet"
+        },
+        "name": {
+          "old": "石版",
+          "new": "石板"
+        }
+      }
+    }
+  ],
+  "crosswalk_summary": {
+    "provisional_unique": 196,
+    "ambiguous": 34,
+    "unmapped": 1
+  },
+  "limitations": [
+    "This compares every item metadata field and omission against official-v1; only name/imageName fields differ. It does not infer item additions from291versus296, which differ by the inclusion of5trade operations.",
+    "The locale contains texts outside items, and the JavaScript bytes changed. Exact catalog comparison does not prove the entire UI, locale or server engine semantically unchanged. New client helper conformance is recorded by separate vector manifests.",
+    "Original locale and full client implementation remain outside the repository; fact metadata, URLs, hashes and validators identify the public observations. No official-v1 pin or previous immutable evidence was rewritten."
+  ]
+}

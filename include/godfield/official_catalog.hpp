@@ -89,8 +89,9 @@ struct Card {
     int price, cost, gift_rate, appearance_rate, guardian_attack_rate;
 };
 inline constexpr int catalog_count = 296;
-inline constexpr const char* catalog_version = "official-v1";
-inline constexpr const char* catalog_sha256 = "9ce45da9dd372da1ab30397068885a20bbd5927b0891946b5fc7bc07226fa1a8";
+inline constexpr const char* catalog_version = "official-v2";
+inline constexpr const char* catalog_sha256 = "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a";
+inline constexpr const char* client_sha256 = "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd";
 [[nodiscard]] std::span<const Card> catalog() noexcept;
 [[nodiscard]] const Card* find_card(CardId id) noexcept;
 [[nodiscard]] int card_index(CardId id) noexcept;

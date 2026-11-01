@@ -32,10 +32,10 @@ const char* enum_name(std::uint8_t value, Name name) noexcept {
 
 extern "C" {
 int gfo_abi_version(void) { return 1; }
-const char* gfo_ruleset(void) { return "official-catalog-client-rules-v1"; }
+const char* gfo_ruleset(void) { return "official-catalog-client-rules-v2"; }
 const char* gfo_scope(void) { return "partial:catalog+client-rules;not-playable"; }
 const char* gfo_catalog_sha256(void) { return official::catalog_sha256; }
-const char* gfo_client_sha256(void) { return "764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd"; }
+const char* gfo_client_sha256(void) { return official::client_sha256; }
 int gfo_catalog_count(void) { return official::catalog_count; }
 int gfo_gift_rate(void) {
     int sum = 0;

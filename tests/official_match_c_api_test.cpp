@@ -29,7 +29,7 @@ int main() {
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
     check(gfo_match_catalog_count() == 229 && gfo_match_gift_weight() == 490 && gfo_match_supported(6)
         && !gfo_match_supported(183) && !gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v26"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v27"
         && std::string(gfo_match_scope()) == "experimental:229-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {222, 183}) check(!gfo_match_supported(id), "Dream models remain unsupported");
@@ -48,6 +48,9 @@ int main() {
     check(gfo_match_create(nullptr, players.data(), 2, 42, &a) == 0 && a, "create");
     check(gfo_match_create(nullptr, players.data(), 2, 42, &b) == 0 && b, "create replay");
     const auto before = observe(a); const auto initial = status(a);
+    check(before.find("\"catalog_version\":\"official-v2\"")!=std::string::npos
+        &&before.find(godfield::official::catalog_sha256)!=std::string::npos
+        &&before.find(godfield::official::client_sha256)!=std::string::npos,"C bridge projects the current pinned dataset provenance");
     check(before.find("A\\u0000B") != std::string::npos && initial.player_count == 2 && initial.player_ids[1] == 77, "NUL name/fixed ID order");
     std::array<char, 8> short_buffer{}; short_buffer.fill('Q'); const auto old = short_buffer; size_t needed = 555;
     check(gfo_match_observe(a, 1, 0, short_buffer.data(), short_buffer.size(), &needed) == -4
@@ -260,7 +263,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v24\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v25\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

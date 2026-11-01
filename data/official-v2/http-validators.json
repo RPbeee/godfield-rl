@@ -1,0 +1,19 @@
+{
+  "observed_on": "2026-11-02",
+  "source": {
+    "url": "https://godfield.net/i18n/ja.json",
+    "bytes": 49240,
+    "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+    "etag": "\"603e2c27b9ce82df18db251881d9731c5409d4a179d5d8cf4ed8b00d10f9289b\"",
+    "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+    "response_date": "Sun, 01 Nov 2026 23:00:22 GMT"
+  },
+  "client": {
+    "url": "https://godfield.net/main.dart.js",
+    "bytes": 440420,
+    "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+    "etag": "\"eee0fd31f9de4c2975db90e00685294056d09407308ba3e0249dbd40b3c47998\"",
+    "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+    "response_date": "Sun, 01 Nov 2026 23:00:22 GMT"
+  }
+}

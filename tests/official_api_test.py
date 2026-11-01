@@ -34,12 +34,12 @@ class OfficialAPITest(unittest.TestCase):
         self.assertEqual((_Composition.magic_cost.offset, _Composition.attack_element.offset,
                           _Composition.defense_element.offset, _Composition.reserved.offset), (8, 16, 17, 18))
         self.assertEqual(self.lib.gfo_abi_version(), 1)
-        self.assertEqual(self.data.ruleset, "official-catalog-client-rules-v1")
+        self.assertEqual(self.data.ruleset, "official-catalog-client-rules-v2")
         self.assertIn("not-playable", self.data.scope)
         self.assertFalse(hasattr(self.data, "step"))
 
     def test_catalog_all_fields_match_frozen_source(self):
-        source = json.loads((ROOT / "data/official-v1/cards.json").read_text())
+        source = json.loads((ROOT / "data/official-v2/cards.json").read_text())
         aliases = {"image_name": "imageName", "is_plus_atk": "isPlusAtk", "hit_rate": "hitRate",
                    "defense": "def", "ability_value": "abilityValue", "gift_rate": "giftRate",
                    "appearance_rate": "appearanceRate", "guardian_attack_rate": "guardianAttackRate"}
@@ -53,8 +53,15 @@ class OfficialAPITest(unittest.TestCase):
         self.assertEqual(sum(card.gift_rate for card in self.data), 500)
         self.assertEqual(self.data.gift_rate, 500)
 
+    def test_latest_display_metadata_preserves_numeric_identity(self):
+        for model, image, name in ((19, "kusarigama", "鎖ガマ"), (26, "naginata-classic", "なぎなたクラシック"), (117, "stone-tablet", "石板")):
+            with self.subTest(model=model):
+                card = self.data.get_card(model)
+                self.assertEqual((card.id, card.image_name, card.name), (model, image, name))
+        self.assertTrue({"chain-sickle", "glaive-classic", "slate"}.isdisjoint(card.image_name for card in self.data))
+
     def test_hashes_namespace_and_readonly(self):
-        manifest = json.loads((ROOT / "data/official-v1/manifest.json").read_text())
+        manifest = json.loads((ROOT / "data/official-v2/manifest.json").read_text())
         self.assertEqual(self.data.catalog_sha256, manifest["cards_sha256"])
         self.assertEqual(self.data.client_sha256, manifest["client_sha256"])
         # Legacy model2 is EXCHANGE; official model2 is a distinct pseudo-model.
@@ -180,7 +187,7 @@ class OfficialAPITest(unittest.TestCase):
         # independently from this C++/Python bridge.
         checked = 0
         elements = [None, "fire", "water", "wood", "stone", "light", "darkness"]
-        for line in (ROOT / "data/official-v1/client-vectors.tsv").read_text().splitlines():
+        for line in (ROOT / "data/official-v2/client-vectors.tsv").read_text().splitlines():
             if not line.startswith("C\t"):
                 continue
             _, override, ordered, power, atk_element, def_element, cost = line.split("\t")

@@ -28,13 +28,17 @@ void all_records_and_distinct_namespaces() {
     check(weights==std::array<int,8>{60,181,147,82,30,0,0,0} && total==500 && positive==237,
         "237 positive-gift models sum500; guardian/devil/phenomenon display records are not normal gifts");
     for(CardId id:{CardId{0},CardId{297},CardId{65535}})check(!find_card(id)&&card_index(id)==-1,"out-of-range and legacy-only IDs rejected");
-    check(std::string_view(catalog_version)=="official-v1" && std::string_view(catalog_sha256).size()==64,"official facts schema/hash explicitly named");
+    check(std::string_view(catalog_version)=="official-v2" && std::string_view(catalog_sha256).size()==64,"official facts schema/hash explicitly named");
     check(image("exchange").id==3 && image("exchange").price==5 && image("sell").id==4 && image("sell").price==5
         && image("buy").id==5 && image("buy").price==5,"official trade IDs/prices do not reuse legacy2/3/4 and price10");
     check(find_card(2)->ability==Ability::sacrifice && find_card(244)->category==Category::devils && image("sun-amulet").id==208,
         "valid but colliding legacy numeric IDs are current models, never silently translated");
 }
 void important_current_facts() {
+    check(image("kusarigama").id==19 && image("naginata-classic").id==26 && image("stone-tablet").id==117
+        && std::string_view(find_card(117)->name)=="石板", "latest official-v2 names and image keys are adopted without changing model IDs");
+    for(const auto& c:catalog())check(std::string_view(c.image_name)!="chain-sickle"&&std::string_view(c.image_name)!="glaive-classic"&&std::string_view(c.image_name)!="slate", "archived image keys do not silently alias current model keys");
+
     const auto& spring=image("spring"); check(spring.id==235 && spring.category==Category::miracles && spring.ability==Ability::boost_hp
         && spring.ability_value==10 && spring.cost==7 && spring.guardian==Guardian::neptune && !spring.element,"current Spring10 costs7, not legacy216 cost6");
     const auto& ascension=image("ascension-bow"); check(ascension.id==112 && ascension.atk==1 && ascension.hit_rate==25
