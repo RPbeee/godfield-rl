@@ -29,7 +29,7 @@ int main() {
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
     check(gfo_match_catalog_count() == 229 && gfo_match_gift_weight() == 490 && gfo_match_supported(6)
         && !gfo_match_supported(183) && !gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v25"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v26"
         && std::string(gfo_match_scope()) == "experimental:229-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {222, 183}) check(!gfo_match_supported(id), "Dream models remain unsupported");
@@ -260,7 +260,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v23\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v24\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -1364,22 +1364,22 @@ int main() {
             && observe(effect_match) == before_sale, "invalid SELL command is canonical and atomic");
     }
     auto full_sale = sale; full_sale.target = 77; result = sale_status;
-    check(gfo_match_step(effect_match, &full_sale, &result) == -5 && equal(result, sale_status)
-        && observe(effect_match) == before_sale, "full recipient SELL is explicitly unsupported before mutation");
+    check(gfo_match_legal(effect_match, &full_sale, &legal) == 0 && legal && equal(result, sale_status)
+        && observe(effect_match) == before_sale, "full recipient does not leak through SELL preflight");
     bool sampled_sale = false;
     for (uint64_t seed = 0; seed < 128; ++seed) {
         uint64_t policy = seed; gfo_match_command candidate{};
         check(gfo_match_sample_action(effect_match, &policy, &candidate) == 0
             && gfo_match_legal(effect_match, &candidate, &legal) == 0 && legal, "SELL policy candidates are legal");
         if (candidate.kind == 5) { sampled_sale = true; check(candidate.item_count == 2 && candidate.items[0] != candidate.items[1]
-            && candidate.has_target && candidate.target == 0 && !candidate.has_allocation, "SELL sampler tail and recipient are canonical"); }
+            && candidate.has_target && (candidate.target == 0 || candidate.target == 77) && !candidate.has_allocation, "SELL sampler tail and recipient are canonical"); }
     }
     check(sampled_sale && observe(effect_match) == before_sale, "SELL sampling leaves environment and public event unchanged");
     check(gfo_match_step(effect_match, &sale, &result) == 0 && result.actor == 77 && result.phase == 0
         && observe(effect_match).find("\"hp\":37,\"mp\":0,\"cp\":10") != std::string::npos
         && hand_size(effect_match, 0) == 18 && !has_token(effect_match, 0, 2) && !has_token(effect_match, 0, 0)
         && has_token(effect_match, 0, 36), "self SELL debits CP then MP then HP, credits afterward and replaces only SELL");
-    const auto sale_event = "\"last_sale\":{\"origin\":0,\"source\":0,\"target\":0,\"model\":153,\"price\":10}";
+    const auto sale_event = "\"last_sale\":{\"origin\":0,\"source\":0,\"target\":0,\"model\":153,\"price\":10,\"overflow_model\":null}";
     check(observe(effect_match, 0, 0).find(sale_event) != std::string::npos
         && observe(effect_match, 1, 77).find(sale_event) != std::string::npos, "resolved sale publicly identifies product and price");
     const auto resolved_sale = observe(effect_match); result = status(effect_match); const auto resolved_status = result;
@@ -1398,7 +1398,7 @@ int main() {
     check(gfo_match_step(effect_match, &sale_mirror, &result) == 0 && result.actor == 0, "trade accepts universal reflection");
     gfo_match_command sale_pass{}; sale_pass.kind = 1;
     check(gfo_match_step(effect_match, &sale_pass, &result) == 0
-        && observe(effect_match, 0, 0).find("\"last_sale\":{\"origin\":0,\"source\":77,\"target\":0,\"model\":215,\"price\":0}") != std::string::npos
+        && observe(effect_match, 0, 0).find("\"last_sale\":{\"origin\":0,\"source\":77,\"target\":0,\"model\":215,\"price\":0,\"overflow_model\":null}") != std::string::npos
         && observe(effect_match).find("\"token\":8,\"face\":215") != std::string::npos
         && observe(effect_match).find("\"used\":true") == std::string::npos
         && hand_size(effect_match, 0) == 4 && hand_size(effect_match, 77) == 4,
@@ -1409,7 +1409,7 @@ int main() {
     sale.items[0] = 0; sale.items[1] = 3; sale.target = 77; sale_pass.actor = 77;
     check(gfo_match_step(effect_match, &sale, &result) == 0 && gfo_match_step(effect_match, &sale_pass, &result) == 0
         && result.truncated && !result.terminated && hand_size(effect_match, 0) == 2 && hand_size(effect_match, 77) == 5
-        && observe(effect_match, 0, 0).find("\"last_sale\":{\"origin\":0,\"source\":0,\"target\":77,\"model\":43,\"price\":10}") != std::string::npos,
+        && observe(effect_match, 0, 0).find("\"last_sale\":{\"origin\":0,\"source\":0,\"target\":77,\"model\":43,\"price\":10,\"overflow_model\":null}") != std::string::npos,
         "cutoff preserves resolved sale and direct delivery while cancelling the deferred SELL gift");
     gfo_match_destroy(effect_match);
     // BUY adds a decision phase without changing ABI2's command width or existing phase numbers.
@@ -1455,7 +1455,7 @@ int main() {
     check(gfo_match_step(effect_match, &wrong_buyer, &result) == -2 && equal(result, quote_status)
         && observe(effect_match) == quote_view, "only current buyer may decide purchase");
     check(gfo_match_step(effect_match, &accept_buy, &result) == 0 && result.phase == 0 && result.actor == 77
-        && observe(effect_match).find("\"last_purchase\":{\"origin\":0,\"buyer\":0,\"seller\":77,\"model\":233,\"price\":0,\"bought\":true,\"reason\":\"bought\"}") != std::string::npos
+        && observe(effect_match).find("\"last_purchase\":{\"origin\":0,\"buyer\":0,\"seller\":77,\"model\":233,\"price\":0,\"bought\":true,\"reason\":\"bought\",\"overflow_model\":null}") != std::string::npos
         && observe(effect_match).find("\"token\":8,\"face\":233") != std::string::npos
         && observe(effect_match).find("\"used\":true") == std::string::npos
         && hand_size(effect_match, 0) == 5 && hand_size(effect_match, 77) == 3, "accepted BUY transfers fresh unused miracle without casting or product gift");
@@ -1492,7 +1492,7 @@ int main() {
     check(gfo_match_create(&cfg, players.data(), 2, 12323, &effect_match) == 0, "unaffordable BUY fixture");
     buy.items[0] = 0; buy_pass.actor = 77;
     check(gfo_match_step(effect_match, &buy, &result) == 0 && gfo_match_step(effect_match, &buy_pass, &result) == 0 && result.phase == 0
-        && observe(effect_match, 0, 0).find("\"last_purchase\":{\"origin\":0,\"buyer\":0,\"seller\":77,\"model\":6,\"price\":1,\"bought\":false,\"reason\":\"insufficient-cp\"}") != std::string::npos
+        && observe(effect_match, 0, 0).find("\"last_purchase\":{\"origin\":0,\"buyer\":0,\"seller\":77,\"model\":6,\"price\":1,\"bought\":false,\"reason\":\"insufficient-cp\",\"overflow_model\":null}") != std::string::npos
         && has_token(effect_match, 77, 1) && hand_size(effect_match, 77) == 1, "CP-only affordability returns original product without approval or debt");
     gfo_match_destroy(effect_match);
     // Disease side effects are public status changes; privileged tick records remain private.
@@ -1634,12 +1634,12 @@ int main() {
         && observe(effect_match).find("\"used_models\":[235]") != std::string::npos, "covered opponent used-miracle panel remains public");
     gfo_match_command fog_foreign_sale{}; fog_foreign_sale.kind = 5; fog_foreign_sale.item_count = 2; fog_foreign_sale.items[0] = fog_sell; fog_foreign_sale.items[1] = fog_product; fog_foreign_sale.has_target = 1; fog_foreign_sale.target = 77;
     const auto fog_view = observe(effect_match); result = status(effect_match); const auto fog_status = result;
-    check(gfo_match_step(effect_match, &fog_foreign_sale, &result) == -5 && equal(result, fog_status) && observe(effect_match) == fog_view,
-        "Fog foreign SELL rejects without inspecting recipient capacity or changing state");
+    check(gfo_match_legal(effect_match, &fog_foreign_sale, &legal) == 0 && legal && equal(result, fog_status) && observe(effect_match) == fog_view,
+        "Fog foreign SELL preflight ignores recipient capacity and leaves state unchanged");
     bool fog_self_sale = false;
     for (uint64_t seed = 0; seed < 1024; ++seed) { uint64_t policy = seed; gfo_match_command candidate{};
         check(gfo_match_sample_action(effect_match, &policy, &candidate) == 0 && gfo_match_legal(effect_match, &candidate, &legal) == 0 && legal, "Fog policy emits legal visible-information actions");
-        if (candidate.kind == 5) { fog_self_sale = true; check(candidate.target == 0 && candidate.has_target, "SELL policy is self-only without hidden capacity decisions"); }
+        if (candidate.kind == 5) { fog_self_sale = true; check((candidate.target == 0 || candidate.target == 77) && candidate.has_target, "SELL policy uses public alive targets without hidden capacity decisions"); }
     }
     check(fog_self_sale && observe(effect_match) == fog_view, "Fog policy queries preserve environment");
     fog_cast.items[0] = fog_cure;
@@ -1741,6 +1741,51 @@ int main() {
         &&result.rewards[0]==0&&result.rewards[1]==0&&result.rewards[2]==0&&!has_token(effect_match,77,26)
         &&observe(effect_match,0,0).find("\"pending\":null")!=std::string::npos&&observe(effect_match,0,0).find("\"death_created\"")==std::string::npos,
         "cutoff retains boundary consumption but cancels activation and hides reserved posthumous work");gfo_match_destroy(effect_match);
+    // Full trade delivery evicts an actual existing copy, never a replacement draw or passive activation.
+    cfg.initial_hand = cfg.hand_limit = 18; cfg.initial_hp = 40; cfg.initial_mp = 0; cfg.initial_cp = 99; cfg.max_decisions = 512;
+    check(gfo_match_create(&cfg,players.data(),2,4,&effect_match)==0,"full foreign sale overflow fixture");
+    gfo_match_command overflow_sale{};overflow_sale.kind=5;overflow_sale.item_count=2;overflow_sale.items[0]=2;overflow_sale.items[1]=0;overflow_sale.has_target=1;overflow_sale.target=77;
+    const auto before_overflow=observe(effect_match);check(gfo_match_legal(effect_match,&overflow_sale,&legal)==0&&legal&&observe(effect_match)==before_overflow,"full recipient is not a legal-query oracle");
+    gfo_match_command overflow_pass{};overflow_pass.kind=1;overflow_pass.actor=77;
+    check(gfo_match_step(effect_match,&overflow_sale,&result)==0&&gfo_match_step(effect_match,&overflow_pass,&result)==0
+        &&observe(effect_match,0,0).find("\"last_sale\":{\"origin\":0,\"source\":0,\"target\":77,\"model\":153,\"price\":10,\"overflow_model\":195}")!=std::string::npos
+        &&!has_token(effect_match,77,30)&&has_token(effect_match,77,36)&&hand_size(effect_match,0)==17&&hand_size(effect_match,77)==18,
+        "uniform overflow evicts token30/model195 then delivers fresh153, with only the operation gift");
+    gfo_match_destroy(effect_match);cfg.initial_mp=99;cfg.initial_cp=20;
+    check(gfo_match_create(&cfg,players.data(),2,3307,&effect_match)==0,"used miracle overflow fixture");
+    gfo_match_command overflow_setup{};overflow_setup.kind=2;overflow_setup.item_count=1;overflow_setup.items[0]=1;
+    check(gfo_match_step(effect_match,&overflow_setup,&result)==0,"yield without an extra gift draw");
+    overflow_setup.kind=0;overflow_setup.actor=77;overflow_setup.items[0]=33;overflow_setup.has_target=1;overflow_setup.target=77;
+    check(gfo_match_step(effect_match,&overflow_setup,&result)==0,"retain235 at full capacity");
+    overflow_sale.items[0]=7;overflow_sale.items[1]=0;
+    check(gfo_match_step(effect_match,&overflow_sale,&result)==0&&gfo_match_step(effect_match,&overflow_pass,&result)==0
+        &&!has_token(effect_match,77,33)&&hand_size(effect_match,0)==16&&hand_size(effect_match,77)==18
+        &&observe(effect_match,0,0).find("\"overflow_model\":235")!=std::string::npos
+        &&observe(effect_match,1,77).find("\"used_models\":[235]")==std::string::npos,
+        "used235 is eligible for overflow without a compensating gift");
+    const auto evicted_view=observe(effect_match,1,77);result=status(effect_match);const auto evicted_status=result;
+    check(gfo_match_step(effect_match,&overflow_setup,&result)==-2&&equal(result,evicted_status)&&observe(effect_match,1,77)==evicted_view,"evicted retained token cannot be recast");
+    gfo_match_destroy(effect_match);cfg.initial_hp=5;cfg.initial_mp=cfg.initial_cp=0;
+    check(gfo_match_create(&cfg,players.data(),2,2707,&effect_match)==0,"amulet eviction before death fixture");
+    overflow_sale.items[0]=2;overflow_sale.items[1]=14;
+    check(gfo_match_step(effect_match,&overflow_sale,&result)==0&&gfo_match_step(effect_match,&overflow_pass,&result)==0
+        &&result.terminated&&result.winners[0]==0&&!has_token(effect_match,77,24)&&has_token(effect_match,77,36)
+        &&hand_size(effect_match,0)==16&&observe(effect_match,0,0).find("\"model\":38,\"price\":5,\"overflow_model\":208")!=std::string::npos,
+        "CP debt then amulet eviction and nonpassive delivery precede death, without revival or terminal gifts");
+    gfo_match_destroy(effect_match);cfg.initial_hp=40;cfg.initial_mp=99;cfg.initial_cp=20;fixture.reset(setup,14632);
+    check(gfo_match_create(&cfg,players.data(),2,14632,&effect_match)==0,"Fog foreign sale overflow fixture");
+    gfo_match_command overflow_fog{};overflow_fog.item_count=1;overflow_fog.items[0]=receipt_token(0,221);overflow_fog.has_target=1;
+    check(gfo_match_step(effect_match,&overflow_fog,&result)==0,"establish Fog before foreign sale");
+    overflow_setup.kind=0;overflow_setup.actor=77;overflow_setup.items[0]=receipt_token(1,235);overflow_setup.has_target=1;overflow_setup.target=77;
+    check(gfo_match_step(effect_match,&overflow_setup,&result)==0,"keep covered recipient full with retained miracle");
+    overflow_sale.items[0]=receipt_token(0,4);overflow_sale.items[1]=receipt_token(0,6);
+    check(gfo_match_legal(effect_match,&overflow_sale,&legal)==0&&legal&&gfo_match_step(effect_match,&overflow_sale,&result)==0
+        &&gfo_match_step(effect_match,&overflow_pass,&result)==0&&hand_size(effect_match,77)==18
+        &&observe(effect_match).find("\"status\":null")!=std::string::npos
+        &&observe(effect_match).find("\"overflow_model\":null")==std::string::npos
+        &&observe(effect_match).find("\"last_fog\"")==std::string::npos,
+        "Fog foreign sale resolves overflow publicly while covered resources and launch record remain hidden");
+    gfo_match_destroy(effect_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

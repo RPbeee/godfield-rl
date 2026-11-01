@@ -12,12 +12,12 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v25"); self.assertIn("229-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v26"); self.assertIn("229-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (229, 490))
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertNotIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v23")
+        self.assertEqual(own["schema"], "official-execution-view-v24")
         self.assertEqual(own["board"]["players"][0]["name"], "A\0B")
         self.assertEqual(len(own["board"]["hand"]), 9); self.assertEqual(spectator["board"]["hand"], [])
         self.assertIsNone(own["pending"])
@@ -209,7 +209,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v23")
+        self.assertEqual(event["schema"], "official-execution-view-v24")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -1299,8 +1299,7 @@ class MatchTests(unittest.TestCase):
             with self.assertRaises(InvalidMatchError): game.step(bad)
             self.assertEqual((game.observe(0), game.status), (before, status))
         full = Command(0, "sell", (2, 0), 1)
-        self.assertFalse(game.legal(full))
-        with self.assertRaises(UnsupportedMatchError): game.step(full)
+        self.assertTrue(game.legal(full))
         self.assertEqual((game.observe(0), game.status), (before, status))
         saw_sell = False
         for seed in range(128):
@@ -1309,12 +1308,12 @@ class MatchTests(unittest.TestCase):
             if proposal.kind == "sell":
                 saw_sell = True
                 self.assertEqual(len(proposal.items), 2); self.assertEqual(len(set(proposal.items)), 2)
-                self.assertEqual(proposal.target, 0); self.assertIsNone(proposal.allocation)
+                self.assertIn(proposal.target, (0, 1)); self.assertIsNone(proposal.allocation)
         self.assertTrue(saw_sell); self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(command)
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 37)
         self.assertEqual({k: game.observe()["board"]["players"][0]["status"][k] for k in ("mp", "cp")}, {"mp": 0, "cp": 10})
-        expected = {"origin": 0, "source": 0, "target": 0, "model": 153, "price": 10}
+        expected = {"origin": 0, "source": 0, "target": 0, "model": 153, "price": 10, "overflow_model": None}
         for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_sale"], expected)
         after = game.observe(0)["board"]["hand"]
         self.assertEqual(len(after), 18); self.assertTrue({2, 0}.isdisjoint(i["token"] for i in after))
@@ -1338,7 +1337,7 @@ class MatchTests(unittest.TestCase):
         game.step(Command(1, "defend", (7,)))
         self.assertIsNone(game.observe()["last_sale"])
         game.step(Command(0, "defend"))
-        expected = {"origin": 0, "source": 1, "target": 0, "model": 215, "price": 0}
+        expected = {"origin": 0, "source": 1, "target": 0, "model": 215, "price": 0, "overflow_model": None}
         for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_sale"], expected)
         own = game.observe(0)["board"]["hand"]
         received = next(i for i in own if i["token"] == 8)
@@ -1360,7 +1359,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual({i["token"]: i["face"] for i in game.observe(0)["board"]["hand"]}, {0: 4, 1: 143, 2: 81, 3: 43})
             game.step(Command(0, "sell", (0, 3), 1)); self.assertIsNone(game.observe()["last_sale"])
             game.step(Command(1, "defend"))
-            self.assertEqual(game.observe()["last_sale"], {"origin": 0, "source": 0, "target": 1, "model": 43, "price": 10})
+            self.assertEqual(game.observe()["last_sale"], {"origin": 0, "source": 0, "target": 1, "model": 43, "price": 10, "overflow_model": None})
             received = next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 8)
             self.assertEqual((received["face"], received["used"]), (43, False))
             self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [2, 5])
@@ -1375,7 +1374,7 @@ class MatchTests(unittest.TestCase):
     def test_buy_quote_accept_public_transport_and_atomic_queries(self):
         game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0), seed=3291)
         original = game.observe(1)["board"]["hand"]
-        self.assertEqual(game.observe()["buy_rule"], "experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-accept-unsupported")
+        self.assertEqual(game.observe()["buy_rule"], "experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-recipient-uniform-existing-item-overflow")
         buy = Command(0, "buy", (3,), 1)
         before, status = game.observe(0), game.status
         for bad in (Command(0, "play", (3,), 1), Command(0, "buy", (3, 0), 1),
@@ -1409,7 +1408,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(seen, {"accept", "decline"}); self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(Command(0, "accept"))
         self.assertIsNone(game.observe()["purchase"])
-        self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=True, reason="bought"))
+        self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=True, reason="bought", overflow_model=None))
         received = next(i for i in game.observe(0)["board"]["hand"] if i["token"] == 8)
         self.assertEqual((received["face"], received["used"]), (quote["model"], False))
         self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [5, 3])
@@ -1426,7 +1425,7 @@ class MatchTests(unittest.TestCase):
                 game.step(Command(1, "defend"))
                 if maximum == 512:
                     quote = game.observe()["purchase"]; game.step(Command(0, "decline"))
-                    self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=False, reason="declined"))
+                    self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=False, reason="declined", overflow_model=None))
                 else:
                     self.assertTrue(game.status.truncated)
                     self.assertEqual(game.observe()["last_purchase"]["reason"], "cutoff")
@@ -1448,7 +1447,7 @@ class MatchTests(unittest.TestCase):
         quote = game.observe()["purchase"]
         self.assertEqual((quote["origin"], quote["buyer"], quote["seller"], game.actor), (0, 1, 0, 1))
         game.step(Command(1, "accept"))
-        self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=True, reason="bought"))
+        self.assertEqual(game.observe()["last_purchase"], dict(quote, bought=True, reason="bought", overflow_model=None))
         received = next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 8)
         self.assertEqual((received["face"], received["used"]), (quote["model"], False))
         self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [3, 5])
@@ -1459,7 +1458,7 @@ class MatchTests(unittest.TestCase):
         original = game.observe(1)["board"]["hand"]
         game.step(Command(0, "buy", (0,), 1)); game.step(Command(1, "defend"))
         self.assertIsNone(game.observe()["purchase"])
-        self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 6, "price": 1, "bought": False, "reason": "insufficient-cp"})
+        self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 6, "price": 1, "bought": False, "reason": "insufficient-cp", "overflow_model": None})
         self.assertEqual(game.observe(1)["board"]["hand"], original)
         paid = self.match(config=Config(initial_hand=1, initial_cp=5, initial_mp=0), seed=12323)
         paid.step(Command(0, "buy", (0,), 1)); paid.step(Command(1, "defend")); paid.step(Command(0, "accept"))
@@ -1468,7 +1467,7 @@ class MatchTests(unittest.TestCase):
         game = self.match(config=Config(initial_hand=1, initial_cp=99, initial_mp=0), seed=17718)
         game.step(Command(0, "pray")); game.step(Command(1, "discard", (1,)))
         game.step(Command(0, "buy", (0,), 1)); game.step(Command(1, "defend"))
-        self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 0, "price": 0, "bought": False, "reason": "empty"})
+        self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 0, "price": 0, "bought": False, "reason": "empty", "overflow_model": None})
         self.assertEqual(game.observe(1)["board"]["hand"], [])
         game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=99), seed=7298)
         game.step(Command(0, "discard", (1,))); game.step(Command(1, "play", (4,), 1))
@@ -1609,13 +1608,12 @@ class MatchTests(unittest.TestCase):
         self.assertIn(235, game.observe(0)["board"]["players"][1]["used_models"])
         before, status = game.observe(0), game.status
         foreign = Command(0, "sell", (own[4], own[6]), 1)
-        self.assertFalse(game.legal(foreign))
-        with self.assertRaises(UnsupportedMatchError): game.step(foreign)
+        self.assertTrue(game.legal(foreign))
         self.assertEqual((game.observe(0), game.status), (before, status))
         seen_sell = False
         for seed in range(1024):
             proposal, _ = game.sample_action(seed); self.assertTrue(game.legal(proposal))
-            if proposal.kind == "sell": seen_sell = True; self.assertEqual(proposal.target, 0)
+            if proposal.kind == "sell": seen_sell = True; self.assertIn(proposal.target, (0, 1))
         self.assertTrue(seen_sell); self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(Command(0, "play", (own[199],), 0))
         shown = game.observe(0)["board"]["players"][1]
@@ -1749,6 +1747,70 @@ class MatchTests(unittest.TestCase):
         self.assertNotIn(26, {i["token"] for i in cut.observe(7)["board"]["hand"]})
         self.assertEqual([p["status"]["hp"] for p in cut.observe()["board"]["players"]], [5, 0, 5])
         self.assertNotIn("deaths", cut.observe()); self.assertNotIn("death_created", cut.observe())
+
+    def test_full_sale_uniform_eviction_public_model_and_query_purity(self):
+        game = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=4)
+        original = game.observe(1)["board"]["hand"]
+        command = Command(0, "sell", (2, 0), 1)
+        before, status = game.observe(0), game.status
+        self.assertTrue(game.legal(command)); targets = set()
+        for seed in range(512):
+            proposal, _ = game.sample_action(seed); self.assertTrue(game.legal(proposal))
+            if proposal.kind == "sell": targets.add(proposal.target)
+        self.assertEqual(targets, {0, 1}); self.assertEqual((game.observe(0), game.status), (before, status))
+        game.step(command); game.step(Command(1, "defend"))
+        expected = {"origin": 0, "source": 0, "target": 1, "model": 153, "price": 10, "overflow_model": 195}
+        for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_sale"], expected)
+        after = game.observe(1)["board"]["hand"]
+        self.assertEqual({i["token"] for i in original} - {i["token"] for i in after}, {30})
+        self.assertEqual(next(i["face"] for i in after if i["token"] == 36), 153)
+        self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [17, 18])
+        self.assertEqual([p["status"]["cp"] for p in game.observe()["board"]["players"]], [99, 89])
+        self.assertEqual(set(game.observe()["last_sale"]), set(expected))
+
+    def test_full_sale_can_evict_used_miracle_without_replacement_or_recast(self):
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=3307)
+        game.step(Command(0, "discard", (1,))); game.step(Command(1, "play", (33,), 1))
+        self.assertTrue(next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 33)["used"])
+        game.step(Command(0, "sell", (7, 0), 1)); game.step(Command(1, "defend"))
+        self.assertEqual(game.observe()["last_sale"]["overflow_model"], 235)
+        self.assertNotIn(33, {i["token"] for i in game.observe(1)["board"]["hand"]})
+        self.assertEqual(game.observe()["board"]["players"][1]["used_models"], [])
+        self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [16, 18])
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 50)
+        invalid = Command(1, "play", (33,), 1); before, status = game.observe(1), game.status
+        self.assertFalse(game.legal(invalid))
+        with self.assertRaises(InvalidMatchError): game.step(invalid)
+        self.assertEqual((game.observe(1), game.status), (before, status))
+
+    def test_full_sale_evicts_amulet_before_death_and_does_not_trigger_it(self):
+        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, initial_cp=0), seed=2707)
+        self.assertEqual(next(i["face"] for i in game.observe(1)["board"]["hand"] if i["token"] == 24), 208)
+        game.step(Command(0, "sell", (2, 14), 1)); game.step(Command(1, "defend"))
+        self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (0,))
+        self.assertEqual(game.observe()["last_sale"], {"origin": 0, "source": 0, "target": 1, "model": 38, "price": 5, "overflow_model": 208})
+        target = game.observe(1)
+        self.assertEqual(target["board"]["players"][1]["status"]["hp"], 0)
+        self.assertNotIn(24, {i["token"] for i in target["board"]["hand"]})
+        self.assertEqual(next(i["face"] for i in target["board"]["hand"] if i["token"] == 36), 38)
+        self.assertEqual(len(game.observe(0)["board"]["hand"]), 16)
+
+    def test_fog_foreign_sale_uses_overflow_and_keeps_covered_status_private(self):
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=14632)
+        own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
+        spring = next(i["token"] for i in game.observe(1)["board"]["hand"] if i["face"] == 235)
+        game.step(Command(0, "play", (own[221],), 0)); game.step(Command(1, "play", (spring,), 1))
+        original = game.observe(1)["board"]["hand"]
+        command = Command(0, "sell", (own[4], own[6]), 1)
+        before = game.observe(0); self.assertTrue(game.legal(command)); self.assertEqual(game.observe(0), before)
+        game.step(command); game.step(Command(1, "defend"))
+        event = game.observe(0)["last_sale"]
+        self.assertEqual((event["origin"], event["source"], event["target"], event["model"]), (0, 0, 1, 6))
+        self.assertIn(event["overflow_model"], {i["face"] for i in original})
+        self.assertEqual(game.observe()["last_sale"], event)
+        self.assertIsNone(game.observe(0)["board"]["players"][1]["status"])
+        self.assertEqual(len(game.observe(1)["board"]["hand"]), 18)
+        self.assertNotIn("last_fog", game.observe(0))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

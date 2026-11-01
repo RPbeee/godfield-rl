@@ -54,6 +54,7 @@ struct Stats {
     std::uint64_t fever_mask_uses = 0, heaven_herb_plays = 0, heaven_herb_resolved = 0, heaven_herb_mp_gained = 0;
     std::uint64_t fog_main_commands = 0, fog_launches = 0, fog_target_changed = 0;
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0, death_responses = 0;
+    std::uint64_t sell_overflows = 0, buy_overflows = 0, overflow_events = 0, overflow_event_checksum = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -99,6 +100,7 @@ struct Stats {
         fog_main_commands += s.fog_main_commands; fog_launches += s.fog_launches; fog_target_changed += s.fog_target_changed;
         death_bows += s.death_bows; death_created += s.death_created; death_started += s.death_started;
         death_rolls += s.death_rolls; death_hits += s.death_hits; death_forced_hits += s.death_forced_hits; death_responses += s.death_responses;
+        sell_overflows += s.sell_overflows; buy_overflows += s.buy_overflows; overflow_events += s.overflow_events; overflow_event_checksum += s.overflow_event_checksum;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -314,6 +316,11 @@ int main(int argc, char** argv) {
                         if (!had_purchase && match.snapshot().purchase) ++stats.buy_quotes;
                         if (buy_result_possible && match.snapshot().last_purchase) {
                             const auto& event = *match.snapshot().last_purchase;
+                            if (event.overflow_model) {
+                                ++stats.buy_overflows; ++stats.overflow_events; std::uint64_t event_hash = 14695981039346656037ULL;
+                                mix(event_hash, 6); mix(event_hash, event.origin); mix(event_hash, event.buyer); mix(event_hash, event.seller);
+                                mix(event_hash, event.model); mix(event_hash, *event.overflow_model); stats.overflow_event_checksum += event_hash;
+                            }
                             switch (event.reason) {
                             case PurchaseReason::bought: ++stats.bought; stats.buy_nominal_cp += event.price; break;
                             case PurchaseReason::declined: ++stats.declined; break;
@@ -326,6 +333,11 @@ int main(int argc, char** argv) {
                             if (!match.snapshot().last_sale) throw std::logic_error("resolved sale has no public result");
                             const auto& event = *match.snapshot().last_sale;
                             ++stats.sell_resolved; stats.sell_nominal_cp += event.price;
+                            if (event.overflow_model) {
+                                ++stats.sell_overflows; ++stats.overflow_events; std::uint64_t event_hash = 14695981039346656037ULL;
+                                mix(event_hash, 5); mix(event_hash, event.origin); mix(event_hash, event.source); mix(event_hash, event.target);
+                                mix(event_hash, event.model); mix(event_hash, *event.overflow_model); stats.overflow_event_checksum += event_hash;
+                            }
                             if (find_card(event.model)->category == Category::miracles) ++stats.sold_miracles;
                         }
                         if (danger_play) {
@@ -448,6 +460,8 @@ int main(int argc, char** argv) {
             || stats.death_started != stats.death_hits + stats.death_forced_hits
             || stats.death_forced_hits > stats.death_created - stats.death_rolls || stats.death_responses < stats.death_started)
             throw std::logic_error("inconsistent posthumous accounting");
+        if (stats.sell_overflows > stats.sell_resolved || stats.buy_overflows > stats.bought || stats.overflow_events != stats.sell_overflows + stats.buy_overflows)
+            throw std::logic_error("inconsistent trade overflow accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ngift_weight=" << match_gift_weight() << "\ngames=" << stats.games << "\nplayers=" << count << "\nseed=" << seed << "\nworkers=" << workers
@@ -473,6 +487,7 @@ int main(int argc, char** argv) {
             << "\ndisease_item_rule=" << disease_item_rule
             << "\nfog_rule=" << fog_rule
             << "\ndeath_rule=" << death_rule
+            << "\noverflow_rule=" << overflow_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -525,6 +540,8 @@ int main(int argc, char** argv) {
             << "\ndeath_bows=" << stats.death_bows << "\ndeath_created=" << stats.death_created << "\ndeath_started=" << stats.death_started
             << "\ndeath_rolls=" << stats.death_rolls << "\ndeath_hits=" << stats.death_hits << "\ndeath_misses=" << stats.death_rolls - stats.death_hits
             << "\ndeath_forced_hits=" << stats.death_forced_hits << "\ndeath_responses=" << stats.death_responses
+            << "\nsell_overflows=" << stats.sell_overflows << "\nbuy_overflows=" << stats.buy_overflows
+            << "\noverflow_events=" << stats.overflow_events << "\noverflow_event_checksum=" << stats.overflow_event_checksum
             << "\nseconds=" << seconds << "\ndecisions_per_second=" << (seconds ? stats.decisions / seconds : 0) << '\n';
         return 0;
     } catch (const std::exception& error) { std::cerr << error.what() << '\n'; return 1; }

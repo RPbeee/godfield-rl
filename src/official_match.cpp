@@ -172,7 +172,6 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
             && command.items.empty() && !command.target, "purchase needs a targetless accept or decline");
         if (command.kind == CommandKind::accept) {
             require(own.cp >= find_card(s.purchase->item.model)->price, "insufficient purchase CP");
-            if (own.items.size() == s.config.hand_limit) unsupported("purchase overflow selection is not implemented");
         }
         return models;
     }
@@ -213,8 +212,6 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         require(!commodity->used && can_append_main(std::array<VisibleSelection,1>{{{4,false}}}, {commodity->model,false}), "used miracles cannot be sold");
         const auto& buyer = s.state.players[index(s, *command.target)];
         require(!buyer.dead, "sale target is dead");
-        if (has_curse(own, Curse::fog) && buyer.id != own.id) unsupported("foreign sell under Fog is not implemented");
-        if (buyer.id != own.id && buyer.items.size() == s.config.hand_limit) unsupported("sell overflow selection is not implemented");
         return models;
     }
     if (command.kind == CommandKind::buy) {
@@ -354,25 +351,39 @@ const char* purchase_reason_name(PurchaseReason reason) {
     }
     invalid("unknown purchase result");
 }
+// The client removes a server-provided overflow item before delivery. The
+// uniform choice over every existing item is the local overflow_rule.
+std::optional<CardId> deliver_item(MatchSnapshot& s, PlayerId recipient, CardId model) {
+    auto& target = s.state.players[index(s, recipient)];
+    require(s.next_token <= max_wire_integer, "scoped item token exhausted");
+    std::optional<CardId> overflow;
+    if (target.items.size() == s.config.hand_limit) {
+        const auto slot = bounded(s.rng, target.items.size());
+        overflow = target.items[slot].model;
+        target.items.erase(target.items.begin() + static_cast<std::ptrdiff_t>(slot));
+    }
+    target.items.push_back({s.next_token++,model,{},false});
+    const auto seat = index(s, recipient);
+    s.gifts[seat] = std::min(s.gifts[seat], static_cast<std::uint32_t>(s.config.hand_limit - target.items.size()));
+    return overflow;
+}
 void complete_purchase(MatchSnapshot& s, PurchaseReason reason) {
     const auto offer = *s.purchase;
     const auto price = find_card(offer.item.model)->price;
     auto& buyer = s.state.players[index(s, offer.buyer)];
     auto& seller = s.state.players[index(s, offer.seller)];
+    std::optional<CardId> overflow;
     if (reason == PurchaseReason::bought) {
         require(buyer.cp >= price, "insufficient purchase CP");
-        if (buyer.items.size() == s.config.hand_limit) unsupported("purchase overflow selection is not implemented");
         require(s.next_token <= max_wire_integer, "scoped item token exhausted");
         change_resource(buyer, Resource::cp, -price);
         change_resource(seller, Resource::cp, price);
-        buyer.items.push_back({s.next_token++,offer.item.model,{},false});
-        const auto seat = index(s, buyer.id);
-        s.gifts[seat] = std::min(s.gifts[seat], static_cast<std::uint32_t>(s.config.hand_limit - buyer.items.size()));
+        overflow = deliver_item(s, buyer.id, offer.item.model);
     } else {
         require(seller.items.size() < s.config.hand_limit && offer.slot <= seller.items.size(), "purchase return has no reserved slot");
         seller.items.insert(seller.items.begin() + static_cast<std::ptrdiff_t>(offer.slot), offer.item);
     }
-    s.last_purchase = PurchaseEvent{offer.origin,offer.buyer,offer.seller,offer.item.model,price,reason};
+    s.last_purchase = PurchaseEvent{offer.origin,offer.buyer,offer.seller,offer.item.model,price,reason,overflow};
     s.purchase.reset();
     finalize_deaths(s);
 }
@@ -431,15 +442,12 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
             remove_items(s, target, effect);
             break;
         case Ability::sell: {
-            if (target.items.size() == s.config.hand_limit) unsupported("sell overflow selection is not implemented");
             require(s.next_token <= max_wire_integer, "scoped item token exhausted");
             const auto model = effect.models[1];
             change_resource(target, Resource::cp, -effect.amount);
             change_resource(s.state.players[index(s, effect.source)], Resource::cp, effect.amount);
-            target.items.push_back({s.next_token++,model,{},false});
-            const auto seat = index(s, target.id);
-            s.gifts[seat] = std::min(s.gifts[seat], static_cast<std::uint32_t>(s.config.hand_limit - target.items.size()));
-            s.last_sale = SaleEvent{effect.origin,effect.source,effect.target,model,effect.amount};
+            const auto overflow = deliver_item(s, target.id, model);
+            s.last_sale = SaleEvent{effect.origin,effect.source,effect.target,model,effect.amount,overflow};
             break;
         }
         case Ability::buy: begin_purchase(s, effect); break;
@@ -628,9 +636,9 @@ void execute(MatchSnapshot& s, const Command& command) {
         const auto launch_rng = s.rng;
         auto target = command.target.value_or(s.owner);
         const auto& base = *find_card(models.front());
-        if ((command.kind == CommandKind::play || command.kind == CommandKind::buy) && command.target
+        if ((command.kind == CommandKind::play || command.kind == CommandKind::buy || command.kind == CommandKind::sell) && command.target
             && has_curse(s.state.players[seat], Curse::fog) && is_enemy(s.state.players[seat], s.state.players[index(s, target)])
-            && !base.hit_rate && base.ability != Ability::danger && !has_wide(models)) {
+            && (command.kind == CommandKind::sell || (!base.hit_rate && base.ability != Ability::danger && !has_wide(models)))) {
             const auto enemies = enemy_targets(s);
             const auto intended = target;
             target = enemies[bounded(s.rng, enemies.size())];
@@ -720,6 +728,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& event = *s.last_sale;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
         require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid sale event commodity or price");
+        require(!event.overflow_model || match_supported(*event.overflow_model), "invalid sale overflow model");
     }
     if (s.last_purchase) {
         require(s.decisions > 0 && s.phase != MatchPhase::purchase
@@ -727,6 +736,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& event = *s.last_purchase;
         (void)index(s, event.origin); (void)index(s, event.buyer); (void)index(s, event.seller);
         require(event.buyer != event.seller && static_cast<unsigned>(event.reason) <= 4, "invalid purchase result");
+        require(!event.overflow_model || (event.reason == PurchaseReason::bought && match_supported(*event.overflow_model)), "invalid purchase overflow model");
         if (event.reason == PurchaseReason::empty) require(event.model == 0 && event.price == 0, "empty purchase has a commodity");
         else require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid purchase result price");
     }
@@ -746,14 +756,17 @@ void validate_snapshot(const MatchSnapshot& s) {
     if (s.last_fog) {
         const auto& event = *s.last_fog;
         const auto& owner = s.state.players[index(s, event.owner)];
-        require(s.decisions > 0 && !s.last_danger && !s.last_sale
+        require(s.decisions > 0 && !s.last_danger
             && is_enemy(owner, s.state.players[index(s, event.intended)]) && is_enemy(owner, s.state.players[index(s, event.target)]), "invalid Fog selection endpoints");
         require(!event.models.empty() && event.models.size() <= s.config.hand_limit, "invalid Fog selection models");
         std::vector<VisibleSelection> prefix;
         for (auto model : event.models) { require(match_supported(model) && can_append_main(prefix,{model,false}), "invalid Fog selection composition"); prefix.push_back({model,false}); }
         const auto& base = *find_card(event.models.front());
-        require(!base.hit_rate && base.ability != Ability::danger && base.ability != Ability::exchange && base.ability != Ability::sell
-            && !has_wide(event.models) && (base.ability != Ability::buy || event.models.size() == 1), "invalid Fog selection role");
+        require(!base.hit_rate && base.ability != Ability::danger && base.ability != Ability::exchange
+            && (base.ability == Ability::sell || !has_wide(event.models))
+            && (base.ability != Ability::buy || event.models.size() == 1)
+            && (base.ability != Ability::sell || event.models.size() == 2)
+            && (!s.last_sale || (base.ability == Ability::sell && s.last_sale->origin == event.owner)), "invalid Fog selection role");
     }
     (void)index(s, s.owner);
     require(s.next_token <= max_wire_integer + 1, "invalid next token");
@@ -990,9 +1003,10 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         std::size_t eligible = 0;
         for (const auto& commodity : own.items) if (commodity.token != proposal.first && !commodity.used) commodities[eligible++] = commodity.token;
         selected.items.push_back(commodities[bounded(rng, eligible)]);
-        // Foreign hand capacity is hidden even without Fog. The canonical
-        // API retains its explicit overflow gap; the policy uses only self.
-        selected.target = actor;
+        std::array<PlayerId, player_capacity> targets;
+        std::size_t alive = 0;
+        for (const auto& target : data_.state.players) if (!target.dead) targets[alive++] = target.id;
+        selected.target = targets[bounded(rng, alive)]; // Never inspect another player's inventory.
     }
     if (proposal.items && (selected.kind == CommandKind::play || selected.kind == CommandKind::defend)) {
         const auto* base = instance(own, proposal.first);
@@ -1045,7 +1059,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v23\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v24\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"bounce_target_rule\":\""; out += bounce_target_rule;
     out += "\",\"chance_rule\":\""; out += chance_rule;
@@ -1068,7 +1082,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"disease_rule\":\""; out += disease_rule;
     out += "\",\"disease_item_rule\":\""; out += disease_item_rule;
     out += "\",\"fog_rule\":\""; out += fog_rule;
-    out += "\",\"death_rule\":\""; out += death_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"death_rule\":\""; out += death_rule;
+    out += "\",\"overflow_rule\":\""; out += overflow_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -1099,7 +1114,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     else {
         const auto& event = *data_.last_sale;
         out += "{\"origin\":" + std::to_string(event.origin) + ",\"source\":" + std::to_string(event.source) + ",\"target\":" + std::to_string(event.target)
-            + ",\"model\":" + std::to_string(event.model) + ",\"price\":" + std::to_string(event.price) + '}';
+            + ",\"model\":" + std::to_string(event.model) + ",\"price\":" + std::to_string(event.price) + ",\"overflow_model\":";
+        out += event.overflow_model ? std::to_string(*event.overflow_model) : "null"; out += '}';
     }
     out += ",\"purchase\":";
     if (!data_.purchase) out += "null";
@@ -1115,7 +1131,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += "{\"origin\":" + std::to_string(event.origin) + ",\"buyer\":" + std::to_string(event.buyer) + ",\"seller\":" + std::to_string(event.seller)
             + ",\"model\":" + std::to_string(event.model) + ",\"price\":" + std::to_string(event.price) + ",\"bought\":";
         out += event.reason == PurchaseReason::bought ? "true" : "false";
-        out += ",\"reason\":\""; out += purchase_reason_name(event.reason); out += "\"}";
+        out += ",\"reason\":\""; out += purchase_reason_name(event.reason); out += "\",\"overflow_model\":";
+        out += event.overflow_model ? std::to_string(*event.overflow_model) : "null"; out += '}';
     }
     out += ",\"pending\":";
     if (data_.queue.empty()) out += "null";

@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==229&&match_gift_weight()==490&&std::string_view(match_ruleset)=="official-execution-subset-v25"
+    const auto pool=match_catalog();check(pool.size()==229&&match_gift_weight()==490&&std::string_view(match_ruleset)=="official-execution-subset-v26"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"229model/490weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,105,76,17,28,0,0,0}&&weight==490,"exchange, sell and buy are admitted among trade cards");
@@ -255,7 +255,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v23\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v24\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -875,9 +875,10 @@ void sell_invalid_roles_sampler_and_journal(){
     for(int error=0;error<9;++error){auto bad=valid;if(error==0)bad.items.clear();if(error==1)bad.items={0};if(error==2)bad.items={0,1,2};if(error==3)bad.items={0,0};if(error==4)bad.items={1,0};
         if(error==5)bad.target.reset();if(error==6)bad.target=999;if(error==7)bad.allocation=ResourceAllocation{40,10,20};if(error==8)bad.kind=CommandKind::play;reject(m,bad);}
     auto st=m.snapshot().state;st.players[0].items[1].used=true;auto learned=fixture(st);reject(learned,valid);
-    auto full=scene({4,27},{});for(unsigned i=0;i<18;++i)full.players[1].items.push_back({i,113,{},false});auto blocked=fixture(full);const auto before=blocked.snapshot();bool unsupported=false;
-    try{blocked.step(valid);}catch(const MatchError& e){unsupported=e.code==MatchErrorCode::unsupported;}check(unsupported&&blocked.snapshot()==before&&!blocked.legal(valid),"full foreign recipient is an explicit unsupported gap and all state is preserved");
-    bool seen=false;for(std::uint64_t seed=0;seed<256;++seed){auto policy=seed;const auto command=blocked.sample_action(policy);check(blocked.legal(command)&&blocked.snapshot()==before,"policy sampling is pure and cannot launch a blocked sale");if(command.kind==CommandKind::sell){seen=true;check(command.target==0&&command.items.size()==2&&command.items[0]!=command.items[1]&&!command.allocation,"SELL policy only chooses a room-available target and unused distinct product");}}check(seen,"SELL is reachable without enumerating commodity-target cross products");
+    auto full=scene({4,27},{});for(unsigned i=0;i<18;++i)full.players[1].items.push_back({i,113,{},false});auto blocked=fixture(full);const auto before=blocked.snapshot();
+    check(blocked.legal(valid)&&blocked.snapshot()==before,"foreign full recipient does not create a hidden-capacity legality oracle");
+    bool seen=false;for(std::uint64_t seed=0;seed<256;++seed){auto policy=seed;const auto command=blocked.sample_action(policy);check(blocked.legal(command)&&blocked.snapshot()==before,"policy sampling is pure with full recipients");if(command.kind==CommandKind::sell){seen=true;check(command.target&&command.items.size()==2&&command.items[0]!=command.items[1]&&!command.allocation,"SELL policy chooses alive targets and unused distinct products without reading capacity");}}check(seen,"SELL is reachable without enumerating commodity-target cross products");
+    blocked.step(valid);blocked.step(defend(7));check(blocked.snapshot().state.players[1].items.size()==18&&blocked.snapshot().last_sale->overflow_model==113,"full recipient loses one existing model then receives commodity");roundtrip(blocked);
     auto single=fixture(scene({4},{}));for(std::uint64_t seed=0;seed<64;++seed){auto policy=seed;check(single.sample_action(policy).kind!=CommandKind::sell,"operation alone cannot generate a sell command");}
     auto active=fixture(scene({4,27},{190}));active.step(valid);active.step(defend(7,{0}));const auto exact=active.snapshot();
     for(int error=0;error<9;++error){auto bad=exact;if(error==0)bad.batch->attack.kind=CommandKind::play;if(error==1)bad.batch->attack.items[1]=99;if(error==2)++bad.queue[0].amount;
@@ -1121,18 +1122,17 @@ void fog_projection_and_query_noninterference(){
     const auto before_a=a.snapshot(),before_b=b.snapshot();bool sampled_sell=false;
     for(std::uint64_t seed=0;seed<256;++seed){auto pa=seed,pb=seed;const auto ca=a.sample_action(pa),cb=b.sample_action(pb);
         check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb)&&a.snapshot()==before_a&&b.snapshot()==before_b,"same Fog information yields identical pure policy proposals and legal answers");
-        if(ca.kind==CommandKind::sell){sampled_sell=true;check(ca.target==0,"sampler SELL never inspects hidden recipient capacity");}}
+        if(ca.kind==CommandKind::sell){sampled_sell=true;check(ca.target.has_value(),"sampler SELL targets alive recipients without inspecting hidden capacity");}}
     check(sampled_sell,"Fog policy can still self-sell");
-    for(PlayerId target:{7u,9u,42u}){Command sale{0,CommandKind::sell,{0,1},target};for(Match* m:{&a,&b}){const auto before=m->snapshot();bool unsupported=false;
-        try{m->step(sale);}catch(const MatchError& error){unsupported=error.code==MatchErrorCode::unsupported;}
-        check(unsupported&&!m->legal(sale)&&m->snapshot()==before,"Fog rejects all foreign SELL with one unsupported code before hidden capacity checks");}
+    for(PlayerId target:{7u,9u,42u}){Command sale{0,CommandKind::sell,{0,1},target};
+        check(a.legal(sale)&&b.legal(sale)&&a.snapshot()==before_a&&b.snapshot()==before_b,"Fog foreign SELL is legal independently of hidden recipient resources and capacity");
         for(ItemToken token:{1u,2u,3u})check(a.legal(play(0,{token},target))==b.legal(play(0,{token},target)),"ordinary Fog target legality depends only on revealed relationship and own resources");}
     check(a.legal({0,CommandKind::sell,{0,1},0})&&b.legal({0,CommandKind::sell,{0,1},0}),"self SELL remains available under Fog");
     auto clear_a=first,clear_b=first;clear_a.players[0].curses.clear();clear_b.players[0].curses.clear();clear_b.players[1].items=second.players[1].items;
     Match visible_a,visible_b;visible_a.load_scene(clear_a,0,0);visible_b.load_scene(clear_b,0,0);
     check(visible_a.observe(0)==visible_b.observe(0),"unused enemy capacity is hidden without Fog as well");
     for(std::uint64_t seed=0;seed<256;++seed){auto pa=seed,pb=seed;const auto ca=visible_a.sample_action(pa),cb=visible_b.sample_action(pb);
-        check(ca==cb&&pa==pb&&(ca.kind!=CommandKind::sell||ca.target==0),"all-state sampler avoids foreign SELL capacity dependency");}
+        check(ca==cb&&pa==pb&&visible_a.legal(ca)&&visible_b.legal(cb),"all-state sampler avoids foreign SELL capacity dependency");}
     const auto view=a.observe(0);check(view.find(fog_rule)!=std::string::npos&&view.find("last_fog")==std::string::npos&&view.find("\"status\":null")!=std::string::npos,"view declares experimental Fog schedule without exposing private selection record");
 }
 
@@ -1282,6 +1282,90 @@ void death_nine_seat_large_fifo_and_natural_cancellation(){
         &&m.snapshot().state.players[7].items.size()==18,"last natural outcome cancels remaining FIFO and leaves final-terminal death bows unconsumed without extra rolls");
 }
 
+void trade_overflow_inventory_order_types_and_gift_accounting(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;const std::array<std::uint64_t,6> seeds{19,0,5,3,2,1};
+    const std::array<CardId,6> models{235,208,209,112,118,118};
+    MatchConfig cap;cap.initial_hand=cap.hand_limit=6;cap.max_decisions=2;
+    for(std::size_t slot=0;slot<models.size();++slot){auto state=scene({4,6},{});state.players[1].hp=99;
+        for(ItemToken n=0;n<6;++n)state.players[1].items.push_back({10+n,models[n],{},n==0});Match m(cap);m.load_scene(state,0,seeds[slot]);
+        const Command sale{0,CommandKind::sell,{0,1},7};check(m.legal(sale),"full recipients are legal regardless of protected passives or retained miracles");m.step(sale);roundtrip(m);m.step(defend(7));
+        const auto& result=m.snapshot();const auto& target=result.state.players[1];
+        check(result.last_sale->overflow_model==models[slot]&&result.rng==seeds[slot]+draw&&target.items.size()==6&&target.items.back().model==6
+            &&target.items.back().token==16&&!target.items.back().used&&std::none_of(target.items.begin(),target.items.end(),[&](const auto& item){return item.token==10+slot;}),
+            "one full-delivery bounded draw selects inventory-order existing copy, then adds a fresh unused commodity");
+        check(target.hp==99&&target.mp==10&&target.cp==19&&result.revivals==0&&result.death_bows==0&&result.death_created==0,"evicted235/208/209/112 never invokes its ability or a replacement gift");
+        const auto board=project_view(result.state,7);check(board.players[1].used_models==(slot==0?std::vector<CardId>{}:std::vector<CardId>{235}),"used miracle eviction updates its separate public pane");
+        check(m.observe({}).find("\"overflow_model\":"+std::to_string(models[slot]))!=std::string::npos&&m.observe(0).find("eviction_index")==std::string::npos,"overflow model is public without an inventory index");roundtrip(m);}
+    auto sparse=scene({4,6},{118});Match no_overflow(cap);no_overflow.load_scene(sparse,0,0);no_overflow.step({0,CommandKind::sell,{0,1},7});no_overflow.step(defend(7));
+    check(!no_overflow.snapshot().last_sale->overflow_model&&no_overflow.snapshot().rng==0&&no_overflow.observe({}).find("\"overflow_model\":null")!=std::string::npos,"nonfull delivery takes no overflow draw and declares a nullable result");roundtrip(no_overflow);
+    cap.max_decisions=512;auto full=scene({4,6},{118,118,118,118,118,118});Match gifts(cap);gifts.load_scene(full,0,0);gifts.step({0,CommandKind::sell,{0,1},7});gifts.step(defend(7));
+    check(gifts.snapshot().state.players[0].items.size()==1&&gifts.snapshot().state.players[1].items.size()==6&&gifts.snapshot().rng==2*draw,"overflow adds no replacement; only the operation's deferred gift follows the eviction draw");roundtrip(gifts);
+    MatchConfig redirect_cap;redirect_cap.initial_hand=redirect_cap.hand_limit=2;redirect_cap.max_decisions=3;auto redirect_state=scene({4,6},{190,118});Match redirect(redirect_cap);redirect.load_scene(redirect_state,0,0);
+    redirect.step({0,CommandKind::sell,{0,1},7});redirect.step(defend(7,{0}));redirect.step(defend(0));
+    check(redirect.snapshot().last_sale->target==0&&!redirect.snapshot().last_sale->overflow_model&&redirect.snapshot().rng==0,"initially full buyer can reflect; overflow is chosen only at the actual final recipient after responses");roundtrip(redirect);
+}
+
+void trade_overflow_debt_eviction_revival_and_death_order(){
+    MatchConfig cap;cap.initial_hand=cap.hand_limit=2;cap.max_decisions=2;
+    for(std::uint64_t seed:{0u,2u}){SnapshotState state;state.players={player(0,{4,27}),player(7,{208,112}),player(42)};state.players[1].hp=1;state.players[1].mp=state.players[1].cp=0;
+        Match m(cap);m.load_scene(state,0,seed);m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7));const auto& s=m.snapshot();
+        check(s.state.players[0].cp==30&&s.last_sale->price==10&&s.last_sale->overflow_model==(seed==0?112:208),"CP debt and full source credit precede the selected overflow event");
+        if(seed==0)check(!s.state.players[1].dead&&s.state.players[1].hp==10&&s.revivals==1&&s.death_bows==0,"evicted112 never attacks; surviving208 rescues after delivery");
+        else check(s.state.players[1].dead&&s.revivals==0&&s.death_bows==1&&s.death_created==2&&s.death_started==0,"evicting208 prevents rescue and remaining112 is reserved only at actual death, before cutoff");roundtrip(m);}
+    for(CardId product:{CardId{208},CardId{112}}){SnapshotState state;state.players={player(0,{4,product}),player(7,{208,118}),player(42)};state.players[1].hp=1;state.players[1].mp=state.players[1].cp=0;Match m(cap);m.load_scene(state,0,2);
+        m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7));const auto& s=m.snapshot();check(s.last_sale->overflow_model==208,"old208 can be evicted before a different fresh passive arrives");
+        if(product==208)check(s.revivals==1&&!s.state.players[1].dead&&s.state.players[1].hp==10,"newly delivered208 participates in rescue after eviction");
+        else check(s.revivals==0&&s.state.players[1].dead&&s.death_bows==1&&s.death_created==2,"newly delivered112 participates in actual death after eviction");roundtrip(m);}
+}
+
+void fog_sell_launch_commodity_roles_reflections_and_overflow(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;MatchConfig cap;cap.initial_hand=cap.hand_limit=2;cap.max_decisions=2;
+    for(CardId product:{CardId{232},CardId{94},CardId{112},CardId{14},CardId{202},CardId{198},CardId{208}}){SnapshotState state;state.players={player(0,{4,product},Team::one),player(7,{},Team::two),player(9,{},Team::one),player(42,{208,118},Team::two)};
+        state.players[0].curses={Curse::fog};state.players[3].cp=99;state.players[3].hp=99;Match m(cap);m.load_scene(state,0,0);m.step({0,CommandKind::sell,{0,1},7});
+        check(m.snapshot().actor==42&&m.snapshot().batch->targets==std::vector<PlayerId>{42}&&m.snapshot().last_fog==FogTarget{0,7,42,{4,product}}
+            &&m.snapshot().rng==draw&&m.snapshot().state.players[0].mp==10,"Fog SELL selects once from enemies and never casts commodity Wide/chance/Danger/repeat/utility abilities");roundtrip(m);
+        m.step(defend(42));check(m.snapshot().last_sale->target==42&&m.snapshot().last_sale->model==product&&m.snapshot().last_sale->overflow_model==208
+            &&m.snapshot().rng==2*draw&&m.snapshot().last_fog->target==42&&m.snapshot().state.players[3].hp==99&&m.snapshot().state.players[3].curses.empty(),"selected full buyer takes one independent overflow draw after Fog, without commodity side effects");roundtrip(m);}
+    for(PlayerId target:{0u,9u}){SnapshotState state;state.players={player(0,{4,232},Team::one),player(7),player(9,{},Team::one)};state.players[0].curses={Curse::fog};auto direct_cap=cap;direct_cap.max_decisions=target==0?1:2;Match m(direct_cap);m.load_scene(state,0,0);m.step({0,CommandKind::sell,{0,1},target});
+        check(!m.snapshot().last_fog&&m.snapshot().rng==0,"Fog leaves self and ally SELL hints unchanged without a draw");if(target==9)m.step(defend(9));roundtrip(m);}
+    auto state=scene({4,27,190},{});state.players.push_back(player(42,{190}));state.players[0].curses={Curse::fog};MatchConfig limit;limit.max_decisions=5;Match reflection(limit);reflection.load_scene(state,0,0);
+    reflection.step({0,CommandKind::sell,{0,1},7});reflection.step(defend(42,{0}));roundtrip(reflection);reflection.step(defend(0,{2}));roundtrip(reflection);reflection.step(defend(42));
+    check(reflection.snapshot().last_sale->source==0&&reflection.snapshot().last_sale->target==42&&!reflection.snapshot().last_sale->overflow_model
+        &&reflection.snapshot().last_fog->target==42,"reflections preserve Fog launch selection and deliver only at the final nonfull buyer");roundtrip(reflection);
+}
+
+void overflow_event_full_replay_and_late_atomic_failures(){
+    MatchConfig cap;cap.initial_hand=cap.hand_limit=2;SnapshotState state;state.players={player(0,{4,27}),player(7,{208,112}),player(42)};state.players[1].hp=1;state.players[1].mp=state.players[1].cp=0;
+    for(auto seat:{0u,2u}){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}Match m(cap);m.load_scene(state,0,2);m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7));const auto exact=m.snapshot();
+    check(exact.phase==MatchPhase::response&&exact.queue[0].is_death&&exact.last_sale->overflow_model==208,"resolved overflow event can coexist with later posthumous responses");roundtrip(m);
+    for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.last_sale->overflow_model=112;if(error==1)bad.last_sale->overflow_model.reset();if(error==2)bad.last_sale->overflow_model=222;
+        if(error==3)bad.rng^=1;if(error==4)bad.batch->rng^=1;if(error==5)std::swap(bad.batch->initial_state.players[1].items[0],bad.batch->initial_state.players[1].items[1]);if(error==6)bad.last_sale->overflow_model=0;
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"full replay rejects invented overflow result, inventory-order/RNG anchor and unsupported model atomically");}
+    state.players[1]=player(7,{118,118});state.update_count=max_wire_integer-1;Match update(cap);update.load_scene(state,0,2);update.step({0,CommandKind::sell,{0,1},7});const auto before=update.snapshot();bool failed=false;
+    try{update.step(defend(7));}catch(const MatchError&){failed=true;}check(failed&&update.snapshot()==before,"late update failure rolls back CP, eviction RNG/copy, fresh delivery, public result and death work");roundtrip(update);
+    state.update_count=0;state.players[0].items[0].token=max_wire_integer-1;Match gifts(cap);gifts.load_scene(state,0,2);gifts.step({0,CommandKind::sell,{max_wire_integer-1,1},7});const auto pending=gifts.snapshot();failed=false;
+    try{gifts.step(defend(7));}catch(const MatchError&){failed=true;}check(failed&&gifts.snapshot()==pending,"deferred gift exhaustion after a successful full delivery restores eviction/result/fresh token and RNG together");roundtrip(gifts);
+    auto ordinary=fixture(scene({5},{6}));ordinary.step({0,CommandKind::buy,{0},7});ordinary.step(defend(7));ordinary.step({0,CommandKind::accept,{},{}});
+    check(ordinary.snapshot().last_purchase&&!ordinary.snapshot().last_purchase->overflow_model&&ordinary.observe({}).find("\"overflow_model\":null")!=std::string::npos,"reachable BUY retains no-overflow result; generic full delivery helper is shared without fabricating a full quote");roundtrip(ordinary);
+    for(std::uint32_t limit:{2u,3u}){auto stock=scene({5},{});for(ItemToken n=0;n<18;++n)stock.players[1].items.push_back({10+n,118,{},false});MatchConfig return_cap;return_cap.max_decisions=limit;Match returned(return_cap);returned.load_scene(stock,0,0);
+        returned.step({0,CommandKind::buy,{0},7});returned.step(defend(7));if(limit==3)returned.step({0,CommandKind::decline,{},{}});
+        check(returned.snapshot().state.players[1].items==stock.players[1].items&&!returned.snapshot().last_purchase->overflow_model&&returned.snapshot().rng==0x9e3779b97f4a7c15ULL
+            &&returned.snapshot().last_purchase->reason==(limit==2?PurchaseReason::cutoff:PurchaseReason::declined),"decline or unresolved-cutoff return restores full seller's original slot/token without eviction or an extra draw");roundtrip(returned);}
+
+}
+
+void trade_capacity_queries_and_sampler_use_only_visible_inputs(){
+    auto sparse=scene({4,6,232,5},{235});sparse.players[1].items[0].used=true;auto full=sparse;
+    for(ItemToken token=1;token<18;++token)full.players[1].items.push_back({token,118,{},false});Match a,b;a.load_scene(sparse,0,0);b.load_scene(full,0,0);
+    check(a.observe(0)==b.observe(0),"foreign unused capacity is hidden while used miracle pane is identical");const auto sa=a.snapshot(),sb=b.snapshot();std::set<PlayerId> sell_targets;
+    for(std::uint64_t seed=0;seed<512;++seed){auto pa=seed,pb=seed;const auto ca=a.sample_action(pa),cb=b.sample_action(pb);
+        check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb)&&a.snapshot()==sa&&b.snapshot()==sb,"all-state policy stream and legality answers do not inspect hidden recipient capacity");if(ca.kind==CommandKind::sell)sell_targets.insert(*ca.target);}
+    check(sell_targets==std::set<PlayerId>{0,7},"SELL sampler reaches self and full foreign recipients without filtering by hidden counts");
+    for(ItemToken product:{1u,2u})for(PlayerId target:{0u,7u}){Command sale{0,CommandKind::sell,{0,product},target};check(a.legal(sale)&&b.legal(sale),"explicit foreign and self SELL remain legal for every hidden capacity");}
+    a.step({0,CommandKind::sell,{0,1},7});b.step({0,CommandKind::sell,{0,1},7});check(a.observe(0)==b.observe(0)&&a.snapshot().rng==b.snapshot().rng,"accepted foreign launch still does not reveal whether final delivery will overflow");roundtrip(a);roundtrip(b);
+    check(a.observe(0).find(overflow_rule)!=std::string::npos,"public view exposes the experimental overflow rule");
+}
+
 void checkpoint_cutoff_and_seeded_multiplayer(){
     auto active=fixture(scene({image("bronze-club")},{}));active.step(play(0,{0},7));const auto exact=active.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;if(error==0)++bad.version;if(error==1)bad.actor=0;if(error==2)bad.queue.push_back(bad.queue[0]);if(error==3)++bad.queue[0].power;
@@ -1408,6 +1492,11 @@ int main(){
     death_natural_cutoff_revival_and_simultaneous_boundaries();
     death_snapshot_adversaries_and_atomic_late_failures();
     death_nine_seat_large_fifo_and_natural_cancellation();
+    trade_overflow_inventory_order_types_and_gift_accounting();
+    trade_overflow_debt_eviction_revival_and_death_order();
+    fog_sell_launch_commodity_roles_reflections_and_overflow();
+    overflow_event_full_replay_and_late_atomic_failures();
+    trade_capacity_queries_and_sampler_use_only_visible_inputs();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (229subset/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (229subset/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }
