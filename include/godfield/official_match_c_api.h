@@ -38,6 +38,11 @@ typedef struct gfo_match_guardian_payload_action {
     uint16_t models[18];
     uint8_t guardian, model_count, has_target, reserved[9];
 } gfo_match_guardian_payload_action;
+typedef struct gfo_match_phenomenon_action {
+    uint64_t recipient;
+    uint16_t model;
+    uint8_t has_recipient, guardian_count, guardians[9], reserved[3];
+} gfo_match_phenomenon_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -60,6 +65,8 @@ size_t gfo_match_guardian_action_size(void);
 int gfo_match_guardian_supported(uint16_t model);
 size_t gfo_match_guardian_payload_action_size(void);
 int gfo_match_guardian_payload_supported(uint8_t guardian, uint16_t model);
+size_t gfo_match_phenomenon_action_size(void);
+int gfo_match_phenomenon_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -87,6 +94,11 @@ int gfo_match_guardian_step(gfo_match* match, const gfo_match_guardian_action* a
 // guardian is Earth9 or Moon10. No source items, ordinary MP fee or retention.
 int gfo_match_guardian_payload_legal(const gfo_match* match, const gfo_match_guardian_payload_action* action, uint8_t* out);
 int gfo_match_guardian_payload_step(gfo_match* match, const gfo_match_guardian_payload_action* action, gfo_match_status* out);
+// Externally supplied resolved global pulse, not a random phenomenon selector.
+// Only294 accepts a recipient; only296 accepts guardian assignments (1..10),
+// exactly one per alive player in input order. Unused fields/tails must be0.
+int gfo_match_phenomenon_legal(const gfo_match* match, const gfo_match_phenomenon_action* action, uint8_t* out);
+int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 class MatchTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v33"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v34"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v31")
+        self.assertEqual(own["schema"], "official-execution-view-v32")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v31")
+        self.assertEqual(event["schema"], "official-execution-view-v32")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2466,6 +2466,180 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(game.guardian_payload_legal(action))
         with self.assertRaises(InvalidMatchError): game.guardian_payload_step(action)
         self.assertEqual((game.observe(7), game.status), (before, status))
+
+    def test_phenomenon_direct_fever_fog_and_hp_assignment_all_alive(self):
+        game = self.match(config=Config(initial_hand=0))
+        ids = (0, 7, 23, 91, 105, 888, 9007199254740991, 42, 3)
+        raw = {"gf": 12, "players": [{"id": player, "team": 1 if index % 2 == 0 else 2,
+                 "hp": 0 if index == 8 else 11 + index, "mp": 20 + index, "cp": 30 + index,
+                 "dead": index == 8, "guardian": "mars", "curses": ["heaven"] if index == 0 else ["cold"],
+                 "items": [{"id": 100 + index * 2, "modelId": 208}, {"id": 101 + index * 2, "modelId": 112}]}
+                 for index, player in enumerate(ids)]}
+        raw["players"][0]["curses"] += ["dream", "flash", "darkcloud"]
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 7)
+        before = game.observe()["board"]["players"]
+        hands = [game.observe(player)["board"]["hand"] for player in ids]
+        game.phenomenon_step(PhenomenonAction(287))
+        after = game.observe()["board"]["players"]
+        for index, (old, new) in enumerate(zip(before, after)):
+            self.assertEqual({key: old["status"][key] for key in ("hp", "mp", "cp", "guardian")},
+                             {key: new["status"][key] for key in ("hp", "mp", "cp", "guardian")})
+            self.assertEqual(new["status"]["curses"], old["status"]["curses"] if index == 8 else
+                             (["fever", "dream", "flash", "darkcloud"] if index == 0 else ["fever"]))
+        self.assertEqual([game.observe(player)["board"]["hand"] for player in ids], hands)
+        self.assertEqual(game.observe()["last_phenomenon"], {"model": 287, "recipient": None})
+        game.phenomenon_step(PhenomenonAction(288))
+        fogged = game.observe()["board"]
+        game.phenomenon_step(PhenomenonAction(288))
+        self.assertEqual(game.observe()["board"], fogged)
+        self.assertNotIn("fog", fogged["players"][8]["status"]["curses"])
+        self.assertTrue(all("fog" in player["status"]["curses"] for player in fogged["players"][:8]))
+        game.phenomenon_step(PhenomenonAction(290))
+        view = game.observe()
+        self.assertEqual([player["status"]["hp"] for player in view["board"]["players"]], [1] * 8 + [0])
+        self.assertEqual([game.observe(player)["board"]["hand"] for player in ids], hands)
+        self.assertEqual((game.actor, game.status.owner, view["board"]["gf"]), (0, 0, 12))
+        self.assertEqual(view["last_auto_guardians"], []); self.assertEqual(view["last_guardian_changes"], [])
+
+    def test_phenomenon_cp_collection_uses_original_alive_sum_before_credit(self):
+        game = self.match(config=Config(initial_hand=0))
+        ids = (0, 23, 9007199254740991, 91)
+        for balances in ((3, 5, 7), (99, 99, 99), (0, 0, 0)):
+            for recipient in ids[:3]:
+                raw = {"gf": 8, "players": [{"id": player, "hp": 0 if index == 3 else 40,
+                    "mp": 21 + index, "cp": 99 if index == 3 else balances[index], "dead": index == 3}
+                    for index, player in enumerate(ids)]}
+                with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 2)
+                game.phenomenon_step(PhenomenonAction(294, recipient))
+                view = game.observe()
+                self.assertEqual([player["status"]["cp"] for player in view["board"]["players"]],
+                                 [min(99, sum(balances)) if player == recipient else (99 if index == 3 else 0)
+                                  for index, player in enumerate(ids)])
+                self.assertEqual([player["status"]["mp"] for player in view["board"]["players"]], [21, 22, 23, 24])
+                self.assertEqual([player["status"]["hp"] for player in view["board"]["players"]], [40, 40, 40, 0])
+                self.assertEqual(view["last_phenomenon"], {"model": 294, "recipient": recipient})
+                self.assertEqual((game.actor, game.status.owner, view["board"]["gf"]), (0, 0, 8))
+                self.assertTrue(all(game.observe(player)["board"]["hand"] == [] for player in ids))
+
+    def test_phenomenon_guardian_assignments_follow_alive_order_and_filter_fog(self):
+        game = self.match(config=Config(initial_hand=0))
+        ids = (0, 7, 23, 91, 105, 888, 9007199254740991, 42, 3)
+        raw = {"players": [{"id": player, "hp": 0 if index == 8 else 40, "mp": 10, "cp": 20,
+                            "dead": index == 8, "guardian": "mars", "curses": ["fog"] if index == 0 else []}
+                            for index, player in enumerate(ids)]}
+        names = ("mars", "moon", "earth", "venus", "neptune", "pluto", "uranus", "saturn")
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        game.phenomenon_step(PhenomenonAction(296, guardians=names))
+        view = game.observe()
+        self.assertEqual([player["status"]["guardian"] for player in view["board"]["players"]], list(names) + ["mars"])
+        self.assertEqual(view["last_phenomenon"], {"model": 296, "recipient": None})
+        self.assertEqual(len(view["last_guardian_changes"]), 8)
+        self.assertTrue(all(event["reason"] == "phenomenon" for event in view["last_guardian_changes"]))
+        self.assertEqual([event["player"] for event in game.observe(0)["last_guardian_changes"]], [0])
+        self.assertEqual(view["last_guardian_changes"][0], {"player": 0, "before": "mars", "after": "mars", "reason": "phenomenon"})
+        for private in ("guardians", "assignments", "cp_total", "phenomenon_actions", "rng"):
+            self.assertNotIn(private, view); self.assertNotIn(private, view["last_phenomenon"])
+
+    def test_phenomenon_strict_fields_pending_exclusion_and_late_atomicity(self):
+        game = self.match(config=Config(initial_hand=0))
+        self.assertEqual(game.supported_phenomenon_models, (287, 288, 290, 294, 296))
+        self.assertTrue(set(game.supported_phenomenon_models).isdisjoint(game.supported_models))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 99, "cp": 99, "guardian": "earth"},
+                             {"id": 23, "hp": 40, "mp": 99, "cp": 99}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        for malformed in (None, PhenomenonAction(True), PhenomenonAction(65536), PhenomenonAction(294, False),
+                          PhenomenonAction(296, guardians=["mars", "moon"]), PhenomenonAction(296, guardians=("none", "moon")),
+                          PhenomenonAction(296, guardians=(1, "moon")), PhenomenonAction(296, guardians=("mars",) * 10)):
+            with self.assertRaises(InvalidMatchError): game.phenomenon_legal(malformed)
+            with self.assertRaises(InvalidMatchError): game.phenomenon_step(malformed)
+        for invalid in (PhenomenonAction(289), PhenomenonAction(294), PhenomenonAction(287, 0), PhenomenonAction(294, 999),
+                        PhenomenonAction(296), PhenomenonAction(296, guardians=("mars",)),
+                        PhenomenonAction(287, guardians=("mars", "moon"))):
+            self.assertFalse(game.phenomenon_legal(invalid))
+            with self.assertRaises(MatchError): game.phenomenon_step(invalid)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.guardian_payload_step(GuardianPayloadAction(0, "earth", (6,), 23))
+        before, status = game.observe(0), game.status
+        self.assertFalse(game.phenomenon_legal(PhenomenonAction(288)))
+        with self.assertRaises(InvalidMatchError): game.phenomenon_step(PhenomenonAction(288))
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["updateCount"] = 9007199254740991
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        action = PhenomenonAction(296, guardians=("moon", "mars"))
+        self.assertTrue(game.phenomenon_legal(action))
+        with self.assertRaises(InvalidMatchError): game.phenomenon_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+
+    def test_phenomenon_actual_client_vectors_with_explicit_match_scene_domain(self):
+        # Client receiver inputs include scenes outside the executable Match
+        # domain. Keep those cases explicit rather than repairing HP or diseases.
+        report = json.loads((Path(__file__).resolve().parents[1] /
+                             "data/official-v2/phenomenon-client-v34.json").read_text())
+        game = self.match(config=Config(initial_hand=0, initial_hp=99, initial_mp=99, initial_cp=99))
+        team = {"solo": 0, "red": 1, "blue": 2}
+        curse_order = {name: index for index, name in enumerate(("cold", "fever", "hell", "heaven", "fog", "dream", "flash", "darkcloud"))}
+        counts = {"applied": 0, "rejected": 0, "scene_outside": 0}
+        self.assertEqual(len(report["cases"]), 298)
+        for index, case in enumerate(report["cases"]):
+            with self.subTest(index=index, label=case["label"], input=case["input"]):
+                players = [{"id": player["id"], "userId": player["user_id"], "team": team[player["team"]],
+                            "hp": player["hp"], "mp": player["mp"], "cp": player["cp"], "dead": player["dead"],
+                            "curses": sorted(player["curses"], key=curse_order.__getitem__), "guardian": player["guardian"], "items": []}
+                           for player in case["before"]]
+                raw = {"gf": 19, "players": players}
+                alive = [player for player in players if not player["dead"]]
+                actor = alive[0]["id"] if alive else players[0]["id"]
+                noncanonical = any((not player["dead"] and player["hp"] == 0)
+                    or len(player["curses"]) != len(set(player["curses"]))
+                    or len([curse for curse in player["curses"] if curse in ("cold", "fever", "hell", "heaven")]) > 1
+                    for player in players)
+                natural = len(alive) <= 1 or (alive[0]["team"] != 0 and all(player["team"] == alive[0]["team"] for player in alive))
+                with OfficialState(raw, library=LIBRARY) as scene:
+                    if noncanonical:
+                        before, status = game.observe(), game.status
+                        with self.assertRaises(MatchError): game.load_scene(scene, actor, 0)
+                        self.assertEqual((game.observe(), game.status), (before, status))
+                        counts["scene_outside"] += 1
+                        continue
+                    game.load_scene(scene, actor, 0)
+                if natural:
+                    self.assertTrue(game.status.terminated); self.assertFalse(game.status.truncated)
+                    self.assertFalse(game.phenomenon_legal(PhenomenonAction(288)))
+                    counts["scene_outside"] += 1
+                    continue
+                self.assertFalse(game.done)
+                arguments = dict(case["input"])
+                if type(arguments.get("guardians")) is list:
+                    # A JSON array becomes a typed tuple without dropping or
+                    # substituting any null/unknown entries from the wire case.
+                    arguments["guardians"] = tuple(arguments["guardians"])
+                action = PhenomenonAction(**arguments)
+                before, status = game.observe(), game.status
+                try: legal = game.phenomenon_legal(action)
+                except InvalidMatchError: legal = False
+                self.assertEqual(legal, case["adapter_shape"]["valid"])
+                self.assertEqual((game.observe(), game.status), (before, status))
+                if not legal:
+                    with self.assertRaises(MatchError): game.phenomenon_step(action)
+                    self.assertEqual((game.observe(), game.status), (before, status))
+                    counts["rejected"] += 1
+                    continue
+                game.phenomenon_step(action)
+                view = game.observe()
+                self.assertFalse(case["result"]["error"])
+                self.assertEqual([player["id"] for player in view["board"]["players"]], [player["id"] for player in case["result"]["after"]])
+                for actual, expected in zip(view["board"]["players"], case["result"]["after"]):
+                    self.assertEqual((actual["id"], actual["dead"]), (expected["id"], expected["dead"]))
+                    self.assertEqual(tuple(actual["status"][key] for key in ("hp", "mp", "cp", "guardian")),
+                                     tuple(expected[key] for key in ("hp", "mp", "cp", "guardian")))
+                    self.assertEqual(set(actual["status"]["curses"]), set(expected["curses"]))
+                self.assertEqual(view["last_phenomenon"], {"model": action.model, "recipient": action.recipient})
+                self.assertEqual((game.status.owner, game.actor, game.status.decisions, view["board"]["gf"]), (actor, actor, 1, 19))
+                self.assertEqual(view["last_auto_guardians"], [])
+                counts["applied"] += 1
+        self.assertEqual(counts, {"applied": 265, "rejected": 11, "scene_outside": 22})
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

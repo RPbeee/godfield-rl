@@ -34,10 +34,16 @@ int main() {
         && offsetof(gfo_match_guardian_payload_action, guardian) == 52
         && offsetof(gfo_match_guardian_payload_action, model_count) == 53
         && offsetof(gfo_match_guardian_payload_action, has_target) == 54
-        && offsetof(gfo_match_guardian_payload_action, reserved) == 55, "ABI sizes");
+        && offsetof(gfo_match_guardian_payload_action, reserved) == 55
+        && gfo_match_phenomenon_action_size() == 24 && sizeof(gfo_match_phenomenon_action) == 24
+        && offsetof(gfo_match_phenomenon_action, model) == 8
+        && offsetof(gfo_match_phenomenon_action, has_recipient) == 10
+        && offsetof(gfo_match_phenomenon_action, guardian_count) == 11
+        && offsetof(gfo_match_phenomenon_action, guardians) == 12
+        && offsetof(gfo_match_phenomenon_action, reserved) == 21, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v33"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v34"
         && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -271,7 +277,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v31\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v32\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2106,6 +2112,66 @@ int main() {
         &&gfo_match_guardian_payload_step(payload_match,&payload,&result)==-2&&equal(result,late_status)
         &&observe(payload_match,1,7)==late_view,"late update exhaustion rolls back self-heal and payload event across C ABI");
     gfo_match_destroy(payload_match);
+    unsigned phenomenon_count=0;
+    for(uint16_t model=0;model<=296;++model)phenomenon_count+=gfo_match_phenomenon_supported(model);
+    check(phenomenon_count==5&&gfo_match_phenomenon_supported(287)&&gfo_match_phenomenon_supported(288)
+        &&gfo_match_phenomenon_supported(290)&&gfo_match_phenomenon_supported(294)&&gfo_match_phenomenon_supported(296)
+        &&!gfo_match_supported(207)&&gfo_match_catalog_count()==236,"phenomena are a separate capability and do not alter weighted gifts");
+    gfo_match* pulse_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&pulse_match)==0,"phenomenon bridge create");
+    std::array<gfo_state_player,9> pulse_people{};
+    for(std::size_t i=0;i<9;++i){auto& person=pulse_people[i];person.id=i?100+i*7:0;person.hp=40;person.mp=20+i;person.cp=10+i;}
+    pulse_people[8].dead=1;pulse_people[8].hp=0;pulse_people[8].cp=99;
+    const auto load_pulse_scene=[&](uint64_t update){gfo_state_meta meta{};meta.gf=8;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,pulse_people.data(),pulse_people.size(),nullptr,0,nullptr,0,&scene)==0,"typed source-free pulse scene");
+        check(gfo_match_load_scene(pulse_match,scene,0,0,&result)==0,"load pulse scene");gfo_state_destroy(scene);};
+    load_pulse_scene(0);
+    gfo_match_phenomenon_action pulse{};pulse.model=294;pulse.has_recipient=1;pulse.recipient=pulse_people[3].id;
+    const auto pulse_before=observe(pulse_match,0,0);const auto pulse_status=status(pulse_match);
+    for(unsigned error=0;error<8;++error){auto bad=pulse;
+        if(error==0)bad.reserved[0]=1;if(error==1)bad.reserved[2]=1;if(error==2)bad.has_recipient=2;
+        if(error==3)bad.has_recipient=0;if(error==4)bad.guardian_count=10;
+        if(error==5)bad.guardians[8]=1;if(error==6){bad.guardian_count=1;bad.guardians[0]=11;}
+        if(error==7)bad.recipient=official::max_wire_integer+1;
+        uint8_t marker=0xa5;result=pulse_status;
+        check(gfo_match_phenomenon_legal(pulse_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_phenomenon_step(pulse_match,&bad,&result)==-2&&equal(result,pulse_status)
+            &&observe(pulse_match,0,0)==pulse_before,"phenomenon malformed wire changes no view, output or marker");}
+    uint8_t pulse_marker=0xa5;result=pulse_status;
+    check(gfo_match_phenomenon_legal(nullptr,&pulse,&pulse_marker)==-1
+        &&gfo_match_phenomenon_legal(pulse_match,nullptr,&pulse_marker)==-1
+        &&gfo_match_phenomenon_legal(pulse_match,&pulse,nullptr)==-1
+        &&gfo_match_phenomenon_step(pulse_match,nullptr,&result)==-1
+        &&gfo_match_phenomenon_step(pulse_match,&pulse,nullptr)==-1
+        &&pulse_marker==0xa5&&equal(result,pulse_status)&&observe(pulse_match,0,0)==pulse_before,"phenomenon NULL guards are atomic");
+    check(gfo_match_phenomenon_legal(pulse_match,&pulse,&legal)==0&&legal&&observe(pulse_match,0,0)==pulse_before
+        &&gfo_match_phenomenon_step(pulse_match,&pulse,&result)==0&&result.phase==0&&result.actor==0&&result.owner==0&&result.decisions==1,
+        "source-free collection is one external decision without owner advance");
+    const auto collected=observe(pulse_match,0,0);
+    check(collected.find("\"last_phenomenon\":{\"model\":294,\"recipient\":121}")!=std::string::npos
+        &&collected.find("\"hp\":40,\"mp\":23,\"cp\":99")!=std::string::npos
+        &&collected.find("\"hp\":0,\"mp\":28,\"cp\":99")!=std::string::npos
+        &&collected.find("\"gf\":8")!=std::string::npos&&collected.find("cp_total")==std::string::npos,
+        "collection caps the original alive CP sum, excludes dead CP, and publishes no aggregate");
+    // Nine explicit assignments exercise the event bound independently of the
+    // normal summon counter and the prior three-changes-per-decision bound.
+    pulse_people[8].dead=0;pulse_people[8].hp=40;
+    for(auto& person:pulse_people)person.guardian=static_cast<uint8_t>(official::Guardian::mars);
+    load_pulse_scene(0);pulse={};pulse.model=296;pulse.guardian_count=9;
+    for(std::size_t i=0;i<9;++i)pulse.guardians[i]=i==0?1:10;
+    check(gfo_match_phenomenon_step(pulse_match,&pulse,&result)==0&&result.phase==0&&result.decisions==1,
+        "all nine guardian assignments include same-type values without a redraw or operation gift");
+    const auto assigned=observe(pulse_match,0,0);std::size_t changes=0,position=0;
+    while((position=assigned.find("\"reason\":\"phenomenon\"",position))!=std::string::npos){++changes;++position;}
+    check(changes==9&&assigned.find("\"last_phenomenon\":{\"model\":296,\"recipient\":null}")!=std::string::npos
+        &&assigned.find("\"guardians\":")==std::string::npos&&assigned.find("phenomenon_actions")==std::string::npos,
+        "assignment transport contains only the filtered per-player changes and source-free public event");
+    load_pulse_scene(official::max_wire_integer);
+    const auto late_pulse_view=observe(pulse_match,0,0);const auto late_pulse_status=status(pulse_match);result=late_pulse_status;
+    check(gfo_match_phenomenon_legal(pulse_match,&pulse,&legal)==0&&legal
+        &&gfo_match_phenomenon_step(pulse_match,&pulse,&result)==-2&&equal(result,late_pulse_status)
+        &&observe(pulse_match,0,0)==late_pulse_view,"late update exhaustion rolls back all guardian changes and public events");
+    gfo_match_destroy(pulse_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

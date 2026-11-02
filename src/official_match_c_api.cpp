@@ -27,6 +27,13 @@ static_assert(std::is_standard_layout_v<gfo_match_guardian_payload_action>
     && offsetof(gfo_match_guardian_payload_action, model_count) == 53
     && offsetof(gfo_match_guardian_payload_action, has_target) == 54
     && offsetof(gfo_match_guardian_payload_action, reserved) == 55);
+static_assert(std::is_standard_layout_v<gfo_match_phenomenon_action>
+    && sizeof(gfo_match_phenomenon_action) == 24
+    && offsetof(gfo_match_phenomenon_action, model) == 8
+    && offsetof(gfo_match_phenomenon_action, has_recipient) == 10
+    && offsetof(gfo_match_phenomenon_action, guardian_count) == 11
+    && offsetof(gfo_match_phenomenon_action, guardians) == 12
+    && offsetof(gfo_match_phenomenon_action, reserved) == 21);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
@@ -106,6 +113,19 @@ official::GuardianPayloadAction guardian_payload_action(const gfo_match_guardian
     }
     return result;
 }
+official::PhenomenonAction phenomenon_action(const gfo_match_phenomenon_action& input) {
+    valid(zero(input.reserved) && input.has_recipient <= 1 && input.guardian_count <= official::player_capacity
+        && input.recipient <= official::max_wire_integer && (input.has_recipient || !input.recipient));
+    official::PhenomenonAction result; result.model = input.model;
+    if (input.has_recipient) result.recipient = input.recipient;
+    for (std::size_t i = 0; i < official::player_capacity; ++i) {
+        if (i < input.guardian_count) {
+            valid(input.guardians[i] >= 1 && input.guardians[i] <= 10);
+            result.guardians.push_back(static_cast<official::Guardian>(input.guardians[i]));
+        } else valid(input.guardians[i] == 0);
+    }
+    return result;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -152,6 +172,8 @@ int gfo_match_guardian_payload_supported(uint8_t guardian, uint16_t model) {
     if (guardian != static_cast<uint8_t>(official::Guardian::earth) && guardian != static_cast<uint8_t>(official::Guardian::moon)) return 0;
     return official::match_guardian_payload_supported(static_cast<official::Guardian>(guardian), model);
 }
+size_t gfo_match_phenomenon_action_size(void) { return sizeof(gfo_match_phenomenon_action); }
+int gfo_match_phenomenon_supported(uint16_t model) { return official::match_phenomenon_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -229,6 +251,22 @@ int gfo_match_guardian_payload_step(gfo_match* match, const gfo_match_guardian_p
     try {
         const auto parsed = guardian_payload_action(*input); auto next = match->value;
         next.guardian_payload_step(parsed); const auto result = status(next);
+        match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_phenomenon_legal(const gfo_match* match, const gfo_match_phenomenon_action* input, uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = phenomenon_action(*input);
+        const uint8_t result = match->value.phenomenon_legal(parsed);
+        *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_action* input, gfo_match_status* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = phenomenon_action(*input); auto next = match->value;
+        next.phenomenon_step(parsed); const auto result = status(next);
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
 }

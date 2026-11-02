@@ -54,13 +54,17 @@ void add_curse(PlayerState& p, Curse curse) {
     }
     if (!has_curse(p, curse)) p.curses.insert(std::lower_bound(p.curses.begin(), p.curses.end(), curse), curse);
 }
-void change_guardian(MatchSnapshot& s, PlayerState& player, Guardian after, GuardianChangeReason reason) {
-    GuardianChange event{player.id,player.guardian,after,reason,0};
+std::uint16_t guardian_hidden_viewers(const MatchSnapshot& s, const PlayerState& player) {
+    std::uint16_t hidden=0;
     for (std::size_t seat=0; seat<s.state.players.size(); ++seat) {
         const auto& viewer=s.state.players[seat];
         if (!viewer.dead && !s.state.is_over && !player.dead && has_curse(viewer,Curse::fog) && is_enemy(player,viewer))
-            event.hidden_viewers |= static_cast<std::uint16_t>(1u<<seat);
+            hidden |= static_cast<std::uint16_t>(1u<<seat);
     }
+    return hidden;
+}
+void change_guardian(MatchSnapshot& s, PlayerState& player, Guardian after, GuardianChangeReason reason) {
+    const GuardianChange event{player.id,player.guardian,after,reason,guardian_hidden_viewers(s,player)};
     player.guardian=after; s.last_guardian_changes.push_back(event);
 }
 void guardian_damage(MatchSnapshot& s, PlayerState& player, std::int64_t loss) {
@@ -330,6 +334,22 @@ void prepare_guardian_payload(const MatchSnapshot& s, const GuardianPayloadActio
 EffectFrame payload_effect_for(const MatchSnapshot& s, const GuardianPayloadAction& action, PlayerId target,
                               std::int64_t launch_mp, int random_hp_delta) {
     return effect_for(s,action.models,target,{},launch_mp,random_hp_delta,action.source,action.guardian,false);
+}
+void phenomenon_shape(const MatchSnapshot& s, const PhenomenonAction& action) {
+    if (!match_phenomenon_supported(action.model)) unsupported("unsupported global phenomenon primitive");
+    if (action.model==294) {
+        require(action.recipient.has_value(),"collection requires an explicit recipient");
+        require(!s.state.players[index(s,*action.recipient)].dead,"collection recipient is dead");
+    } else require(!action.recipient,"this phenomenon takes no recipient");
+    if (action.model==296) {
+        const auto count=std::count_if(s.state.players.begin(),s.state.players.end(),[](const auto& p){return !p.dead;});
+        require(action.guardians.size()==static_cast<std::size_t>(count),"guardian assignment count must equal alive roster");
+        for (const auto guardian:action.guardians) require(guardian>=Guardian::mars && guardian<=Guardian::moon,"assignment requires a known present guardian");
+    } else require(action.guardians.empty(),"this phenomenon takes no guardian assignments");
+}
+void prepare_phenomenon(const MatchSnapshot& s, const PhenomenonAction& action) {
+    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated,"phenomenon requires a main boundary");
+    phenomenon_shape(s,action);
 }
 void prepare_guardian(const MatchSnapshot& s, const GuardianAction& action) {
     require(s.phase == MatchPhase::main && !s.terminated && !s.truncated, "guardian activation needs a main boundary");
@@ -761,7 +781,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset();
     s.last_auto_guardians.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -775,7 +795,7 @@ ActionBatch action_anchor(const MatchSnapshot& s) {
     batch.revivals = s.revivals;
     batch.dream_rolls = s.dream_rolls; batch.dream_masks = s.dream_masks;
     batch.redraws = s.redraws; batch.redrawn_items = s.redrawn_items;
-    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions;
+    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions; batch.phenomenon_actions=s.phenomenon_actions;
     batch.guardian_summons=s.guardian_summons; batch.guardian_opportunities=s.guardian_opportunities; batch.auto_guardian_actions=s.auto_guardian_actions;
     batch.guardian_departure_rolls=s.guardian_departure_rolls; batch.guardian_departures=s.guardian_departures;
     batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
@@ -832,6 +852,30 @@ void execute_guardian_payload(MatchSnapshot& s, const GuardianPayloadAction& act
         s.batch->cursor=s.batch->targets.size(); resolve(s,effect,0); completed=true;
     } else completed=!next_action_effect(s);
     complete_decision(s,completed);
+}
+void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
+    prepare_phenomenon(s,action); clear_events(s);
+    s.last_phenomenon=action; ++s.phenomenon_actions;
+    std::int64_t collected=0;
+    if (action.model==294) for (const auto& player:s.state.players) if (!player.dead) collected+=player.cp;
+    std::size_t assignment=0;
+    for (auto& player:s.state.players) if (!player.dead) {
+        switch (action.model) {
+        case 287:
+            std::erase_if(player.curses,disease);
+            player.curses.insert(std::lower_bound(player.curses.begin(),player.curses.end(),Curse::fever),Curse::fever);
+            break;
+        case 288: add_curse(player,Curse::fog); break;
+        case 290: player.hp=1; break;
+        case 294: player.cp=0; break;
+        case 296: change_guardian(s,player,action.guardians[assignment++],GuardianChangeReason::phenomenon); break;
+        default: throw std::logic_error("validated phenomenon table changed");
+        }
+    }
+    if (action.model==294) change_resource(s.state.players[index(s,*action.recipient)],Resource::cp,collected);
+    // These five primitives never create HP0/death or pending work. Keep the
+    // ordinary owner and complete only the external decision/cutoff boundary.
+    complete_decision(s,false);
 }
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
@@ -951,7 +995,8 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
-    require(s.guardian_actions <= s.decisions && s.guardian_payload_actions<=s.decisions-s.guardian_actions,"invalid guardian activation count");
+    require(s.guardian_actions <= s.decisions && s.guardian_payload_actions<=s.decisions-s.guardian_actions
+        && s.phenomenon_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions,"invalid external activation counts");
     if (s.last_guardian_payload) {
         require(s.guardian_payload_actions>0 && s.decisions>0,"invalid guardian payload event");
         payload_models(*s.last_guardian_payload); (void)index(s,s.last_guardian_payload->source); (void)index(s,*s.last_guardian_payload->target);
@@ -967,13 +1012,37 @@ void validate_snapshot(const MatchSnapshot& s) {
         if (find_card(action.model)->ability==Ability::boost_cp_of_everybody) require(!action.target,"automatic global target");
         else { require(action.target.has_value(),"automatic target missing"); (void)index(s,*action.target); }
     }
-    require(s.last_guardian_changes.size()<=3*s.decisions,"oversized guardian change log");
+    require(s.last_guardian_changes.size()<=player_capacity*s.decisions,"oversized guardian change log");
     for (const auto& event:s.last_guardian_changes) {
         (void)index(s,event.player);
         require(static_cast<unsigned>(event.before)<=10 && static_cast<unsigned>(event.after)<=10
-            && static_cast<unsigned>(event.reason)<=1 && (event.hidden_viewers>>n)==0,"invalid guardian change");
+            && static_cast<unsigned>(event.reason)<=2 && (event.hidden_viewers>>n)==0,"invalid guardian change");
         if (event.reason==GuardianChangeReason::summon) require(event.after!=Guardian::none,"empty summoned guardian");
-        else require(event.before!=Guardian::none && event.after==Guardian::none,"invalid departed guardian");
+        else if (event.reason==GuardianChangeReason::departure) require(event.before!=Guardian::none && event.after==Guardian::none,"invalid departed guardian");
+        else require(event.after!=Guardian::none && s.last_phenomenon && s.last_phenomenon->model==296,"invalid phenomenon guardian change");
+    }
+    if (s.last_phenomenon) {
+        const auto& action=*s.last_phenomenon; phenomenon_shape(s,action);
+        require(s.phenomenon_actions>0 && s.decisions>0 && !s.terminated
+            && (s.phase==MatchPhase::main || s.truncated) && !s.batch
+            && !s.last_guardian && !s.last_guardian_payload && s.last_auto_guardians.empty()
+            && !s.last_tick && !s.last_fog && s.last_reveals.empty() && s.last_redraws.empty()
+            && !s.last_sale && !s.last_purchase && !s.last_danger && !s.last_removal,"invalid completed phenomenon boundary");
+        std::size_t assigned=0;
+        for (const auto& player:s.state.players) if (!player.dead) {
+            if (action.model==287) require(has_curse(player,Curse::fever),"Fever replacement postcondition missing");
+            if (action.model==288) require(has_curse(player,Curse::fog),"global Fog postcondition missing");
+            if (action.model==290) require(player.hp==1,"global HP setter postcondition missing");
+            if (action.model==294 && player.id!=*action.recipient) require(player.cp==0,"collection debit postcondition missing");
+            if (action.model==296) {
+                require(assigned<s.last_guardian_changes.size(),"missing global guardian change");
+                const auto& event=s.last_guardian_changes[assigned];
+                require(event.player==player.id && event.after==action.guardians[assigned] && player.guardian==event.after
+                    && event.reason==GuardianChangeReason::phenomenon && event.hidden_viewers==guardian_hidden_viewers(s,player),"global guardian assignment postcondition mismatch");
+                ++assigned;
+            }
+        }
+        require(s.last_guardian_changes.size()==assigned,"unexpected guardian changes for global primitive");
     }
     if (!s.last_auto_guardians.empty()) require(s.last_guardian && *s.last_guardian==s.last_auto_guardians.back(),"latest automatic guardian mismatch");
     if (s.last_guardian) {
@@ -1146,7 +1215,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.revivals = batch.revivals;
         replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
         replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
-        replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions;
+        replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions;
         replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
         replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
         replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
@@ -1189,6 +1258,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
+bool match_phenomenon_supported(CardId id) noexcept { return id==287 || id==288 || id==290 || id==294 || id==296; }
 bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept {
     const auto* card=find_card(id);
     return card && match_supported(id) && payload_domain(guardian,*card) && can_start_main(id)
@@ -1384,6 +1454,12 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     policy_rng = rng;
     return selected;
 }
+bool Match::phenomenon_legal(const PhenomenonAction& action) const noexcept {
+    try { prepare_phenomenon(data_,action); return true; } catch (...) { return false; }
+}
+MatchStep Match::phenomenon_step(const PhenomenonAction& action) {
+    auto next=data_; execute_phenomenon(next,action); auto output=result(next); data_=std::move(next); return output;
+}
 bool Match::guardian_payload_legal(const GuardianPayloadAction& action) const noexcept {
     try { prepare_guardian_payload(data_,action); return true; } catch (...) { return false; }
 }
@@ -1393,7 +1469,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v31\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v32\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1426,7 +1502,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"guardian_rule\":\""; out += guardian_rule;
     out += "\",\"guardian_summon_rule\":\""; out += guardian_summon_rule;
     out += "\",\"guardian_departure_rule\":\""; out += guardian_departure_rule;
-    out += "\",\"guardian_payload_rule\":\""; out += guardian_payload_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"guardian_payload_rule\":\""; out += guardian_payload_rule;
+    out += "\",\"phenomenon_rule\":\""; out += phenomenon_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -1437,6 +1514,13 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += guardian_name(find_card(action.model)->guardian); out += "\",\"target\":";
         out += action.target ? std::to_string(*action.target) : "null"; out += '}';
     };
+    out += ",\"last_phenomenon\":";
+    if (!data_.last_phenomenon) out+="null";
+    else {
+        const auto& action=*data_.last_phenomenon;
+        out+="{\"model\":"+std::to_string(action.model)+",\"recipient\":";
+        out+=action.recipient?std::to_string(*action.recipient):"null"; out+='}';
+    }
     out += ",\"last_guardian_payload\":";
     if (!data_.last_guardian_payload) out+="null";
     else {
@@ -1457,7 +1541,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         if(event.before==Guardian::none)out+="null";else{out+='"';out+=guardian_name(event.before);out+='"';}
         out+=",\"after\":";
         if(event.after==Guardian::none)out+="null";else{out+='"';out+=guardian_name(event.after);out+='"';}
-        out+=",\"reason\":\"";out+=event.reason==GuardianChangeReason::summon?"summon":"departure";out+="\"}";
+        out+=",\"reason\":\"";out+=event.reason==GuardianChangeReason::summon?"summon":event.reason==GuardianChangeReason::departure?"departure":"phenomenon";out+="\"}";
     }
     out+=']';
     out += ",\"last_guardian\":";

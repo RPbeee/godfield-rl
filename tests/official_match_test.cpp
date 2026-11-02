@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v33"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v34"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v31\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v32\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -1816,6 +1816,58 @@ void guardian_payload_summon_random_and_seeded_replay(){
         while(!a.done()){const auto before=a.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&a.snapshot()==before,"ordinary player policy remains pure after external ordinary guardian payload");check(a.step(ca)==b.step(cb)&&a.snapshot()==b.snapshot(),"later normal auto/response/main play remains reproducible after external general-model launch");roundtrip(a);}}
 }
 
+SnapshotState phenomenon_scene(unsigned count,bool dead_last=false){
+    SnapshotState s;s.gf=37;
+    for(unsigned i=0;i<count;++i){auto p=player(i?100+13*i:0,{190,178,208,112,239},i%2?Team::two:Team::one);p.hp=7+i;p.mp=33+i;p.cp=11*i;p.guardian=static_cast<Guardian>(1+i%10);p.curses={static_cast<Curse>(1+i%4)};
+        if(i%2==0)p.curses.insert(p.curses.end(),{Curse::fog,Curse::dream,Curse::flash,Curse::darkcloud});else p.curses.push_back(Curse::dream);
+        if(dead_last&&i==count-1){p.dead=true;p.hp=0;}s.players.push_back(std::move(p));}
+    return s;
+}
+PhenomenonAction global_action(CardId model,const SnapshotState& state){
+    PhenomenonAction a{model,{},{}};if(model==294)a.recipient=state.players.front().id;
+    if(model==296)for(const auto& p:state.players)if(!p.dead)a.guardians.push_back(p.guardian);return a;
+}
+void phenomenon_capabilities_fever_replacement_and_atomic_roles(){
+    const std::set<CardId> supported{287,288,290,294,296};for(CardId id=0;id<=300;++id)check(match_phenomenon_supported(id)==supported.contains(id),"only the five immediate global primitives are advertised");for(auto id:supported)check(!match_supported(id),"phenomena are never ordinary hand/gift models");check(!match_supported(207)&&match_catalog().size()==236&&match_gift_weight()==499,"Fate selector and ordinary gift pool remain unchanged");
+    auto state=phenomenon_scene(9,true);Match m;m.load_scene(state,0,123);const auto before=m.snapshot();PhenomenonAction a{287,{},{}};check(m.phenomenon_legal(a)&&m.snapshot()==before,"global legality is pure");m.phenomenon_step(a);
+    check(m.snapshot().phenomenon_actions==1&&m.snapshot().decisions==1&&m.snapshot().state.update_count==1&&m.snapshot().rng==123&&m.snapshot().state.gf==37&&m.snapshot().owner==0&&m.snapshot().actor==0&&m.snapshot().phase==MatchPhase::main&&!m.snapshot().batch,"source-free global pulse consumes exactly one decision without RNG, ordinary turn or batch");
+    for(std::size_t i=0;i<state.players.size();++i){auto expected=state.players[i];if(!expected.dead){std::erase_if(expected.curses,[](auto c){return c>=Curse::cold&&c<=Curse::heaven;});expected.curses.insert(expected.curses.begin(),Curse::fever);}check(m.snapshot().state.players[i]==expected,"Fever directly replaces all existing disease ranks including Heaven without HP, inventory, guardian, revive or death effects");}
+    check(m.snapshot().revivals==0&&m.snapshot().death_bows==0&&m.snapshot().guardian_departure_rolls==0&&m.snapshot().guardian_opportunities==0&&m.snapshot().last_phenomenon==a&&!m.snapshot().last_tick,"direct replacement never calls ordinary disease reapplication, HP loss triggers or automatic guardians");roundtrip(m);
+}
+void phenomenon_fog_idempotence_and_hp_setter_are_not_damage(){
+    auto state=phenomenon_scene(9,true);Match m;m.load_scene(state,0,19);m.phenomenon_step({288,{},{}});const auto first=m.snapshot();for(const auto& p:first.state.players){const auto& old=*find_player(state,p.id);auto expected=old;if(!p.dead&&std::find(expected.curses.begin(),expected.curses.end(),Curse::fog)==expected.curses.end())expected.curses.insert(std::lower_bound(expected.curses.begin(),expected.curses.end(),Curse::fog),Curse::fog);check(p==expected,"global Fog includes every alive team and leaves dead records untouched");}
+    m.phenomenon_step({288,{},{}});check(m.snapshot().state.players==first.state.players&&m.snapshot().phenomenon_actions==2&&m.snapshot().rng==19,"repeated global Fog is idempotent without an outcome draw");roundtrip(m);const auto before=m.snapshot();m.phenomenon_step({290,{},{}});
+    for(std::size_t i=0;i<state.players.size();++i){auto expected=before.state.players[i];if(!expected.dead)expected.hp=1;check(m.snapshot().state.players[i]==expected,"HP1 is a direct alive-only setter, not damage or a change to MP/CP/inventory/guardian");}
+    check(m.snapshot().guardian_departure_rolls==0&&m.snapshot().counter_created==0&&m.snapshot().revivals==0&&m.snapshot().death_created==0&&m.snapshot().rng==19&&m.snapshot().owner==0&&m.snapshot().state.gf==37,"HP1 cannot trigger departure, counter, revival, death or ordinary progression");roundtrip(m);
+}
+void phenomenon_cp_collection_recipient_alias_debt_and_cap(){
+    for(unsigned count:{2u,9u})for(unsigned recipient=0;recipient<count;++recipient){auto state=phenomenon_scene(count);if(count==9){state.players.back().dead=true;state.players.back().hp=0;state.players.back().cp=99;if(recipient==count-1)continue;}std::int64_t total=0;for(auto& p:state.players){if(!p.dead){p.cp=17+static_cast<int>(p.id%83);total+=p.cp;}p.mp=0;}Match m;m.load_scene(state,0,7);const auto target=state.players[recipient].id;m.phenomenon_step({294,target,{}});
+        for(std::size_t i=0;i<state.players.size();++i){auto expected=state.players[i];if(!expected.dead)expected.cp=expected.id==target?std::min<std::int64_t>(99,total):0;check(m.snapshot().state.players[i]==expected,"collection captures alive sum before zeroing every CP including recipient, caps positive credit and never creates MP/HP debt");}
+        const auto public_view=m.observe({});check(public_view.find("\"last_phenomenon\":{\"model\":294,\"recipient\":"+std::to_string(target)+"}")!=std::string::npos&&public_view.find("collected_cp")==std::string::npos,"collection publishes the chosen recipient without a hidden CP total");check(m.snapshot().rng==7&&m.snapshot().state.gf==37&&m.snapshot().phenomenon_actions==1,"deterministic collection does not consume RNG or advance GF");roundtrip(m);}
+    auto zeros=phenomenon_scene(2);for(auto& p:zeros.players)p.cp=0;Match m;m.load_scene(zeros,0,0);m.phenomenon_step({294,0,{}});check(m.snapshot().state.players[0].cp==0&&m.snapshot().state.players[1].cp==0,"zero collection is a valid direct identity case");roundtrip(m);
+}
+void phenomenon_guardian_nine_assignments_event_time_fog_and_cutoff(){
+    auto state=phenomenon_scene(9);auto action=global_action(296,state);action.guardians[1]=Guardian::moon;Match m;m.load_scene(state,0,31);m.phenomenon_step(action);const auto exact=m.snapshot();check(exact.last_guardian_changes.size()==9&&exact.guardian_summons==0&&exact.guardian_payload_actions==0&&exact.guardian_actions==0&&exact.guardian_opportunities==0&&exact.rng==31,"nine explicit assignments include same-type replacements without ordinary summon counters or extra RNG");
+    const auto fog=m.observe(0),spectator=m.observe({});check(fog.find("\"last_phenomenon\":{\"model\":296,\"recipient\":null}")!=std::string::npos&&fog.find("\"guardians\":")==std::string::npos,"global announcement never serializes its privileged guardian assignment array");
+    for(unsigned i=0;i<9;++i){const auto& event=exact.last_guardian_changes[i];check(event.player==state.players[i].id&&event.before==state.players[i].guardian&&event.after==action.guardians[i]&&event.reason==GuardianChangeReason::phenomenon,"guardian change records preserve alive input order and same-type before/after");const auto marker="\"player\":"+std::to_string(event.player)+",";check((fog.find(marker)!=std::string::npos)==(i%2==0)&&spectator.find(marker)!=std::string::npos,"event-time Fog exposes only the viewer and its teammates; spectator sees all changes");}
+    roundtrip(m);
+    for(unsigned error=0;error<11;++error){auto bad=exact;if(error==0)bad.last_phenomenon->guardians.pop_back();if(error==1)bad.last_phenomenon->guardians[0]=Guardian::none;if(error==2)bad.last_guardian_changes.pop_back();if(error==3)bad.last_guardian_changes[1].hidden_viewers=0;if(error==4)bad.last_guardian_changes[1].after=Guardian::mars;if(error==5)bad.state.players[1].guardian=Guardian::mars;if(error==6)bad.last_guardian_changes[0].reason=GuardianChangeReason::summon;if(error==7)bad.phenomenon_actions=0;if(error==8)bad.guardian_actions=1;if(error==9)bad.last_phenomenon->recipient=0;if(error==10)bad.last_phenomenon->model=287;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"completed global postconditions reject forged assignment count/type/result/mask/event/count and inactive fields");}
+    MatchConfig cap;cap.max_decisions=1;Match cut(cap);cut.load_scene(state,0,31);cut.phenomenon_step(action);check(cut.snapshot().truncated&&cut.snapshot().last_guardian_changes.size()==9&&cut.snapshot().last_phenomenon==action&&cut.snapshot().state.gf==37&&cut.snapshot().rng==31,"cutoff occurs after all nine atomic assignments, preserving their filtered history");roundtrip(cut);
+}
+void phenomenon_strict_shapes_pending_exclusion_and_late_rollback(){
+    auto state=phenomenon_scene(9,true);Match m;m.load_scene(state,0,5);m.phenomenon_step({288,{},{}});
+    const auto reject_global=[&](PhenomenonAction action){const auto before=m.snapshot();check(!m.phenomenon_legal(action)&&m.snapshot()==before,"invalid global legality leaves the previous action intact");bool failed=false;try{m.phenomenon_step(action);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"invalid global shape leaves the complete state and public event unchanged");};
+    for(auto a:std::vector<PhenomenonAction>{{0,{},{}},{207,{},{}},{289,{},{}},{291,{},{}},{292,{},{}},{293,{},{}},{295,{},{}},{287,0,{}},{288,{}, {Guardian::mars}},{290,0,{}},{294,{},{}},{294,state.players.back().id,{}},{294,999,{}},{294,0,{Guardian::mars}},{296,{},{}},{296,{},std::vector<Guardian>(7,Guardian::mars)},{296,{},std::vector<Guardian>(9,Guardian::mars)},{296,0,std::vector<Guardian>(8,Guardian::mars)},{296,{},std::vector<Guardian>(8,Guardian::none)},{296,{},std::vector<Guardian>(8,static_cast<Guardian>(255))}})reject_global(a);
+    m=fixture(scene({6},{}));m.step(play(0,{0},7));reject_global({290,{},{}});m=fixture(scene({5},{6}));m.step({0,CommandKind::buy,{0},7});m.step(defend(7));check(m.snapshot().phase==MatchPhase::purchase,"purchase is genuinely pending before a global rejection");reject_global({290,{},{}});
+    for(auto model:{CardId{287},CardId{288},CardId{290},CardId{294},CardId{296}}){auto broken=state;broken.update_count=max_wire_integer;Match late;late.load_scene(broken,0,7);const auto before=late.snapshot();const auto action=global_action(model,broken);check(late.phenomenon_legal(action),"update counter exhaustion is late rather than an input-shape error");bool failed=false;try{late.phenomenon_step(action);}catch(const MatchError&){failed=true;}check(failed&&late.snapshot()==before,"late update failure rolls back every already-applied global resource/curse/guardian and event");}
+}
+void phenomenon_prefix_counters_survive_all_later_action_replay(){
+    for(unsigned count:{2u,9u})for(std::uint64_t seed=0;seed<16;++seed){auto state=phenomenon_scene(count);MatchConfig cap;cap.max_decisions=96;Match a(cap),b(cap);a.load_scene(state,0,seed);b.load_scene(state,0,seed);
+        for(auto model:{CardId{287},CardId{288},CardId{290},CardId{294},CardId{296}}){auto action=global_action(model,a.snapshot().state);if(model==296){action.guardians[0]=Guardian::earth;for(unsigned i=1;i<count;++i)action.guardians[i]=static_cast<Guardian>(1+(seed+i)%10);}check(a.phenomenon_step(action)==b.phenomenon_step(action)&&a.snapshot()==b.snapshot(),"each source-free deterministic global prefix replays the complete private state");roundtrip(a);}
+        check(a.snapshot().phenomenon_actions==5&&a.snapshot().rng==seed&&a.snapshot().state.gf==37,"global prefixes add no RNG consumption or ordinary turns");GuardianPayloadAction payload{0,Guardian::earth,{58},state.players[1].id};check(a.guardian_payload_step(payload)==b.guardian_payload_step(payload)&&a.snapshot()==b.snapshot(),"later external payload carries the global cumulative prefix into its launch anchor");roundtrip(a);std::uint64_t pa=seed,pb=seed;
+        while(!a.done()){const auto before=a.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&a.snapshot()==before,"policy remains pure after deterministic global effects");check(a.step(ca)==b.step(cb)&&a.snapshot()==b.snapshot()&&a.snapshot().phenomenon_actions==5,"all normal/counter/death/redraw/auto continuations retain the global prefix exactly");roundtrip(a);}}
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -1944,5 +1996,11 @@ int main(){
     guardian_payload_repeat_counter_fifo_and_fixed_identity();
     guardian_payload_snapshot_forgery_cutoff_and_late_rollback();
     guardian_payload_summon_random_and_seeded_replay();
+    phenomenon_capabilities_fever_replacement_and_atomic_roles();
+    phenomenon_fog_idempotence_and_hp_setter_are_not_damage();
+    phenomenon_cp_collection_recipient_alias_debt_and_cap();
+    phenomenon_guardian_nine_assignments_event_time_fog_and_cutoff();
+    phenomenon_strict_shapes_pending_exclusion_and_late_rollback();
+    phenomenon_prefix_counters_survive_all_later_action_replay();
     std::cout<<"Experimental official match passed (236subset/canonical-guardian-auto/self-buy/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }
