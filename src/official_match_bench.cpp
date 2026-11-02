@@ -524,6 +524,7 @@ int main(int argc, char** argv) {
             << "\noverflow_rule=" << overflow_rule
             << "\ndream_rule=" << dream_rule
             << "\nredraw_rule=" << redraw_rule
+            << "\nguardian_rule=" << guardian_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical

@@ -9,7 +9,7 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v30";
+inline constexpr const char* match_ruleset = "official-execution-subset-v31";
 inline constexpr const char* match_scope = "experimental:234-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
@@ -36,8 +36,10 @@ inline constexpr const char* death_rule = "experimental:revival-before-actual-de
 inline constexpr const char* overflow_rule = "experimental:trade-delivery-only;full-recipient-uniform-existing-item-in-inventory-order;one-bounded-draw;all-existing-items-including-used-miracles-and-passives;cp-debit-and-credit-before-eviction;eviction-before-fresh-delivery-and-death;no-eviction-gift-or-ability;public-model-only;no-overflow-on-decline-or-cutoff-return";
 inline constexpr const char* dream_rule = "experimental:compatible-face-only;key-category-element-ability-curse-cost-hit-rate-plus-atk-positive-def-positive;supported-other-models-in-id-order;gift-real-before-eligible-only-half-coin-zero-masks-before-uniform-face;singleton-no-extra-draw;face-choice-one-draw-including-one-candidate;no-retroactive-mask;trade-receipts-unmasked;legal-and-policy-visible-models;resolve-actual-values-and-price;use-quote-removal-overflow-reveal;quote-return-stays-unmasked;all-cure-clears-dream-and-reveals-hand-only-to-owner;mild-preserves;no-tick;redraw178-same-mask-policy";
 inline constexpr const char* redraw_rule = "experimental:response-only178;consume-entire-selection-first;selection-order-self-dream-before-each-redraw;replace-all-current-nonempty-including-used-miracles;same-count-fresh-unused-tokens;immediate-weighted-draw-with-compatible-dream-mask;reserved-gifts-excluded-and-preserved;before-incoming-body-and-revival;no-old-hand-models-or-counts-public;owner-id-only-redraw-notice;same-action-new-items-usable;no-trigger-on-discard-or-trade;max-decisions-bounds-journal";
-inline constexpr std::uint32_t match_snapshot_version = 30;
+inline constexpr const char* guardian_rule = "experimental:externally-supplied-canonical-model245-286;main-boundary-only;source-owns-matching-guardian;explicit-alive-target-except280-all-alive;no-summon-move-target-departure-or-opportunity-sampling;metadata-values;categoryWeapons264-286-only;no-source-items-mp-fee-or-operation-gift;single-target-percent-roll-and-darkcloud-no-reroll;self-nonattack-and280-immediate;ordinary-response-counter-death-redraw-and-gifts;no-owner-tick-or-gf-advance;resume-owner-or-next-alive;one-decision-per-injection;earth285-one-deferred-gift;earth-moon-ordinary-model-selection-unsupported";
+inline constexpr std::uint32_t match_snapshot_version = 31;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
+[[nodiscard]] bool match_guardian_supported(CardId id) noexcept;
 [[nodiscard]] bool match_dream_compatible(CardId actual, CardId face) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
 [[nodiscard]] int match_gift_weight() noexcept;
@@ -66,6 +68,13 @@ struct Command {
     std::optional<ResourceAllocation> allocation = std::nullopt;
     bool operator==(const Command&) const = default;
 };
+// Privileged externally selected action, not a player command or automatic scheduler.
+struct GuardianAction {
+    PlayerId source = 0;
+    CardId model = 0;
+    std::optional<PlayerId> target;
+    bool operator==(const GuardianAction&) const = default;
+};
 struct RedirectFrame {
     PlayerId defender = 0;
     std::vector<CardId> models;
@@ -89,6 +98,7 @@ struct EffectFrame {
     bool is_counter = false;
     bool is_death = false; // Posthumous112 has its own rate/power and allows a dead source.
     bool forced_hit = false; // DarkCloud bypassed the original percentage draw.
+    Guardian guardian = Guardian::none; // Public identity for this externally supplied payload.
     bool operator==(const EffectFrame&) const = default;
 };
 // Non-recursive privileged launch anchor and accepted response journal. Current
@@ -103,6 +113,8 @@ struct ActionBatch {
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
     std::uint64_t dream_rolls = 0, dream_masks = 0;
     std::uint64_t redraws = 0, redrawn_items = 0;
+    std::uint64_t guardian_actions = 0;
+    std::optional<GuardianAction> guardian_action;
     bool tick_processed = false; // Whole-action owner tick already ran before a posthumous response.
     Command attack;
     std::vector<CardId> models;
@@ -189,6 +201,8 @@ struct MatchSnapshot {
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
     std::uint64_t dream_rolls = 0, dream_masks = 0; // Private eligible-grant coin attempts and generated masks.
     std::uint64_t redraws = 0, redrawn_items = 0; // Private replacement statistics.
+    std::uint64_t guardian_actions = 0; // Private accepted external activations.
+    std::optional<GuardianAction> last_guardian; // Public supplied action, no random selection state.
     std::vector<PlayerId> last_redraws; // Public owner IDs only, never replacement counts or inventory.
     std::vector<RevealedItem> last_reveals; // Current main action only; JSON filters owner-only hand reveals.
     std::optional<DangerEvent> last_danger; // Current main action's public launch result, without physical tokens.
@@ -231,6 +245,8 @@ public:
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool legal(const Command& command) const noexcept;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
+    [[nodiscard]] bool guardian_legal(const GuardianAction& action) const noexcept;
+    MatchStep guardian_step(const GuardianAction& action); // Transactional external activation.
     MatchStep step(const Command& command); // Errors leave all state, RNG and counters unchanged.
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
 private:

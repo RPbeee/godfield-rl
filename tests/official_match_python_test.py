@@ -1,11 +1,14 @@
 import copy
 import json
+import shutil
+import tempfile
 from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
-from official_match import Match, Config, PlayerSetup, Command, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_state import OfficialState
+from official_match import Match, Config, PlayerSetup, Command, GuardianAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 class MatchTests(unittest.TestCase):
@@ -17,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v30"); self.assertIn("234-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v31"); self.assertIn("234-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (234, 495))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v29.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -25,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v28")
+        self.assertEqual(own["schema"], "official-execution-view-v29")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -221,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v28")
+        self.assertEqual(event["schema"], "official-execution-view-v29")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2103,6 +2106,145 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(35 in {item["token"] for item in hand}, maximum == 512)
             self.assertEqual(game.observe()["board"]["players"][0]["status"]["cp"], 0)
             self.assertEqual((game.status.truncated, game.status.terminated), (maximum == 3, False))
+
+    def test_guardian_scene_import_and_all_42_explicit_models(self):
+        game = self.match(config=Config(initial_hand=0, max_decisions=64))
+        self.assertEqual(game.supported_guardian_models, tuple(range(245, 287)))
+        self.assertTrue(set(game.supported_guardian_models).isdisjoint(game.supported_models))
+        data = OfficialData(LIBRARY)
+        for model in game.supported_guardian_models:
+            with self.subTest(model=model):
+                card = data.get_card(model)
+                raw = {"gf": 31, "players": [
+                    {"id": 0, "name": "owner", "hp": 99, "mp": 99, "cp": 10},
+                    {"id": 7, "name": "guardian source", "hp": 99, "mp": 99, "cp": 10, "guardian": card.guardian},
+                    {"id": 9, "name": "third", "hp": 99, "mp": 99, "cp": 10}]}
+                with OfficialState(raw, library=LIBRARY) as scene:
+                    loaded = game.load_scene(scene, 0, seed=model)
+                self.assertEqual((loaded.actor, loaded.owner, loaded.decisions), (0, 0, 0))
+                self.assertIsNone(game.observe()["last_guardian"])
+                before = game.observe(0)
+                proposal, _ = game.sample_action(model)
+                self.assertIsInstance(proposal, Command)
+                self.assertEqual(game.observe(0), before)
+                action = GuardianAction(7, model, None if model == 280 else 0)
+                self.assertTrue(game.guardian_legal(action)); self.assertEqual(game.observe(0), before)
+                game.guardian_step(action)
+                pending = game.observe()["pending"]
+                if pending is not None:
+                    self.assertEqual((pending["guardian"], pending["source"], pending["models"]), (card.guardian, 7, [model]))
+                    self.assertEqual(game.actor, 0)
+                    game.step(Command(0, "defend"))
+                self.assertEqual(game.status.phase, "main")
+                self.assertEqual(game.observe()["board"]["gf"], 31)
+                self.assertEqual(game.observe()["last_guardian"], {"source": 7, "model": model,
+                                 "guardian": card.guardian, "target": action.target})
+                self.assertEqual(game.observe()["board"]["players"][1]["status"]["guardian"], card.guardian)
+                self.assertEqual(game.observe(7)["board"]["hand"], [])
+
+    def test_scene_import_deep_copy_scope_rejections_and_library_ownership(self):
+        game = self.match(config=Config(initial_hand=0, max_decisions=33))
+        raw = {"gf": 13, "players": [
+            {"id": 0, "name": "scene\0source", "hp": 40, "mp": 10, "cp": 20, "guardian": "mars", "items": [{"id": 100, "modelId": 6}]},
+            {"id": 7, "name": "other", "hp": 40, "mp": 10, "cp": 20}]}
+        scene = OfficialState(raw, library=LIBRARY)
+        raw["players"][0]["name"] = "changed after construction"
+        game.load_scene(scene, 7, seed=91); scene.close()
+        self.assertEqual((game.status.owner, game.status.actor, game.status.player_ids), (7, 7, (0, 7)))
+        self.assertEqual(game.observe()["board"]["players"][0]["name"], "scene\0source")
+        self.assertEqual(game.observe(0)["board"]["hand"][0]["token"], 100)
+        before, status = game.observe(0), game.status
+        for value in (scene, {}, None):
+            with self.assertRaises(InvalidMatchError): game.load_scene(value, 0)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        base = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20}, {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        bad_scenes = []
+        unsupported = copy.deepcopy(base); unsupported["players"][0]["items"] = [{"id": 0, "modelId": 201}]; bad_scenes.append(unsupported)
+        oversized = copy.deepcopy(base); oversized["players"][1]["items"] = [{"id": i, "modelId": 6} for i in range(19)]; bad_scenes.append(oversized)
+        tied = copy.deepcopy(base); tied["tiebreakGF"] = 30; bad_scenes.append(tied)
+        active = copy.deepcopy(base); active["attacks"] = [{"sourcePlayerId": 0}]; bad_scenes.append(active)
+        for raw_scene in bad_scenes:
+            with OfficialState(raw_scene, library=LIBRARY) as invalid_scene:
+                with self.assertRaises(MatchError): game.load_scene(invalid_scene, 0)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        with OfficialState(base, library=LIBRARY) as valid_scene:
+            for owner, seed in ((999, 1), (True, 1), (0, True), (0, 2**64)):
+                with self.assertRaises(InvalidMatchError): game.load_scene(valid_scene, owner, seed)
+                self.assertEqual((game.observe(0), game.status), (before, status))
+        library = Path(LIBRARY) if LIBRARY is not None else Path(__file__).resolve().parents[1] / "build" / ("libgodfield.dylib" if sys.platform == "darwin" else "libgodfield.so")
+        with tempfile.TemporaryDirectory(prefix="godfield-foreign-state-") as folder:
+            foreign_library = Path(folder) / library.name
+            shutil.copy2(library, foreign_library)
+            with OfficialState(base, library=foreign_library) as foreign:
+                with self.assertRaises(InvalidMatchError): game.load_scene(foreign, 0)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        reset = game.reset(9)
+        self.assertEqual(reset.player_ids, (0, 7))
+        self.assertEqual(game.observe()["board"]["players"][0]["name"], "scene\0source")
+        self.assertEqual(game.observe(0)["board"]["hand"], [])
+
+    def test_guardian_response_reflection_preserves_owner_and_skips_owner_tick(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"gf": 13, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["cold"], "items": [{"id": 0, "modelId": 190}]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20, "guardian": "jupiter"}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, seed=0)
+        action = GuardianAction(7, 256, 0)
+        game.guardian_step(action)
+        pending = game.observe()["pending"]
+        self.assertEqual((game.actor, game.status.owner, pending["source"], pending["guardian"]), (0, 0, 7, "jupiter"))
+        before, status = game.observe(0), game.status
+        self.assertFalse(game.guardian_legal(action))
+        with self.assertRaises(InvalidMatchError): game.guardian_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.step(Command(0, "defend", (0,)))
+        pending = game.observe()["pending"]
+        self.assertEqual((game.actor, pending["source"], pending["target"], pending["guardian"]), (7, 0, 7, "jupiter"))
+        game.step(Command(7, "defend"))
+        self.assertEqual((game.actor, game.status.owner), (0, 0))
+        view = game.observe()
+        self.assertEqual(view["board"]["gf"], 13)
+        self.assertEqual([p["status"]["hp"] for p in view["board"]["players"]], [40, 38])
+        self.assertEqual(view["board"]["players"][0]["status"]["curses"], ["cold"])
+        self.assertEqual(view["last_guardian"], {"source": 7, "model": 256, "guardian": "jupiter", "target": 0})
+        self.assertEqual(len(game.observe(0)["board"]["hand"]), 1)
+        self.assertEqual(game.observe(7)["board"]["hand"], [])
+        proposal, _ = game.sample_action(1); game.step(proposal)
+        self.assertIsNone(game.observe()["last_guardian"])
+
+    def test_guardian_global_cp_shape_strict_types_and_no_autonomous_activation(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"gf": 7, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 98, "curses": ["cold"]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 99, "guardian": "venus"},
+            {"id": 9, "hp": 40, "mp": 10, "cp": 0}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        for action in (GuardianAction(7, 280, 0), GuardianAction(0, 280), GuardianAction(7, 283), GuardianAction(7, 245, 0)):
+            self.assertFalse(game.guardian_legal(action))
+            with self.assertRaises(InvalidMatchError): game.guardian_step(action)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        unsupported = GuardianAction(7, 201, 0)
+        self.assertFalse(game.guardian_legal(unsupported))
+        with self.assertRaises(UnsupportedMatchError): game.guardian_step(unsupported)
+        for malformed in (None, Command(0, "pray"), GuardianAction(True, 280), GuardianAction(7, True), GuardianAction(7, 65536), GuardianAction(7, 280, True)):
+            with self.assertRaises(InvalidMatchError): game.guardian_legal(malformed)
+            with self.assertRaises(InvalidMatchError): game.guardian_step(malformed)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        game.guardian_step(GuardianAction(7, 280))
+        view = game.observe()
+        self.assertEqual([p["status"]["cp"] for p in view["board"]["players"]], [99, 99, 1])
+        self.assertEqual((game.actor, game.status.owner, view["board"]["gf"]), (0, 0, 7))
+        self.assertEqual(view["board"]["players"][0]["status"]["hp"], 40)
+        self.assertIsNone(view["pending"])
+        self.assertEqual(view["last_guardian"]["target"], None)
+        # Only ordinary commands are sampled. An ordinary accepted main clears the event.
+        proposal, _ = game.sample_action(0); self.assertEqual(proposal, Command(0, "pray"))
+        game.step(proposal); self.assertIsNone(game.observe()["last_guardian"])
+        self.assertEqual(game.observe()["board"]["gf"], 8)
+        game.close()
+        with self.assertRaises(InvalidMatchError): game.guardian_legal(GuardianAction(7, 280))
+        with self.assertRaises(InvalidMatchError): game.guardian_step(GuardianAction(7, 280))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

@@ -26,10 +26,12 @@ int main() {
     std::size_t fixed_query_probes = 0;
     check(gfo_match_abi_version() == 2 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
-        && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
+        && gfo_match_status_size() == sizeof(gfo_match_status)
+        && gfo_match_guardian_action_size() == sizeof(gfo_match_guardian_action)
+        && sizeof(gfo_match_guardian_action) == 24 && gfo_state_abi_version() == 1, "ABI sizes");
     check(gfo_match_catalog_count() == 234 && gfo_match_gift_weight() == 495 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v30"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v31"
         && std::string(gfo_match_scope()) == "experimental:234-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -263,7 +265,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v28\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v29\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -1918,6 +1920,74 @@ int main() {
     for(auto viewer:{0u,77u})check(observe(effect_match,1,viewer).find("\"last_reveals\":[{\"owner\":0,\"face\":44,\"model\":52}]")!=std::string::npos
         &&observe(effect_match,1,viewer).find("\"buyer\":0,\"seller\":0,\"model\":52,\"price\":5")!=std::string::npos,"masked self inspection publicly reports actual model and price without a token");
     gfo_match_destroy(effect_match);
+    // Immutable typed states initialize independent execution scenes; guardian
+    // inputs use an additive24-byte API, leaving ordinary ABI2 commands unchanged.
+    cfg.initial_hand=0;cfg.initial_hp=99;cfg.initial_mp=99;cfg.initial_cp=10;cfg.max_decisions=64;
+    gfo_match* guardian_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&guardian_match)==0,"external guardian match create");
+    check(!gfo_match_guardian_supported(244)&&!gfo_match_guardian_supported(287)
+        &&!gfo_match_supported(245)&&gfo_match_catalog_count()==234,"guardian action namespace is separate from weighted gifts");
+    for(uint16_t model=245;model<=286;++model){
+        const auto& card=*official::find_card(model);
+        check(gfo_match_guardian_supported(model),"all42 canonical guardian actions are advertised");
+        std::array<gfo_state_player,3> scene_players{};
+        char scene_name[]="scene-copy";
+        for(std::size_t seat=0;seat<scene_players.size();++seat){auto& player=scene_players[seat];
+            player.id=seat==0?0:(seat==1?7:9);player.hp=99;player.mp=99;player.cp=10;}
+        scene_players[0].name=scene_name;scene_players[0].name_size=sizeof(scene_name)-1;
+        scene_players[1].guardian=static_cast<uint8_t>(card.guardian);
+        gfo_state_meta scene_meta{};scene_meta.gf=31;
+        gfo_state* scene=nullptr;
+        check(gfo_state_create(&scene_meta,scene_players.data(),3,nullptr,0,nullptr,0,&scene)==0,"typed guardian scene input");
+        scene_name[0]='X';
+        check(gfo_match_load_scene(guardian_match,scene,0,model,&result)==0&&result.phase==0&&result.actor==0
+            &&result.owner==0&&result.decisions==0&&result.player_count==3,"quiescent scene initializes counters and preserves arbitrary IDs");
+        gfo_state_destroy(scene);
+        const auto before_guardian=observe(guardian_match);
+        check(before_guardian.find("scene-copy")!=std::string::npos&&before_guardian.find("\"last_guardian\":null")!=std::string::npos,
+            "loaded Match owns a deep copy after caller storage and state handle disappear");
+        gfo_match_guardian_action action{};action.source=7;action.model=model;action.has_target=model!=280;
+        check(gfo_match_guardian_legal(guardian_match,&action,&legal)==0&&legal&&observe(guardian_match)==before_guardian,"external guardian preflight is pure");
+        if(model==245){
+            uint64_t policy=19;gfo_match_command ordinary{};
+            check(gfo_match_sample_action(guardian_match,&policy,&ordinary)==0&&ordinary.kind==3&&observe(guardian_match)==before_guardian,"normal policy never injects an autonomous guardian");
+            auto bad=action;bad.reserved[0]=1;uint8_t marker=0xa5;
+            gfo_match_status sentinel_status;std::memset(&sentinel_status,0x6b,sizeof(sentinel_status));const auto sentinel_before=sentinel_status;
+            check(gfo_match_guardian_legal(guardian_match,&bad,&marker)==-2&&marker==0xa5
+                &&gfo_match_guardian_step(guardian_match,&bad,&sentinel_status)==-2&&equal(sentinel_status,sentinel_before)
+                &&observe(guardian_match)==before_guardian,"malformed guardian padding changes no state or output");
+            bad=action;bad.has_target=0;bad.target=7;
+            check(gfo_match_guardian_legal(guardian_match,&bad,&marker)==-2&&marker==0xa5,"absent guardian target must be zero");
+            bad=action;bad.model=201;
+            check(gfo_match_guardian_legal(guardian_match,&bad,&marker)==0&&!marker
+                &&gfo_match_guardian_step(guardian_match,&bad,&sentinel_status)==-5&&equal(sentinel_status,sentinel_before)
+                &&observe(guardian_match)==before_guardian,"unsupported summon is not a canonical external action");
+            check(gfo_match_load_scene(guardian_match,nullptr,0,1,&sentinel_status)==-1
+                &&gfo_match_guardian_step(guardian_match,&action,nullptr)==-1
+                &&gfo_match_guardian_legal(guardian_match,nullptr,&marker)==-1
+                &&equal(sentinel_status,sentinel_before)&&observe(guardian_match)==before_guardian,"new API NULL guards are atomic");
+            // A valid read-only catalog scene can still be outside execution scope.
+            gfo_state_item unsupported_item{};unsupported_item.model=201;
+            scene_players[0].name="safe";scene_players[0].name_size=4;scene_players[0].item_count=1;
+            scene_players[1].item_offset=1;scene_players[2].item_offset=1;
+            check(gfo_state_create(&scene_meta,scene_players.data(),3,&unsupported_item,1,nullptr,0,&scene)==0,"read-only state accepts a known summon model");
+            check(gfo_match_load_scene(guardian_match,scene,0,1,&sentinel_status)==-5&&equal(sentinel_status,sentinel_before)
+                &&observe(guardian_match)==before_guardian,"unsupported execution import preserves previous scene and output");
+            gfo_state_destroy(scene);
+        }
+        check(gfo_match_guardian_step(guardian_match,&action,&result)==0,"canonical external guardian action crosses C ABI");
+        unsigned responses=0;
+        while(result.phase==1){check(++responses<=3,"canonical guardian batch completes finitely");
+            const auto pending=observe(guardian_match,0,0);
+            check(pending.find("\"models\":["+std::to_string(model)+"]")!=std::string::npos,"pending guardian body retains the canonical model");
+            gfo_match_command pass{};pass.kind=1;pass.actor=result.actor;
+            check(gfo_match_step(guardian_match,&pass,&result)==0,"ordinary response resolves external guardian body");}
+        const auto completed=observe(guardian_match,0,0);
+        const std::string event="\"last_guardian\":{\"source\":7,\"model\":"+std::to_string(model)+",\"guardian\":\""+std::string(official::guardian_name(card.guardian))+"\",\"target\":"+(model==280?std::string("null"):std::string("0"))+"}";
+        check(result.phase==0&&completed.find("\"gf\":31")!=std::string::npos&&completed.find(event)!=std::string::npos
+            &&completed.find("\"guardian_actions\"")==std::string::npos,"guardian result resumes ordinary play without GF advance or private scheduler counters");
+    }
+    gfo_match_destroy(guardian_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

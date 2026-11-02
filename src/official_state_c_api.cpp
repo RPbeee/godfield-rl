@@ -1,5 +1,6 @@
 #include "godfield/official_state_c_api.h"
 #include "godfield/official_state.hpp"
+#include "official_state_bridge.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
@@ -12,6 +13,9 @@
 
 namespace official = godfield::official;
 struct gfo_state { official::SnapshotState value; };
+namespace godfield::official::bridge {
+const SnapshotState& snapshot(const gfo_state& state) noexcept { return state.value; }
+}
 static_assert(std::is_standard_layout_v<gfo_state_item> && sizeof(gfo_state_item) == 16);
 static_assert(offsetof(gfo_state_item, model) == 8 && offsetof(gfo_state_item, used) == 12);
 static_assert(std::is_standard_layout_v<gfo_state_meta> && sizeof(gfo_state_meta) == 32);

@@ -1,5 +1,6 @@
 #include "godfield/official_match_c_api.h"
 #include "godfield/official_match.hpp"
+#include "official_state_bridge.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -15,6 +16,10 @@ struct gfo_match { official::Match value; explicit gfo_match(official::MatchConf
 static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8);
 static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
     && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
+static_assert(std::is_standard_layout_v<gfo_match_guardian_action>
+    && sizeof(gfo_match_guardian_action) == 24
+    && offsetof(gfo_match_guardian_action, model) == 16
+    && offsetof(gfo_match_guardian_action, has_target) == 18);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
@@ -72,6 +77,13 @@ official::Command command(const gfo_match_command& c) {
     }
     return result;
 }
+official::GuardianAction guardian_action(const gfo_match_guardian_action& input) {
+    valid(zero(input.reserved) && input.has_target <= 1
+        && input.source <= official::max_wire_integer && input.target <= official::max_wire_integer
+        && (input.has_target || !input.target));
+    return {input.source, input.model,
+        input.has_target ? std::optional<official::PlayerId>{input.target} : std::nullopt};
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -111,6 +123,8 @@ size_t gfo_match_config_size(void) { return sizeof(gfo_match_config); }
 size_t gfo_match_player_size(void) { return sizeof(gfo_match_player); }
 size_t gfo_match_command_size(void) { return sizeof(gfo_match_command); }
 size_t gfo_match_status_size(void) { return sizeof(gfo_match_status); }
+size_t gfo_match_guardian_action_size(void) { return sizeof(gfo_match_guardian_action); }
+int gfo_match_guardian_supported(uint16_t model) { return official::match_guardian_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -126,6 +140,22 @@ int gfo_match_reset(gfo_match* match, const gfo_match_player* players, size_t co
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
 }
+int gfo_match_load_scene(gfo_match* match, const gfo_state* state, uint64_t owner, uint64_t seed, gfo_match_status* out) {
+    if (!match || !state || !out) return -1;
+    try {
+        valid(owner <= official::max_wire_integer);
+        const auto& input = official::bridge::snapshot(*state);
+        // The read-only state API intentionally permits larger foreign hands.
+        // Reject them before copying into a bounded execution scene.
+        valid(input.players.size() >= 2 && input.players.size() <= official::player_capacity);
+        for (const auto& player : input.players)
+            valid(player.items.size() <= match->value.snapshot().config.hand_limit);
+        auto next = match->value;
+        next.load_scene(input, owner, seed);
+        const auto result = status(next);
+        match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
 int gfo_match_get_status(const gfo_match* match, gfo_match_status* out) {
     if (!match || !out) return -1;
     try { const auto result = status(match->value); *out = result; return 0; } catch (...) { return error(); }
@@ -138,6 +168,24 @@ int gfo_match_step(gfo_match* match, const gfo_match_command* input, gfo_match_s
     if (!match || !input || !out) return -1;
     try {
         const auto parsed = command(*input); auto next = match->value; next.step(parsed); const auto result = status(next);
+        match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_guardian_legal(const gfo_match* match, const gfo_match_guardian_action* input, uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = guardian_action(*input);
+        const uint8_t result = match->value.guardian_legal(parsed);
+        *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_guardian_step(gfo_match* match, const gfo_match_guardian_action* input, gfo_match_status* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = guardian_action(*input);
+        auto next = match->value;
+        next.guardian_step(parsed);
+        const auto result = status(next);
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
 }

@@ -1,7 +1,9 @@
 """Experimental executable subset using official public arithmetic and local scheduling.
 
 NOT authoritative official-server equivalence. No account/network access,
-checkpoint import, hidden-state import or learning implementation is provided.
+checkpoint replay or learning implementation is provided. load_scene is an
+explicit privileged initializer from an immutable OfficialState, not a replay of
+server attacks/events. Guardian activations must be supplied externally.
 All model generation is restricted to the native advertised supported pool.
 """
 from __future__ import annotations
@@ -66,6 +68,12 @@ class Command:
     allocation: tuple[int, int, int] | None = None
 
 @dataclass(frozen=True)
+class GuardianAction:
+    source: int
+    model: int
+    target: int | None = None
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -92,6 +100,9 @@ class _Command(c.Structure):
     _fields_ = [("actor", c.c_uint64), ("target", c.c_uint64), ("kind", c.c_uint8), ("has_target", c.c_uint8),
         ("item_count", c.c_uint8), ("reserved", c.c_uint8 * 5), ("items", c.c_uint64 * 18),
         ("hp", c.c_int32), ("mp", c.c_int32), ("cp", c.c_int32), ("has_allocation", c.c_uint8), ("reserved_tail", c.c_uint8 * 3)]
+class _GuardianAction(c.Structure):
+    _fields_ = [("source", c.c_uint64), ("target", c.c_uint64), ("model", c.c_uint16),
+                ("has_target", c.c_uint8), ("reserved", c.c_uint8 * 5)]
 class _Status(c.Structure):
     _fields_ = [("decisions", c.c_uint64), ("owner", c.c_uint64), ("actor", c.c_uint64),
         ("player_ids", c.c_uint64 * 9), ("rewards", c.c_double * 9), ("winners", c.c_uint64 * 9),
@@ -141,6 +152,14 @@ def _command(value):
         result.has_allocation = 1
     return result
 
+def _guardian_action(value):
+    if not isinstance(value, GuardianAction): raise InvalidMatchError("guardian operation requires GuardianAction")
+    result = _GuardianAction(source=_integer(value.source, "guardian source"),
+                             model=_integer(value.model, "guardian model", 0, 65535))
+    if value.target is not None:
+        result.target = _integer(value.target, "guardian target"); result.has_target = 1
+    return result
+
 def _decode_status(value):
     if value.player_count > 9 or value.winner_count > 9 or value.phase > 3 or value.has_actor > 1:
         raise MatchError("invalid native status descriptor", -3)
@@ -173,14 +192,15 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
             for name in ("ruleset", "scope"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "status_size"):
+            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v30"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v31"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
-            or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)):
+            or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
+            or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
         lib.gfo_match_create.argtypes = [c.POINTER(_Config), c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(c.c_void_p)]
@@ -188,17 +208,27 @@ class Match:
         lib.gfo_match_destroy.argtypes = [c.c_void_p]; lib.gfo_match_destroy.restype = None
         lib.gfo_match_reset.argtypes = [c.c_void_p, c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(_Status)]
         lib.gfo_match_reset.restype = c.c_int
+        lib.gfo_match_load_scene.argtypes = [c.c_void_p, c.c_void_p, c.c_uint64, c.c_uint64, c.POINTER(_Status)]
+        lib.gfo_match_load_scene.restype = c.c_int
         lib.gfo_match_get_status.argtypes = [c.c_void_p, c.POINTER(_Status)]; lib.gfo_match_get_status.restype = c.c_int
         lib.gfo_match_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(c.c_uint8)]; lib.gfo_match_legal.restype = c.c_int
         lib.gfo_match_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_Status)]; lib.gfo_match_step.restype = c.c_int
+        lib.gfo_match_guardian_supported.argtypes = [c.c_uint16]; lib.gfo_match_guardian_supported.restype = c.c_int
+        lib.gfo_match_guardian_legal.argtypes = [c.c_void_p, c.POINTER(_GuardianAction), c.POINTER(c.c_uint8)]
+        lib.gfo_match_guardian_legal.restype = c.c_int
+        lib.gfo_match_guardian_step.argtypes = [c.c_void_p, c.POINTER(_GuardianAction), c.POINTER(_Status)]
+        lib.gfo_match_guardian_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
         self.supported_models = tuple(card.id for card in self._data if lib.gfo_match_supported(card.id))
+        self.supported_guardian_models = tuple(card.id for card in self._data if lib.gfo_match_guardian_supported(card.id))
         self.gift_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
             or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
             raise MatchError("inconsistent match catalog descriptor")
+        if self.supported_guardian_models != tuple(range(245, 287)):
+            raise MatchError("inconsistent guardian action descriptor")
         config_record = _config(config)
         setups, copied = _players((PlayerSetup(0, "Player0"), PlayerSetup(1, "Player1")) if players is None else players)
         seed = _integer(seed, "seed", 0, 2**64 - 1)
@@ -243,6 +273,44 @@ class Match:
         self._open(); encoded = _command(command); result = c.c_uint8()
         _check(self._lib.gfo_match_legal(self._handle, c.byref(encoded), c.byref(result)))
         return bool(result.value)
+
+    def load_scene(self, state, owner, seed=42):
+        """Initialize a privileged quiescent local scene, retaining this Config.
+
+        A live same-library OfficialState is copied independently. Pending server
+        attacks cannot be imported; events and metadata do not reconstruct engine
+        timing, RNG or checkpoints. reset() subsequently uses the imported roster.
+        """
+        self._open()
+        try:
+            from .official_state import OfficialState
+        except ImportError:
+            from official_state import OfficialState
+        if not isinstance(state, OfficialState): raise InvalidMatchError("load_scene requires OfficialState")
+        if state.closed: raise InvalidMatchError("official state is closed")
+        if state._lib._handle != self._lib._handle:
+            raise InvalidMatchError("scene and match must use the same loaded library")
+        if state._raw.get("attacks"):
+            raise UnsupportedMatchError("pending server attacks cannot initialize a quiescent scene")
+        owner = _integer(owner, "scene owner"); seed = _integer(seed, "scene seed", 0, 2**64 - 1)
+        # Allocate Python bookkeeping before the native atomic commit.
+        copied = tuple(PlayerSetup(p["id"], p.get("name", ""), p.get("team") or 0)
+                       for p in state._raw.get("players", []))
+        result = _Status()
+        _check(self._lib.gfo_match_load_scene(self._handle, state._handle, owner, seed, c.byref(result)))
+        self._players = copied
+        return _decode_status(result)
+
+    def guardian_legal(self, action):
+        self._open(); encoded = _guardian_action(action); result = c.c_uint8()
+        _check(self._lib.gfo_match_guardian_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def guardian_step(self, action):
+        """Execute one externally selected action; no autonomous guardian policy."""
+        self._open(); encoded = _guardian_action(action); result = _Status()
+        _check(self._lib.gfo_match_guardian_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
 
     def step(self, command):
         self._open(); encoded = _command(command); result = _Status()
