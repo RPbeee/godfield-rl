@@ -56,6 +56,7 @@ struct Stats {
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0, death_responses = 0;
     std::uint64_t sell_overflows = 0, buy_overflows = 0, overflow_events = 0, overflow_event_checksum = 0;
     std::uint64_t dream_rolls = 0, dream_masks = 0, dream_main_commands = 0, dream_masked_commands = 0, dream_public_reveals = 0, dream_private_reveals = 0;
+    std::uint64_t redraws = 0, redrawn_items = 0, redraw_notices = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -103,6 +104,7 @@ struct Stats {
         death_rolls += s.death_rolls; death_hits += s.death_hits; death_forced_hits += s.death_forced_hits; death_responses += s.death_responses;
         sell_overflows += s.sell_overflows; buy_overflows += s.buy_overflows; overflow_events += s.overflow_events; overflow_event_checksum += s.overflow_event_checksum;
         dream_rolls += s.dream_rolls; dream_masks += s.dream_masks; dream_main_commands += s.dream_main_commands; dream_masked_commands += s.dream_masked_commands; dream_public_reveals += s.dream_public_reveals; dream_private_reveals += s.dream_private_reveals;
+        redraws += s.redraws; redrawn_items += s.redrawn_items; redraw_notices += s.redraw_notices;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -128,6 +130,8 @@ int main(int argc, char** argv) {
                     std::uint64_t hash = 14695981039346656037ULL; mix(hash, i);
                     while (!match.done()) {
                         const auto command = match.sample_action(policy); const auto& before = match.snapshot();
+                        const auto redraws_before = before.redraws, redrawn_items_before = before.redrawn_items;
+                        const auto redraw_notices_before = before.phase == MatchPhase::main ? 0 : before.last_redraws.size();
                         const auto dream_rolls_before = before.dream_rolls, dream_masks_before = before.dream_masks;
                         const auto reveals_before = before.phase == MatchPhase::main ? 0 : before.last_reveals.size();
                         const auto rolls_before = before.chance_rolls, hits_before = before.chance_hits;
@@ -310,6 +314,9 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        stats.redraws += match.snapshot().redraws - redraws_before;
+                        stats.redrawn_items += match.snapshot().redrawn_items - redrawn_items_before;
+                        stats.redraw_notices += match.snapshot().last_redraws.size() - redraw_notices_before;
                         stats.dream_rolls += match.snapshot().dream_rolls - dream_rolls_before;
                         stats.dream_masks += match.snapshot().dream_masks - dream_masks_before;
                         for (std::size_t event = reveals_before; event < match.snapshot().last_reveals.size(); ++event) {
@@ -479,6 +486,9 @@ int main(int argc, char** argv) {
         if (stats.dream_masks > stats.dream_rolls || stats.dream_main_commands > stats.main
             || stats.dream_masked_commands > stats.decisions || stats.dream_public_reveals + stats.dream_private_reveals > stats.dream_masks)
             throw std::logic_error("inconsistent Dream mask and reveal accounting");
+        if (stats.redraw_notices != stats.redraws || stats.redraws > visible_hand_capacity * stats.decisions
+            || stats.redrawn_items > visible_hand_capacity * stats.redraws)
+            throw std::logic_error("inconsistent immediate redraw accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
@@ -507,6 +517,7 @@ int main(int argc, char** argv) {
             << "\ndeath_rule=" << death_rule
             << "\noverflow_rule=" << overflow_rule
             << "\ndream_rule=" << dream_rule
+            << "\nredraw_rule=" << redraw_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -559,6 +570,7 @@ int main(int argc, char** argv) {
             << "\ndeath_bows=" << stats.death_bows << "\ndeath_created=" << stats.death_created << "\ndeath_started=" << stats.death_started
             << "\ndeath_rolls=" << stats.death_rolls << "\ndeath_hits=" << stats.death_hits << "\ndeath_misses=" << stats.death_rolls - stats.death_hits
             << "\ndeath_forced_hits=" << stats.death_forced_hits << "\ndeath_responses=" << stats.death_responses
+            << "\nredraws=" << stats.redraws << "\nredrawn_items=" << stats.redrawn_items << "\nredraw_notices=" << stats.redraw_notices
             << "\ndream_rolls=" << stats.dream_rolls << "\ndream_masks=" << stats.dream_masks
             << "\ndream_main_commands=" << stats.dream_main_commands << "\ndream_masked_commands=" << stats.dream_masked_commands
             << "\ndream_public_reveals=" << stats.dream_public_reveals << "\ndream_private_reveals=" << stats.dream_private_reveals

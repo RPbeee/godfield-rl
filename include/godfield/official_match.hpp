@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v28";
-inline constexpr const char* match_scope = "experimental:233-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v29";
+inline constexpr const char* match_scope = "experimental:234-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -34,8 +34,9 @@ inline constexpr const char* disease_item_rule = "experimental:response-self-cur
 inline constexpr const char* fog_rule = "experimental:launch-once-for-explicit-enemy-play-buy-sell;uniform-alive-enemies-in-input-order;one-draw-including-singleton;self-and-allies-unchanged;chance-wide-danger-excluded-except-sale-commodity;redirects-no-reselection;sampler-sell-all-alive-without-capacity-peek";
 inline constexpr const char* death_rule = "experimental:revival-before-actual-death;nonterminal-boundaries-only;consume-all-bows-in-inventory-order;copy-then-alive-enemies-in-input-order;light30-75-percent;death-fifo-before-counters-and-initial-roster;dead-source-allowed;darkcloud-forces-without-draw;redirects-no-reroll;dead-redirect-target-ends-frame;no-fog-reselection-or-gifts;owner-tick-once;natural-and-cutoff-cancel-pending";
 inline constexpr const char* overflow_rule = "experimental:trade-delivery-only;full-recipient-uniform-existing-item-in-inventory-order;one-bounded-draw;all-existing-items-including-used-miracles-and-passives;cp-debit-and-credit-before-eviction;eviction-before-fresh-delivery-and-death;no-eviction-gift-or-ability;public-model-only;no-overflow-on-decline-or-cutoff-return";
-inline constexpr const char* dream_rule = "experimental:compatible-face-only;key-category-element-ability-curse-cost-hit-rate-plus-atk-positive-def-positive;supported-other-models-in-id-order;gift-real-before-eligible-only-half-coin-zero-masks-before-uniform-face;singleton-no-extra-draw;face-choice-one-draw-including-one-candidate;no-retroactive-mask;trade-receipts-unmasked;legal-and-policy-visible-models;resolve-actual-values-and-price;use-quote-removal-overflow-reveal;quote-return-stays-unmasked;all-cure-clears-dream-and-reveals-hand-only-to-owner;mild-preserves;no-tick;redraw178-unsupported";
-inline constexpr std::uint32_t match_snapshot_version = 28;
+inline constexpr const char* dream_rule = "experimental:compatible-face-only;key-category-element-ability-curse-cost-hit-rate-plus-atk-positive-def-positive;supported-other-models-in-id-order;gift-real-before-eligible-only-half-coin-zero-masks-before-uniform-face;singleton-no-extra-draw;face-choice-one-draw-including-one-candidate;no-retroactive-mask;trade-receipts-unmasked;legal-and-policy-visible-models;resolve-actual-values-and-price;use-quote-removal-overflow-reveal;quote-return-stays-unmasked;all-cure-clears-dream-and-reveals-hand-only-to-owner;mild-preserves;no-tick;redraw178-same-mask-policy";
+inline constexpr const char* redraw_rule = "experimental:response-only178;consume-entire-selection-first;selection-order-self-dream-before-each-redraw;replace-all-current-nonempty-including-used-miracles;same-count-fresh-unused-tokens;immediate-weighted-draw-with-compatible-dream-mask;reserved-gifts-excluded-and-preserved;before-incoming-body-and-revival;no-old-hand-models-or-counts-public;owner-id-only-redraw-notice;same-action-new-items-usable;no-trigger-on-discard-or-trade;max-decisions-bounds-journal";
+inline constexpr std::uint32_t match_snapshot_version = 29;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] bool match_dream_compatible(CardId actual, CardId face) noexcept;
 [[nodiscard]] std::vector<CardId> match_catalog();
@@ -101,6 +102,7 @@ struct ActionBatch {
     std::uint64_t revivals = 0; // Privileged cumulative count before the launch.
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
     std::uint64_t dream_rolls = 0, dream_masks = 0;
+    std::uint64_t redraws = 0, redrawn_items = 0;
     bool tick_processed = false; // Whole-action owner tick already ran before a posthumous response.
     Command attack;
     std::vector<CardId> models;
@@ -185,7 +187,9 @@ struct MatchSnapshot {
     std::uint64_t chance_forced_hits = 0, counter_forced_hits = 0; // Activated without environmental RNG.
     std::uint64_t revivals = 0; // Completed passive consumptions, never a policy observation.
     std::uint64_t death_bows = 0, death_created = 0, death_started = 0, death_rolls = 0, death_hits = 0, death_forced_hits = 0;
-    std::uint64_t dream_rolls = 0, dream_masks = 0; // Private eligible-gift coin attempts and generated masks.
+    std::uint64_t dream_rolls = 0, dream_masks = 0; // Private eligible-grant coin attempts and generated masks.
+    std::uint64_t redraws = 0, redrawn_items = 0; // Private replacement statistics.
+    std::vector<PlayerId> last_redraws; // Public owner IDs only, never replacement counts or inventory.
     std::vector<RevealedItem> last_reveals; // Current main action only; JSON filters owner-only hand reveals.
     std::optional<DangerEvent> last_danger; // Current main action's public launch result, without physical tokens.
     std::optional<RemovalEvent> last_removal; // Current main action's resolved removal, including an empty result.

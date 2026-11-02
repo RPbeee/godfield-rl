@@ -23,12 +23,12 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==233&&match_gift_weight()==494&&std::string_view(match_ruleset)=="official-execution-subset-v28"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"233model/494weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==234&&match_gift_weight()==495&&std::string_view(match_ruleset)=="official-execution-subset-v29"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"234model/495weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{3,107,77,17,29,0,0,0}&&weight==494,"exchange, sell and buy are admitted among trade cards");
+    check(counts==std::array<int,8>{3,107,78,17,29,0,0,0}&&weight==495,"exchange, sell and buy are admitted among trade cards");
     check(match_supported(3)&&match_supported(4)&&match_supported(5)&&!match_supported(1)&&!match_supported(2),"trade artifacts do not enable sacrifice");
-    check(!match_supported(0)&&!match_supported(image("dreaming-hat"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(!match_supported(0)&&match_supported(image("dreaming-hat"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match provenance;
     const auto metadata=provenance.observe(0);
     check(metadata.find("\"catalog_version\":\"official-v2\"")!=std::string::npos
@@ -78,7 +78,7 @@ void recovery_retention_capacity_and_atomicity(){
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
-    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("dreaming-hat");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
+    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("guardian-pot");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
         if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v26\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v27\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -834,7 +834,7 @@ void removal_event_snapshot_guards(){
     auto m=fixture(scene({206},{235,235}));auto state=m.snapshot().state;for(auto& item:state.players[1].items)item.used=true;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));const auto exact=m.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;auto& event=*bad.last_removal;
         if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;if(error==4)event.model=199;
-        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={178};
+        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={201};
         if(error==9)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"removal event boundaries/endpoints/kind/count/unsupported or nonmiracle IDs and danger coexistence reject atomically");}
     auto broom=fixture(scene({205},{6,6,6,6}));broom.step(play(0,{0},7));broom.step(defend(7));auto oversized=broom.snapshot();oversized.last_removal->removed_models.push_back(6);bool rejected=false;
@@ -895,7 +895,7 @@ void sell_invalid_roles_sampler_and_journal(){
 void sell_event_guards_and_atomic_late_failures(){
     const Command self{0,CommandKind::sell,{0,1},0};auto m=fixture(scene({4,27},{}));m.step(self);const auto exact=m.snapshot();
     for(int error=0;error<8;++error){auto bad=exact;auto& event=*bad.last_sale;if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;
-        if(error==4)event.model=178;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
+        if(error==4)event.model=201;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
         try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"sale public event validates price, supported product, endpoints, positive decision and exclusive event type");}
     reject(m,pray(0));auto exhausted=exact;exhausted.state.update_count=max_wire_integer;m.restore(exhausted);const auto previous=m.snapshot();bool failed=false;try{m.step(pray(7));}catch(const MatchError&){failed=true;}
     check(failed&&m.snapshot()==previous,"late next-main failure restores prior sale event");m.restore(exact);m.step(pray(7));check(!m.snapshot().last_sale,"accepted next main clears prior sale event");roundtrip(m);
@@ -1343,7 +1343,7 @@ void overflow_event_full_replay_and_late_atomic_failures(){
     MatchConfig cap;cap.initial_hand=cap.hand_limit=2;SnapshotState state;state.players={player(0,{4,27}),player(7,{208,112}),player(42)};state.players[1].hp=1;state.players[1].mp=state.players[1].cp=0;
     for(auto seat:{0u,2u}){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}Match m(cap);m.load_scene(state,0,2);m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7));const auto exact=m.snapshot();
     check(exact.phase==MatchPhase::response&&exact.queue[0].is_death&&exact.last_sale->overflow_model==208,"resolved overflow event can coexist with later posthumous responses");roundtrip(m);
-    for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.last_sale->overflow_model=112;if(error==1)bad.last_sale->overflow_model.reset();if(error==2)bad.last_sale->overflow_model=178;
+    for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.last_sale->overflow_model=112;if(error==1)bad.last_sale->overflow_model.reset();if(error==2)bad.last_sale->overflow_model=201;
         if(error==3)bad.rng^=1;if(error==4)bad.batch->rng^=1;if(error==5)std::swap(bad.batch->initial_state.players[1].items[0],bad.batch->initial_state.players[1].items[1]);if(error==6)bad.last_sale->overflow_model=0;
         bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"full replay rejects invented overflow result, inventory-order/RNG anchor and unsupported model atomically");}
     state.players[1]=player(7,{118,118});state.update_count=max_wire_integer-1;Match update(cap);update.load_scene(state,0,2);update.step({0,CommandKind::sell,{0,1},7});const auto before=update.snapshot();bool failed=false;
@@ -1430,7 +1430,7 @@ void dream_compatibility_predicates_and_payloads(){
         for(auto next:pool){const std::array<VisibleSelection,1> aselected{{{actual,false}}},fselected{{{face,false}}};
             check(can_append_main(aselected,{next,false})==can_append_main(fselected,{next,false}),"selected compatible base preserves main extension predicate");}
     }eligible+=any;}
-    check(pairs==992&&eligible==146&&pool.size()-eligible==87,"runtime Dream partition matches pinned public-client oracle");
+    check(pairs==992&&eligible==146&&pool.size()-eligible==88,"runtime Dream partition matches pinned public-client oracle");
     check(match_dream_compatible(6,57)&&find_card(6)->atk!=find_card(57)->atk&&find_card(6)->price!=find_card(57)->price,"predicate equivalence deliberately does not imply equal payload or price");
     check(!match_dream_compatible(6,6)&&!match_dream_compatible(6,178)&&!match_dream_compatible(6,222),"singleton, unsupported and mismatched face pairs reject");
 }
@@ -1496,6 +1496,80 @@ void dream_checkpoint_guards_and_transactional_replay(){
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"pending full replay rejects forged Dream reveal, original mask, statistics and RNG atomically");}
     for(unsigned error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].curses.clear();if(error==1)bad.players[0].items[0].fake_model=6;if(error==2)bad.players[0].items[0].fake_model=178;if(error==3)bad.players[0].items[0].fake_model=143;if(error==4)bad.players[0].items[0].used=true;if(error==5)bad.players[0].curses={Curse::dream,Curse::dream};bool rejected=false;try{m.load_scene(bad,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"canonical execution rejects unsafe, stale, used, duplicate and unsupported mask scenes");}
     m.step(defend(7));roundtrip(m);
+}
+
+void redraw_replaces_used_inventory_and_preserves_reserved_gifts(){
+    MatchConfig cap;cap.max_decisions=2;
+    auto state=scene({57},{178,6,215,234});state.players[1].items[2].used=true;state.players[1].items[3].used=true;
+    auto m=fixture(state,cap);m.step(play(0,{0},7));const auto next=m.snapshot().next_token;m.step(defend(7,{0}));const auto& s=m.snapshot();
+    check(s.truncated&&s.redraws==1&&s.redrawn_items==3&&s.next_token==next+3&&s.state.players[1].items.size()==3
+        &&s.state.players[1].hp==24&&s.state.players[1].curses==std::vector<Curse>{Curse::dream},"hat DEF14 precedes body while all three remaining copies including used miracles receive immediate replacements");
+    check(std::all_of(s.state.players[1].items.begin(),s.state.players[1].items.end(),[&](const auto& item){return item.token>=next&&!item.used;})
+        &&s.gifts==std::vector<std::uint32_t>{0,0}&&s.last_redraws==std::vector<PlayerId>{7},"cutoff cancels deferred gifts but preserves already replaced unused fresh-token inventory");roundtrip(m);
+    auto ordinary=fixture(state);ordinary.step(play(0,{0},7));ordinary.step(defend(7,{0}));
+    check(ordinary.snapshot().redrawn_items==3&&ordinary.snapshot().state.players[1].items.size()==4&&ordinary.snapshot().state.players[0].items.size()==1,"hat reservation is excluded from replacement and paid once after the complete action");roundtrip(ordinary);
+    auto empty=fixture(scene({6},{178}),cap);empty.step(play(0,{0},7));const auto rng=empty.snapshot().rng;empty.step(defend(7,{0}));
+    check(empty.snapshot().redraws==1&&empty.snapshot().redrawn_items==0&&empty.snapshot().rng==rng&&empty.snapshot().state.players[1].items.empty(),"empty replacement publishes one activation without a random draw or early reserved gift");roundtrip(empty);
+}
+
+void redraw_consumes_whole_selection_before_each_ordered_prefix(){
+    MatchConfig cap;cap.max_decisions=2;auto state=scene({57},{178,178,143,215});state.players[1].items[3].used=true;
+    auto m=fixture(state,cap);m.step(play(0,{0},7));const auto next=m.snapshot().next_token;m.step(defend(7,{0,1,2}));
+    check(m.snapshot().redraws==2&&m.snapshot().redrawn_items==2&&m.snapshot().next_token==next+2&&m.snapshot().last_redraws==std::vector<PlayerId>{7,7}
+        &&m.snapshot().state.players[1].items.size()==1&&m.snapshot().state.players[1].items[0].token==next+1&&m.snapshot().state.players[1].hp==40,"two hats replace the one unselected retained copy twice after all three selections are consumed, preserving original summed DEF");roundtrip(m);
+    for(bool reverse:{false,true}){auto state=scene({6},{168,178,6});auto mixed=fixture(state,cap);mixed.step(play(0,{0},7));mixed.step(defend(7,reverse?std::initializer_list<ItemToken>{1,0}:std::initializer_list<ItemToken>{0,1}));
+        check(mixed.snapshot().redraws==1&&mixed.snapshot().redrawn_items==1&&mixed.snapshot().state.players[1].curses==std::vector<Curse>{Curse::fever,Curse::dream},"Fever mask and Dream hat apply both ordered prefix effects after complete selection consumption");roundtrip(mixed);}
+    auto main=fixture(scene({178},{}));reject(main,play(0,{0},0));const auto rng=main.snapshot().rng;main.step({0,CommandKind::discard,{0},{}});
+    check(main.snapshot().redraws==0&&main.snapshot().last_redraws.empty()&&main.snapshot().state.players[0].curses.empty()&&main.snapshot().rng==rng,"discarding a hat never invokes response-only Dream or redraw");roundtrip(main);
+}
+
+void redraw_fresh_responses_and_passive_revival_are_immediate(){
+    bool fresh=false,revival=false;
+    for(std::uint64_t seed=0;seed<16384&&(!fresh||!revival);++seed){
+        if(!fresh){auto state=scene({14},{178,6,215});state.players[1].items[2].used=true;Match m;m.load_scene(state,0,seed);m.step(play(0,{0},7));m.step(defend(7,{0}));
+            const auto it=std::find_if(m.snapshot().state.players[1].items.begin(),m.snapshot().state.players[1].items.end(),[](const auto& item){return item.model==178;});
+            if(it!=m.snapshot().state.players[1].items.end()){const auto token=it->token;fresh=true;check(token>=3&&m.snapshot().phase==MatchPhase::response&&m.snapshot().actor==7&&m.snapshot().gifts[1]==1,"first hat's replacement is selectable during the second original attack before deferred gift");roundtrip(m);
+                m.step(defend(7,{token}));check(m.snapshot().redraws==2&&m.snapshot().redrawn_items==3&&m.snapshot().state.players[1].items.size()==3&&m.snapshot().last_redraws==std::vector<PlayerId>{7,7},"freshly drawn second hat resolves in same anchored action and gifts are delivered only at its end");roundtrip(m);}}
+        if(!revival){MatchConfig cap;cap.max_decisions=2;auto state=scene({57},{178,6});state.players[1].hp=1;Match m(cap);m.load_scene(state,0,seed);m.step(play(0,{0},7));m.step(defend(7,{0}));
+            if(m.snapshot().revivals){revival=true;check(m.snapshot().revivals==1&&m.snapshot().state.players[1].hp==10&&!m.snapshot().state.players[1].dead&&m.snapshot().redrawn_items==1&&m.snapshot().state.players[1].items.empty(),"amulet drawn by prefix redraw is available to revive incoming lethal body before cutoff");roundtrip(m);}}
+    }
+    check(fresh&&revival,"seed sweep witnesses same-action fresh response and newly drawn passive revival");
+}
+
+void redraw_private_inventory_and_public_event_lifetime(){
+    MatchConfig cap;cap.max_decisions=2;auto state=scene({6},{178,6});state.players[1].curses={Curse::dream};state.players[1].items[1].fake_model=57;
+    auto other=state;other.players[1].items[1].model=57;other.players[1].items[1].fake_model=6;other.players[1].items.push_back({2,7,19,false});auto a=fixture(state,cap),b=fixture(other,cap);
+    check(a.observe(0)==b.observe(0)&&a.observe({})==b.observe({}),"foreign hidden Dream inventory and counts are initially indistinguishable");
+    for(auto* m:{&a,&b}){m->step(play(0,{0},7));m->step(defend(7,{0}));check(m->snapshot().last_reveals.empty()&&m->observe({}).find("\"last_redraws\":[7]")!=std::string::npos,"redraw publishes only owner ID and never reveals discarded masks");for(auto key:{"\"redrawn_items\":","\"redraws\":","\"next_token\":","\"dream_rolls\":"})check(m->observe({}).find(key)==std::string::npos,"public replacement notice excludes counts, statistics and tokens");roundtrip(*m);}
+    check(a.observe(0)==b.observe(0)&&a.observe({})==b.observe({})&&a.observe(7)!=b.observe(7),"replacement count and actual inventory remain private to owner after visible-identical activation");
+    auto live=fixture(state);live.step(play(0,{0},7));live.step(defend(7,{0}));const auto before=live.snapshot();reject(live,pray(0));check(live.snapshot()==before,"failed next main preserves previous redraw notice and new inventory");std::uint64_t policy=99;live.step(live.sample_action(policy));check(live.snapshot().last_redraws.empty(),"next accepted main clears previous redraw notice");roundtrip(live);
+}
+
+void redraw_trade_and_original_payload_survive_replacement(){
+    MatchConfig cap;cap.max_decisions=2;auto sale=fixture(scene({4,178},{}),cap);sale.step({0,CommandKind::sell,{0,1},7});sale.step(defend(7));
+    check(sale.snapshot().redraws==0&&sale.snapshot().last_redraws.empty()&&sale.snapshot().state.players[1].curses.empty()&&sale.snapshot().last_sale->model==178&&sale.snapshot().state.players[1].items.back().model==178,"sale transfers hat as unused commodity without activating its prefix");roundtrip(sale);
+    auto buy=fixture(scene({5},{178}));buy.step({0,CommandKind::buy,{0},7});buy.step(defend(7));buy.step({0,CommandKind::accept,{},{}});
+    check(buy.snapshot().redraws==0&&buy.snapshot().last_redraws.empty()&&buy.snapshot().state.players[0].curses.empty(),"purchasing a hat never casts or equips it");roundtrip(buy);
+    bool erased_redirect_carrier=false;
+    for(std::uint64_t seed=0;seed<64&&!erased_redirect_carrier;++seed){auto state=scene({214},{234,178,6});state.players[1].mp=99;Match m;m.load_scene(state,0,seed);m.step(play(0,{0},7));m.step(defend(7,{0}));
+        if(m.snapshot().actor!=7)continue;erased_redirect_carrier=true;check(m.snapshot().queue[0].redirects[0].models==std::vector<CardId>{234}&&m.snapshot().state.players[1].items[0].used,"self bounce retains the original miracle before later replacement");roundtrip(m);m.step(defend(7,{1}));
+        check(m.snapshot().redrawn_items==2&&std::none_of(m.snapshot().state.players[1].items.begin(),m.snapshot().state.players[1].items.end(),[](const auto& item){return item.used;}),"hat can erase an already recorded used redirect carrier without rewriting its journal or recasting it");roundtrip(m);}
+    check(erased_redirect_carrier,"seed sweep witnesses redrawn retained redirect evidence");
+    auto state=scene({14},{178,181,215});state.players[1].items[2].used=true;auto counter=fixture(state);counter.step(play(0,{0},7));counter.step(defend(7,{0,1}));
+    // Hat defense blocks this body, so a selected zero-power counter is consumed but not generated.
+    check(counter.snapshot().counter_created==0&&counter.snapshot().redrawn_items==1&&counter.snapshot().queue[0].models==std::vector<CardId>{14},"replacement never rewrites original twice-attack payload or invents a blocked counter");roundtrip(counter);counter.step(defend(7));roundtrip(counter);
+    auto attack=scene({57},{178,184,215});attack.players[1].items[2].used=true;auto reflected=fixture(attack);reflected.step(play(0,{0},7));reflected.step(defend(7,{0,1}));
+    check(reflected.snapshot().queue[0].is_counter&&reflected.snapshot().queue[0].models==std::vector<CardId>{184}&&reflected.snapshot().queue[0].power==32&&reflected.snapshot().counter_created==1,"selected counter reserves immutable actual model and damage after redraw removed all old retained inventory");roundtrip(reflected);reflected.step(defend(0));roundtrip(reflected);
+}
+
+void redraw_snapshot_adversaries_and_late_atomic_failures(){
+    auto state=scene({14},{178,6,215});state.players[1].items[2].used=true;auto m=fixture(state);m.step(play(0,{0},7));m.step(defend(7,{0}));const auto exact=m.snapshot();
+    for(unsigned error=0;error<13;++error){auto bad=exact;
+        if(error==0)bad.last_redraws.clear();if(error==1)bad.last_redraws[0]=0;if(error==2)bad.last_redraws.push_back(7);if(error==3)++bad.redraws;if(error==4)++bad.redrawn_items;if(error==5)++bad.batch->redraws;if(error==6)++bad.batch->redrawn_items;if(error==7)bad.batch->initial_state.players[1].items[0].model=179;if(error==8)bad.state.players[1].items[0].used=true;if(error==9)bad.state.players[1].items[0].token=0;if(error==10)++bad.next_token;if(error==11)++bad.gifts[1];if(error==12)bad.rng^=1;
+        bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"full pending replay rejects forged replacement event, statistics, originals, new records, reservations and RNG");}
+    for(unsigned failure=0;failure<3;++failure){auto state=scene({6},{178,6,6});if(failure==0)state.players[1].items[1].token=max_wire_integer-1;if(failure==1)state.update_count=max_wire_integer-1;if(failure==2)state.gf=max_wire_integer;
+        auto late=fixture(state);late.step(play(0,{0},7));const auto before=late.snapshot();bool threw=false;try{late.step(defend(7,{0}));}catch(const MatchError&){threw=true;}check(threw&&late.snapshot()==before,"late partial-draw token, update and GF exhaustion restore old hand, disguise, stats, journal, RNG and reservation");}
+    for(std::uint64_t seed=0;seed<32;++seed){auto state=scene({14,57,190},{178,178,215,181});state.players[0].mp=state.players[1].mp=99;MatchConfig cap;cap.max_decisions=64;Match run(cap);run.load_scene(state,0,seed);run.step(play(0,{0},7));run.step(defend(7,{0}));roundtrip(run);std::uint64_t policy=seed;while(!run.done()){const auto before=run.snapshot();const auto command=run.sample_action(policy);check(run.legal(command)&&run.snapshot()==before,"fresh replacement policy remains legal and pure through later play");run.step(command);roundtrip(run);}}
 }
 
 }
@@ -1593,6 +1667,12 @@ int main(){
     dream_sources_cures_and_owner_only_revelation();
     dream_trade_quotes_removal_and_overflow();
     dream_checkpoint_guards_and_transactional_replay();
+    redraw_replaces_used_inventory_and_preserves_reserved_gifts();
+    redraw_consumes_whole_selection_before_each_ordered_prefix();
+    redraw_fresh_responses_and_passive_revival_are_immediate();
+    redraw_private_inventory_and_public_event_lifetime();
+    redraw_trade_and_original_payload_survive_replacement();
+    redraw_snapshot_adversaries_and_late_atomic_failures();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (233subset/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (234subset/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

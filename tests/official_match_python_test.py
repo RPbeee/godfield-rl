@@ -17,15 +17,15 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v28"); self.assertIn("233-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
-        self.assertEqual((len(match.supported_models), match.gift_weight), (233, 494))
-        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v28.json").read_text())
+        self.assertEqual(match.ruleset, "official-execution-subset-v29"); self.assertIn("234-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual((len(match.supported_models), match.gift_weight), (234, 495))
+        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v29.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
-        self.assertEqual((report["pool_models"], report["pool_gift_weight"]), (233, 494))
+        self.assertEqual((report["pool_models"], report["pool_gift_weight"]), (234, 495))
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v26")
+        self.assertEqual(own["schema"], "official-execution-view-v27")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -201,7 +201,7 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(added <= seen, "all eight bounce models must actually be gifted")
         # Fixed public reset fixture: both sides can play a miracle+FREE at MP0.
         # Tokens are obtained only from that player's public observation.
-        match.reset(178023); reference = self.match(config=config, seed=178023)
+        match.reset(493592); reference = self.match(config=config, seed=493592)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
         self.assertTrue({235, 204} <= own.keys()); self.assertTrue({234, 173} <= other.keys())
@@ -221,7 +221,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v26")
+        self.assertEqual(event["schema"], "official-execution-view-v27")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -271,8 +271,8 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [40, 40])
         # Chance targets only enemies: teammate77 and source0 never enter this batch.
         roster = [PlayerSetup(0, team=1), PlayerSetup(77, team=1), PlayerSetup(88), PlayerSetup(99, team=2)]
-        multi = self.match(config=config, players=roster, seed=127)
-        reference = self.match(config=config, players=roster, seed=127)
+        multi = self.match(config=config, players=roster, seed=95)
+        reference = self.match(config=config, players=roster, seed=95)
         own = multi.observe(0)["board"]["hand"]
         chance = next(item["token"] for item in own if item["face"] == 95)
         command = Command(0, "play", (chance,))
@@ -302,14 +302,14 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in multi.observe()["board"]["players"]], [40, 40, 40, 39])
         self.assertEqual(len(multi.observe(0)["board"]["hand"]), 18)
         # An all-miss attempt consumes one decision and gives no response window.
-        match.reset(129)
+        match.reset(266)
         chance = next(item["token"] for item in match.observe(0)["board"]["hand"] if item["face"] == 95)
         result = match.step(Command(0, "play", (chance,)))
         self.assertEqual((result.decisions, result.phase, result.actor, result.owner), (1, "main", 1, 1))
         self.assertIsNone(match.observe()["pending"])
         self.assertEqual([p["status"]["hp"] for p in match.observe()["board"]["players"]], [40, 40])
         # A chance miracle accepts FREE but a hit remains hit across reflection.
-        match.reset(130349); reference = self.match(config=config, seed=130349)
+        match.reset(19215); reference = self.match(config=config, seed=19215)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
         self.assertTrue({225, 204} <= own.keys()); self.assertIn(39, other)
@@ -336,8 +336,8 @@ class MatchTests(unittest.TestCase):
 
     def test_damage_counters_fifo_hp_loss_and_hidden_reservations(self):
         config = Config(initial_hand=18, initial_mp=0)
-        match = self.match(config=config, seed=8185)
-        reference = self.match(config=config, seed=8185)
+        match = self.match(config=config, seed=18399)
+        reference = self.match(config=config, seed=18399)
         self.assertTrue({181, 184} <= set(match.supported_models))
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
@@ -379,7 +379,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(match.observe(player), reference.observe(player))
             self.assertEqual(len(match.observe(player)["board"]["hand"]), 18)
         # The missed Mars counter never creates a response decision.
-        match.reset(7250)
+        match.reset(48665)
         own = {item["face"]: item["token"] for item in match.observe(0)["board"]["hand"]}
         other = {item["face"]: item["token"] for item in match.observe(1)["board"]["hand"]}
         self.assertIn(6, own); self.assertIn(181, other); self.assertIn(184, own)
@@ -400,7 +400,7 @@ class MatchTests(unittest.TestCase):
             return [p["status"][name] for p in match.observe()["board"]["players"]]
         # Neptune emits a zero-power, explicit self-target response, not a guardian.
         config = Config(initial_hand=18, initial_mp=0, initial_cp=0)
-        match = self.match(config=config, seed=1203); reference = self.match(config=config, seed=1203)
+        match = self.match(config=config, seed=1429); reference = self.match(config=config, seed=1429)
         self.assertTrue({187, 188} <= set(match.supported_models))
         own, other = hand(match, 0), hand(match, 1)
         self.assertIn(6, own); self.assertIn(187, other)
@@ -429,12 +429,12 @@ class MatchTests(unittest.TestCase):
         for seat in (0, 1):
             self.assertEqual(match.observe(seat), reference.observe(seat))
             self.assertEqual(len(match.observe(seat)["board"]["hand"]), 18)
-        capped = self.match(config=Config(initial_hand=18, initial_mp=98), seed=1203)
+        capped = self.match(config=Config(initial_hand=18, initial_mp=98), seed=1429)
         own, other = hand(capped, 0), hand(capped, 1)
         capped.step(Command(0, "play", (own[6],), 1)); capped.step(Command(1, "defend", (other[187],))); capped.step(Command(1, "defend"))
         self.assertEqual(stats(capped, "mp"), [98, 99])
         # A self-reflection of the MP counter keeps a response and applies once.
-        mirror = self.match(config=config, seed=540)
+        mirror = self.match(config=config, seed=76466)
         own, other = hand(mirror, 0), hand(mirror, 1)
         self.assertIn(6, own); self.assertTrue({187, 190} <= other.keys())
         mirror.step(Command(0, "play", (own[6],), 1)); mirror.step(Command(1, "defend", (other[187],)))
@@ -443,7 +443,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(stats(mirror, "mp"), [0, 0])
         mirror.step(Command(1, "defend")); self.assertEqual(stats(mirror, "mp"), [0, 2])
         # Venus credits the full nominal amount after CP->MP->HP debt payment.
-        cp = self.match(config=config, seed=13778)
+        cp = self.match(config=config, seed=33464)
         own, other = hand(cp, 0), hand(cp, 1)
         self.assertIn(32, own); self.assertIn(188, other)
         cp.step(Command(0, "play", (own[32],), 1)); cp.step(Command(1, "defend", (other[188],)))
@@ -452,12 +452,12 @@ class MatchTests(unittest.TestCase):
         cp.step(Command(0, "defend"))
         self.assertEqual(stats(cp, "hp"), [31, 31]); self.assertEqual(stats(cp, "mp"), [0, 0]); self.assertEqual(stats(cp, "cp"), [0, 9])
         self.assertIsNone(cp.observe()["pending"])
-        cp_cap = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=13778)
+        cp_cap = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=33464)
         own, other = hand(cp_cap, 0), hand(cp_cap, 1)
         cp_cap.step(Command(0, "play", (own[32],), 1)); cp_cap.step(Command(1, "defend", (other[188],))); cp_cap.step(Command(0, "defend"))
         self.assertEqual(stats(cp_cap, "cp"), [90, 99])
         # Reflection changes creditor/debtor through the current source/target.
-        reflected = self.match(config=config, seed=26332)
+        reflected = self.match(config=config, seed=5580)
         own, other = hand(reflected, 0), hand(reflected, 1)
         self.assertTrue({6, 190} <= own.keys()); self.assertIn(188, other)
         reflected.step(Command(0, "play", (own[6],), 1)); reflected.step(Command(1, "defend", (other[188],)))
@@ -468,7 +468,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(stats(reflected, "cp"), [1, 0]); self.assertEqual(stats(reflected, "hp"), [40, 38])
         # Aliased source==target still debits first; later credit cannot undo HP0.
         for hp in (40, 2):
-            alias = self.match(config=Config(initial_hand=18, initial_hp=hp, initial_mp=0, initial_cp=0), seed=13778)
+            alias = self.match(config=Config(initial_hand=18, initial_hp=hp, initial_mp=0, initial_cp=0), seed=33464)
             own = hand(alias, 0)
             alias.step(Command(0, "play", (own[6],), 0)); alias.step(Command(0, "defend", (own[188],)))
             pending = alias.observe()["pending"]
@@ -494,44 +494,44 @@ class MatchTests(unittest.TestCase):
             if added <= seen: break
         self.assertTrue(added <= seen, "all five complete damage-effect models are gifted")
         for initial_hp, target, expected in ((40, 1, [47, 33]), (98, 1, [99, 91]), (98, 0, [92, 98]), (3, 1, [10, 0])):
-            effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=237)
+            effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=827)
             own = hand(effect, 0); self.assertIn(27, own)
             effect.step(Command(0, "play", (own[27],), target))
             self.assertEqual(effect.observe()["damage_effect_rule"], rule)
             effect.step(Command(target, "defend")); self.assertEqual(hp(effect), expected)
             if initial_hp == 3: self.assertEqual(effect.status.winners, (0,))
-        match.reset(237); own, other = hand(match, 0), hand(match, 1)
+        match.reset(827); own, other = hand(match, 0), hand(match, 1)
         self.assertIn(176, other)
         match.step(Command(0, "play", (own[27],), 1)); match.step(Command(1, "defend", (other[176],)))
         self.assertEqual(hp(match), [40, 40])  # No source heal at zero remainder.
         # Current source receives the absorption effect after reflection.
-        match.reset(386); own, other = hand(match, 0), hand(match, 1)
+        match.reset(306); own, other = hand(match, 0), hand(match, 1)
         self.assertIn(27, own); self.assertIn(38, other)
         match.step(Command(0, "play", (own[27],), 1)); match.step(Command(1, "defend", (other[38],)))
         self.assertEqual(hp(match), [40, 40])
         self.assertEqual((match.observe()["pending"]["source"], match.observe()["pending"]["target"]), (1, 0))
         match.step(Command(0, "defend")); self.assertEqual(hp(match), [33, 47])
         # Self-heal and target damage net to zero, but body damage7 still creates counter14.
-        match.reset(417); own = hand(match, 0)
+        match.reset(827); own = hand(match, 0)
         self.assertTrue({27, 184} <= own.keys())
         match.step(Command(0, "play", (own[27],), 0)); match.step(Command(0, "defend", (own[184],)))
         self.assertEqual(hp(match), [40, 40]); self.assertEqual(match.observe()["pending"]["power"], 14)
         match.step(Command(0, "defend")); self.assertEqual(hp(match), [26, 40])
         # The chance absorber keeps its ability through hit/miss handling.
-        for seed, expected in ((59, [43, 37]), (267, [40, 40])):
+        for seed, expected in ((85, [43, 37]), (243, [40, 40])):
             match.reset(seed); token = hand(match, 0)[98]
             match.step(Command(0, "play", (token,)))
             if match.status.phase == "response": match.step(Command(1, "defend"))
             self.assertEqual(hp(match), expected)
         # A paid first use consumes the declared10 MP and retains the same instance.
-        paid = self.match(config=Config(initial_hand=18, initial_mp=10), seed=9344)
+        paid = self.match(config=Config(initial_hand=18, initial_mp=10), seed=2996)
         paid_token = hand(paid, 0)[216]
         paid.step(Command(0, "play", (paid_token,), 1))
         self.assertEqual([p["status"]["mp"] for p in paid.observe()["board"]["players"]], [0, 10])
         paid.step(Command(1, "defend")); self.assertEqual(hp(paid), [50, 30])
         self.assertTrue(next(item for item in paid.observe(0)["board"]["hand"] if item["token"] == paid_token)["used"])
         # The held Light miracle accepts FREE, then heals the reflected current source.
-        match.reset(9344); reference = self.match(config=config, seed=9344)
+        match.reset(2996); reference = self.match(config=config, seed=2996)
         own, other = hand(match, 0), hand(match, 1)
         self.assertTrue({216, 204} <= own.keys()); self.assertIn(39, other)
         cast = Command(0, "play", (own[216], own[204]), 1)
@@ -551,12 +551,12 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(next(item for item in own_hand if item["token"] == own[216])["used"])
         # Self-damage uses two sequential raw subtractions when source==target.
         for initial_hp, target, expected in ((40, 1, [26, 26]), (40, 0, [12, 40]), (20, 0, [0, 20])):
-            effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=15)
+            effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=48)
             token = hand(effect, 0)[53]
             effect.step(Command(0, "play", (token,), target)); effect.step(Command(target, "defend"))
             self.assertEqual(hp(effect), expected)
             if initial_hp == 20: self.assertEqual(effect.status.winners, (1,))
-        match.reset(15); own = hand(match, 0)
+        match.reset(6493); own = hand(match, 0)
         self.assertTrue({53, 184} <= own.keys())
         match.step(Command(0, "play", (own[53],), 0)); match.step(Command(0, "defend", (own[184],)))
         self.assertEqual(hp(match), [12, 40])
@@ -564,7 +564,7 @@ class MatchTests(unittest.TestCase):
         match.step(Command(0, "defend")); self.assertEqual(match.status.winners, (1,))
 
     def test_flash_response_limit_and_free_main_cure(self):
-        match = self.match(config=Config(initial_hand=18, initial_mp=0), seed=2315131)
+        match = self.match(config=Config(initial_hand=18, initial_mp=0), seed=1833563)
         def hand(seat): return match.observe(seat)["board"]["hand"]
         own = {item["face"]: item["token"] for item in hand(0)}
         other = {item["face"]: item["token"] for item in hand(1)}
@@ -597,7 +597,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(match.observe()["board"]["players"][0]["status"]["curses"], [])
 
     def test_flash_counter_reflection_and_chance(self):
-        match = self.match(config=Config(initial_hand=18, initial_mp=0), seed=702528)
+        match = self.match(config=Config(initial_hand=18, initial_mp=0), seed=1302213)
         def tokens(seat): return {i["face"]: i["token"] for i in match.observe(seat)["board"]["hand"]}
         own, other = tokens(0), tokens(1)
         match.step(Command(0, "play", (own[6],), 1))
@@ -614,7 +614,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["curses"] for p in match.observe()["board"]["players"]], [[], ["flash"]])
         self.assertEqual(match.observe()["pending"]["models"], [184])
         match.step(Command(0, "defend"))
-        for seed, hit in ((107, True), (28, False)):
+        for seed, hit in ((0, True), (7, False)):
             chance = self.match(config=Config(initial_hand=18, initial_mp=3), seed=seed)
             token = next(i["token"] for i in chance.observe(0)["board"]["hand"] if i["face"] == 224)
             chance.step(Command(0, "play", (token,)))
@@ -635,7 +635,7 @@ class MatchTests(unittest.TestCase):
                 if game.legal(command): game.step(command); return
             self.fail("public reset fixture needs an ordinary discard to pass turn")
         config = Config(initial_hand=18, initial_mp=10)
-        game = self.match(config=config, seed=16494)
+        game = self.match(config=config, seed=47239)
         self.assertTrue({41, 186, 223} <= set(game.supported_models))
         own = hand(game, 0); self.assertTrue({70, 223, 199, 200} <= own.keys())
         game.step(Command(0, "play", (own[70],), 0)); game.step(Command(0, "defend"))
@@ -649,7 +649,7 @@ class MatchTests(unittest.TestCase):
         game.step(Command(0, "play", (own[200],), 0)); self.assertEqual(curses(game), [[], []])
         # Damage application includes a target killed by the original body.
         for hp in (40, 5):
-            weapon = self.match(config=Config(initial_hand=18, initial_hp=hp), seed=57)
+            weapon = self.match(config=Config(initial_hand=18, initial_hp=hp), seed=46)
             token = hand(weapon, 0)[41]
             weapon.step(Command(0, "play", (token,), 1)); weapon.step(Command(1, "defend"))
             self.assertEqual(curses(weapon), [[], ["darkcloud"]])
@@ -666,7 +666,7 @@ class MatchTests(unittest.TestCase):
                 if item["token"] not in reserved and game.legal(command):
                     self.assertEqual(game.step(command), reference.step(command)); return
             self.fail("no public discard for fixture turn")
-        game = self.match(config=config, seed=5360); reference = self.match(config=config, seed=5360)
+        game = self.match(config=config, seed=144975); reference = self.match(config=config, seed=144975)
         own, other = hand(game, 0), hand(game, 1)
         self.assertTrue({223, 95} <= own.keys()); self.assertIn(190, other)
         for command in (Command(0, "play", (own[223],), 1), Command(1, "defend")):
@@ -691,7 +691,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(game.step(Command(0, "defend")), reference.step(Command(0, "defend")))
         self.assertEqual(game.observe(0), reference.observe(0))
         self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [39, 40])
-        game = self.match(config=config, seed=7841); reference = self.match(config=config, seed=7841)
+        game = self.match(config=config, seed=7767); reference = self.match(config=config, seed=7767)
         own, other = hand(game, 0), hand(game, 1)
         self.assertTrue({223, 6} <= own.keys()); self.assertIn(181, other)
         self.assertEqual(game.step(Command(0, "play", (own[223],), 0)), reference.step(Command(0, "play", (own[223],), 0)))
@@ -708,7 +708,7 @@ class MatchTests(unittest.TestCase):
         def hand(game, seat): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
         config = Config(initial_hand=18, initial_mp=0)
         for reflector in (39, 55):
-            game = self.match(config=config, seed=1294294)
+            game = self.match(config=config, seed=412282)
             own, other = hand(game, 0), hand(game, 1)
             self.assertTrue({223, 204} <= own.keys()); self.assertIn(reflector, other)
             game.step(Command(0, "play", (own[223], own[204]), 1))
@@ -721,7 +721,7 @@ class MatchTests(unittest.TestCase):
             items = game.observe(0)["board"]["hand"]
             self.assertEqual(len(items), 18); self.assertNotIn(own[204], {i["token"] for i in items})
             self.assertTrue(next(i for i in items if i["token"] == own[223])["used"])
-        game = self.match(config=config, seed=30533)
+        game = self.match(config=config, seed=32948)
         own, other = hand(game, 0), hand(game, 1)
         self.assertTrue({6, 190, 161} <= own.keys()); self.assertIn(186, other)
         game.step(Command(0, "play", (own[6],), 1)); game.step(Command(1, "defend", (other[186],)))
@@ -740,7 +740,7 @@ class MatchTests(unittest.TestCase):
         def items(game, seat): return game.observe(seat)["board"]["hand"]
         def token(game, seat, model): return next(i["token"] for i in items(game, seat) if i["face"] == model)
         config = Config(initial_hand=18, initial_mp=99)
-        game = self.match(config=config, seed=43); reference = self.match(config=config, seed=43)
+        game = self.match(config=config, seed=92); reference = self.match(config=config, seed=92)
         self.assertTrue({205, 206} <= set(game.supported_models))
         source = token(game, 0, 205); original = {i["token"] for i in items(game, 1)}
         cast = Command(0, "play", (source,), 1)
@@ -758,12 +758,12 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((len(remaining), len(original - remaining)), (15, 3)); self.assertTrue(remaining <= original)
         self.assertEqual(len(items(game, 0)), 18)
         self.assertEqual(game.observe(0), reference.observe(0)); self.assertEqual(game.observe(1), reference.observe(1))
-        removed_event = {"origin": 0, "source": 0, "target": 1, "model": 205, "removed_models": [166, 113, 100]}
+        removed_event = {"origin": 0, "source": 0, "target": 1, "model": 205, "removed_models": [128, 199, 10]}
         for viewer in (None, 0, 1):
             self.assertEqual(game.observe(viewer)["last_removal"], removed_event)
         for key in ("removed", "removed_models", "removed_slots", "removal_rng", "batch", "rng", "targets"):
             self.assertNotIn(key, game.observe()); self.assertNotIn(key, game.observe()["board"])
-        game = self.match(config=config, seed=3843)
+        game = self.match(config=config, seed=2324)
         retained = token(game, 0, 235); broom = token(game, 0, 205)
         game.step(Command(0, "play", (retained,), 0))
         for item in items(game, 1):
@@ -772,16 +772,16 @@ class MatchTests(unittest.TestCase):
         game.step(Command(0, "play", (broom,), 0))
         self.assertEqual(len(items(game, 0)), 15)
         self.assertTrue(next(i for i in items(game, 0) if i["token"] == retained)["used"])
-        game = self.match(config=config, seed=1251)
+        game = self.match(config=config, seed=1874)
         broom = token(game, 0, 205); mirror = token(game, 1, 190)
         game.step(Command(0, "play", (broom,), 1)); game.step(Command(1, "defend", (mirror,))); game.step(Command(0, "defend"))
         self.assertEqual([len(items(game, seat)) for seat in (0, 1)], [15, 18])
         # Unused miracles are ordinary Broom candidates, even when sole candidate.
-        game = self.match(config=Config(initial_hand=1), seed=273197)
+        game = self.match(config=Config(initial_hand=1), seed=439428)
         self.assertEqual(items(game, 1)[0]["face"], 224); self.assertFalse(items(game, 1)[0]["used"])
         game.step(Command(0, "play", (token(game, 0, 205),), 1)); game.step(Command(1, "defend"))
         self.assertEqual([len(items(game, seat)) for seat in (0, 1)], [1, 0])
-        game = self.match(config=Config(initial_hand=1), seed=435)
+        game = self.match(config=Config(initial_hand=1), seed=291)
         game.step(Command(0, "play", (token(game, 0, 205),), 0))
         self.assertEqual(len(items(game, 0)), 1)  # Consume before eligibility: no self victim.
 
@@ -797,7 +797,7 @@ class MatchTests(unittest.TestCase):
                     return
             self.fail("public fixture needs a discard")
         config = Config(initial_hand=18, initial_mp=99)
-        game = self.match(config=config, seed=1881945); reference = self.match(config=config, seed=1881945)
+        game = self.match(config=config, seed=3331246); reference = self.match(config=config, seed=3331246)
         learned = {token(game, 0, model) for model in (235, 237, 238)}; soap = token(game, 0, 206)
         for model in (235, 237, 238):
             command = Command(0, "play", (token(game, 0, model),), 0)
@@ -819,7 +819,7 @@ class MatchTests(unittest.TestCase):
         self.assertFalse(game.legal(invalid))
         with self.assertRaises(InvalidMatchError): game.step(invalid)
         self.assertEqual((game.observe(0), game.status), (before, status))
-        game = self.match(config=config, seed=130933)
+        game = self.match(config=config, seed=130069)
         copies = [i["token"] for i in items(game, 0) if i["face"] == 235]
         self.assertEqual(len(copies), 2); self.assertNotEqual(*copies)
         soap = token(game, 0, 206)
@@ -829,7 +829,7 @@ class MatchTests(unittest.TestCase):
         self.assertFalse(any(i["used"] for i in items(game, 0)))
         self.assertEqual(game.observe()["last_removal"],
                          {"origin": 0, "source": 0, "target": 0, "model": 206, "removed_models": [235, 235]})
-        game = self.match(config=config, seed=1333)
+        game = self.match(config=config, seed=35833)
         spring, soap, mirror = token(game, 0, 235), token(game, 0, 206), token(game, 1, 190)
         game.step(Command(0, "play", (spring,), 0)); yield_other(game, reserved=(mirror,))
         game.step(Command(0, "play", (soap,), 1)); game.step(Command(1, "defend", (mirror,))); game.step(Command(0, "defend"))
@@ -839,7 +839,7 @@ class MatchTests(unittest.TestCase):
                          {"origin": 0, "source": 1, "target": 0, "model": 206, "removed_models": [235]})
         # All initially unplayed miracles are ineligible, including after self consumption.
         for target in (0, 1):
-            game = self.match(config=Config(initial_hand=1), seed=321664)
+            game = self.match(config=Config(initial_hand=1), seed=39597)
             command = Command(0, "play", (token(game, 0, 206),), target)
             original_other = items(game, 1)
             game.step(command)
@@ -850,7 +850,7 @@ class MatchTests(unittest.TestCase):
 
     def test_removal_event_lifecycle_empty_and_invalid_calls(self):
         rule = "experimental:resolved-body-only;public-removed-models-in-draw-order;duplicates-and-empty-preserved;clear-on-next-accepted-main;no-tokens-or-rng"
-        game = self.match(config=Config(initial_hand=1, initial_mp=0), seed=435)
+        game = self.match(config=Config(initial_hand=1, initial_mp=0), seed=291)
         self.assertIsNone(game.observe()["last_removal"])
         self.assertEqual(game.observe()["removal_event_rule"], rule)
         self.assertEqual(game.observe(0)["board"]["hand"][0]["face"], 205)
@@ -865,14 +865,14 @@ class MatchTests(unittest.TestCase):
         detached = game.observe(); detached["last_removal"]["removed_models"].append(999)
         self.assertEqual(game.observe()["last_removal"], expected)
         other = game.observe(1)["board"]["hand"][0]
-        self.assertEqual((other["token"], other["face"]), (1, 40))
+        self.assertEqual((other["token"], other["face"]), (1, 19))
         game.step(Command(1, "play", (other["token"],), 0))
         self.assertIsNone(game.observe()["last_removal"])
-        game.reset(435)
+        game.reset(291)
         self.assertIsNone(game.observe()["last_removal"])
 
     def test_removal_event_pending_and_resolved_cutoff(self):
-        game = self.match(config=Config(initial_hand=1, initial_mp=0, max_decisions=2), seed=273197)
+        game = self.match(config=Config(initial_hand=1, initial_mp=0, max_decisions=2), seed=439428)
         self.assertEqual(game.observe(1)["board"]["hand"][0]["face"], 224)
         game.step(Command(0, "play", (0,), 1))
         for viewer in (None, 0, 1): self.assertIsNone(game.observe(viewer)["last_removal"])
@@ -894,7 +894,7 @@ class MatchTests(unittest.TestCase):
         rule = "experimental:base-2x-mp-after-composed-miracle-cost;ordered-boosts;consume-all-mp-once-at-launch;redirects-no-repayment"
         def hand(game, seat=0): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
         def mp(game): return [p["status"]["mp"] for p in game.observe()["board"]["players"]]
-        zero = self.match(config=Config(initial_hand=18, initial_mp=0), seed=20)
+        zero = self.match(config=Config(initial_hand=18, initial_mp=0), seed=96)
         token = hand(zero)[58]; zero.step(Command(0, "play", (token,), 1))
         self.assertEqual((zero.status.phase, zero.actor, zero.observe()["pending"]["power"]), ("response", 1, 0))
         self.assertEqual(zero.observe()["mana_weapon_rule"], rule)
@@ -902,7 +902,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in zero.observe()["board"]["players"]], [40, 40])
         # All completed-column miracle costs precede the dynamic base; order still matters afterwards.
         for models, power in (((58, 231), 16), ((58, 210), 18), ((58, 210, 231), 12), ((58, 231, 210), 10)):
-            game = self.match(config=Config(initial_hand=18, initial_mp=10, initial_hp=99), seed=93265)
+            game = self.match(config=Config(initial_hand=18, initial_mp=10, initial_hp=99), seed=9111)
             own = hand(game); self.assertTrue(set(models) <= own.keys())
             command = Command(0, "play", tuple(own[id] for id in models), 1)
             self.assertTrue(game.legal(command)); game.step(command)
@@ -911,7 +911,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 99 - power)
             self.assertTrue(all(next(i for i in game.observe(0)["board"]["hand"] if i["token"] == own[id])["used"] for id in models[1:]))
         for models, mana, power in (((58, 12), 0, 2), ((58, 12, 231, 204), 10, 44), ((58, 231, 204, 12), 10, 42)):
-            game = self.match(config=Config(initial_hand=18, initial_mp=mana, initial_hp=99), seed=1438356)
+            game = self.match(config=Config(initial_hand=18, initial_mp=mana, initial_hp=99), seed=798525)
             own = hand(game); command = Command(0, "play", tuple(own[id] for id in models), 1)
             game.step(command); self.assertEqual(game.observe()["pending"]["power"], power); self.assertEqual(mp(game), [0, mana])
             game.step(Command(1, "defend"))
@@ -921,7 +921,7 @@ class MatchTests(unittest.TestCase):
                 self.assertNotIn(own[204], {i["token"] for i in game.observe(0)["board"]["hand"]})
                 self.assertTrue(next(i for i in game.observe(0)["board"]["hand"] if i["token"] == own[231])["used"])
         config = Config(initial_hand=18, initial_mp=10)
-        game = self.match(config=config, seed=929); reference = self.match(config=config, seed=929)
+        game = self.match(config=config, seed=188); reference = self.match(config=config, seed=188)
         own, other = hand(game), hand(game, 1); self.assertIn(38, other)
         before = game.observe(0)
         for seed in range(64):
@@ -941,7 +941,7 @@ class MatchTests(unittest.TestCase):
         def hand(game, seat=0): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
         def hp(game): return [p["status"]["hp"] for p in game.observe()["board"]["players"]]
         config = Config(initial_hand=18, initial_mp=0)
-        game = self.match(config=config, seed=272); reference = self.match(config=config, seed=272)
+        game = self.match(config=config, seed=4628); reference = self.match(config=config, seed=4628)
         self.assertTrue({14, 58} <= set(game.supported_models))
         own, other = hand(game), hand(game, 1); self.assertIn(184, other)
         for command in (Command(0, "play", (own[14],), 1), Command(1, "defend", (other[184],))):
@@ -957,23 +957,23 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(hp(game), [34, 34]); self.assertEqual((game.actor, game.status.owner, game.status.decisions), (1, 1, 4))
         for seat in (0, 1):
             self.assertEqual(game.observe(seat), reference.observe(seat)); self.assertEqual(len(game.observe(seat)["board"]["hand"]), 18)
-        paid = self.match(config=Config(initial_hand=18, initial_mp=10), seed=949); own = hand(paid)
+        paid = self.match(config=Config(initial_hand=18, initial_mp=10), seed=272); own = hand(paid)
         paid.step(Command(0, "play", (own[14], own[210]), 1))
         self.assertEqual(paid.observe()["board"]["players"][0]["status"]["mp"], 8)
         for unused in range(2):
             self.assertEqual(paid.observe()["pending"]["power"], 5); paid.step(Command(1, "defend"))
         self.assertEqual(hp(paid), [40, 30]); self.assertEqual(paid.observe()["board"]["players"][0]["status"]["mp"], 8)
         self.assertTrue(next(i for i in paid.observe(0)["board"]["hand"] if i["token"] == own[210])["used"])
-        fresh = self.match(config=config, seed=40741); own, other = hand(fresh), hand(fresh, 1)
+        fresh = self.match(config=config, seed=13325); own, other = hand(fresh), hand(fresh, 1)
         fresh.step(Command(0, "play", (own[14], own[66]), 1)); fresh.step(Command(1, "defend", (other[189],)))
         self.assertEqual((fresh.observe()["pending"]["element"], fresh.observe()["pending"]["power"]), ("fire", 5))
         fresh.step(Command(1, "defend")); self.assertEqual(hp(fresh), [40, 30])
-        reflected = self.match(config=config, seed=46); own, other = hand(reflected), hand(reflected, 1)
+        reflected = self.match(config=config, seed=237); own, other = hand(reflected), hand(reflected, 1)
         reflected.step(Command(0, "play", (own[14],), 1)); reflected.step(Command(1, "defend", (other[38],))); reflected.step(Command(0, "defend"))
         pending = reflected.observe()["pending"]
         self.assertEqual((pending["source"], pending["target"], pending["reflections"]), (0, 1, 0))
         reflected.step(Command(1, "defend")); self.assertEqual(hp(reflected), [37, 37])
-        for seed, mirror, winner, decisions in ((3, False, 0, 2), (46, True, 1, 3)):
+        for seed, mirror, winner, decisions in ((9, False, 0, 2), (237, True, 1, 3)):
             ending = self.match(config=Config(initial_hand=18, initial_mp=0, initial_hp=3), seed=seed)
             own, other = hand(ending), hand(ending, 1)
             ending.step(Command(0, "play", (own[14],), 1))
@@ -987,7 +987,7 @@ class MatchTests(unittest.TestCase):
         config = Config(initial_hand=18, initial_mp=5)
         baseline = None
         for target in (None, 0, 77, 88, 99):
-            game = self.match(config=config, players=roster, seed=3105)
+            game = self.match(config=config, players=roster, seed=493)
             own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
             self.assertIn(232, game.supported_models); self.assertTrue({6, 232} <= own.keys())
             invalid = Command(0, "play", (own[232],), 88)
@@ -1017,11 +1017,11 @@ class MatchTests(unittest.TestCase):
             if baseline is None: baseline = trace
             else: self.assertEqual(trace, baseline)
         # A percentage base still forbids Mirage, and the completion is not a standalone cast.
-        invalid_game = self.match(config=config, seed=1557)
+        invalid_game = self.match(config=config, seed=400)
         own = {i["face"]: i["token"] for i in invalid_game.observe(0)["board"]["hand"]}
         self.assertTrue({95, 232} <= own.keys()); self.assertFalse(invalid_game.legal(Command(0, "play", (own[95], own[232]))))
         free_config = Config(initial_hand=18, initial_mp=0)
-        game = self.match(config=free_config, seed=3105); reference = self.match(config=free_config, seed=3105)
+        game = self.match(config=free_config, seed=493); reference = self.match(config=free_config, seed=493)
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         self.assertTrue({6, 232, 204} <= own.keys()); before = game.observe(0); reached = False
         for seed in range(4096):
@@ -1041,7 +1041,7 @@ class MatchTests(unittest.TestCase):
         def hand(game, seat=0): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
         roster = [PlayerSetup(0, team=1), PlayerSetup(77, team=1), PlayerSetup(88), PlayerSetup(99, team=2)]
         config = Config(initial_hand=18, initial_mp=5)
-        repeat = self.match(config=config, players=roster, seed=560); own = hand(repeat)
+        repeat = self.match(config=config, players=roster, seed=1018); own = hand(repeat)
         repeat.step(Command(0, "play", (own[14], own[232])))
         for actor in (88, 99, 88, 99):
             self.assertEqual((repeat.actor, repeat.status.owner, repeat.observe()["pending"]["power"]), (actor, 0, 3))
@@ -1050,14 +1050,14 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((repeat.status.decisions, repeat.actor), (5, 77))
         self.assertEqual([p["status"]["hp"] for p in repeat.observe()["board"]["players"]], [40, 40, 34, 34])
         self.assertEqual(repeat.observe()["board"]["players"][0]["status"]["mp"], 0)
-        game = self.match(config=config, players=roster, seed=69258); own, enemy = hand(game), hand(game, 88)
+        game = self.match(config=config, players=roster, seed=5648); own, enemy = hand(game), hand(game, 88)
         game.step(Command(0, "play", (own[6], own[232]))); game.step(Command(88, "defend", (enemy[184],)))
         self.assertEqual((game.actor, game.observe()["pending"]["counter"], game.observe()["pending"]["power"]), (0, True, 2))
         game.step(Command(0, "defend")); self.assertEqual((game.actor, game.observe()["pending"]["counter"]), (99, False))
         game.step(Command(99, "defend"))
         self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [38, 40, 39, 39])
         for mana, legal, power in ((4, False, None), (5, True, 0), (10, True, 10)):
-            game = self.match(config=Config(initial_hand=18, initial_mp=mana), seed=817); own = hand(game)
+            game = self.match(config=Config(initial_hand=18, initial_mp=mana), seed=1524); own = hand(game)
             cast = Command(0, "play", (own[58], own[232]))
             self.assertEqual(game.legal(cast), legal)
             if not legal:
@@ -1067,7 +1067,7 @@ class MatchTests(unittest.TestCase):
             game.step(cast); self.assertEqual(game.observe()["pending"]["power"], power)
             self.assertEqual(game.observe()["board"]["players"][0]["status"]["mp"], 0)
             game.step(Command(1, "defend"))
-        copies = self.match(config=Config(initial_hand=18, initial_mp=10), seed=48897)
+        copies = self.match(config=Config(initial_hand=18, initial_mp=10), seed=42430)
         own = hand(copies); tokens = [i["token"] for i in copies.observe(0)["board"]["hand"] if i["face"] == 232]
         self.assertEqual(len(tokens), 2)
         copies.step(Command(0, "play", (own[6], *tokens)))
@@ -1076,7 +1076,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(copies.observe()["board"]["players"][1]["status"]["hp"], 39)
         self.assertTrue(all(next(i for i in copies.observe(0)["board"]["hand"] if i["token"] == token)["used"] for token in tokens))
         for models, element in (((6, 66, 232), None), ((6, 232, 66), "fire")):
-            game = self.match(config=config, seed=9711); own = hand(game)
+            game = self.match(config=config, seed=10273); own = hand(game)
             game.step(Command(0, "play", tuple(own[id] for id in models)))
             self.assertEqual((game.observe()["pending"]["power"], game.observe()["pending"]["element"]), (3, element))
             game.step(Command(1, "defend"))
@@ -1084,7 +1084,7 @@ class MatchTests(unittest.TestCase):
     def test_random_hp_sign_self_foreign_clips_and_cutoff(self):
         rule = "experimental:launch-once;uniform-plus10-or-minus10;zero-heals-one-damages;fixed-through-reflections;nonattack-no-defense-or-counters;hp-clips-0-99;gifts-after-action"
         def hand(game, seat=0): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
-        for seed, delta in ((33, 10), (103, -10)):
+        for seed, delta in ((19, 10), (89, -10)):
             for target in (0, 1):
                 game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=seed)
                 self.assertIn(202, game.supported_models); token = hand(game)[202]
@@ -1100,18 +1100,18 @@ class MatchTests(unittest.TestCase):
                 items = game.observe(0)["board"]["hand"]
                 self.assertEqual(len(items), 18); self.assertNotIn(token, {i["token"] for i in items}); self.assertFalse(any(i["used"] for i in items))
         for hp in (98, 99):
-            game = self.match(config=Config(initial_hand=18, initial_hp=hp), seed=33)
+            game = self.match(config=Config(initial_hand=18, initial_hp=hp), seed=19)
             token = hand(game)[202]; game.step(Command(0, "play", (token,), 0))
             self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 99)
             self.assertEqual((game.status.decisions, len(game.observe(0)["board"]["hand"])), (1, 18))
             self.assertNotIn(token, {i["token"] for i in game.observe(0)["board"]["hand"]})
-        game = self.match(config=Config(initial_hand=18, initial_mp=0, max_decisions=1), seed=103)
+        game = self.match(config=Config(initial_hand=18, initial_mp=0, max_decisions=1), seed=89)
         game.step(Command(0, "play", (hand(game)[202],), 1))
         self.assertTrue(game.status.truncated); self.assertIsNone(game.observe()["pending"])
         self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [40, 40])
         self.assertEqual(len(game.observe(0)["board"]["hand"]), 17)
         for target, limit, winner in ((0, 1, 1), (1, 2, 0)):
-            game = self.match(config=Config(initial_hand=18, initial_hp=5, max_decisions=limit), seed=103)
+            game = self.match(config=Config(initial_hand=18, initial_hp=5, max_decisions=limit), seed=89)
             game.step(Command(0, "play", (hand(game)[202],), target))
             if target: game.step(Command(1, "defend"))
             self.assertTrue(game.status.terminated); self.assertFalse(game.status.truncated); self.assertEqual(game.status.winners, (winner,))
@@ -1119,7 +1119,7 @@ class MatchTests(unittest.TestCase):
     def test_random_hp_reflections_nonattack_atomic_queries_and_discard(self):
         config = Config(initial_hand=18, initial_mp=0)
         def hand(game, seat=0): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
-        game = self.match(config=config, seed=501381); reference = self.match(config=config, seed=501381)
+        game = self.match(config=config, seed=9171764); reference = self.match(config=config, seed=9171764)
         own, other = hand(game), hand(game, 1)
         self.assertTrue({202, 190} <= own.keys()); self.assertTrue({190, 118, 184} <= other.keys())
         before = game.observe(0); status = game.status
@@ -1148,7 +1148,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [40, 40 + delta])
         for viewer in (0, 1): self.assertEqual(game.observe(viewer), reference.observe(viewer))
         # Discard202 has the same RNG schedule as discarding an ordinary armor.
-        discarded = self.match(config=config, seed=33); control = self.match(config=config, seed=33)
+        discarded = self.match(config=config, seed=169); control = self.match(config=config, seed=169)
         a, b = hand(discarded), hand(control)
         discarded.step(Command(0, "discard", (a[202],))); control.step(Command(0, "discard", (b[118],)))
         healing = hand(discarded, 1)[191]
@@ -1158,7 +1158,7 @@ class MatchTests(unittest.TestCase):
     def test_passive_revival_bodies_and_deferred_copies(self):
         def items(game, seat): return game.observe(seat)["board"]["hand"]
         def token(game, seat, model): return next(i["token"] for i in items(game, seat) if i["face"] == model)
-        for seed, model, hp in ((114, 57, 5), (178, 64, 40), (428, 202, 5)):
+        for seed, model, hp in ((197, 57, 5), (745, 64, 40), (993, 202, 5)):
             game = self.match(config=Config(initial_hand=18, initial_hp=hp, initial_mp=0), seed=seed)
             amulet = token(game, 1, 208)
             game.step(Command(0, "play", (token(game, 0, model),), 1))
@@ -1171,7 +1171,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(len(items(game, 1)), 18); self.assertNotIn(amulet, {i["token"] for i in items(game, 1)})
             self.assertNotIn("revivals", game.observe()); self.assertIn("one-deferred-gift", game.observe()["revival_rule"])
         for limit in (512, 2):
-            game = self.match(config=Config(initial_hand=18, initial_hp=1, initial_mp=0, max_decisions=limit), seed=2393236)
+            game = self.match(config=Config(initial_hand=18, initial_hp=1, initial_mp=0, max_decisions=limit), seed=191967)
             copies = [i["token"] for i in items(game, 1) if i["face"] == 208]
             self.assertGreaterEqual(len(copies), 2)
             game.step(Command(0, "play", (token(game, 0, 14), token(game, 0, 203)), 1)); game.step(Command(1, "defend"))
@@ -1186,7 +1186,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 10)
 
     def test_full_passive_hand_prayer_and_manual_rejections(self):
-        game = self.match(config=Config(initial_hand=1, hand_limit=1, initial_mp=0), seed=215)
+        game = self.match(config=Config(initial_hand=1, hand_limit=1, initial_mp=0), seed=387)
         self.assertEqual(game.observe(0)["board"]["hand"][0]["face"], 208)
         before, status = game.observe(0), game.status
         for command in (Command(0, "play", (0,), 0), Command(0, "discard", (0,))):
@@ -1200,7 +1200,7 @@ class MatchTests(unittest.TestCase):
 
     def test_danger_public_selection_reflection_and_wide_gap(self):
         config = Config(initial_hand=18, initial_hp=99, initial_mp=0)
-        game = self.match(config=config, seed=29263); reference = self.match(config=config, seed=29263)
+        game = self.match(config=config, seed=1754); reference = self.match(config=config, seed=1754)
         def hand(game, seat): return {i["face"]: i["token"] for i in game.observe(seat)["board"]["hand"]}
         own, other = hand(game, 0), hand(game, 1)
         for seed in range(64):
@@ -1217,7 +1217,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(game.observe()["last_danger"], event)
         for value in (game, reference): value.step(Command(0, "defend"))
         self.assertEqual(game.observe(0), reference.observe(0)); self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 69)
-        unsupported = self.match(config=Config(initial_hand=18, initial_mp=99), seed=2175); cards = hand(unsupported, 0)
+        unsupported = self.match(config=Config(initial_hand=18, initial_mp=99), seed=522); cards = hand(unsupported, 0)
         command = Command(0, "play", (cards[94], cards[232])); before = unsupported.observe(0)
         self.assertFalse(unsupported.legal(command))
         with self.assertRaises(UnsupportedMatchError): unsupported.step(command)
@@ -1226,7 +1226,7 @@ class MatchTests(unittest.TestCase):
     def test_danger_mortar_immediate_consumption_and_ordered_boost(self):
         def items(game, seat): return game.observe(seat)["board"]["hand"]
         def token(game, seat, model): return next(i["token"] for i in items(game, seat) if i["face"] == model)
-        for seed, target, winner in ((4920, 0, 1), (2364, 1, 0)):
+        for seed, target, winner in ((656, 0, 1), (207, 1, 0)):
             game = self.match(config=Config(initial_hand=18, initial_hp=99), seed=seed)
             mortar = token(game, target, 209)
             if target == 0:
@@ -1239,7 +1239,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual((game.observe()["last_danger"]["target"], game.observe()["last_danger"]["power"], game.observe()["last_danger"]["mortar"]), (target, 99, True))
             self.assertNotIn(mortar, {i["token"] for i in items(game, target)})
             self.assertEqual(len(items(game, target)), 16 if target == 0 else 17)
-        game = self.match(config=Config(initial_hand=18, initial_hp=99, initial_mp=0), seed=296919)
+        game = self.match(config=Config(initial_hand=18, initial_hp=99, initial_mp=0), seed=75406)
         cards = tuple(token(game, 0, model) for model in (94, 231, 204, 66))
         game.step(Command(0, "play", cards)); event = game.observe()["last_danger"]
         self.assertEqual((event["power"], event["element"], event["mortar"]), (62, "fire", False))
@@ -1249,7 +1249,7 @@ class MatchTests(unittest.TestCase):
     def test_exchange_direct_allocation_and_same_value_consumption(self):
         def hand(game): return game.observe(0)["board"]["hand"]
         for allocation in ((20, 30, 10), (40, 0, 20)):
-            game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=0)
+            game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=9)
             token = next(i["token"] for i in hand(game) if i["face"] == 3)
             self.assertTrue(game.legal(Command(0, "exchange", (token,), allocation=allocation)))
             result = game.step(Command(0, "exchange", (token,), allocation=allocation))
@@ -1258,14 +1258,14 @@ class MatchTests(unittest.TestCase):
             self.assertEqual((result.phase, result.actor, result.decisions), ("main", 1, 1)); self.assertIsNone(game.observe()["pending"])
             self.assertEqual(len(hand(game)), 18); self.assertNotIn(token, {i["token"] for i in hand(game)})
             self.assertIn("sum-conserved-before-revival", game.observe()["exchange_rule"])
-        game = self.match(config=Config(initial_hand=18, initial_mp=0, max_decisions=1), seed=0)
+        game = self.match(config=Config(initial_hand=18, initial_mp=0, max_decisions=1), seed=9)
         token = next(i["token"] for i in hand(game) if i["face"] == 3)
         game.step(Command(0, "exchange", (token,), allocation=(20,30,10)))
         self.assertTrue(game.status.truncated); self.assertEqual(len(hand(game)),17)
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["mp"],30)
 
     def test_exchange_hp_zero_natural_death_and_revival(self):
-        for seed, revived in ((0,False),(32,True)):
+        for seed, revived in ((9,False),(123,True)):
             game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, initial_cp=0, max_decisions=1), seed=seed)
             items = game.observe(0)["board"]["hand"]; token = next(i["token"] for i in items if i["face"] == 3)
             self.assertEqual(any(i["face"]==208 for i in items),revived)
@@ -1277,7 +1277,7 @@ class MatchTests(unittest.TestCase):
             if not revived:self.assertEqual(game.status.winners,(1,))
 
     def test_exchange_allocation_transport_and_policy_purity(self):
-        game = self.match(config=Config(initial_hand=1,hand_limit=1),seed=3)
+        game = self.match(config=Config(initial_hand=1,hand_limit=1),seed=9)
         self.assertEqual(game.observe(0)["board"]["hand"][0]["face"],3)
         before,status = game.observe(0),game.status
         for command in (Command(0,"exchange",(0,)),Command(0,"exchange",(0,),0,(40,10,20)),
@@ -1297,20 +1297,20 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(seen);self.assertEqual((game.observe(0),game.status),(before,status))
 
     def test_sell_self_debt_transport_and_policy_atomicity(self):
-        game = self.match(config=Config(initial_hand=18, initial_cp=3, initial_mp=4), seed=11)
+        game = self.match(config=Config(initial_hand=18, initial_cp=3, initial_mp=4), seed=190)
         own = game.observe(0)["board"]["hand"]
         by_token = {i["token"]: i["face"] for i in own}
-        self.assertEqual((by_token[7], by_token[16]), (4, 153))
-        command = Command(0, "sell", (7, 16), 0)
+        self.assertEqual((by_token[10], by_token[9]), (4, 153))
+        command = Command(0, "sell", (10, 9), 0)
         before, status = game.observe(0), game.status
-        invalid = (Command(0, "play", (7,), 0), Command(0, "sell", (7, 7), 0),
-                   Command(0, "sell", (16, 7), 0), Command(0, "sell", (7,), 0),
-                   Command(0, "sell", (7, 16)), Command(0, "sell", (7, 16), 0, (40, 4, 3)))
+        invalid = (Command(0, "play", (10,), 0), Command(0, "sell", (10, 10), 0),
+                   Command(0, "sell", (9, 10), 0), Command(0, "sell", (10,), 0),
+                   Command(0, "sell", (10, 9)), Command(0, "sell", (10, 9), 0, (40, 4, 3)))
         for bad in invalid:
             self.assertFalse(game.legal(bad))
             with self.assertRaises(InvalidMatchError): game.step(bad)
             self.assertEqual((game.observe(0), game.status), (before, status))
-        full = Command(0, "sell", (7, 16), 1)
+        full = Command(0, "sell", (10, 9), 1)
         self.assertTrue(game.legal(full))
         self.assertEqual((game.observe(0), game.status), (before, status))
         saw_sell = False
@@ -1328,7 +1328,7 @@ class MatchTests(unittest.TestCase):
         expected = {"origin": 0, "source": 0, "target": 0, "model": 153, "price": 10, "overflow_model": None}
         for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_sale"], expected)
         after = game.observe(0)["board"]["hand"]
-        self.assertEqual(len(after), 18); self.assertTrue({7, 16}.isdisjoint(i["token"] for i in after))
+        self.assertEqual(len(after), 18); self.assertTrue({10, 9}.isdisjoint(i["token"] for i in after))
         self.assertEqual(next(i for i in after if i["token"] == 36)["face"], 153)
         before, status = game.observe(0), game.status
         with self.assertRaises(InvalidMatchError): game.step(command)
@@ -1336,16 +1336,16 @@ class MatchTests(unittest.TestCase):
         other = next(i for i in game.observe(1)["board"]["hand"] if game.legal(Command(1, "discard", (i["token"],))))
         game.step(Command(1, "discard", (other["token"],)))
         self.assertIsNone(game.observe()["last_sale"])
-        game.reset(11); self.assertIsNone(game.observe()["last_sale"])
+        game.reset(190); self.assertIsNone(game.observe()["last_sale"])
 
     def test_sell_reflected_unused_miracle_is_transferred_not_learned(self):
-        game = self.match(config=Config(initial_hand=4, initial_mp=99), seed=19507)
-        self.assertEqual({i["token"]: i["face"] for i in game.observe(0)["board"]["hand"]}, {0: 195, 1: 138, 2: 4, 3: 215})
+        game = self.match(config=Config(initial_hand=4, initial_mp=99), seed=248449)
+        self.assertEqual({i["token"]: i["face"] for i in game.observe(0)["board"]["hand"]}, {0: 4, 1: 215, 2: 129, 3: 32})
         self.assertEqual(next(i["face"] for i in game.observe(1)["board"]["hand"] if i["token"] == 4), 190)
-        game.step(Command(0, "sell", (2, 3), 1))
+        game.step(Command(0, "sell", (0, 1), 1))
         self.assertIsNone(game.observe()["last_sale"])
         self.assertEqual((game.observe()["pending"]["power"], game.observe()["pending"]["amount"]), (0, 0))
-        with self.assertRaises(InvalidMatchError): game.step(Command(1, "defend", (5,)))
+        with self.assertRaises(InvalidMatchError): game.step(Command(1, "defend", (6,)))
         game.step(Command(1, "defend", (4,)))
         self.assertIsNone(game.observe()["last_sale"])
         game.step(Command(0, "defend"))
@@ -1354,22 +1354,22 @@ class MatchTests(unittest.TestCase):
         own = game.observe(0)["board"]["hand"]
         received = next(i for i in own if i["token"] == 8)
         self.assertEqual((received["face"], received["used"]), (215, False))
-        self.assertTrue({2, 3}.isdisjoint(i["token"] for i in own))
+        self.assertTrue({0, 1}.isdisjoint(i["token"] for i in own))
         self.assertEqual([p["status"]["mp"] for p in game.observe()["board"]["players"]], [99, 99])
         self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [4, 4])
-        learned = self.match(config=Config(initial_hand=4, initial_mp=99), seed=19507)
-        learned.step(Command(0, "play", (3,), 0)); learned.step(Command(0, "defend"))
+        learned = self.match(config=Config(initial_hand=4, initial_mp=99), seed=248449)
+        learned.step(Command(0, "play", (1,), 0)); learned.step(Command(0, "defend"))
         learned.step(Command(1, "discard", (4,)))
-        bad = Command(0, "sell", (2, 3), 0); before = learned.observe(0)
+        bad = Command(0, "sell", (0, 1), 0); before = learned.observe(0)
         self.assertFalse(learned.legal(bad))
         with self.assertRaises(InvalidMatchError): learned.step(bad)
         self.assertEqual(learned.observe(0), before)
 
     def test_sell_delivery_before_death_and_cutoff_without_gift(self):
         for hp, cp, mp, maximum in ((40, 3, 4, 2), (5, 0, 0, 512)):
-            game = self.match(config=Config(initial_hand=4, initial_hp=hp, initial_cp=cp, initial_mp=mp, max_decisions=maximum), seed=547)
-            self.assertEqual({i["token"]: i["face"] for i in game.observe(0)["board"]["hand"]}, {0: 4, 1: 79, 2: 43, 3: 53})
-            game.step(Command(0, "sell", (0, 2), 1)); self.assertIsNone(game.observe()["last_sale"])
+            game = self.match(config=Config(initial_hand=4, initial_hp=hp, initial_cp=cp, initial_mp=mp, max_decisions=maximum), seed=1141)
+            self.assertEqual({i["token"]: i["face"] for i in game.observe(0)["board"]["hand"]}, {0: 43, 1: 149, 2: 53, 3: 4})
+            game.step(Command(0, "sell", (3, 0), 1)); self.assertIsNone(game.observe()["last_sale"])
             game.step(Command(1, "defend"))
             self.assertEqual(game.observe()["last_sale"], {"origin": 0, "source": 0, "target": 1, "model": 43, "price": 10, "overflow_model": None})
             received = next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 8)
@@ -1384,7 +1384,7 @@ class MatchTests(unittest.TestCase):
                 self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 0)
 
     def test_buy_quote_accept_public_transport_and_atomic_queries(self):
-        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0), seed=2828)
+        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0), seed=2830)
         original = game.observe(1)["board"]["hand"]
         self.assertEqual(game.observe()["buy_rule"], "experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-recipient-uniform-existing-item-overflow")
         buy = Command(0, "buy", (self.token(game, 0, 5),), 1)
@@ -1428,7 +1428,7 @@ class MatchTests(unittest.TestCase):
 
     def test_buy_decline_and_cutoff_restore_exact_escrow_copy(self):
         for maximum in (512, 2, 1):
-            game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0, max_decisions=maximum), seed=2828)
+            game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0, max_decisions=maximum), seed=2830)
             original = game.observe(1)["board"]["hand"]
             game.step(Command(0, "buy", (self.token(game, 0, 5),), 1))
             if maximum == 1:
@@ -1449,10 +1449,10 @@ class MatchTests(unittest.TestCase):
                 item = next(i for i in original if game.legal(Command(1, "discard", (i["token"],))))
                 game.step(Command(1, "discard", (item["token"],)))
                 self.assertIsNone(game.observe()["last_purchase"])
-            game.reset(2828); self.assertIsNone(game.observe()["last_purchase"])
+            game.reset(2830); self.assertIsNone(game.observe()["last_purchase"])
 
     def test_buy_reflection_uses_current_buyer_and_seller(self):
-        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0), seed=296)
+        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=0), seed=115050)
         game.step(Command(0, "buy", (self.token(game, 0, 5),), 1)); game.step(Command(1, "defend", (self.token(game, 1, 190),)))
         self.assertIsNone(game.observe()["purchase"])
         game.step(Command(0, "defend"))
@@ -1466,22 +1466,22 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["mp"] for p in game.observe()["board"]["players"]], [0, 0])
 
     def test_buy_empty_insufficient_cp_and_used_miracle_exclusion(self):
-        game = self.match(config=Config(initial_hand=1, initial_cp=0, initial_mp=0), seed=307)
+        game = self.match(config=Config(initial_hand=1, initial_cp=0, initial_mp=0), seed=346)
         original = game.observe(1)["board"]["hand"]
         game.step(Command(0, "buy", (0,), 1)); game.step(Command(1, "defend"))
         self.assertIsNone(game.observe()["purchase"])
         self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 6, "price": 1, "bought": False, "reason": "insufficient-cp", "overflow_model": None})
         self.assertEqual(game.observe(1)["board"]["hand"], original)
-        paid = self.match(config=Config(initial_hand=1, initial_cp=5, initial_mp=0), seed=307)
+        paid = self.match(config=Config(initial_hand=1, initial_cp=5, initial_mp=0), seed=346)
         paid.step(Command(0, "buy", (0,), 1)); paid.step(Command(1, "defend")); paid.step(Command(0, "accept"))
         self.assertEqual([p["status"]["cp"] for p in paid.observe()["board"]["players"]], [4, 6])
         self.assertEqual(next(i["face"] for i in paid.observe(0)["board"]["hand"] if i["token"] == 2), 6)
-        game = self.match(config=Config(initial_hand=1, initial_cp=99, initial_mp=0), seed=13522)
+        game = self.match(config=Config(initial_hand=1, initial_cp=99, initial_mp=0), seed=4136)
         game.step(Command(0, "pray")); game.step(Command(1, "discard", (1,)))
         game.step(Command(0, "buy", (0,), 1)); game.step(Command(1, "defend"))
         self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 1, "model": 0, "price": 0, "bought": False, "reason": "empty", "overflow_model": None})
         self.assertEqual(game.observe(1)["board"]["hand"], [])
-        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=99), seed=10296)
+        game = self.match(config=Config(initial_hand=4, initial_cp=99, initial_mp=99), seed=3572)
         learned = self.token(game, 1, 235)
         game.step(Command(0, "discard", (next(i["token"] for i in game.observe(0)["board"]["hand"] if i["face"] != 5 and game.legal(Command(0, "discard", (i["token"],)))),))); game.step(Command(1, "play", (self.token(game, 1, 235),), 1))
         self.assertTrue(next(i for i in game.observe(1)["board"]["hand"] if i["token"] == learned)["used"])
@@ -1491,7 +1491,7 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(next(i for i in game.observe(1)["board"]["hand"] if i["token"] == learned)["used"])
 
     def test_disease_weapon_damage_and_mild_cure_before_owner_tick(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=29)
+        game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=600)
         self.assertTrue({30, 33, 48, 62, 219, 220} <= set(game.supported_models))
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         other = {i["face"]: i["token"] for i in game.observe(1)["board"]["hand"]}
@@ -1507,7 +1507,7 @@ class MatchTests(unittest.TestCase):
         self.assertNotIn("last_tick", game.observe()); self.assertNotIn("revival_token", game.observe())
 
     def test_disease_retained_cold_upgrades_and_heaven_reapplication_falls(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=771)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=1022)
         wind = next(i["token"] for i in game.observe(0)["board"]["hand"] if i["face"] == 219)
         for curse, hp in (("cold", 39), ("fever", 37), ("hell", 32), ("heaven", 37)):
             game.step(Command(0, "play", (wind,), 0))
@@ -1524,7 +1524,7 @@ class MatchTests(unittest.TestCase):
 
     def test_disease_heaven_quote_wait_and_cutoff_tick_priority(self):
         rule = "experimental:one-disease-plus-fog-flash-darkcloud-and-dream;reapply-max-incoming-or-next;heaven-reapplication-hp0;owner-only-after-whole-action;natural-and-cutoff-before-tick;fixed5-percent-before-hp;post-upgrade-tick;post-tick-revival-before-gifts"
-        game = self.match(config=Config(initial_hand=18, initial_mp=99, initial_cp=99), seed=186)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99, initial_cp=99), seed=494)
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         self.assertEqual(game.observe()["disease_rule"], rule)
         game.step(Command(0, "play", (own[220],), 0))
@@ -1542,7 +1542,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 50)
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["curses"], ["heaven"])
         self.assertNotIn("last_tick", game.observe())
-        cut = self.match(config=Config(initial_hand=18, initial_mp=99, max_decisions=1), seed=186)
+        cut = self.match(config=Config(initial_hand=18, initial_mp=99, max_decisions=1), seed=494)
         token = next(i["token"] for i in cut.observe(0)["board"]["hand"] if i["face"] == 220)
         cut.step(Command(0, "play", (token,), 0))
         self.assertTrue(cut.status.truncated); self.assertFalse(cut.status.terminated)
@@ -1551,7 +1551,7 @@ class MatchTests(unittest.TestCase):
 
     def test_self_curse_mask_fully_defends_and_discard_is_inert(self):
         config = Config(initial_hand=4, initial_mp=0)
-        game = self.match(config=config, seed=82172)
+        game = self.match(config=config, seed=165595)
         self.assertTrue({168, 198} <= set(game.supported_models))
         game.step(Command(0, "play", (self.token(game, 0, 6),), 1))
         before, status = game.observe(1), game.status
@@ -1567,12 +1567,12 @@ class MatchTests(unittest.TestCase):
         target = game.observe()["board"]["players"][1]["status"]
         self.assertEqual((target["hp"], target["curses"]), (40, ["fever"]))
         self.assertNotIn(mask, {i["token"] for i in game.observe(1)["board"]["hand"]})
-        discarded = self.match(config=config, seed=82172)
+        discarded = self.match(config=config, seed=165595)
         discarded.step(Command(0, "discard", (next(i["token"] for i in discarded.observe(0)["board"]["hand"] if discarded.legal(Command(0,"discard",(i["token"],)))),))); discarded.step(Command(1, "discard", (self.token(discarded, 1, 168),)))
         self.assertEqual([p["status"]["curses"] for p in discarded.observe()["board"]["players"]], [[], []])
 
     def test_heaven_self_curse_prefix_falls_then_revives_after_full_body(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=30423)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=1036071)
         heaven, mask, amulet = (self.token(game, 0, model) for model in (220,168,208))
         club = self.token(game, 1, 6)
         game.step(Command(0, "play", (heaven,), 0))
@@ -1588,29 +1588,29 @@ class MatchTests(unittest.TestCase):
 
     def test_heaven_herb_boost_order_reflection_and_cutoff(self):
         rule = "experimental:response-self-curse-in-selection-order-after-consumption;prefix-before-body;death-and-revival-after-whole-body;counter-basis-body-target-loss-only;mp-boost-before-disease;no-trigger-on-trade-or-discard"
-        game = self.match(config=Config(initial_hand=4, initial_mp=90), seed=19847)
+        game = self.match(config=Config(initial_hand=4, initial_mp=90), seed=46892)
         self.assertEqual(game.observe()["disease_item_rule"], rule)
         game.step(Command(0, "play", (self.token(game, 0, 198),), 1))
         before, status = game.observe(1), game.status
-        with self.assertRaises(InvalidMatchError): game.step(Command(1, "defend", (self.token(game, 1, 187),)))
+        with self.assertRaises(InvalidMatchError): game.step(Command(1, "defend", (self.token(game, 1, 32),)))
         self.assertEqual((game.observe(1), game.status), (before, status))
         game.step(Command(1, "defend"))
         players = game.observe()["board"]["players"]
         self.assertEqual((players[0]["status"]["mp"], players[1]["status"]["mp"]), (90, 99))
         self.assertEqual((players[1]["status"]["hp"], players[1]["status"]["curses"]), (40, ["heaven"]))
-        reflected = self.match(config=Config(initial_hand=4, initial_mp=90, max_decisions=3), seed=19847)
+        reflected = self.match(config=Config(initial_hand=4, initial_mp=90, max_decisions=3), seed=46892)
         reflected.step(Command(0, "play", (self.token(reflected, 0, 198),), 1)); reflected.step(Command(1, "defend", (self.token(reflected, 1, 190),))); reflected.step(Command(0, "defend"))
         self.assertTrue(reflected.status.truncated)
         players = reflected.observe()["board"]["players"]
         self.assertEqual((players[0]["status"]["mp"], players[1]["status"]["mp"]), (99, 90))
         self.assertEqual((players[0]["status"]["hp"], players[0]["status"]["curses"]), (40, ["heaven"]))
-        discarded = self.match(config=Config(initial_hand=4, initial_mp=90), seed=19847)
+        discarded = self.match(config=Config(initial_hand=4, initial_mp=90), seed=46892)
         discarded.step(Command(0, "discard", (self.token(discarded, 0, 198),)))
         status = discarded.observe()["board"]["players"][0]["status"]
         self.assertEqual((status["mp"], status["curses"]), (90, []))
 
     def test_fog_view_mild_cure_and_private_inventory_independent_sell(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=9901)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=46010)
         hand = lambda seat: game.observe(seat)["board"]["hand"]
         own = {i["face"]: i["token"] for i in hand(0)}
         spring = next(i["token"] for i in hand(1) if i["face"] == 235)
@@ -1638,7 +1638,7 @@ class MatchTests(unittest.TestCase):
 
     def test_fog_enemy_reselection_and_false_forced_flag_redaction(self):
         roster = [PlayerSetup(0), PlayerSetup(77), PlayerSetup(88)]
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), players=roster, seed=1569)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), players=roster, seed=1184)
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         game.step(Command(0, "play", (own[221],), 0))
         for actor in (77, 88):
@@ -1658,7 +1658,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [40, 40, 39])
 
     def test_fog_forced_hit_stays_redacted_after_reflection_to_self(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=962781)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=1603681)
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         mirror = next(i["token"] for i in game.observe(1)["board"]["hand"] if i["face"] == 190)
         def yield_other():
@@ -1680,13 +1680,13 @@ class MatchTests(unittest.TestCase):
 
     def test_fog_chance_weapon_and_counter_use_existing_fifo(self):
         config = Config(initial_hand=18, initial_mp=99)
-        game = self.match(config=config, seed=75)
+        game = self.match(config=config, seed=215)
         fan = next(i["token"] for i in game.observe(0)["board"]["hand"] if i["face"] == 97)
         game.step(Command(0, "play", (fan,))); game.step(Command(1, "defend"))
         target = game.observe()["board"]["players"][1]["status"]
         self.assertEqual((target["hp"], target["curses"]), (37, ["fog"]))
         self.assertIsNone(game.observe(1)["board"]["players"][0]["status"])
-        game = self.match(config=config, seed=137)
+        game = self.match(config=config, seed=527)
         club = next(i["token"] for i in game.observe(0)["board"]["hand"] if i["face"] == 6)
         ring = next(i["token"] for i in game.observe(1)["board"]["hand"] if i["face"] == 182)
         game.step(Command(0, "play", (club,), 1)); game.step(Command(1, "defend", (ring,)))
@@ -1697,7 +1697,7 @@ class MatchTests(unittest.TestCase):
         self.assertIsNone(game.observe(0)["board"]["players"][1]["status"])
 
     def test_dying_weapon_main_chance_and_natural_death_priority(self):
-        for seed, hit in ((121, True), (35, False)):
+        for seed, hit in ((6, True), (79, False)):
             game = self.match(config=Config(initial_hand=18, initial_mp=0), seed=seed)
             token = next(i["token"] for i in game.observe(0)["board"]["hand"] if i["face"] == 112)
             invalid = Command(0, "play", (token,), 1); before = game.observe(0)
@@ -1712,20 +1712,20 @@ class MatchTests(unittest.TestCase):
             else: self.assertIsNone(game.observe()["pending"])
             self.assertEqual([p["status"]["hp"] for p in game.observe()["board"]["players"]], [40, 39 if hit else 40])
             self.assertNotIn(token, {i["token"] for i in game.observe(0)["board"]["hand"]})
-        game = self.match(config=Config(initial_hand=18, initial_hp=1, initial_mp=0), seed=13535)
+        game = self.match(config=Config(initial_hand=18, initial_hp=1, initial_mp=0), seed=1878)
         game.step(Command(0, "play", (self.token(game, 0, 112),))); game.step(Command(1, "defend"))
         self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (0,))
         self.assertIsNone(game.observe()["pending"])
-        self.assertIn(26, {i["token"] for i in game.observe(1)["board"]["hand"]})
+        self.assertIn(22, {i["token"] for i in game.observe(1)["board"]["hand"]})
 
     def test_posthumous_dark_death_has_dead_source_and_fixed_rewards(self):
         roster = [PlayerSetup(0), PlayerSetup(7), PlayerSetup(9)]
-        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=94)
-        game.step(Command(0, "play", (16,), 7)); game.step(Command(7, "defend"))
+        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=720)
+        game.step(Command(0, "play", (17,), 7)); game.step(Command(7, "defend"))
         pending = game.observe()["pending"]
         self.assertEqual((game.actor, pending["source"], pending["target"], pending["power"], pending["hit_rate"], pending["death"]), (0, 7, 0, 30, 75, True))
         self.assertTrue(game.observe()["board"]["players"][1]["dead"])
-        self.assertNotIn(32, {i["token"] for i in game.observe(7)["board"]["hand"]})
+        self.assertNotIn(20, {i["token"] for i in game.observe(7)["board"]["hand"]})
         for seed in range(32):
             command, _ = game.sample_action(seed); self.assertTrue(game.legal(command))
         game.step(Command(0, "defend"))
@@ -1736,39 +1736,39 @@ class MatchTests(unittest.TestCase):
 
     def test_posthumous_reflection_to_dead_source_cancels_then_fifo_continues(self):
         roster = [PlayerSetup(0), PlayerSetup(7), PlayerSetup(9)]
-        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=31204)
-        game.step(Command(0, "play", (12,), 7)); game.step(Command(7, "defend"))
+        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=42063)
+        game.step(Command(0, "play", (15,), 7)); game.step(Command(7, "defend"))
         self.assertTrue(game.observe()["pending"]["death"])
-        game.step(Command(0, "defend", (3,)))
+        game.step(Command(0, "defend", (2,)))
         pending = game.observe()["pending"]
         self.assertEqual((game.actor, pending["source"], pending["target"], pending["power"], pending["death"]), (9, 7, 9, 30, True))
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 5)
-        self.assertNotIn(3, {i["token"] for i in game.observe(0)["board"]["hand"]})
+        self.assertNotIn(2, {i["token"] for i in game.observe(0)["board"]["hand"]})
         game.step(Command(9, "defend"))
         self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (0,))
         self.assertEqual(game.status.rewards, (1.0, -1.0, -1.0))
 
     def test_posthumous_revival_precedes_reservation_and_cutoff_cancels_activation(self):
         roster = [PlayerSetup(0), PlayerSetup(7), PlayerSetup(9)]
-        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=3893)
-        game.step(Command(0, "play", (7,), 7)); game.step(Command(7, "defend"))
+        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0), players=roster, seed=20846)
+        game.step(Command(0, "play", (0,), 7)); game.step(Command(7, "defend"))
         target = game.observe()["board"]["players"][1]
         self.assertFalse(target["dead"]); self.assertEqual(target["status"]["hp"], 10)
-        self.assertIn(18, {i["token"] for i in game.observe(7)["board"]["hand"]})
-        self.assertNotIn(35, {i["token"] for i in game.observe(7)["board"]["hand"]})
+        self.assertIn(34, {i["token"] for i in game.observe(7)["board"]["hand"]})
+        self.assertNotIn(21, {i["token"] for i in game.observe(7)["board"]["hand"]})
         self.assertIsNone(game.observe()["pending"]); self.assertEqual(game.actor, 7)
-        cut = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, max_decisions=2), players=roster, seed=94)
-        cut.step(Command(0, "play", (16,), 7)); cut.step(Command(7, "defend"))
+        cut = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, max_decisions=2), players=roster, seed=720)
+        cut.step(Command(0, "play", (17,), 7)); cut.step(Command(7, "defend"))
         self.assertTrue(cut.status.truncated); self.assertFalse(cut.status.terminated)
         self.assertEqual(cut.status.rewards, (0.0, 0.0, 0.0)); self.assertIsNone(cut.observe()["pending"])
-        self.assertNotIn(32, {i["token"] for i in cut.observe(7)["board"]["hand"]})
+        self.assertNotIn(20, {i["token"] for i in cut.observe(7)["board"]["hand"]})
         self.assertEqual([p["status"]["hp"] for p in cut.observe()["board"]["players"]], [5, 0, 5])
         self.assertNotIn("deaths", cut.observe()); self.assertNotIn("death_created", cut.observe())
 
     def test_full_sale_uniform_eviction_public_model_and_query_purity(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=11)
+        game = self.match(config=Config(initial_hand=18, initial_mp=0, initial_cp=99), seed=190)
         original = game.observe(1)["board"]["hand"]
-        command = Command(0, "sell", (7, 16), 1)
+        command = Command(0, "sell", (10, 9), 1)
         before, status = game.observe(0), game.status
         self.assertTrue(game.legal(command)); targets = set()
         for seed in range(512):
@@ -1776,34 +1776,34 @@ class MatchTests(unittest.TestCase):
             if proposal.kind == "sell": targets.add(proposal.target)
         self.assertEqual(targets, {0, 1}); self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(command); game.step(Command(1, "defend"))
-        expected = {"origin": 0, "source": 0, "target": 1, "model": 153, "price": 10, "overflow_model": 191}
+        expected = {"origin": 0, "source": 0, "target": 1, "model": 153, "price": 10, "overflow_model": 4}
         for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_sale"], expected)
         after = game.observe(1)["board"]["hand"]
-        self.assertEqual({i["token"] for i in original} - {i["token"] for i in after}, {31})
+        self.assertEqual({i["token"] for i in original} - {i["token"] for i in after}, {33})
         self.assertEqual(next(i["face"] for i in after if i["token"] == 36), 153)
         self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [17, 18])
         self.assertEqual([p["status"]["cp"] for p in game.observe()["board"]["players"]], [99, 89])
         self.assertEqual(set(game.observe()["last_sale"]), set(expected))
 
     def test_full_sale_can_evict_used_miracle_without_replacement_or_recast(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=1812)
-        game.step(Command(0, "discard", (0,))); game.step(Command(1, "play", (19,), 1))
-        self.assertTrue(next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 19)["used"])
-        game.step(Command(0, "sell", (13, 12), 1)); game.step(Command(1, "defend"))
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=37100)
+        game.step(Command(0, "discard", (1,))); game.step(Command(1, "play", (33,), 1))
+        self.assertTrue(next(i for i in game.observe(1)["board"]["hand"] if i["token"] == 33)["used"])
+        game.step(Command(0, "sell", (3, 16), 1)); game.step(Command(1, "defend"))
         self.assertEqual(game.observe()["last_sale"]["overflow_model"], 235)
-        self.assertNotIn(19, {i["token"] for i in game.observe(1)["board"]["hand"]})
+        self.assertNotIn(33, {i["token"] for i in game.observe(1)["board"]["hand"]})
         self.assertEqual(game.observe()["board"]["players"][1]["used_models"], [])
         self.assertEqual([len(game.observe(seat)["board"]["hand"]) for seat in (0, 1)], [16, 18])
         self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 50)
-        invalid = Command(1, "play", (19,), 1); before, status = game.observe(1), game.status
+        invalid = Command(1, "play", (33,), 1); before, status = game.observe(1), game.status
         self.assertFalse(game.legal(invalid))
         with self.assertRaises(InvalidMatchError): game.step(invalid)
         self.assertEqual((game.observe(1), game.status), (before, status))
 
     def test_full_sale_evicts_amulet_before_death_and_does_not_trigger_it(self):
-        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, initial_cp=0), seed=5344)
+        game = self.match(config=Config(initial_hand=18, initial_hp=5, initial_mp=0, initial_cp=0), seed=22388)
         self.assertEqual(next(i["face"] for i in game.observe(1)["board"]["hand"] if i["token"] == 23), 208)
-        game.step(Command(0, "sell", (2, 12), 1)); game.step(Command(1, "defend"))
+        game.step(Command(0, "sell", (17, 5), 1)); game.step(Command(1, "defend"))
         self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (0,))
         self.assertEqual(game.observe()["last_sale"], {"origin": 0, "source": 0, "target": 1, "model": 38, "price": 5, "overflow_model": 208})
         target = game.observe(1)
@@ -1813,7 +1813,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(len(game.observe(0)["board"]["hand"]), 16)
 
     def test_fog_foreign_sale_uses_overflow_and_keeps_covered_status_private(self):
-        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=9901)
+        game = self.match(config=Config(initial_hand=18, initial_mp=99), seed=46010)
         own = {i["face"]: i["token"] for i in game.observe(0)["board"]["hand"]}
         spring = next(i["token"] for i in game.observe(1)["board"]["hand"] if i["face"] == 235)
         game.step(Command(0, "play", (own[221],), 0)); game.step(Command(1, "play", (spring,), 1))
@@ -1830,16 +1830,16 @@ class MatchTests(unittest.TestCase):
         self.assertNotIn("last_fog", game.observe(0))
 
     def test_dream_gift_uses_visible_face_then_reveals_actual_attack(self):
-        game = self.match(config=Config(initial_hand=17), seed=1583)
+        game = self.match(config=Config(initial_hand=17), seed=6204)
         initial = game.observe(0)["board"]["hand"]
         self.assertFalse(any(item["disguised"] for item in initial))
-        game.step(Command(0, "play", (9,), 0))
+        game.step(Command(0, "play", (15,), 0))
         self.assertEqual(game.observe()["board"]["players"][0]["status"]["curses"], ["dream"])
         hand = game.observe(0)["board"]["hand"]
         masked = next(item for item in hand if item["token"] == 34)
-        self.assertEqual(masked, {"token": 34, "face": 54, "reference": 54, "disguised": True, "used": False})
+        self.assertEqual(masked, {"token": 34, "face": 13, "reference": 13, "disguised": True, "used": False})
         self.assertEqual([item["token"] for item in hand if item["disguised"]], [34])
-        self.assertTrue(next(item for item in hand if item["token"] == 9)["used"])
+        self.assertTrue(next(item for item in hand if item["token"] == 15)["used"])
         self.assertEqual(game.observe()["last_reveals"], [])
         game.step(Command(1, "discard", (self.token(game, 1, 195),)))
         before, status = game.observe(0), game.status
@@ -1852,40 +1852,40 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(attack)
         pending = game.observe()["pending"]
-        self.assertEqual((pending["models"], pending["power"]), ([29], 8))
-        event = [{"owner": 0, "face": 54, "model": 29}]
+        self.assertEqual((pending["models"], pending["power"]), ([23], 6))
+        event = [{"owner": 0, "face": 13, "model": 23}]
         for viewer in (None, 0, 1): self.assertEqual(game.observe(viewer)["last_reveals"], event)
         before, status = game.observe(0), game.status
         with self.assertRaises(InvalidMatchError): game.step(Command(0, "play", (34,), 1))
         self.assertEqual((game.observe(0), game.status), (before, status))
         game.step(Command(1, "defend"))
-        self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 32)
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 34)
         self.assertEqual(game.observe()["last_reveals"], event)
         token = next(item["token"] for item in game.observe(1)["board"]["hand"] if game.legal(Command(1, "discard", (item["token"],))))
         game.step(Command(1, "discard", (token,)))
         self.assertEqual(game.observe()["last_reveals"], [])
-        game.reset(1583); self.assertEqual(game.observe()["last_reveals"], [])
+        game.reset(6204); self.assertEqual(game.observe()["last_reveals"], [])
 
     def test_dream_mild_preserves_and_all_cure_reveals_hand_only_to_owner(self):
-        game = self.match(config=Config(initial_hand=17), seed=1583)
-        game.step(Command(0, "play", (9,), 0))
+        game = self.match(config=Config(initial_hand=17), seed=6204)
+        game.step(Command(0, "play", (15,), 0))
         game.step(Command(1, "discard", (self.token(game, 1, 195),)))
-        game.step(Command(0, "play", (1,), 0))
+        game.step(Command(0, "play", (4,), 0))
         self.assertIn("dream", game.observe()["board"]["players"][0]["status"]["curses"])
         masked = next(item for item in game.observe(0)["board"]["hand"] if item["token"] == 34)
-        self.assertEqual((masked["face"], masked["reference"], masked["disguised"]), (54, 54, True))
+        self.assertEqual((masked["face"], masked["reference"], masked["disguised"]), (13, 13, True))
         self.assertEqual(game.observe()["last_reveals"], [])
         token = next(item["token"] for item in game.observe(1)["board"]["hand"] if game.legal(Command(1, "discard", (item["token"],))))
         game.step(Command(1, "discard", (token,)))
         hidden_count = sum(item["disguised"] for item in game.observe(0)["board"]["hand"])
-        game.step(Command(0, "play", (4,), 0))
+        game.step(Command(0, "play", (10,), 0))
         self.assertNotIn("dream", game.observe()["board"]["players"][0]["status"]["curses"])
         hand = game.observe(0)["board"]["hand"]
         self.assertFalse(any(item["disguised"] for item in hand))
-        self.assertEqual(next(item["face"] for item in hand if item["token"] == 34), 29)
+        self.assertEqual(next(item["face"] for item in hand if item["token"] == 34), 23)
         private = game.observe(0)["last_reveals"]
         self.assertEqual(len(private), hidden_count)
-        self.assertIn({"owner": 0, "face": 54, "model": 29}, private)
+        self.assertIn({"owner": 0, "face": 13, "model": 23}, private)
         self.assertTrue(all(set(event) == {"owner", "face", "model"} for event in private))
         self.assertEqual(game.observe()["last_reveals"], [])
         self.assertEqual(game.observe(1)["last_reveals"], [])
@@ -1893,20 +1893,20 @@ class MatchTests(unittest.TestCase):
             self.assertNotIn(key, game.observe(0))
 
     def test_dream_weapon_affects_future_gifts_without_retroactive_masking(self):
-        game = self.match(config=Config(initial_hand=18), seed=649)
-        game.step(Command(0, "play", (15,), 1))
+        game = self.match(config=Config(initial_hand=18), seed=700)
+        game.step(Command(0, "play", (0,), 1))
         self.assertEqual(game.observe()["board"]["players"][1]["status"]["curses"], [])
         game.step(Command(1, "defend"))
         self.assertEqual(game.observe()["board"]["players"][1]["status"]["curses"], ["dream"])
         self.assertFalse(any(item["disguised"] for item in game.observe(1)["board"]["hand"]))
-        game.step(Command(1, "play", (22,), 1))
+        game.step(Command(1, "play", (20,), 1))
         item = next(item for item in game.observe(1)["board"]["hand"] if item["token"] == 37)
-        self.assertEqual((item["face"], item["reference"], item["disguised"]), (10, 10, True))
+        self.assertEqual((item["face"], item["reference"], item["disguised"]), (6, 6, True))
         self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 35)
         self.assertFalse(any(item["disguised"] for item in game.observe(0)["board"]["hand"]))
 
     def test_dream_counter_is_nonattack_and_masks_owner_replacement(self):
-        game = self.match(config=Config(initial_hand=18), seed=36623)
+        game = self.match(config=Config(initial_hand=18), seed=69263)
         club, filter_item, ring = self.token(game, 0, 6), self.token(game, 1, 189), self.token(game, 1, 183)
         game.step(Command(0, "play", (club,), 1))
         game.step(Command(1, "defend", (filter_item, ring)))
@@ -1917,6 +1917,86 @@ class MatchTests(unittest.TestCase):
         item = next(item for item in game.observe(0)["board"]["hand"] if item["token"] == 36)
         self.assertEqual((item["face"], item["reference"], item["disguised"]), (6, 6, True))
         self.assertEqual(game.observe()["last_reveals"], [])
+
+    def test_redraw_replaces_used_miracle_and_preserves_reserved_gifts(self):
+        config = Config(initial_hand=4)
+        game = self.match(config=config, seed=354565)
+        reference = self.match(config=config, seed=354565)
+        for command in (Command(0, "discard", (0,)), Command(1, "play", (7,), 1), Command(0, "play", (1,), 1)):
+            self.assertEqual(game.step(command), reference.step(command))
+        before = game.observe(1)
+        self.assertEqual(len(before["board"]["hand"]), 5)
+        self.assertTrue(next(item for item in before["board"]["hand"] if item["token"] == 7)["used"])
+        self.assertEqual(before["board"]["players"][1]["used_models"], [235])
+        self.assertEqual(before["last_redraws"], [])
+        status = game.status
+        for policy_seed in range(64):
+            proposal, rng = game.sample_action(policy_seed)
+            self.assertTrue(game.legal(proposal)); self.assertEqual((proposal, rng), game.sample_action(policy_seed))
+        self.assertEqual((game.observe(1), game.status), (before, status))
+        self.assertEqual(game.step(Command(1, "defend", (4,))), reference.step(Command(1, "defend", (4,))))
+        self.assertEqual(game.observe(1), reference.observe(1))
+        hand = game.observe(1)["board"]["hand"]
+        self.assertEqual({item["token"] for item in hand}, {9, 10, 11, 12, 14})
+        self.assertTrue(all(not item["used"] for item in hand))
+        self.assertEqual(game.observe()["board"]["players"][1]["used_models"], [])
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["curses"], ["dream"])
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 50)
+        self.assertEqual(len(game.observe(0)["board"]["hand"]), 3)
+        for viewer in (None, 0, 1):
+            view = game.observe(viewer)
+            self.assertEqual(view["last_redraws"], [1]); self.assertEqual(view["last_reveals"], [])
+            for private in ("redraws", "redrawn_items", "redraw_models", "redraw_tokens", "rng"):
+                self.assertNotIn(private, view)
+        self.assertNotIn("items", game.observe(0)["board"]["players"][1])
+        self.assertFalse(game.legal(Command(1, "play", (7,), 1)))
+
+    def test_redraw_copies_replace_in_order_and_cutoff_keeps_immediate_draws(self):
+        traces = []
+        for maximum in (512, 2):
+            game = self.match(config=Config(initial_hand=4, max_decisions=maximum), seed=2403827)
+            game.step(Command(0, "play", (1,), 1))
+            before, status = game.observe(1), game.status
+            duplicate = Command(1, "defend", (4, 4))
+            self.assertFalse(game.legal(duplicate))
+            with self.assertRaises(InvalidMatchError): game.step(duplicate)
+            self.assertEqual((game.observe(1), game.status), (before, status))
+            game.step(Command(1, "defend", (4, 6)))
+            view = game.observe(1); hand = view["board"]["hand"]
+            self.assertEqual(view["last_redraws"], [1, 1])
+            self.assertEqual(view["board"]["players"][1]["status"]["hp"], 40)
+            self.assertEqual(view["board"]["players"][1]["status"]["curses"], ["dream"])
+            self.assertEqual({item["token"] for item in hand}, {10, 11, 13, 14} if maximum == 512 else {10, 11})
+            self.assertTrue(all(not item["used"] for item in hand))
+            traces.append([item for item in hand if item["token"] in (10, 11)])
+            self.assertEqual((game.status.truncated, game.status.terminated), (maximum == 2, False))
+            self.assertEqual(len(game.observe(0)["board"]["hand"]), 4 if maximum == 512 else 3)
+            self.assertIsNone(view["pending"])
+            if maximum == 2: self.assertEqual(game.status.rewards, (0.0, 0.0))
+        self.assertEqual(traces[0], traces[1])
+
+    def test_redraw_armor_manual_role_discard_and_event_lifetime(self):
+        game = self.match(config=Config(initial_hand=4), seed=354565)
+        game.step(Command(0, "discard", (0,)))
+        before, status = game.observe(1), game.status
+        bad = Command(1, "play", (4,), 1)
+        self.assertFalse(game.legal(bad))
+        with self.assertRaises(InvalidMatchError): game.step(bad)
+        self.assertEqual((game.observe(1), game.status), (before, status))
+        game.step(Command(1, "discard", (4,)))
+        self.assertEqual(game.observe()["last_redraws"], [])
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["curses"], [])
+        self.assertEqual(len(game.observe(1)["board"]["hand"]), 3)
+        game.reset(354565)
+        game.step(Command(0, "play", (1,), 1)); game.step(Command(1, "defend", (4,)))
+        self.assertEqual(game.observe()["last_redraws"], [1])
+        before, status = game.observe(1), game.status
+        with self.assertRaises(InvalidMatchError): game.step(Command(0, "pray"))
+        self.assertEqual((game.observe(1), game.status), (before, status))
+        next_command, _ = game.sample_action(23)
+        game.step(next_command)
+        self.assertEqual(game.observe()["last_redraws"], [])
+        game.reset(354565); self.assertEqual(game.observe()["last_redraws"], [])
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

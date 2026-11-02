@@ -100,9 +100,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 494>& gift_tickets() {
+const std::array<CardId, 495>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 494> values{};
+        std::array<CardId, 495> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -111,7 +111,7 @@ const std::array<CardId, 494>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 233) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 234) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -145,6 +145,15 @@ void gift(MatchSnapshot& s, std::size_t seat) {
     }
     p.items.push_back({s.next_token++, id, face, false});
 }
+void redraw(MatchSnapshot& s, std::size_t seat) {
+    auto& owner = s.state.players[seat];
+    const auto count = owner.items.size();
+    // Replacement is private: clearing discarded masks must not publish their true IDs.
+    owner.items.clear();
+    ++s.redraws; s.redrawn_items += count; s.last_redraws.push_back(owner.id);
+    for (std::size_t i = 0; i < count; ++i) gift(s, seat);
+}
+
 void request_gift(MatchSnapshot& s, std::size_t seat) {
     if (s.state.players[seat].items.size() + s.gifts[seat] < s.config.hand_limit) ++s.gifts[seat];
 }
@@ -611,7 +620,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command) {
     const auto models = prepare(s, command); const auto seat = index(s, command.actor);
-    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); }
+    if (s.phase == MatchPhase::main) { s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset(); s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); }
     bool completed = false;
     if (s.phase == MatchPhase::main) {
         ActionBatch batch;
@@ -623,6 +632,7 @@ void execute(MatchSnapshot& s, const Command& command) {
         batch.chance_forced_hits = s.chance_forced_hits; batch.counter_forced_hits = s.counter_forced_hits;
         batch.revivals = s.revivals;
         batch.dream_rolls = s.dream_rolls; batch.dream_masks = s.dream_masks;
+        batch.redraws = s.redraws; batch.redrawn_items = s.redrawn_items;
         batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
         batch.death_rolls = s.death_rolls; batch.death_hits = s.death_hits; batch.death_forced_hits = s.death_forced_hits;
         batch.attack = command; batch.models = models;
@@ -638,8 +648,13 @@ void execute(MatchSnapshot& s, const Command& command) {
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
         consume(s, seat, command.items, false);
-        for (auto model : models) if (find_card(model)->ability == Ability::self_curse)
-            add_curse(s.state.players[seat], find_card(model)->curse);
+        for (auto model : models) {
+            const auto& card = *find_card(model);
+            if (card.ability == Ability::self_curse || card.ability == Ability::self_curse_and_redraw) {
+                add_curse(s.state.players[seat], card.curse);
+                if (card.ability == Ability::self_curse_and_redraw) redraw(s, seat);
+            }
+        }
         if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
             if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
             effect.redirects.push_back({command.actor, models, command.items, effect.target});
@@ -742,7 +757,13 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     require(s.dream_masks <= s.dream_rolls && s.dream_rolls <= s.next_token, "invalid Dream gift statistics");
-    require(s.last_reveals.size() <= n * s.config.hand_limit && (s.last_reveals.empty() || s.decisions > 0), "invalid reveal event boundary");
+    require(s.redraws <= s.config.hand_limit * s.decisions && s.redrawn_items <= s.config.hand_limit * s.redraws && s.redrawn_items <= s.next_token,
+        "invalid redraw replacement statistics");
+    require(s.last_redraws.size() <= s.redraws && s.last_redraws.size() <= s.config.hand_limit * s.decisions,
+        "invalid redraw event boundary");
+    for (auto owner : s.last_redraws) (void)index(s, owner);
+    // Immediate replacements can reveal fresh cards later in the same action.
+    require(s.last_reveals.size() <= n * s.config.hand_limit * s.decisions, "invalid reveal event boundary");
     for (const auto& event : s.last_reveals) {
         (void)index(s, event.owner);
         require(match_dream_compatible(event.model,event.face), "invalid compatible reveal models");
@@ -864,15 +885,15 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(batch.owner == s.owner && batch.initial_state.players.size() == n
             && batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()
             && batch.targets.size() <= 2 * (n - 1) && batch.cursor <= batch.targets.size(), "invalid action batch shape");
-        require(batch.counters_created <= n * s.config.hand_limit && s.counters.size() <= batch.counters_created
+        require(batch.decisions < s.decisions, "invalid action decision anchor");
+        const auto action_decisions = s.decisions - batch.decisions;
+        require(batch.counters_created <= action_decisions * s.config.hand_limit && s.counters.size() <= batch.counters_created
             && batch.counter_created <= s.counter_created && s.counter_created - batch.counter_created == batch.counters_created, "invalid reserved counter count");
-        require(batch.revivals <= s.revivals && s.revivals - batch.revivals <= n * s.config.hand_limit, "invalid action revival count");
+        require(batch.revivals <= s.revivals && s.revivals - batch.revivals <= n * action_decisions, "invalid action revival count");
         require(batch.decisions < s.decisions && batch.responses.size() == s.decisions - batch.decisions - 1
-            // Up to n*cap physical redirects, n*cap counter completions, and
-            // paid Turbulence funded by initial MP plus <=99 per MP counter.
-            && batch.responses.size() <= 2 * n * s.config.hand_limit
-                + 99 * n * (s.config.hand_limit + 1) / 5 + batch.targets.size()
-                + death_bound + (batch.attack.kind == CommandKind::buy ? 1 : 0), "invalid action journal length");
+            // Redraws can replenish physical responses and MP-counter sources.
+            // The configured episode decision bound applies to every accepted command.
+            && batch.responses.size() < s.config.max_decisions, "invalid action journal length");
         for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
         MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
@@ -884,6 +905,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
         replay.revivals = batch.revivals;
         replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
+        replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
         replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
         replay.death_rolls = batch.death_rolls; replay.death_hits = batch.death_hits; replay.death_forced_hits = batch.death_forced_hits;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
@@ -915,7 +937,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || c->ability == Ability::attack_dyingly || curse
-            || c->ability == Ability::self_curse || c->ability == Ability::boost_mp_and_add_curse
+            || c->ability == Ability::self_curse || c->ability == Ability::self_curse_and_redraw || c->ability == Ability::boost_mp_and_add_curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
@@ -1105,7 +1127,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v26\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v27\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1133,12 +1155,19 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"fog_rule\":\""; out += fog_rule;
     out += "\",\"death_rule\":\""; out += death_rule;
     out += "\",\"overflow_rule\":\""; out += overflow_rule;
-    out += "\",\"dream_rule\":\""; out += dream_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"dream_rule\":\""; out += dream_rule;
+    out += "\",\"redraw_rule\":\""; out += redraw_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
     out += ",\"truncated\":"; out += data_.truncated ? "true" : "false";
     out += ",\"decisions\":" + std::to_string(data_.decisions) + ",\"board\":" + view_json(board);
+    out += ",\"last_redraws\":[";
+    for (std::size_t i = 0; i < data_.last_redraws.size(); ++i) {
+        if (i) out += ',';
+        out += std::to_string(data_.last_redraws[i]);
+    }
+    out += ']';
     out += ",\"last_reveals\":[";
     bool first_reveal = true;
     for (const auto& event : data_.last_reveals) if (!event.owner_only || viewer == event.owner) {
