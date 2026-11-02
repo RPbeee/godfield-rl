@@ -1,0 +1,2339 @@
+{
+  "schema_version": 1,
+  "scope": "experimental:compatible-dream-ui-classes-v28;not-official-fake-distribution;not-payload-equivalence",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "catalog_version": "official-v2",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "supported_ids": [
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101,
+    102,
+    103,
+    104,
+    105,
+    106,
+    107,
+    108,
+    109,
+    110,
+    111,
+    112,
+    113,
+    114,
+    115,
+    116,
+    117,
+    118,
+    119,
+    120,
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129,
+    130,
+    131,
+    132,
+    133,
+    134,
+    135,
+    136,
+    137,
+    138,
+    139,
+    140,
+    141,
+    142,
+    143,
+    144,
+    145,
+    146,
+    147,
+    148,
+    149,
+    150,
+    151,
+    152,
+    153,
+    154,
+    155,
+    156,
+    157,
+    158,
+    159,
+    160,
+    161,
+    162,
+    163,
+    164,
+    165,
+    166,
+    167,
+    168,
+    169,
+    170,
+    171,
+    172,
+    173,
+    174,
+    175,
+    176,
+    177,
+    179,
+    180,
+    181,
+    182,
+    183,
+    184,
+    185,
+    186,
+    187,
+    188,
+    189,
+    190,
+    191,
+    192,
+    193,
+    194,
+    195,
+    196,
+    197,
+    198,
+    199,
+    200,
+    202,
+    203,
+    204,
+    205,
+    206,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219,
+    220,
+    221,
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238
+  ],
+  "pool_models": 233,
+  "pool_gift_weight": 494,
+  "signature": [
+    "category",
+    "element",
+    "ability",
+    "curse",
+    "cost",
+    "hitRate",
+    "isPlusAtk",
+    "atk>0",
+    "def>0"
+  ],
+  "class_count": 117,
+  "eligible_class_count": 30,
+  "eligible_model_count": 146,
+  "eligible_gift_weight": 321,
+  "singleton_model_count": 87,
+  "singleton_gift_weight": 173,
+  "comparisons": {
+    "ordered_pairs": 992,
+    "start_and_default_target": 1984,
+    "magic_cost": 14880,
+    "main_append": 693408,
+    "response_append": 1111040
+  },
+  "classes": [
+    {
+      "signature": {
+        "category": "trade",
+        "element": null,
+        "ability": "exchange",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        3
+      ]
+    },
+    {
+      "signature": {
+        "category": "trade",
+        "element": null,
+        "ability": "sell",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        4
+      ]
+    },
+    {
+      "signature": {
+        "category": "trade",
+        "element": null,
+        "ability": "buy",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        5
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        6,
+        7,
+        8,
+        10,
+        13,
+        16,
+        19,
+        23,
+        26,
+        29,
+        32,
+        35,
+        40,
+        44,
+        47,
+        52,
+        54,
+        57
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        9,
+        12,
+        15,
+        18,
+        22,
+        25,
+        28,
+        31,
+        43,
+        51
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": true
+      },
+      "model_ids": [
+        11,
+        17,
+        20,
+        24,
+        37,
+        49
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "attackTwice",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        14
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "bounceWeapon",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        21
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "absorbHP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        27,
+        45
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "addCurseOnDamage",
+        "curse": "hell",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        30
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "addCurseOnDamage",
+        "curse": "cold",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        33,
+        48
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "bounceMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        34
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "addCurseOnDamage",
+        "curse": "dream",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        36
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "reflectWeapon",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        38
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "reflectMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        39
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "addCurseOnDamage",
+        "curse": "darkcloud",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        41
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "blockMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        42,
+        50,
+        55
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "cutCost",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        46
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "dealSameDamage",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        53
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "blockMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        56
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": null,
+        "ability": "atkBy2xMP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        58
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        59,
+        65,
+        71,
+        82,
+        89
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        60,
+        79,
+        90
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        61,
+        67,
+        73
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "stone",
+        "ability": "addCurseOnDamage",
+        "curse": "cold",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        62
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        63
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "darkness",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        64,
+        76,
+        81,
+        86,
+        92
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "setElement",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        66
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        68,
+        74
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        69,
+        93
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "addCurseOnDamage",
+        "curse": "flash",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        70
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "addCurseOnDamage",
+        "curse": "fog",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        72
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        75,
+        85,
+        91
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": true
+      },
+      "model_ids": [
+        77
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        78
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "addCurseOnDamage",
+        "curse": "dream",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        80
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "setElement",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        83
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        84,
+        88
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "darkness",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        87
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "danger",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        94
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        95,
+        100,
+        107
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "darkness",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 50,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        96
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "addCurseOnDamage",
+        "curse": "fog",
+        "cost": 0,
+        "hitRate": 50,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        97
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "absorbHP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        98
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 25,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        99
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        101
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        102
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        103
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 50,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        104,
+        109
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 25,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        105,
+        111
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        106
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": true
+      },
+      "model_ids": [
+        108
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 50,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        110
+      ]
+    },
+    {
+      "signature": {
+        "category": "weapons",
+        "element": "light",
+        "ability": "attackDyingly",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 25,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        112
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        113,
+        118,
+        123,
+        130,
+        135,
+        142,
+        149,
+        154,
+        155,
+        161,
+        166,
+        170,
+        172,
+        176,
+        180
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "bounceMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        114,
+        125,
+        137,
+        151,
+        164
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        115,
+        120,
+        127,
+        132,
+        139,
+        145,
+        153,
+        158
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        116,
+        121,
+        128,
+        133,
+        140,
+        146,
+        159
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        117,
+        122,
+        129,
+        134,
+        141,
+        147,
+        160
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        119,
+        126,
+        131,
+        138,
+        144,
+        152,
+        157,
+        175
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": true
+      },
+      "model_ids": [
+        124,
+        136,
+        150,
+        162
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "cutCost",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        143,
+        163,
+        173
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        148,
+        169
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "reflectMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        156,
+        167,
+        174
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "blockMiracle",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        165,
+        171,
+        177,
+        179
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "fire",
+        "ability": "selfCurse",
+        "curse": "fever",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": true
+      },
+      "model_ids": [
+        168
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "fire",
+        "ability": "counterAtk",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        181
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "water",
+        "ability": "counterCurse",
+        "curse": "fog",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        182
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "wood",
+        "ability": "counterCurse",
+        "curse": "dream",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        183
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "stone",
+        "ability": "counter2xAtk",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        184
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "light",
+        "ability": "counterCurse",
+        "curse": "flash",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        185
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": "darkness",
+        "ability": "counterCurse",
+        "curse": "darkcloud",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        186
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "counterBoost2xMP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        187
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "counterTakeCP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        188
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "filterAtkElement",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        189
+      ]
+    },
+    {
+      "signature": {
+        "category": "armor",
+        "element": null,
+        "ability": "reflectAnything",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        190
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "boostHP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        191,
+        192,
+        193,
+        194
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "boostMP",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        195,
+        196,
+        197
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "boostMPAndAddCurse",
+        "curse": "heaven",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        198
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "removeMildCurses",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        199
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "removeAllCurses",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        200
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "boostHPOrDealDamage",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        202
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "none",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        203
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "cutCost",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        204
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "removeItems",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        205
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "removeUsedMiracles",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        206
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "revive",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        208
+      ]
+    },
+    {
+      "signature": {
+        "category": "sundries",
+        "element": null,
+        "ability": "attractDanger",
+        "curse": "none",
+        "cost": 0,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        209
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 2,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        210
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 2,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        211
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "darkness",
+        "ability": "none",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        212
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "wood",
+        "ability": "none",
+        "curse": "none",
+        "cost": 3,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        213
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 4,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        214
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        215
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "light",
+        "ability": "absorbHP",
+        "curse": "none",
+        "cost": 10,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        216
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 7,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        217
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 12,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        218
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "addCurse",
+        "curse": "cold",
+        "cost": 6,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        219
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "addCurse",
+        "curse": "heaven",
+        "cost": 15,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        220
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "water",
+        "ability": "addCurse",
+        "curse": "fog",
+        "cost": 3,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        221
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "wood",
+        "ability": "addCurse",
+        "curse": "dream",
+        "cost": 6,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        222
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "darkness",
+        "ability": "addCurse",
+        "curse": "darkcloud",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        223
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "light",
+        "ability": "addCurseOnDamage",
+        "curse": "flash",
+        "cost": 3,
+        "hitRate": 25,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        224
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 4,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        225
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 6,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        226
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "light",
+        "ability": "none",
+        "curse": "none",
+        "cost": 4,
+        "hitRate": 25,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        227
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "stone",
+        "ability": "none",
+        "curse": "none",
+        "cost": 6,
+        "hitRate": 50,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        228
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "fire",
+        "ability": "none",
+        "curse": "none",
+        "cost": 10,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        229
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": "water",
+        "ability": "none",
+        "curse": "none",
+        "cost": 30,
+        "hitRate": 75,
+        "isPlusAtk": false,
+        "atk>0": true,
+        "def>0": false
+      },
+      "model_ids": [
+        230
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "doubleAtk",
+        "curse": "none",
+        "cost": 6,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        231
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "attackEveryEnemy",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": true,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        232
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "blockWeapon",
+        "curse": "none",
+        "cost": 6,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        233
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "bounceMiracle",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        234
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "boostHP",
+        "curse": "none",
+        "cost": 7,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        235
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "boostCP",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        236
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "removeMildCurses",
+        "curse": "none",
+        "cost": 2,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        237
+      ]
+    },
+    {
+      "signature": {
+        "category": "miracles",
+        "element": null,
+        "ability": "removeAllCurses",
+        "curse": "none",
+        "cost": 5,
+        "hitRate": 0,
+        "isPlusAtk": false,
+        "atk>0": false,
+        "def>0": false
+      },
+      "model_ids": [
+        238
+      ]
+    }
+  ],
+  "predicate_contexts": {
+    "selected_items_used": false,
+    "cost_prefixes": [
+      [],
+      [
+        6
+      ],
+      [
+        233
+      ],
+      [
+        189
+      ],
+      [
+        4
+      ]
+    ],
+    "cost_suffixes": [
+      [],
+      [
+        204
+      ],
+      [
+        231,
+        204
+      ]
+    ],
+    "main": "Every supported next model with substitution at next, first, and last position.",
+    "response_categories": [
+      "trade",
+      "weapons",
+      "armor",
+      "sundries",
+      "miracles",
+      "devils",
+      "guardians",
+      "phenomena"
+    ],
+    "response_elements": [
+      null,
+      "fire",
+      "water",
+      "wood",
+      "stone",
+      "light",
+      "darkness"
+    ],
+    "response_is_attack": [
+      false,
+      true
+    ],
+    "flash": [
+      false,
+      true
+    ],
+    "response_prefixes": [
+      [],
+      [
+        189
+      ],
+      [
+        190
+      ],
+      [
+        233
+      ],
+      [
+        118
+      ]
+    ]
+  },
+  "limitations": [
+    "These classes preserve the tested public client selection, affordability and target affordances, not payload ATK/DEF/price/recovery values.",
+    "The local supported pool, 50percent gift-only masking and uniform alternate-face choice are experimental; this report does not establish official server fake generation or mismatch handling.",
+    "All eligible models in this pool are nonmiracle physical items. Singleton classes, including all miracles/trade and the four Dream sources, have no alternate face.",
+    "The client is executed offline without Dart application startup, DOM, Firebase, timers, account or game connection. This is not server transition evidence.",
+    "A future catalog, allowlist, ability or predicate change requires regeneration and renewed closure review. Dream redraw model178 remains unsupported."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_dream_oracle.cjs --client /path/to/main.dart.js [--check]"
+}

@@ -35,12 +35,12 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v27` / `godfield::official::Match` | 229モデル/重み490、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己対象を除く購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112の2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v28` / `godfield::official::Match` | 233モデル/重み494、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己対象を除く購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/互換クラス限定maskの2〜9人/チーム対局を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI2 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
-限定した229モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
-配布・死亡・手番の権威的serverとの同等性、一般effect queue、未対応の固有効果付き確率攻撃、Fog/閃光/暗雲以外の災いcounter、自己購入等の未対応取引、夢、
+限定した233モデルの2〜9人対局は進行できるが、公式の237モデル/重み500の全配布は実行しない。
+配布・死亡・手番の権威的serverとの同等性、一般effect queue、未対応の固有効果付き確率攻撃、自己購入等の未対応取引、178のDream redraw・互換クラス外のDream、
 守護神、終末/悪魔/超常現象等は未対応である。未対応局面を黙って通常効果へ置き換えず拒否する。
 read-only viewにはactive攻撃/購入表示・モード依存rating欄・増分履歴を投影していない。
 実行器のobserveには、このsubsetが既に公開した待機effectとphase/owner/actorを追加している。
@@ -72,7 +72,7 @@ Pythonは台帳15件・状態9件・Match9件、C ABI合成4,878ケース、nati
 
 選択照会は本人のtokenを使い、見かけモデルと公開自己MPを参照する。閃光はcallerが迂回できないよう本人の災いから判定する。
 祈り・捨てる/ささげる・売るの選択数まで検査しても、現在その人が動けるか、どのtargetを選べるか、
-夢の実体をserverがどう解決するかは別の未実装条件である。詳細は[状態と表示の一次根拠・API契約](official-state-view.md)を参照。
+夢の実体をserverがどう解決するかは未確定であり、Match v28では互換クラス限定の実験maskだけを扱う。詳細は[状態と表示の一次根拠・API契約](official-state-view.md)を参照。
 
 [OfficialState](../python/official_state.py) はdict/JSON文字列または `from_file` で読み込み、
 `view(player_id=... / user_id=... / spectator=True)` と `can_append_hand` / `selection_ready` を提供する。
@@ -92,7 +92,7 @@ Pythonは台帳15件・状態9件・Match9件、C ABI合成4,878ケース、nati
 初期9枚/HP40MP10CP20/総枠18、固定入力順の巡回、残余 `max(0,raw−DEF)`、終局・補充のscheduleは実験条件である。
 資源のHPclip、MP不足→HP、CP不足→MP→HPには実client関数の根拠がある。
 全員同一非Soloチーム等の終局、dead同チームを含むwinner、固定プレイヤー列の±1/draw0、truncation0も契約へ明記した。
-未対応モデル・fake・病気4種/Fog/閃光/暗雲以外の災い・守護神・混乱・終末をraw局面へ含めた場合は明示的に拒否する。
+未対応モデル・互換クラス外または不正なfake・病気4種/Fog/Dream/閃光/暗雲以外の災い・守護神・混乱・終末をraw局面へ含めた場合は明示的に拒否する。
 旧37profileと既存ABIを保持し、学習器は追加しない。
 
 v2は38/39/156/167/174/190の物理反射6種と属性消去189を追加する。反射では現在のsource/targetを交換し、
@@ -174,7 +174,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v8の記録を現行v27の229モデルの速度・checksumの証拠として転記しない。
+v1〜v8の記録を現行v28の233モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -563,7 +563,7 @@ v26はモデルを増やさず229モデル/重み490（trade3/weapons105/armor76
 
 取引配送先の実物itemsが上限なら、配送前からある全実物をinventory順に列挙し、uniform bounded draw一回で一copyをevictしてから新token/unused商品を渡す。使用済み奇跡、208/209/112等のpassiveも候補で、同モデル別copyを別候補として扱う。一候補でもdraw一回。新商品自身や補充placeholderから選ばず、空きがあればoverflow draw無しで直接配送する。使用済み奇跡の商品選択除外と、overflow候補としての可否は別契約である。
 
-現在の229モデルprofileではBUYのbuyerは操作5または反射190を消費するため常にcap−1以下で、quote中の流入/giftも無い。したがって満杯BUYはこの閉じたprofileでは到達不能で、共通配送helperの備えに留まる。検証はfullSELLで共用helperの全候補順を確認し、通常BUYでoverflow_model=nullを確認するもので、偽raw quote importでBUY fullを到達させたcoverageを主張しない。
+v26当時の229モデルprofileではBUYのbuyerは操作5または反射190を消費するため常にcap−1以下で、quote中の流入/giftも無い。したがって満杯BUYはこの閉じたprofileでは到達不能で、共通配送helperの備えに留まる。検証はfullSELLで共用helperの全候補順を確認し、通常BUYでoverflow_model=nullを確認するもので、偽raw quote importでBUY fullを到達させたcoverageを主張しない。
 
 CP debit/current sourceへのfull nominal credit→既存itemのeviction→fresh delivery→既存208救済/死亡/112予約の順。eviction自身に補充・MP返金・curse解除・passive等のabilityを起こさない。残った/届いた208や112は後の実死亡境界で通常のhookに従う。使用済み奇跡を失った場合はused paneから消えるが、付与済み状態を取消さない。配送後の予約gift min-clampは維持する。BUYのdecline/未決cutoffは原slot/tokenへの返却なので、このoverflow抽選を行わない。
 
@@ -814,8 +814,8 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 ## 着手順と完了条件
 
-現行対応では229モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器/二回攻撃・全敵化・HP増減・自動復活・杵/臼・両替・売却・自己対象を除く購入・病気4状態/付与6種・168/198・Fog・死亡時攻撃112を進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
-一般effect queue、夢の反撃183・未対応の固有効果付き確率攻撃・自己購入等の未対応取引・未対応状態変化・夢・守護神・終末等への拡張である。
+現行対応では233モデルと反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器/二回攻撃・全敵化・HP増減・自動復活・杵/臼・両替・売却・自己対象を除く購入・病気4状態/付与6種・168/198・Fog・死亡時攻撃112・Dream4種/互換クラス限定maskを進める限定実行器まで追加した。次はこの実験的な消費/補充/死亡/手番順の一次照合と、
+一般effect queue、178のDream redraw・互換クラス外Dream・自己購入等の未対応取引・守護神・終末等への拡張である。
 9人state/view、限定した9人playable、公式全体への適合は別段階として検証し、学習器は現在の対象に追加しない。
 以下の番号付き手順は、差分表作成時の計画記録として読む。
 
@@ -840,7 +840,7 @@ P2は初期対象外のモードなど。P2を省いた環境を「全仕様対�
 
 ## v27：公式台帳v2とclient出典の同期
 
-現行は `official-execution-subset-v27`、Snapshot27（旧1〜26は移行せず拒否）、`official-execution-view-v25`。229モデル/重み490（trade3/weapons105/armor76/sundries17/miracles28）と、配布・効果・抽選・取引・死亡・病気の実験規約はv26から変更しない。公開viewに静的な `catalog_version` / `catalog_sha256` / `client_sha256` を加える。これらは配信資料の識別情報で、隠れた手札・token・乱数状態ではない。`catalog_version="official-v2"`、`catalog_sha256` は正規化した `cards.json` のSHA256であり、元JA全体のhashとは区別する。
+v27時点では `official-execution-subset-v27`、Snapshot27（旧1〜26は移行せず拒否）、`official-execution-view-v25`。229モデル/重み490（trade3/weapons105/armor76/sundries17/miracles28）と、配布・効果・抽選・取引・死亡・病気の実験規約はv26から変更しない。公開viewに静的な `catalog_version` / `catalog_sha256` / `client_sha256` を加える。これらは配信資料の識別情報で、隠れた手札・token・乱数状態ではない。`catalog_version="official-v2"`、`catalog_sha256` は正規化した `cards.json` のSHA256であり、元JA全体のhashとは区別する。
 
 | official-v2取得物 | bytes | SHA256 |
 | --- | ---: | --- |
@@ -865,3 +865,61 @@ pure catalog/rulesの識別子は `official-catalog-client-rules-v2`。C ABIの�
 seed42のv27・worker4で、2人100,000試合と9人10,000試合をv26の同条件worker4へ比較し、ruleset・追加の静的provenance・時間を除く全gameplay/既存counter fieldが一致した。意思決定数は3,988,255 / 2,409,699、checksumは `11173370200104368305` / `10091894475017822334`。他の勝数・draw・打切り・overflow集計もv26表と同じである。これは**v26との同条件worker4回帰比較**であり、v27単独のworker1/4再計測ではない。Release/SAN各1,000試合も一致し、2人/9人のchecksumは `760147037809871428` / `4393572629372685365`。quiet速度の再計測や速度改善比は主張しない。
 
 v27の最終検証でRelease CTest130/130件（54.34秒）・ASan/UBSan90/90件（87.17秒）が通過し、両buildはwarning/error0だった。時間は並行suite実行の経過であり性能比較には使わない。最新clientから3oracleを独立に再実行し、全80,308件のTSVとv2の3manifestがbyte一致することを確認した。出力fileのsymlink6件・hardlink6件を有効client入力で拒否し、companion sentinelとv1入力のhashが不変、通常regular出力への再生成は成功した。未知hash・旧新不一致9件も再確認した。
+
+## v28：互換クラスに限定したDream
+
+`official-execution-subset-v28` はDreamの36/80/183/222を加え、233モデル/重み494（trade3/weapons107/armor77/sundries17/miracles29）を扱う。Snapshot28は旧1〜27を拒否し、公開JSONは `official-execution-view-v26`。Match ABI2の184byte command、opcode0〜8、purchase phase3/finished2、catalog/state ABI1、official-v2の出典3fieldは維持する。残る通常配布4モデルは178のredraw、守護神201/239、終末207である。旧37profileと過去の記録・訂正を保存し、学習器を追加しない。
+
+### 一次根拠と独自制限
+
+公式JA/ENは、Dream中に新たに与えられる神器が50%の確率で別の神器に見えると説明する。公開clientは個体token・実モデル・fakeモデル・usedを分離し、手札faceと選択/MP表示ではfakeを優先し、送信には個体tokenを使う。使用時は受信した実モデルをrevealし、Dream解除時にもfakeを解除する。これは睡眠・行動skip・confusionによる自動行動ではない。
+
+一方、公式の候補集合・重み、見かけ上合法で実体不適合な入力をserverがどう受理するか、売買・redraw・保持済み奇跡にいつ偽装するかは未確定である。本実装はこれらを推測で埋めず、**同じ選択・MP・target・commandの形を保つ互換クラスだけに限定した実験mask**を採用する。公式Dreamの全再現とは呼ばない。178は自身へのDreamだけでなく全手札redrawを含むため、今回の4種へ混ぜない。
+
+| 追加モデル | 通常role / Dream role |
+| --- | --- |
+| 36 | 無属性ATK10武器・被害時Dream |
+| 80 | 木ATK4武器・被害時Dream |
+| 183 | 木防具・純Dream反撃（非attack/power0） |
+| 222 | 木・MP6の直接Dream奇跡、used保持/FREE対象 |
+
+36/80の付与は既存の通常targetdamage段階の実HP損失、183は既存survivor counter/FIFO、222は非attackの直接付与として扱い、trigger・死亡・反撃・補充順は既存の実験規約を引き継ぐ。状態は病気1種＋Fog/Dream/Flash/DarkCloudをcanonical順で持つ。Dreamは重複を持たず、Heavenへの非病気付与で転落させない。自然tickは追加しない。mild解除はDreamを残し、all解除はDreamと現在の全fakeを解除する。
+
+### 互換クラスと抽選
+
+signatureは `category, element, ability, curse, cost, hit_rate, is_plus_atk, atk>0, def>0` の9keyを完全一致させる。候補は現在の233 supportedモデルに限り、actualと同じIDは除く。146モデルに別face候補があり、87モデルはsingleton、全体は117クラス・異なるactual/faceの順序付きpairは992組である。数値ATK/DEF/abilityValue/priceの同値は要求しないので、表示威力・表示値と実際に解決される値が異なることはある。選択互換は効果値の同値を意味しない。
+
+通常giftで実モデルを従来の重み付き抽選後、受取人がDream中かつ別の互換face候補がある場合だけbounded2を1回引く。0ならmaskし、候補からuniform boundedをもう1回引く。face候補が1個でもそのdrawは消費する。1ならmaskしない。Dream無し/候補無しは追加drawを行わない。したがって「eligible giftの50%」であり、全モデルが一律に50%変装する実装ではない。候補分布・singleton除外・抽選順は公式serverで未確認の独自規約である。
+
+既存手札を遡及して変装しない。tradeで新たに受け取る商品には新maskを付けない。closed stateが受理するfakeはDream所持者の未使用個体で、actualと異なるsupported互換faceだけ。使用済み奇跡のfakeや互換クラス外のfakeをraw importで持ち込むことはできない。dead/終局の本人tooltipに実体を表示する契約と、手札faceの表示は区別する。
+
+### 選択・reveal・公開境界
+
+`legal` とsamplerはfaceに基づき選択し、実モデルで消費・MP・効果値・価格・payloadを解決する。受理された使用はactualをrevealし、保持される奇跡もunmaskする。失敗したcommandはreveal・抽選・token・状態を変更しない。既存fakeの売却/購入/除去/overflowもactualをrevealしてunmaskする。BUYは商品選出時にunmaskし、NO・CP不足・cutoffで返却しても元tokenはunmaskedのまま返す。このlifetime・売買適用範囲もローカル規約である。
+
+公開 `last_reveals` は `[{owner,face,model}, ...]` として、使用・応答・quote・除去・overflowによる公開itemイベント相当のrevealを同じaction内の順で保持する。all解除で残手札のfakeを解除するrevealは、内部で `owner_only=true` とし、viewerが本人のときだけこの配列へ含める。他viewer・観戦者には該当entryを完全にfilterし、件数・face・実モデルも漏らさない。`removeCurses` が受信するcurse一覧は、他者の全手札を公開する根拠ではない。個体token・slot・元候補数・RNGは出さない。次の受理mainでclearし、失敗入力では保持する。抽選累計 `dream_rolls` / `dream_masks` やreplay anchorは特権snapshotだけに置き、プレイヤー向けviewへ渡さない。
+
+公開 `dream_rule` はheaderと同じ次の文字列とする。これを公式server仕様の識別子とは扱わない。
+
+```text
+experimental:compatible-face-only;key-category-element-ability-curse-cost-hit-rate-plus-atk-positive-def-positive;supported-other-models-in-id-order;gift-real-before-eligible-only-half-coin-zero-masks-before-uniform-face;singleton-no-extra-draw;face-choice-one-draw-including-one-candidate;no-retroactive-mask;trade-receipts-unmasked;legal-and-policy-visible-models;resolve-actual-values-and-price;use-quote-removal-overflow-reveal;quote-return-stays-unmasked;all-cure-clears-dream-and-reveals-hand-only-to-owner;mild-preserves;no-tick;redraw178-unsupported
+```
+
+### v28の互換性照合と検証
+
+[再現script](../scripts/official_dream_oracle.cjs) と [互換クラス報告](../data/official-v2/dream-compatibility-v28.json) を追加した。現在の233モデルに対し、別faceを持つのは146モデル（gift重み321）、singletonは87モデル（重み173）。全miracle・tradeと今回のDream付与4種はsingletonで、現在のfake生成対象は非miracle物理品だけである。保持MCをunmaskする共通実装があっても、現クラスで偽装MCの通常到達を検証したという意味ではない。
+
+992順序付きpairについて、開始/既定target1,984件・MP計算14,880件・main追加693,408件・response追加1,111,040件、計1,821,312件のクライアントpredicate比較を報告に記録した。これらは検査したprefix/response contextに対する互換性であり、威力・回復値・DEF・価格の同値や、公式の偽装候補分布・server全入力受理を証明しない。公式の50%説明を満たす対象も本実装では146/233に制限される。台帳・allowlist・predicateが変われば再生成と閉包の再検査が必要である。
+
+CAPI/Pythonのfocused検証2/2件が通過し、Pythonは67件が通過した。v27の80,308件・native88群/Python63件と、その全suite130/90件の記録は前版の証拠であり、今回のDream追加検証として読み替えない。今回の全検証結果は次のとおり。追加drawがあるため、v27の対局checksum不変は要求しない。速度改善比は主張しない。
+
+v28の最終検証はRelease CTest130/130件（20.90秒）・ASan/UBSan90/90件（44.44秒）が通過した。native94群を全てmainへ登録し、Python67件・CAPI固定query384件も通過した。Dream oracleの `--check` で保存reportがbyte一致し、1,821,312比較を確認した。時間はsuiteの経過であり、版間の速度比較には使わない。
+
+| v28・seed42 | 試合数 | 意思決定数 | checksum | eligible coin / masks | 公開reveal / 本人限定reveal |
+| --- | ---: | ---: | --- | ---: | ---: |
+| 2人 | 100,000 | 3,978,368 | `18145630014188039408` | 80,134 / 39,946 | 28,241 / 1,149 |
+| 9人 | 10,000 | 2,408,047 | `11938917261778849633` | 69,094 / 34,635 | 24,346 / 1,633 |
+
+同条件の1worker/4workersはworker数・時間・速度を除く全fieldが一致した。Release/SAN各1,000試合も全fieldが一致し、2人/9人のchecksumは `16592869786979077265` / `14472242390983499012`。coinはeligible giftだけの抽選回数、masksは生成したfake数であり、全giftが50%対象だったという集計ではない。revealの二分類はbench内部集計で、本人限定件数を他viewerの観測へ公開しない。版間の速度改善比は主張しない。
+
+クライアントpredicateとの一致を検証しても、未確定の公式server候補分布や実体不適合commandの受理規約が確定するわけではない。178のredraw・守護神201/239・終末207の残件と、自己BUY・94+Wide・通常gift満杯の別gapを維持する。

@@ -23,12 +23,12 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==229&&match_gift_weight()==490&&std::string_view(match_ruleset)=="official-execution-subset-v27"
-        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"229model/490weight execution subset is explicitly experimental");
+    const auto pool=match_catalog();check(pool.size()==233&&match_gift_weight()==494&&std::string_view(match_ruleset)=="official-execution-subset-v28"
+        &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"233model/494weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
-    check(counts==std::array<int,8>{3,105,76,17,28,0,0,0}&&weight==490,"exchange, sell and buy are admitted among trade cards");
+    check(counts==std::array<int,8>{3,107,77,17,29,0,0,0}&&weight==494,"exchange, sell and buy are admitted among trade cards");
     check(match_supported(3)&&match_supported(4)&&match_supported(5)&&!match_supported(1)&&!match_supported(2),"trade artifacts do not enable sacrifice");
-    check(!match_supported(0)&&!match_supported(image("jupiter-ring"))&&!match_supported(image("dreaming-hat"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
+    check(!match_supported(0)&&!match_supported(image("dreaming-hat"))&&!match_supported(image("guardian-pot")),"specials, percentages and guardians never silently become plain damage");
     Match provenance;
     const auto metadata=provenance.observe(0);
     check(metadata.find("\"catalog_version\":\"official-v2\"")!=std::string::npos
@@ -78,8 +78,8 @@ void recovery_retention_capacity_and_atomicity(){
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
-    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("jupiter-ring");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
-        if(error==2)bad.players[0].curses={Curse::dream};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
+    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("dreaming-hat");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
+        if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].guardian=Guardian::mars;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
 
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v25\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v26\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -500,7 +500,7 @@ void darkcloud_counter_fifo_forced_and_selection(){
 
 void darkcloud_canonical_journal_and_cutoff(){
     auto state=scene({image("spark-bag")},{});state.players[1].curses={Curse::darkcloud};Match m;m.load_scene(state,0,123);m.step(chance_play(0,{0}));const auto exact=m.snapshot();for(int error=0;error<12;++error){auto bad=exact;if(error==0)bad.queue[0].forced_hit=false;if(error==1)bad.queue[0].hit_rate=100;if(error==2)bad.chance_forced_hits=0;if(error==3)bad.chance_rolls=1;if(error==4)bad.chance_hits=1;if(error==5)++bad.batch->chance_forced_hits;if(error==6)bad.batch->initial_state.players[1].curses.clear();if(error==7)bad.batch->rng^=1;if(error==8)bad.queue[0].redirect_rng^=1;if(error==9)++bad.rng;if(error==10)bad.state.players[1].curses.clear();if(error==11)++bad.counter_forced_hits;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"replay rejects forged forced proof, counters, initial curse, RNG anchors and current state atomically");}
-    for(const auto curses:{std::vector<Curse>{Curse::darkcloud,Curse::darkcloud},std::vector<Curse>{Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::flash,Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::dream,Curse::darkcloud}}){auto invalid=scene();invalid.players[0].curses=curses;bool rejected=false;try{m.load_scene(invalid,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"runtime rejects duplicate, unsorted and unsupported curses");}
+    for(const auto curses:{std::vector<Curse>{Curse::darkcloud,Curse::darkcloud},std::vector<Curse>{Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::flash,Curse::darkcloud,Curse::flash},std::vector<Curse>{Curse::darkcloud,Curse::dream}}){auto invalid=scene();invalid.players[0].curses=curses;bool rejected=false;try{m.load_scene(invalid,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"runtime rejects duplicate, unsorted and unsupported curses");}
     auto late=state;late.update_count=max_wire_integer;Match failed;failed.load_scene(late,0,123);const auto before=failed.snapshot();check(failed.legal(chance_play(0,{0})),"forced launch can fail only at late transport boundary");bool rejected=false;try{failed.step(chance_play(0,{0}));}catch(const MatchError&){rejected=true;}check(rejected&&failed.snapshot()==before,"late launch rollback restores consumed item, forced counter, RNG and new journal");
     MatchConfig limit;limit.max_decisions=1;Match cut(limit);cut.load_scene(state,0,123);cut.step(chance_play(0,{0}));check(cut.snapshot().truncated&&!cut.snapshot().terminated&&cut.snapshot().chance_forced_hits==1&&cut.snapshot().chance_rolls==0&&cut.snapshot().chance_hits==0&&cut.snapshot().rng==123&&!cut.snapshot().batch&&cut.snapshot().queue.empty()&&cut.snapshot().state.players[1].hp==40,"forced hit survives launch cutoff accounting while no response HP or gifts execute");roundtrip(cut);
     auto counter_state=scene({image("bronze-club")},{image("pluto-ring"),image("mars-ring")});MatchConfig counter_limit;counter_limit.max_decisions=4;Match counter(counter_limit);counter.load_scene(counter_state,0,123);counter.step(play(0,{0},7));counter.step(defend(7,{0,1}));counter.step(defend(0));counter.step(defend(0));check(counter.snapshot().truncated&&counter.snapshot().counter_forced_hits==1&&counter.snapshot().counter_rolls==0&&counter.snapshot().counter_hits==0&&counter.snapshot().state.players[0].hp==39&&counter.snapshot().rng==123&&!counter.snapshot().batch,"counter forced-hit metric and no-draw RNG persist through command-boundary cutoff");roundtrip(counter);
@@ -834,7 +834,7 @@ void removal_event_snapshot_guards(){
     auto m=fixture(scene({206},{235,235}));auto state=m.snapshot().state;for(auto& item:state.players[1].items)item.used=true;m.load_scene(state,0,0);m.step(play(0,{0},7));m.step(defend(7));const auto exact=m.snapshot();
     for(int error=0;error<10;++error){auto bad=exact;auto& event=*bad.last_removal;
         if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;if(error==4)event.model=199;
-        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={222};
+        if(error==5)event.removed_models={235,235,235};if(error==6)event.removed_models={6};if(error==7)event.removed_models={0};if(error==8)event.removed_models={178};
         if(error==9)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"removal event boundaries/endpoints/kind/count/unsupported or nonmiracle IDs and danger coexistence reject atomically");}
     auto broom=fixture(scene({205},{6,6,6,6}));broom.step(play(0,{0},7));broom.step(defend(7));auto oversized=broom.snapshot();oversized.last_removal->removed_models.push_back(6);bool rejected=false;
@@ -895,7 +895,7 @@ void sell_invalid_roles_sampler_and_journal(){
 void sell_event_guards_and_atomic_late_failures(){
     const Command self{0,CommandKind::sell,{0,1},0};auto m=fixture(scene({4,27},{}));m.step(self);const auto exact=m.snapshot();
     for(int error=0;error<8;++error){auto bad=exact;auto& event=*bad.last_sale;if(error==0)bad.decisions=0;if(error==1)event.origin=999;if(error==2)event.source=999;if(error==3)event.target=999;
-        if(error==4)event.model=222;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
+        if(error==4)event.model=178;if(error==5)++event.price;if(error==6)bad.last_removal=RemovalEvent{0,0,7,205,{}};if(error==7)bad.last_danger=DangerEvent{0,7,{94},false,30,Element::light};bool rejected=false;
         try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"sale public event validates price, supported product, endpoints, positive decision and exclusive event type");}
     reject(m,pray(0));auto exhausted=exact;exhausted.state.update_count=max_wire_integer;m.restore(exhausted);const auto previous=m.snapshot();bool failed=false;try{m.step(pray(7));}catch(const MatchError&){failed=true;}
     check(failed&&m.snapshot()==previous,"late next-main failure restores prior sale event");m.restore(exact);m.step(pray(7));check(!m.snapshot().last_sale,"accepted next main clears prior sale event");roundtrip(m);
@@ -1017,7 +1017,7 @@ void disease_tick_revivals_and_body_accounting(){
 
 void disease_canonical_tick_guards_and_atomic_failure(){
     auto s=scene();s.players[0].curses={Curse::cold,Curse::flash,Curse::darkcloud};auto valid=fixture(s);roundtrip(valid);
-    for(const auto& curses:std::vector<std::vector<Curse>>{{Curse::cold,Curse::fever},{Curse::flash,Curse::cold},{Curse::cold,Curse::cold},{Curse::dream}}){auto bad=s;bad.players[0].curses=curses;const auto exact=valid.snapshot();bool rejected=false;try{valid.load_scene(bad,0,0);}catch(const MatchError&){rejected=true;}check(rejected&&valid.snapshot()==exact,"only one sorted unique disease and supported non-diseases form a canonical state");}
+    for(const auto& curses:std::vector<std::vector<Curse>>{{Curse::cold,Curse::fever},{Curse::flash,Curse::cold},{Curse::cold,Curse::cold},{Curse::hell,Curse::heaven}}){auto bad=s;bad.players[0].curses=curses;const auto exact=valid.snapshot();bool rejected=false;try{valid.load_scene(bad,0,0);}catch(const MatchError&){rejected=true;}check(rejected&&valid.snapshot()==exact,"only one sorted unique disease and supported non-diseases form a canonical state");}
     auto full=scene({235},{});full.players[0].items[0].used=true;full.players[0].curses={Curse::cold};MatchConfig cap;cap.hand_limit=cap.initial_hand=1;Match m(cap);m.load_scene(full,0,0);m.step(pray(0));const auto exact=m.snapshot();
     for(int error=0;error<8;++error){auto bad=exact;auto& tick=*bad.last_tick;if(error==0)tick.before=Curse::none;if(error==1)tick.after=Curse::hell;if(error==2)tick.hp_before=0;if(error==3){tick.hp_after=99;bad.state.players[0].hp=99;}
         if(error==4)tick.worsened=true;if(error==5)tick.fallen=true;if(error==6)tick.revival_token=0;if(error==7)tick.owner=999;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"private tick validates disease progression, HP, endpoints and vanished revival copy without claiming complete history");}
@@ -1343,7 +1343,7 @@ void overflow_event_full_replay_and_late_atomic_failures(){
     MatchConfig cap;cap.initial_hand=cap.hand_limit=2;SnapshotState state;state.players={player(0,{4,27}),player(7,{208,112}),player(42)};state.players[1].hp=1;state.players[1].mp=state.players[1].cp=0;
     for(auto seat:{0u,2u}){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}Match m(cap);m.load_scene(state,0,2);m.step({0,CommandKind::sell,{0,1},7});m.step(defend(7));const auto exact=m.snapshot();
     check(exact.phase==MatchPhase::response&&exact.queue[0].is_death&&exact.last_sale->overflow_model==208,"resolved overflow event can coexist with later posthumous responses");roundtrip(m);
-    for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.last_sale->overflow_model=112;if(error==1)bad.last_sale->overflow_model.reset();if(error==2)bad.last_sale->overflow_model=222;
+    for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.last_sale->overflow_model=112;if(error==1)bad.last_sale->overflow_model.reset();if(error==2)bad.last_sale->overflow_model=178;
         if(error==3)bad.rng^=1;if(error==4)bad.batch->rng^=1;if(error==5)std::swap(bad.batch->initial_state.players[1].items[0],bad.batch->initial_state.players[1].items[1]);if(error==6)bad.last_sale->overflow_model=0;
         bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"full replay rejects invented overflow result, inventory-order/RNG anchor and unsupported model atomically");}
     state.players[1]=player(7,{118,118});state.update_count=max_wire_integer-1;Match update(cap);update.load_scene(state,0,2);update.step({0,CommandKind::sell,{0,1},7});const auto before=update.snapshot();bool failed=false;
@@ -1413,6 +1413,91 @@ void checkpoint_cutoff_and_seeded_multiplayer(){
             const auto ra=a.step(ca),rb=b.step(cb);check(ra==rb&&a.snapshot()==b.snapshot(),"seeded2/9team execution and fixed player outcome replay");roundtrip(a);check(!a.observe(a.snapshot().state.players[0].id).empty(),"every executable snapshot connects to fresh view");}
         check(a.snapshot().terminated!=a.snapshot().truncated,"explicit terminal or cutoff reached; no silent stuck match");}
 }
+void dream_compatibility_predicates_and_payloads(){
+    const auto pool=match_catalog();std::size_t pairs=0,eligible=0;
+    const std::array<std::vector<VisibleSelection>,5> prefixes{{{},{{143,false}},{{187,false}},{{6,false}},{{190,false}}}};
+    for(auto actual:pool){bool any=false;for(auto face:pool)if(match_dream_compatible(actual,face)){
+        any=true;++pairs;check(actual!=face&&match_dream_compatible(face,actual),"Dream relation symmetric and irreflexive");
+        check(can_start_main(actual)==can_start_main(face)&&targets_enemy_by_default(actual)==targets_enemy_by_default(face),"compatible faces preserve start/default target predicates");
+        const std::array<CardId,1> a{actual},f{face};check(magic_cost(a)==magic_cost(f),"compatible masks preserve quoted MP selection budget");
+        for(bool used:{false,true})for(const auto& prefix:prefixes){
+            check(can_append_main(prefix,{actual,used})==can_append_main(prefix,{face,used}),"main append cannot distinguish compatible hidden real models");
+            for(unsigned category=0;category<8;++category)for(unsigned element=0;element<7;++element)for(bool attack:{false,true})for(bool flash:{false,true}){
+                ResponseContext c{flash,static_cast<Category>(category),element?Attribute{static_cast<Element>(element-1)}:Attribute{},attack};
+                check(can_append_response(prefix,{actual,used},c)==can_append_response(prefix,{face,used},c),"response append equivalent across all compatible pairs and public contexts");
+            }
+        }
+        for(auto next:pool){const std::array<VisibleSelection,1> aselected{{{actual,false}}},fselected{{{face,false}}};
+            check(can_append_main(aselected,{next,false})==can_append_main(fselected,{next,false}),"selected compatible base preserves main extension predicate");}
+    }eligible+=any;}
+    check(pairs==992&&eligible==146&&pool.size()-eligible==87,"runtime Dream partition matches pinned public-client oracle");
+    check(match_dream_compatible(6,57)&&find_card(6)->atk!=find_card(57)->atk&&find_card(6)->price!=find_card(57)->price,"predicate equivalence deliberately does not imply equal payload or price");
+    check(!match_dream_compatible(6,6)&&!match_dream_compatible(6,178)&&!match_dream_compatible(6,222),"singleton, unsupported and mismatched face pairs reject");
+}
+
+void dream_gift_rng_and_no_retroactive_mask(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;std::array<bool,4> found{};
+    for(std::uint64_t seed=0;seed<4096&&!std::all_of(found.begin(),found.end(),[](bool v){return v;});++seed){
+        auto state=scene({222,6},{});Match m;m.load_scene(state,0,seed);m.step(play(0,{0},0));const auto& s=m.snapshot();const auto& p=s.state.players[0];const auto& gift=p.items.back();
+        check(p.curses==std::vector<Curse>{Curse::dream}&&p.items[0].used&&!p.items[0].fake_model&&!p.items[1].fake_model,"Dream source retains miracle and never masks existing inventory retroactively");
+        check(!s.last_tick&&s.last_reveals.empty()&&s.dream_rolls<=1&&s.dream_masks<=s.dream_rolls,"Dream gift private counters independent from disease ticks or reveal events");
+        std::size_t candidates=0;for(auto face:match_catalog())candidates+=match_dream_compatible(gift.model,face);
+        if(!candidates){found[0]=true;check(s.dream_rolls==0&&!gift.fake_model&&s.rng==seed+draw,"singleton gift consumes only weighted actual draw");}
+        else if(!gift.fake_model){found[1]=true;check(s.dream_rolls==1&&s.dream_masks==0&&s.rng==seed+2*draw,"eligible normal gift consumes actual and mask coin only");}
+        else {found[2]=true;check(s.dream_rolls==1&&s.dream_masks==1&&match_dream_compatible(gift.model,*gift.fake_model)&&s.rng==seed+3*draw,"masked gift consumes actual then coin then candidate draw");if(candidates==1)found[3]=true;
+            const auto projected=project_view(s.state,0);const auto it=std::find_if(projected.hand.begin(),projected.hand.end(),[&](const auto& i){return i.token==gift.token;});
+            check(it!=projected.hand.end()&&it->face==*gift.fake_model&&it->reference==*gift.fake_model&&it->disguised,"living Dream owner sees face rather than actual gift");}
+        roundtrip(m);
+    }
+    check(std::all_of(found.begin(),found.end(),[](bool v){return v;}),"seed sweep witnesses singleton, unmasked, masked and single-candidate masked branches");
+    auto ordinary=fixture(scene({191},{}));const auto rng=ordinary.snapshot().rng;ordinary.step(play(0,{0},0));check(ordinary.snapshot().rng==rng+draw&&ordinary.snapshot().dream_rolls==0&&!ordinary.snapshot().state.players[0].items.back().fake_model,"non-Dream gift has no extra mask RNG");
+    auto late=scene({222},{});late.gf=max_wire_integer;auto failure=fixture(late);const auto exact=failure.snapshot();bool threw=false;try{failure.step(play(0,{0},0));}catch(const MatchError&){threw=true;}
+    check(threw&&failure.snapshot()==exact,"late GF failure rolls back Dream application, gift masks, counters, resources and all RNG");
+}
+
+void dream_same_visible_policy_and_actual_execution(){
+    auto state=scene({6},{});state.players[0].curses={Curse::dream};state.players[0].items[0].fake_model=19;
+    auto other=state;other.players[0].items[0].model=57;auto a=fixture(state),b=fixture(other);
+    check(a.observe(0)==b.observe(0)&&a.observe({})==b.observe({}),"same visible Dream worlds conceal actual power and price");
+    std::uint64_t pa=5,pb=5;for(unsigned i=0;i<512;++i){const auto sa=a.snapshot(),sb=b.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb)&&a.snapshot()==sa&&b.snapshot()==sb,"policy and legal queries use only visible models and never mutate worlds");}
+    for(auto* m:{&a,&b}){m->step(play(0,{0},7));check(m->snapshot().queue[0].power==find_card(m==&a?6:57)->atk&&m->snapshot().last_reveals==std::vector<RevealedItem>{{0,19,static_cast<CardId>(m==&a?6:57),false}},"launch reveals face and actual while executing actual payload");roundtrip(*m);reject(*m,defend(0));m->step(defend(7));check(m->snapshot().state.players[1].hp==40-find_card(m==&a?6:57)->atk,"target HP derives from actual weapon rather than its disguise");roundtrip(*m);}
+    a.step(pray(7));check(a.snapshot().last_reveals.empty(),"next accepted main clears previous reveal events");
+    CardId low=0,high=0;for(auto x:match_catalog())for(auto y:match_catalog())if(match_dream_compatible(x,y)&&find_card(x)->category==Category::armor&&!find_card(x)->element&&find_card(x)->defense<find_card(y)->defense){low=x;high=y;break;}
+    check(low&&high,"compatible armor with unequal DEF exists");auto armored=scene({57},{low});armored.players[1].curses={Curse::dream};armored.players[1].items[0].fake_model=high;
+    auto m=fixture(armored);m.step(play(0,{0},7));m.step(defend(7,{0}));check(m.snapshot().state.players[1].hp==40-std::max(0,find_card(57)->atk-find_card(low)->defense)&&m.snapshot().last_reveals==std::vector<RevealedItem>{{7,high,low,false}},"response uses actual DEF and publicly reveals consumed disguise");roundtrip(m);
+}
+
+void dream_sources_cures_and_owner_only_revelation(){
+    for(CardId source:{CardId{36},CardId{80}}){auto m=fixture(scene({source},{}));m.step(play(0,{0},7));m.step(defend(7));check(m.snapshot().state.players[1].curses==std::vector<Curse>{Curse::dream},"positive weapon HP loss applies Dream");roundtrip(m);}
+    auto blocked=fixture(scene({36},{image("god-shield")}));blocked.step(play(0,{0},7));blocked.step(defend(7,{0}));check(blocked.snapshot().state.players[1].curses.empty(),"fully blocked Dream weapon has no onDamage curse");
+    auto mild_state=scene({199,6},{});mild_state.players[0].curses={Curse::cold,Curse::fog,Curse::dream,Curse::flash,Curse::darkcloud};mild_state.players[0].items[1].fake_model=57;
+    auto mild=fixture(mild_state);mild.step(play(0,{0},0));check(mild.snapshot().state.players[0].curses==std::vector<Curse>{Curse::dream,Curse::darkcloud}&&mild.snapshot().state.players[0].items[0].fake_model==57&&mild.snapshot().last_reveals.empty(),"mild cure preserves Dream masks and DarkCloud");roundtrip(mild);
+    MatchConfig cap;cap.max_decisions=2;
+    auto state=scene({200},{6});state.players[1].curses={Curse::dream};state.players[1].items[0].fake_model=19;auto other=state;other.players[1].items[0].model=57;other.players[1].items.push_back({1,7,19,false});
+    auto a=fixture(state,cap),b=fixture(other,cap);for(auto* m:{&a,&b}){m->step(play(0,{0},7));m->step(defend(7));check(m->snapshot().state.players[1].curses.empty()&&std::none_of(m->snapshot().state.players[1].items.begin(),m->snapshot().state.players[1].items.end(),[](const auto& i){return i.fake_model.has_value();}),"all cure removes Dream and clears all remaining hand masks");check(m->observe(0).find("\"last_reveals\":[]")!=std::string::npos&&m->observe({}).find("\"last_reveals\":[]")!=std::string::npos,"all cure owner-only revelations leave no public count or model leak");check(!m->snapshot().last_reveals.empty()&&m->snapshot().last_reveals[0].owner_only&&m->observe(7).find("\"last_reveals\":[]")==std::string::npos,"only hand owner receives actual models from all cure");roundtrip(*m);}
+    check(a.observe(0)==b.observe(0)&&a.observe({})==b.observe({}),"foreign and spectator views cannot distinguish cured hidden inventory contents or counts");
+}
+
+void dream_trade_quotes_removal_and_overflow(){
+    MatchConfig cap;cap.max_decisions=2;auto state=scene({4,6},{});state.players[0].curses={Curse::dream};state.players[0].items[1].fake_model=57;
+    auto sale=fixture(state,cap);sale.step({0,CommandKind::sell,{0,1},7});sale.step(defend(7));check(sale.snapshot().last_sale&&sale.snapshot().last_sale->model==6&&sale.snapshot().last_sale->price==find_card(6)->price&&sale.snapshot().last_reveals==std::vector<RevealedItem>{{0,57,6,false}}&&sale.snapshot().state.players[1].items.back().model==6&&!sale.snapshot().state.players[1].items.back().fake_model,"sale reveals and prices actual commodity, receipt remains unmasked");roundtrip(sale);
+    auto quote_state=scene({5},{6});quote_state.players[1].curses={Curse::dream};quote_state.players[1].items[0].fake_model=57;
+    auto buy=fixture(quote_state);buy.step({0,CommandKind::buy,{0},7});buy.step(defend(7));check(buy.snapshot().phase==MatchPhase::purchase&&buy.snapshot().purchase->item.model==6&&!buy.snapshot().purchase->item.fake_model&&buy.snapshot().last_reveals==std::vector<RevealedItem>{{7,57,6,false}},"BUY selection unmasks escrow and publishes actual quote");roundtrip(buy);const auto token=buy.snapshot().purchase->item.token;buy.step({0,CommandKind::decline,{},{}});check(buy.snapshot().state.players[1].items[0].token==token&&!buy.snapshot().state.players[1].items[0].fake_model&&buy.snapshot().dream_rolls==0,"declined quote returns same slot/token already unmasked without mask RNG");roundtrip(buy);
+    auto remove_state=scene({205},{6});remove_state.players[1].curses={Curse::dream};remove_state.players[1].items[0].fake_model=57;auto removal=fixture(remove_state,cap);removal.step(play(0,{0},7));removal.step(defend(7));check(removal.snapshot().last_removal->removed_models==std::vector<CardId>{6}&&removal.snapshot().last_reveals==std::vector<RevealedItem>{{7,57,6,false}},"removed disguised copy publishes actual model and reveal without replacement");roundtrip(removal);
+    MatchConfig small;small.hand_limit=1;small.initial_hand=0;small.max_decisions=2;auto over=scene({4,7},{6});small.hand_limit=2;over.players[1].items.push_back({1,6,57,false});over.players[1].curses={Curse::dream};over.players[1].items[0].fake_model=57;
+    auto overflow=fixture(over,small);overflow.step({0,CommandKind::sell,{0,1},7});overflow.step(defend(7));check(overflow.snapshot().last_sale->overflow_model==6&&overflow.snapshot().last_reveals.size()==1&&overflow.snapshot().last_reveals[0]==RevealedItem{7,57,6,false},"full trade eviction reveals actual removed copy once");roundtrip(overflow);
+}
+
+void dream_checkpoint_guards_and_transactional_replay(){
+    auto state=scene({6},{});state.players[0].curses={Curse::dream};state.players[0].items[0].fake_model=57;auto m=fixture(state);m.step(play(0,{0},7));const auto exact=m.snapshot();
+    for(unsigned error=0;error<12;++error){auto bad=exact;
+        if(error==0)bad.last_reveals.clear();if(error==1)bad.last_reveals[0].owner_only=true;if(error==2)bad.last_reveals[0].model=7;if(error==3)bad.last_reveals[0].face=19;if(error==4)bad.last_reveals[0].owner=7;
+        if(error==5)bad.batch->initial_state.players[0].items[0].fake_model=19;if(error==6)bad.batch->initial_state.players[0].items[0].model=7;if(error==7)bad.dream_rolls=1;if(error==8)bad.dream_masks=1;if(error==9)bad.batch->dream_rolls=1;if(error==10)bad.last_reveals.push_back(bad.last_reveals[0]);if(error==11)bad.rng^=1;
+        bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"pending full replay rejects forged Dream reveal, original mask, statistics and RNG atomically");}
+    for(unsigned error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].curses.clear();if(error==1)bad.players[0].items[0].fake_model=6;if(error==2)bad.players[0].items[0].fake_model=178;if(error==3)bad.players[0].items[0].fake_model=143;if(error==4)bad.players[0].items[0].used=true;if(error==5)bad.players[0].curses={Curse::dream,Curse::dream};bool rejected=false;try{m.load_scene(bad,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"canonical execution rejects unsafe, stale, used, duplicate and unsupported mask scenes");}
+    m.step(defend(7));roundtrip(m);
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -1502,6 +1587,12 @@ int main(){
     fog_sell_launch_commodity_roles_reflections_and_overflow();
     overflow_event_full_replay_and_late_atomic_failures();
     trade_capacity_queries_and_sampler_use_only_visible_inputs();
+    dream_compatibility_predicates_and_payloads();
+    dream_gift_rng_and_no_retroactive_mask();
+    dream_same_visible_policy_and_actual_execution();
+    dream_sources_cures_and_owner_only_revelation();
+    dream_trade_quotes_removal_and_overflow();
+    dream_checkpoint_guards_and_transactional_replay();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (229subset/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (233subset/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }
