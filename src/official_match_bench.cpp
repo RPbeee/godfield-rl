@@ -57,6 +57,7 @@ struct Stats {
     std::uint64_t sell_overflows = 0, buy_overflows = 0, overflow_events = 0, overflow_event_checksum = 0;
     std::uint64_t dream_rolls = 0, dream_masks = 0, dream_main_commands = 0, dream_masked_commands = 0, dream_public_reveals = 0, dream_private_reveals = 0;
     std::uint64_t redraws = 0, redrawn_items = 0, redraw_notices = 0;
+    std::uint64_t buy_self_plays = 0, buy_self_inspections = 0, buy_self_empty = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -105,6 +106,7 @@ struct Stats {
         sell_overflows += s.sell_overflows; buy_overflows += s.buy_overflows; overflow_events += s.overflow_events; overflow_event_checksum += s.overflow_event_checksum;
         dream_rolls += s.dream_rolls; dream_masks += s.dream_masks; dream_main_commands += s.dream_main_commands; dream_masked_commands += s.dream_masked_commands; dream_public_reveals += s.dream_public_reveals; dream_private_reveals += s.dream_private_reveals;
         redraws += s.redraws; redrawn_items += s.redrawn_items; redraw_notices += s.redraw_notices;
+        buy_self_plays += s.buy_self_plays; buy_self_inspections += s.buy_self_inspections; buy_self_empty += s.buy_self_empty;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -181,9 +183,9 @@ int main(int argc, char** argv) {
                             return std::any_of(own.items.begin(), own.items.end(), [&](const auto& item) { return item.token == token && item.fake_model.has_value(); });
                         })) ++stats.dream_masked_commands;
                         if (command.kind == CommandKind::sell) { ++stats.sell_plays; ++stats.physical; }
-                        if (command.kind == CommandKind::buy) { ++stats.buy_plays; ++stats.physical; }
+                        if (command.kind == CommandKind::buy) { ++stats.buy_plays; ++stats.physical; if (command.target == command.actor) ++stats.buy_self_plays; }
                         const auto had_purchase = before.purchase.has_value();
-                        const auto buy_result_possible = before.phase == MatchPhase::purchase
+                        const auto buy_result_possible = (command.kind == CommandKind::buy && command.target == command.actor) || before.phase == MatchPhase::purchase
                             || (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty() && before.queue.front().ability == Ability::buy);
                         const auto sale_resolves = (command.kind == CommandKind::sell && command.target == command.actor)
                             || (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty() && before.queue.front().ability == Ability::sell);
@@ -345,9 +347,10 @@ int main(int argc, char** argv) {
                             switch (event.reason) {
                             case PurchaseReason::bought: ++stats.bought; stats.buy_nominal_cp += event.price; break;
                             case PurchaseReason::declined: ++stats.declined; break;
-                            case PurchaseReason::empty: ++stats.buy_empty; break;
+                            case PurchaseReason::empty: ++stats.buy_empty; if (event.buyer == event.seller) ++stats.buy_self_empty; break;
                             case PurchaseReason::insufficient_cp: ++stats.buy_insufficient_cp; break;
                             case PurchaseReason::cutoff: ++stats.buy_cutoff; break;
+                            case PurchaseReason::self_inspection: ++stats.buy_self_inspections; break;
                             }
                         }
                         if (sale_resolves) {
@@ -467,7 +470,7 @@ int main(int argc, char** argv) {
         if (stats.sell_resolved > stats.sell_plays || stats.sold_miracles > stats.sell_resolved)
             throw std::logic_error("inconsistent sale accounting");
         if (stats.bought + stats.declined != stats.purchase_commands || stats.purchase_commands > stats.buy_quotes
-            || stats.buy_quotes > stats.buy_plays || stats.bought + stats.declined + stats.buy_empty + stats.buy_insufficient_cp + stats.buy_cutoff > stats.buy_plays)
+            || stats.buy_quotes > stats.buy_plays || stats.bought + stats.declined + stats.buy_empty + stats.buy_insufficient_cp + stats.buy_cutoff + stats.buy_self_inspections > stats.buy_plays)
             throw std::logic_error("inconsistent purchase accounting");
         if (stats.disease_ticks > stats.main || stats.disease_worsened > stats.disease_ticks || stats.disease_falls > stats.disease_worsened
             || stats.disease_tick_revivals > stats.revivals || stats.disease_hp_gained > 5 * stats.disease_ticks || stats.disease_hp_lost > 99 * stats.disease_ticks)
@@ -489,6 +492,9 @@ int main(int argc, char** argv) {
         if (stats.redraw_notices != stats.redraws || stats.redraws > visible_hand_capacity * stats.decisions
             || stats.redrawn_items > visible_hand_capacity * stats.redraws)
             throw std::logic_error("inconsistent immediate redraw accounting");
+        if (stats.buy_self_inspections + stats.buy_self_empty != stats.buy_self_plays || stats.buy_self_plays > stats.buy_plays
+            || stats.buy_self_empty > stats.buy_empty || stats.buy_quotes > stats.buy_plays - stats.buy_self_plays)
+            throw std::logic_error("inconsistent self purchase inspection accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
@@ -558,6 +564,7 @@ int main(int argc, char** argv) {
             << "\nexchanged_resource_total=" << stats.exchanged_resource_total
             << "\nsell_plays=" << stats.sell_plays << "\nsell_resolved=" << stats.sell_resolved
             << "\nsell_nominal_cp=" << stats.sell_nominal_cp << "\nsold_miracles=" << stats.sold_miracles
+            << "\nbuy_self_plays=" << stats.buy_self_plays << "\nbuy_self_inspections=" << stats.buy_self_inspections << "\nbuy_self_empty=" << stats.buy_self_empty
             << "\nbuy_plays=" << stats.buy_plays << "\nbuy_quotes=" << stats.buy_quotes << "\npurchase_commands=" << stats.purchase_commands
             << "\nbought=" << stats.bought << "\ndeclined=" << stats.declined << "\nbuy_empty=" << stats.buy_empty
             << "\nbuy_insufficient_cp=" << stats.buy_insufficient_cp << "\nbuy_cutoff=" << stats.buy_cutoff << "\nbuy_nominal_cp=" << stats.buy_nominal_cp

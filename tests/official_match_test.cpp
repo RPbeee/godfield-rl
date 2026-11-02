@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==234&&match_gift_weight()==495&&std::string_view(match_ruleset)=="official-execution-subset-v29"
+    const auto pool=match_catalog();check(pool.size()==234&&match_gift_weight()==495&&std::string_view(match_ruleset)=="official-execution-subset-v30"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"234model/495weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,17,29,0,0,0}&&weight==495,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v27\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v28\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -951,7 +951,7 @@ void buy_reflection_ownership_and_quote_journal(){
 void buy_roles_cutoff_returns_and_late_failure(){
     auto m=fixture(scene({5},{}));const Command buy{0,CommandKind::buy,{0},7};for(int error=0;error<6;++error){auto bad=buy;if(error==0)bad.items.clear();if(error==1)bad.items={0,0};if(error==2)bad.target.reset();if(error==3)bad.target=999;
         if(error==4)bad.kind=CommandKind::play;if(error==5)bad.allocation=ResourceAllocation{40,10,20};reject(m,bad);}
-    auto self=buy;self.target=0;const auto old=m.snapshot();bool unsupported=false;try{m.step(self);}catch(const MatchError&e){unsupported=e.code==MatchErrorCode::unsupported;}check(unsupported&&m.snapshot()==old,"self BUY remains an explicit unsupported gap before any consumption");
+    auto self=buy;self.target=0;const auto old=m.snapshot();check(m.legal(self)&&m.snapshot()==old,"self BUY input is accepted without mutating the query state");
     reject(m,{0,CommandKind::accept,{},{}});reject(m,{0,CommandKind::decline,{},{}});
     for(unsigned limit:{1u,2u}){MatchConfig cap;cap.max_decisions=limit;auto cut=fixture(scene({5},{27}),cap);const auto initial=cut.snapshot();cut.step(buy);if(limit==2)cut.step(defend(7));
         check(cut.snapshot().truncated&&!cut.snapshot().purchase&&cut.snapshot().state.players[1].items==initial.state.players[1].items,"cutoff never strands a selected commodity in escrow");
@@ -1572,6 +1572,71 @@ void redraw_snapshot_adversaries_and_late_atomic_failures(){
     for(std::uint64_t seed=0;seed<32;++seed){auto state=scene({14,57,190},{178,178,215,181});state.players[0].mp=state.players[1].mp=99;MatchConfig cap;cap.max_decisions=64;Match run(cap);run.load_scene(state,0,seed);run.step(play(0,{0},7));run.step(defend(7,{0}));roundtrip(run);std::uint64_t policy=seed;while(!run.done()){const auto before=run.snapshot();const auto command=run.sample_action(policy);check(run.legal(command)&&run.snapshot()==before,"fresh replacement policy remains legal and pure through later play");run.step(command);roundtrip(run);}}
 }
 
+void self_buy_inspects_same_copy_without_money_or_quote(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;MatchConfig cap;cap.max_decisions=1;
+    for(int cp:{0,99})for(CardId model:{CardId{5},CardId{57},CardId{178},CardId{208},CardId{209},CardId{235},CardId{236}}){auto state=scene({5,model},{});state.players[0].cp=cp;state.players[0].mp=0;auto m=fixture(state,cap);const auto before=m.snapshot();const Command command{0,CommandKind::buy,{0},0};
+        check(m.legal(command)&&m.snapshot()==before,"self BUY is legal at MP0/CP0 and legality never consumes or inspects anything");m.step(command);const auto& s=m.snapshot();
+        check(s.truncated&&s.decisions==1&&s.rng==before.rng+draw&&s.next_token==before.next_token&&!s.purchase&&s.queue.empty()&&!s.batch
+            &&s.state.players[0].items==std::vector<ItemInstance>{{1,model,{},false}}&&s.state.players[0].cp==cp&&s.state.players[0].mp==0&&s.state.players[0].hp==40,"self inspection consumes only BUY and one candidate RNG draw, preserves existing copy and all resources, and never creates escrow");
+        check(s.last_purchase==PurchaseEvent{0,0,0,model,find_card(model)->price,PurchaseReason::self_inspection}&&m.observe({}).find("\"reason\":\"self_inspection\"")!=std::string::npos&&m.observe({}).find("\"bought\":false")!=std::string::npos,"self inspection publishes actual model and price with explicit non-transfer reason");roundtrip(m);}
+    auto normal=fixture(scene({5,57},{}));normal.step({0,CommandKind::buy,{0},0});
+    check(normal.snapshot().owner==7&&normal.snapshot().state.players[0].items.size()==2&&normal.snapshot().state.players[0].items[0].token==1&&normal.snapshot().state.players[0].items[0].model==57&&normal.snapshot().next_token==3,"ordinary self inspection pays exactly one operation gift after its body without moving the selected copy");roundtrip(normal);
+}
+
+void self_buy_empty_and_used_miracles_preserve_candidate_order(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;MatchConfig cap;cap.max_decisions=1;
+    for(bool used:{false,true}){auto state=scene({5},{});if(used){state.players[0].items.push_back({9,235,{},true});state.players[0].cp=0;}auto m=fixture(state,cap);const auto before=m.snapshot();m.step({0,CommandKind::buy,{0},0});
+        auto expected=state.players[0].items;expected.erase(expected.begin());check(m.snapshot().rng==before.rng&&m.snapshot().state.players[0].items==expected&&m.snapshot().last_purchase==PurchaseEvent{0,0,0,0,0,PurchaseReason::empty},"empty self inspection excludes all used miracles and draws nothing");roundtrip(m);}
+    auto empty=fixture(scene({5},{})),prayer=fixture(scene({},{}));empty.step({0,CommandKind::buy,{0},0});prayer.step(pray(0));
+    check(empty.snapshot().rng==prayer.snapshot().rng&&empty.snapshot().state.players[0].items[0].model==prayer.snapshot().state.players[0].items[0].model,"empty self inspection has exactly the ordinary deferred gift RNG and no hidden selection draw");
+    std::set<CardId> selected;
+    for(std::uint64_t seed=0;seed<128;++seed){auto state=scene({6,5,235,236,57},{});state.players[0].items[2].used=true;Match m(cap);m.load_scene(state,0,seed);const auto rng=m.snapshot().rng;m.step({0,CommandKind::buy,{1},0});auto expected=state.players[0].items;expected.erase(expected.begin()+1);selected.insert(m.snapshot().last_purchase->model);
+        check(m.snapshot().state.players[0].items==expected&&m.snapshot().rng==rng+draw&&m.snapshot().last_purchase->model!=235,"selection preserves post-operation inventory order and every used flag regardless of selected slot");roundtrip(m);}
+    check(selected==std::set<CardId>{6,236,57},"seed sweep reaches every eligible unused commodity while excluding used miracle");
+}
+
+void self_buy_dream_reveals_only_chosen_copy_and_queries_use_faces(){
+    MatchConfig cap;cap.max_decisions=1;auto state=scene({5,6},{});state.players[0].curses={Curse::dream};state.players[0].items[1].fake_model=19;auto other=state;other.players[0].items[1].model=57;
+    auto a=fixture(state,cap),b=fixture(other,cap);check(a.observe(0)==b.observe(0)&&a.observe({})==b.observe({}),"self inspector initially cannot distinguish same-face actual power or price");
+    std::uint64_t pa=123,pb=123;for(unsigned i=0;i<256;++i){const auto sa=a.snapshot(),sb=b.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb)&&a.snapshot()==sa&&b.snapshot()==sb,"self BUY proposal and legal queries use displayed models and never peek at actual price or reveal masks");}
+    for(auto* m:{&a,&b}){const auto actual=static_cast<CardId>(m==&a?6:57);m->step({0,CommandKind::buy,{0},0});check(m->snapshot().last_reveals==std::vector<RevealedItem>{{0,19,actual,false}}&&m->snapshot().state.players[0].items==std::vector<ItemInstance>{{1,actual,{},false}}&&m->snapshot().last_purchase->model==actual&&m->snapshot().dream_rolls==0,"self inspection publicly unmasks the chosen existing copy and resolves its actual price without new masks at cutoff");roundtrip(*m);}
+    auto multiple=scene({5,6,6,57},{});multiple.players[0].curses={Curse::dream};multiple.players[0].items[1].fake_model=19;multiple.players[0].items[2].fake_model=7;multiple.players[0].items[3].fake_model=8;
+    std::set<ItemToken> tokens;
+    for(std::uint64_t seed=0;seed<128;++seed){Match m(cap);m.load_scene(multiple,0,seed);m.step({0,CommandKind::buy,{0},0});check(m.snapshot().last_reveals.size()==1&&m.snapshot().state.players[0].items.size()==3,"duplicate-model commodities still reveal exactly one physical copy");std::size_t revealed=0;
+        for(std::size_t i=0;i<3;++i){const auto& item=m.snapshot().state.players[0].items[i];check(item.token==multiple.players[0].items[i+1].token&&item.model==multiple.players[0].items[i+1].model,"inspection does not reorder copies or replace token identity");if(!item.fake_model){++revealed;tokens.insert(item.token);}}
+        check(revealed==1,"unchosen duplicate masks remain private and intact");roundtrip(m);}
+    check(tokens==std::set<ItemToken>{1,2,3},"candidate sampling is over physical copies, including duplicates");
+}
+
+void self_buy_fog_team_capacity_and_sampler_do_not_peek(){
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;MatchConfig cap;cap.max_decisions=1;cap.hand_limit=2;cap.initial_hand=0;
+    SnapshotState state;state.players={player(max_wire_integer,{5,57},Team::one),player(7,{},Team::two),player(9,{},Team::one),player(42,{},Team::two),player(55,{},Team::two)};state.players[0].curses={Curse::fog};state.players[4].dead=true;state.players[4].hp=0;
+    Match m(cap);m.load_scene(state,max_wire_integer,0);const auto original=m.snapshot();const Command self{max_wire_integer,CommandKind::buy,{0},max_wire_integer};check(m.legal(self)&&m.snapshot()==original,"self BUY remains legal with full hand, Fog and arbitrary safe-integer owner ID");
+    reject(m,{max_wire_integer,CommandKind::buy,{0},55});reject(m,{max_wire_integer,CommandKind::buy,{0},999});m.step(self);
+    check(m.snapshot().rng==draw&&!m.snapshot().last_fog&&m.snapshot().last_purchase->buyer==max_wire_integer&&m.snapshot().last_purchase->seller==max_wire_integer,"self target bypasses Fog reselection even with multiple enemies and teammates");roundtrip(m);
+    auto own=scene({5,6},{}),foreign=own;for(ItemToken i=0;i<18;++i)foreign.players[1].items.push_back({i,57,{},false});auto a=fixture(own),b=fixture(foreign);std::uint64_t pa=42,pb=42;std::set<PlayerId> buyers;
+    for(unsigned i=0;i<1024;++i){const auto sa=a.snapshot(),sb=b.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb)&&a.snapshot()==sa&&b.snapshot()==sb,"self and foreign BUY proposals depend only on visible own inventory and public alive roster");if(ca.kind==CommandKind::buy)buyers.insert(*ca.target);}
+    check(buyers==std::set<PlayerId>{0,7},"sampler actually includes self and foreign living targets");
+}
+
+void self_buy_events_failures_cutoff_and_shape_guards(){
+    auto state=scene({5,6},{});state.players[0].curses={Curse::dream};state.players[0].items[1].fake_model=57;
+    auto m=fixture(state);m.step({0,CommandKind::buy,{0},0});const auto event=m.snapshot();for(const auto& command:std::vector<Command>{{7,CommandKind::accept,{},{}},{7,CommandKind::decline,{},{}},{7,CommandKind::defend,{},{}}})reject(m,command);check(m.snapshot()==event,"self inspection never leaves an accept/decline/response input phase");
+    for(unsigned error=0;error<9;++error){auto bad=event;auto& e=*bad.last_purchase;if(error==0)e.reason=PurchaseReason::bought;if(error==1)e.buyer=7;if(error==2)e.seller=7;if(error==3)e.origin=7;if(error==4)e.model=201;if(error==5)++e.price;if(error==6)e.model=0;if(error==7)e.reason=static_cast<PurchaseReason>(6);if(error==8)e.overflow_model=6;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==event,"quiescent self inspection enforces reason, aliases, origin, supported commodity, price and absence of overflow");}
+    m.step(pray(7));check(!m.snapshot().last_purchase&&m.snapshot().last_reveals.empty(),"next accepted main clears inspection result and public reveal");roundtrip(m);
+    for(unsigned failure=0;failure<3;++failure){auto state=scene({5,6},{});state.players[0].curses={Curse::dream};state.players[0].items[1].fake_model=57;if(failure==0)state.players[0].items[1].token=max_wire_integer;if(failure==1)state.update_count=max_wire_integer;if(failure==2)state.gf=max_wire_integer;
+        auto late=fixture(state);const auto exact=late.snapshot();bool threw=false;try{late.step({0,CommandKind::buy,{0},0});}catch(const MatchError&){threw=true;}check(threw&&late.snapshot()==exact,"late gift/update/GF failure rolls back self inspection, unmask, selected operation, resources, event and RNG");}
+    MatchConfig cap;cap.max_decisions=1;auto token=state;token.players[0].items[1].token=max_wire_integer;auto cut=fixture(token,cap);cut.step({0,CommandKind::buy,{0},0});check(cut.snapshot().truncated&&cut.snapshot().last_purchase->reason==PurchaseReason::self_inspection&&!cut.snapshot().state.players[0].items[0].fake_model&&cut.snapshot().next_token==max_wire_integer+1,"cutoff preserves completed inspection and old maximum token while cancelling only deferred gift");roundtrip(cut);
+    auto sick=scene({5,6},{});sick.players[0].hp=1;sick.players[0].curses={Curse::cold};auto death=fixture(sick);death.step({0,CommandKind::buy,{0},0});check(death.done()&&death.snapshot().terminated&&death.snapshot().state.players[0].dead&&death.snapshot().last_purchase->reason==PurchaseReason::self_inspection&&death.snapshot().state.players[0].items.size()==1,"inspection resolves before original-owner disease death and survives cancellation of operation gift");roundtrip(death);
+    auto empty=fixture(scene({5},{}),cap);empty.step({0,CommandKind::buy,{0},0});auto bad=empty.snapshot();bad.last_purchase->origin=7;const auto exact=empty.snapshot();bool failed=false;try{empty.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&empty.snapshot()==exact,"empty self inspection still requires its main owner as origin");
+}
+
+void self_buy_seeded_rollouts_remain_replayable(){
+    for(unsigned count:{2u,9u})for(std::uint64_t seed=0;seed<16;++seed){SnapshotState state;for(unsigned seat=0;seat<count;++seat)state.players.push_back(player(seat?100+seat:0,seat?std::initializer_list<CardId>{190,57,235}:std::initializer_list<CardId>{5,5,6,235,208},count==9?static_cast<Team>(seat%5):Team::solo));state.players[0].curses={Curse::cold,Curse::fog,Curse::dream};state.players[0].items[2].fake_model=57;state.players[0].items[3].used=true;state.players[0].cp=0;
+        MatchConfig cap;cap.max_decisions=48;Match a(cap),b(cap);a.load_scene(state,0,seed);b.load_scene(state,0,seed);const Command command{0,CommandKind::buy,{0},0};check(a.step(command)==b.step(command)&&a.snapshot()==b.snapshot(),"seeded self inspection produces identical complete state with Dream/Fog/disease and used miracles");roundtrip(a);std::uint64_t pa=seed,pb=seed;
+        while(!a.done()){const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&b.legal(cb),"self-enabled policy remains deterministic and legal");check(a.step(ca)==b.step(cb)&&a.snapshot()==b.snapshot(),"later commands replay complete state after self inspection");roundtrip(a);}}
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -1673,6 +1738,12 @@ int main(){
     redraw_private_inventory_and_public_event_lifetime();
     redraw_trade_and_original_payload_survive_replacement();
     redraw_snapshot_adversaries_and_late_atomic_failures();
+    self_buy_inspects_same_copy_without_money_or_quote();
+    self_buy_empty_and_used_miracles_preserve_candidate_order();
+    self_buy_dream_reveals_only_chosen_copy_and_queries_use_faces();
+    self_buy_fog_team_capacity_and_sampler_do_not_peek();
+    self_buy_events_failures_cutoff_and_shape_guards();
+    self_buy_seeded_rollouts_remain_replayable();
     checkpoint_cutoff_and_seeded_multiplayer();
-    std::cout<<"Experimental official match passed (234subset/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
+    std::cout<<"Experimental official match passed (234subset/self-buy/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

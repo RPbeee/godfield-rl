@@ -253,7 +253,6 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
         require(models.size() == 1 && models.front() == 5 && command.target, "buy needs one operation and explicit target");
         const auto& seller = s.state.players[index(s, *command.target)];
         require(!seller.dead, "purchase target is dead");
-        if (seller.id == own.id) unsupported("self purchase is not implemented");
         return actual_models;
     }
     require(!models.empty(), "play needs items");
@@ -384,6 +383,7 @@ const char* purchase_reason_name(PurchaseReason reason) {
     case PurchaseReason::empty: return "empty";
     case PurchaseReason::insufficient_cp: return "insufficient-cp";
     case PurchaseReason::cutoff: return "cutoff";
+    case PurchaseReason::self_inspection: return "self_inspection";
     }
     invalid("unknown purchase result");
 }
@@ -432,6 +432,12 @@ void begin_purchase(MatchSnapshot& s, const EffectFrame& effect) {
     if (!count) { s.last_purchase = PurchaseEvent{effect.origin,effect.source,effect.target,0,0,PurchaseReason::empty}; return; }
     const auto slot = candidates[bounded(s.rng, count)];
     reveal_item(s, seller.id, seller.items[slot]);
+    if (effect.source == effect.target) {
+        // A self-directed BUY inspects one existing copy; it never enters escrow.
+        const auto model = seller.items[slot].model;
+        s.last_purchase = PurchaseEvent{effect.origin,effect.source,effect.target,model,find_card(model)->price,PurchaseReason::self_inspection};
+        return;
+    }
     s.purchase = PurchaseOffer{effect.origin,effect.source,effect.target,seller.items[slot],slot};
     seller.items.erase(seller.items.begin() + static_cast<std::ptrdiff_t>(slot));
     const auto& buyer = s.state.players[index(s, effect.source)];
@@ -794,7 +800,12 @@ void validate_snapshot(const MatchSnapshot& s) {
             && !s.last_danger && !s.last_removal && !s.last_sale, "invalid purchase event boundary");
         const auto& event = *s.last_purchase;
         (void)index(s, event.origin); (void)index(s, event.buyer); (void)index(s, event.seller);
-        require(event.buyer != event.seller && static_cast<unsigned>(event.reason) <= 4, "invalid purchase result");
+        require(static_cast<unsigned>(event.reason) <= 5, "invalid purchase result reason");
+        if (event.reason == PurchaseReason::self_inspection)
+            require(event.buyer == event.seller && event.origin == event.buyer, "invalid self inspection participants");
+        else if (event.reason != PurchaseReason::empty)
+            require(event.buyer != event.seller, "foreign purchase result aliases its participants");
+        else require(event.buyer != event.seller || event.origin == event.buyer, "invalid self empty inspection origin");
         require(!event.overflow_model || (event.reason == PurchaseReason::bought && match_supported(*event.overflow_model)), "invalid purchase overflow model");
         if (event.reason == PurchaseReason::empty) require(event.model == 0 && event.price == 0, "empty purchase has a commodity");
         else require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid purchase result price");
@@ -1053,7 +1064,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
                     add(CommandKind::sell, item.token, {});
             }
             else if (c.ability == Ability::buy) {
-                for (const auto& target : data_.state.players) if (!target.dead && target.id != actor) add(CommandKind::buy,item.token,target.id);
+                for (const auto& target : data_.state.players) if (!target.dead) add(CommandKind::buy,item.token,target.id);
             }
             else if (can_start_main(face_model(item))) {
                 if (c.hit_rate) add_usable(CommandKind::play, item, {});
@@ -1127,7 +1138,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v27\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v28\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

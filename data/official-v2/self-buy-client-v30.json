@@ -1,0 +1,6013 @@
+{
+  "schema_version": 1,
+  "scope": "public-client-target-and-submit-only;not-server-buy-transitions",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "methods": [
+    "jO.aT target selection",
+    "jS.$0 submit preflight until first await",
+    "h8.aG alive click roster",
+    "c5.ce team relationship",
+    "A.ld magic cost"
+  ],
+  "helper_sha256": {
+    "target": "c7e9dcc6c728ad7ebdc5ee88bcb228c097486abb61eb4dde6f9428cd2df14df3",
+    "submit": "1c49f49bf1aa42e931935bafe4a589918a557863e23cb8232769740f67f73048"
+  },
+  "counts": {
+    "cases": 108,
+    "captured_rpcs": 108,
+    "cp_reads": 0
+  },
+  "cases": [
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": false
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": false
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "ally",
+        "repeat_same_target": false
+      },
+      "target_id": 9,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          9,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "ally",
+        "repeat_same_target": true
+      },
+      "target_id": 9,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          9,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "dead",
+        "repeat_same_target": false
+      },
+      "target_id": 55,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          55,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "dead",
+        "repeat_same_target": true
+      },
+      "target_id": 55,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          55,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "unknown",
+        "repeat_same_target": false
+      },
+      "target_id": 99,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          99,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "unknown",
+        "repeat_same_target": true
+      },
+      "target_id": 99,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          99,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "none",
+        "repeat_same_target": false
+      },
+      "target_id": null,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "none",
+        "repeat_same_target": true
+      },
+      "target_id": null,
+      "target_is_in_alive_click_roster": false,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 0,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 0,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 77,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 77
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 77,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 0,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 0,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": false,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": false,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "self",
+        "repeat_same_target": true
+      },
+      "target_id": 9007199254740991,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9007199254740991
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "target-player",
+        "command"
+      ],
+      "visuals": [
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          0
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    },
+    {
+      "input": {
+        "owner_id": 9007199254740991,
+        "mp": 99,
+        "cp": 99,
+        "fog": true,
+        "dream": true,
+        "target_kind": "enemy",
+        "repeat_same_target": true
+      },
+      "target_id": 7,
+      "target_is_in_alive_click_roster": true,
+      "direct_target_method_retained": true,
+      "same_target_reselection_noop": true,
+      "cp_reads": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "selection_and_target_cleared_after_submit": true,
+      "sounds": [
+        "fog",
+        "command"
+      ],
+      "visuals": [
+        [
+          "foreign-pane",
+          1,
+          7,
+          false
+        ],
+        [
+          "arrow",
+          1
+        ],
+        [
+          "set-pane",
+          1,
+          null
+        ],
+        [
+          "arrow",
+          null
+        ],
+        [
+          "consume-selection-visual",
+          101
+        ]
+      ]
+    }
+  ],
+  "network_or_application_startup": false,
+  "conclusions": [
+    "A single selected BUY model5 is submitted with physical itemIds and an explicitly selected self targetPlayerId, including player0 and the maximum safe integer ID.",
+    "The selected BUY costs0MP in this preflight; CP is not read. MP0, CP0, Fog and Dream do not insert a self-BUY rejection here.",
+    "jO.aT directly retains self/enemy/ally objects and repeated reference-identical selection is a no-op. It also lacks its own dead/unknown-object validation, but those objects are excluded from the normal alive roster or are absent from it.",
+    "Actual dead-player or unknown-target server acceptance is not established. The direct method and forced-submit cases are not a claim that ordinary UI clicks make those targets legal."
+  ],
+  "limitations": [
+    "Visual operations, sound, Future scheduling and the backend RPC are stubbed. Actual target/preflight/command construction code runs unchanged through the first await; no server response path runs.",
+    "This does not establish self-BUY commodity choice, price affordability, costs, gifts, consume/return/escrow/quote, payment, reveal, death or cutoff schedule. Those are explicit experimental engine contracts.",
+    "The input cp value is an annotation, not a wire field. Its accessor deliberately throws on read to prove this specific submit path does not consult CP.",
+    "The report does not establish full official legality or equivalence for other trade commands or future client/catalog versions."
+  ],
+  "generator": "node scripts/official_self_buy_oracle.cjs --client /path/to/main.dart.js [--check]"
+}

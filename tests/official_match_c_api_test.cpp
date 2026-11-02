@@ -29,7 +29,7 @@ int main() {
         && gfo_match_status_size() == sizeof(gfo_match_status), "ABI sizes");
     check(gfo_match_catalog_count() == 234 && gfo_match_gift_weight() == 495 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v29"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v30"
         && std::string(gfo_match_scope()) == "experimental:234-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -263,7 +263,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v27\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v28\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -1431,8 +1431,8 @@ int main() {
             && observe(effect_match) == before_buy, "invalid BUY role and allocation reject atomically");
     }
     auto self_buy = buy; self_buy.target = 0; result = buy_status;
-    check(gfo_match_step(effect_match, &self_buy, &result) == -5 && equal(result, buy_status)
-        && observe(effect_match) == before_buy, "self BUY has an explicit unsupported boundary");
+    check(gfo_match_legal(effect_match, &self_buy, &legal) == 0 && legal && equal(result, buy_status)
+        && observe(effect_match) == before_buy, "self BUY is a legal pure query before its separate inspection path");
     gfo_match_command buy_pass{}; buy_pass.kind = 1; buy_pass.actor = 77;
     check(gfo_match_step(effect_match, &buy, &result) == 0 && result.phase == 1
         && observe(effect_match).find("\"purchase\":null") != std::string::npos
@@ -1862,6 +1862,61 @@ int main() {
         &&redraw_public.find("\"redrawn_items\"")==std::string::npos
         &&redraw_public.find("\"redraw_models\"")==std::string::npos
         &&observe(effect_match,1,77).find("\"used\":true")==std::string::npos,"replacement does not publish old hand contents or preserve used status");
+    gfo_match_destroy(effect_match);
+    // Self BUY is inspection, never an alias of foreign escrow/payment/delivery.
+    cfg.initial_hand=4;cfg.initial_mp=0;cfg.initial_cp=0;cfg.initial_hp=40;cfg.hand_limit=18;cfg.max_decisions=512;
+    check(gfo_match_create(&cfg,players.data(),2,2830,&effect_match)==0,"self inspection CP0 fixture");
+    gfo_match_command inspect_self{};inspect_self.kind=6;inspect_self.item_count=1;inspect_self.items[0]=0;inspect_self.has_target=1;
+    const auto before_inspection=observe(effect_match);const auto inspection_status=status(effect_match);
+    check(gfo_match_legal(effect_match,&inspect_self,&legal)==0&&legal&&observe(effect_match)==before_inspection,"self inspection legal query is independent of item price");
+    bool sample_self_buy=false;
+    for(uint64_t seed=0;seed<128;++seed){uint64_t policy=seed;gfo_match_command candidate{};
+        check(gfo_match_sample_action(effect_match,&policy,&candidate)==0&&gfo_match_legal(effect_match,&candidate,&legal)==0&&legal,"self-inclusive BUY sampler stays legal");
+        sample_self_buy|=candidate.kind==6&&candidate.has_target&&candidate.target==0;}
+    check(sample_self_buy&&observe(effect_match)==before_inspection&&equal(status(effect_match),inspection_status),"self inspection sampler mutates only policy RNG");
+    check(gfo_match_step(effect_match,&inspect_self,&result)==0&&result.phase==0&&result.actor==77&&result.decisions==1
+        &&hand_size(effect_match,0)==4&&!has_token(effect_match,0,0)&&has_token(effect_match,0,2)&&has_token(effect_match,0,8),"CP0 self BUY keeps its selected physical copy and gifts only the operation");
+    const std::string inspection_event="\"last_purchase\":{\"origin\":0,\"buyer\":0,\"seller\":0,\"model\":35,\"price\":4,\"bought\":false,\"reason\":\"self_inspection\",\"overflow_model\":null}";
+    for(auto viewer:{0u,77u})check(observe(effect_match,1,viewer).find(inspection_event)!=std::string::npos,"self-selected actual model and price are public");
+    const auto after_inspection=observe(effect_match);const auto after_inspection_status=status(effect_match);
+    check(observe(effect_match,0,0).find(inspection_event)!=std::string::npos
+        &&after_inspection.find("\"purchase\":null")!=std::string::npos
+        &&after_inspection.find("\"pending\":null")!=std::string::npos
+        &&after_inspection.find("\"token\":2,\"face\":35,\"reference\":35,\"disguised\":false,\"used\":false")!=std::string::npos
+        &&after_inspection.find("\"cp\":0")!=std::string::npos,"self inspection creates no quote or transfer and keeps unused state");
+    for(uint8_t kind:{uint8_t{7},uint8_t{8}}){gfo_match_command invalid{};invalid.actor=77;invalid.kind=kind;result=after_inspection_status;
+        check(gfo_match_legal(effect_match,&invalid,&legal)==0&&!legal&&gfo_match_step(effect_match,&invalid,&result)==-2
+            &&equal(result,after_inspection_status)&&observe(effect_match)==after_inspection,"self inspection cannot accept or decline and rejects atomically");}
+    gfo_match_destroy(effect_match);
+    // Empty inspection does not draw a selection ticket, and cutoff does not undo its result.
+    cfg.initial_hand=1;
+    check(gfo_match_create(&cfg,players.data(),2,346,&effect_match)==0
+        &&gfo_match_create(&cfg,players.data(),2,346,&effect_replay)==0,"empty self inspection/control pair");
+    gfo_match_command empty_control{};empty_control.kind=3;
+    check(gfo_match_step(effect_match,&inspect_self,&result)==0&&gfo_match_step(effect_replay,&empty_control,&result)==0
+        &&observe(effect_match).find("\"buyer\":0,\"seller\":0,\"model\":0,\"price\":0,\"bought\":false,\"reason\":\"empty\"")!=std::string::npos,"consuming the sole BUY precedes empty selection");
+    const auto gift_entry=[&](gfo_match* match){const auto view=observe(match);const auto start=view.find("\"token\":2,");
+        check(start!=std::string::npos,"same next gift token exists");return view.substr(start,view.find('}',start)-start+1);};
+    check(gift_entry(effect_match)==gift_entry(effect_replay)&&hand_size(effect_match,0)==1,"empty inspection and prayer use the same single gift draw");
+    gfo_match_destroy(effect_match);gfo_match_destroy(effect_replay);
+    cfg.initial_hand=4;cfg.max_decisions=1;
+    check(gfo_match_create(&cfg,players.data(),2,2830,&effect_match)==0&&gfo_match_step(effect_match,&inspect_self,&result)==0
+        &&result.truncated&&!result.terminated&&hand_size(effect_match,0)==3&&!has_token(effect_match,0,8)
+        &&observe(effect_match).find(inspection_event)!=std::string::npos,"self inspection resolves before cutoff, which cancels only deferred gift");
+    gfo_match_destroy(effect_match);
+    // Self inspection reveals the actual price/model but does not remove the disguised instance.
+    cfg.initial_hand=17;cfg.initial_mp=10;cfg.max_decisions=512;
+    check(gfo_match_create(&cfg,players.data(),2,13552,&effect_match)==0,"masked self-inspection fixture");
+    gfo_match_command inspected_dream{};inspected_dream.item_count=1;inspected_dream.items[0]=15;inspected_dream.has_target=1;
+    gfo_match_command inspected_yield{};inspected_yield.actor=77;inspected_yield.kind=2;inspected_yield.item_count=1;inspected_yield.items[0]=19;
+    check(gfo_match_step(effect_match,&inspected_dream,&result)==0&&gfo_match_step(effect_match,&inspected_yield,&result)==0
+        &&observe(effect_match).find("\"token\":34,\"face\":44,\"reference\":44,\"disguised\":true")!=std::string::npos,"Dream prepares a visibly masked own commodity");
+    inspect_self.items[0]=3;
+    check(gfo_match_step(effect_match,&inspect_self,&result)==0&&result.phase==0&&result.actor==77
+        &&hand_size(effect_match,0)==18&&has_token(effect_match,0,34)&&has_token(effect_match,0,35)&&!has_token(effect_match,0,3)
+        &&observe(effect_match).find("\"token\":34,\"face\":52,\"reference\":52,\"disguised\":false,\"used\":false")!=std::string::npos,"inspection unmasks the same physical token then gives one normal replacement");
+    for(auto viewer:{0u,77u})check(observe(effect_match,1,viewer).find("\"last_reveals\":[{\"owner\":0,\"face\":44,\"model\":52}]")!=std::string::npos
+        &&observe(effect_match,1,viewer).find("\"buyer\":0,\"seller\":0,\"model\":52,\"price\":5")!=std::string::npos,"masked self inspection publicly reports actual model and price without a token");
     gfo_match_destroy(effect_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
