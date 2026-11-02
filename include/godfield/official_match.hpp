@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v31";
-inline constexpr const char* match_scope = "experimental:234-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v32";
+inline constexpr const char* match_scope = "experimental:236-models;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -36,8 +36,10 @@ inline constexpr const char* death_rule = "experimental:revival-before-actual-de
 inline constexpr const char* overflow_rule = "experimental:trade-delivery-only;full-recipient-uniform-existing-item-in-inventory-order;one-bounded-draw;all-existing-items-including-used-miracles-and-passives;cp-debit-and-credit-before-eviction;eviction-before-fresh-delivery-and-death;no-eviction-gift-or-ability;public-model-only;no-overflow-on-decline-or-cutoff-return";
 inline constexpr const char* dream_rule = "experimental:compatible-face-only;key-category-element-ability-curse-cost-hit-rate-plus-atk-positive-def-positive;supported-other-models-in-id-order;gift-real-before-eligible-only-half-coin-zero-masks-before-uniform-face;singleton-no-extra-draw;face-choice-one-draw-including-one-candidate;no-retroactive-mask;trade-receipts-unmasked;legal-and-policy-visible-models;resolve-actual-values-and-price;use-quote-removal-overflow-reveal;quote-return-stays-unmasked;all-cure-clears-dream-and-reveals-hand-only-to-owner;mild-preserves;no-tick;redraw178-same-mask-policy";
 inline constexpr const char* redraw_rule = "experimental:response-only178;consume-entire-selection-first;selection-order-self-dream-before-each-redraw;replace-all-current-nonempty-including-used-miracles;same-count-fresh-unused-tokens;immediate-weighted-draw-with-compatible-dream-mask;reserved-gifts-excluded-and-preserved;before-incoming-body-and-revival;no-old-hand-models-or-counts-public;owner-id-only-redraw-notice;same-action-new-items-usable;no-trigger-on-discard-or-trade;max-decisions-bounds-journal";
-inline constexpr const char* guardian_rule = "experimental:externally-supplied-canonical-model245-286;main-boundary-only;source-owns-matching-guardian;explicit-alive-target-except280-all-alive;no-summon-move-target-departure-or-opportunity-sampling;metadata-values;categoryWeapons264-286-only;no-source-items-mp-fee-or-operation-gift;single-target-percent-roll-and-darkcloud-no-reroll;self-nonattack-and280-immediate;ordinary-response-counter-death-redraw-and-gifts;no-owner-tick-or-gf-advance;resume-owner-or-next-alive;one-decision-per-injection;earth285-one-deferred-gift;earth-moon-ordinary-model-selection-unsupported";
-inline constexpr std::uint32_t match_snapshot_version = 31;
+inline constexpr const char* guardian_rule = "experimental:canonical42-only;auto-after-ordinary-owner-tick-before-gifts;alive-enemy-sources-in-input-order;one-quarter-opportunity-draw-per-present-source;weighted6-5-4-3-2-for-first8;earth285-moon286-fixed-singleton-move-draw;uniform-alive-enemy-for-atk-curse-bribe-takecp-otherwise-alive-allies-including-self;singleton-target-draw;280-all-alive-no-target-draw;single-target-percent-and-darkcloud;no-fog-reselection;counter-death-fifo-before-next-source;stop-on-main-owner-death;no-internal-decisions-or-source-fee-gift;external-main-boundary-one-decision-no-auto-followup;earth-moon-general-selection-unsupported";
+inline constexpr const char* guardian_summon_rule = "experimental:201-and239-current-target;uniform-all10-in-enum-order;one-draw-including-resummon-same-type;normal-consumption-mp-retention-and-gift";
+inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
+inline constexpr std::uint32_t match_snapshot_version = 32;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 [[nodiscard]] bool match_guardian_supported(CardId id) noexcept;
 [[nodiscard]] bool match_dream_compatible(CardId actual, CardId face) noexcept;
@@ -98,7 +100,7 @@ struct EffectFrame {
     bool is_counter = false;
     bool is_death = false; // Posthumous112 has its own rate/power and allows a dead source.
     bool forced_hit = false; // DarkCloud bypassed the original percentage draw.
-    Guardian guardian = Guardian::none; // Public identity for this externally supplied payload.
+    Guardian guardian = Guardian::none; // Public guardian identity for automatic and external payloads.
     bool operator==(const EffectFrame&) const = default;
 };
 // Non-recursive privileged launch anchor and accepted response journal. Current
@@ -115,6 +117,10 @@ struct ActionBatch {
     std::uint64_t redraws = 0, redrawn_items = 0;
     std::uint64_t guardian_actions = 0;
     std::optional<GuardianAction> guardian_action;
+    std::uint64_t guardian_summons = 0, guardian_opportunities = 0, auto_guardian_actions = 0;
+    std::uint64_t guardian_departure_rolls = 0, guardian_departures = 0;
+    std::size_t guardian_cursor = 0;
+    bool guardian_stage_started = false;
     bool tick_processed = false; // Whole-action owner tick already ran before a posthumous response.
     Command attack;
     std::vector<CardId> models;
@@ -181,6 +187,14 @@ struct RevealedItem {
     bool owner_only = false; // Whole-hand cure reveals belong only to that hand owner.
     bool operator==(const RevealedItem&) const = default;
 };
+enum class GuardianChangeReason : std::uint8_t { summon, departure };
+struct GuardianChange {
+    PlayerId player = 0;
+    Guardian before = Guardian::none, after = Guardian::none;
+    GuardianChangeReason reason = GuardianChangeReason::summon;
+    std::uint16_t hidden_viewers = 0; // Event-time viewer-seat mask, never serialized.
+    bool operator==(const GuardianChange&) const = default;
+};
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
     MatchConfig config;
@@ -202,6 +216,10 @@ struct MatchSnapshot {
     std::uint64_t dream_rolls = 0, dream_masks = 0; // Private eligible-grant coin attempts and generated masks.
     std::uint64_t redraws = 0, redrawn_items = 0; // Private replacement statistics.
     std::uint64_t guardian_actions = 0; // Private accepted external activations.
+    std::uint64_t guardian_summons = 0, guardian_opportunities = 0, auto_guardian_actions = 0;
+    std::uint64_t guardian_departure_rolls = 0, guardian_departures = 0;
+    std::vector<GuardianAction> last_auto_guardians; // Launched actions only, in this main action.
+    std::vector<GuardianChange> last_guardian_changes; // Viewer-filtered at observation.
     std::optional<GuardianAction> last_guardian; // Public supplied action, no random selection state.
     std::vector<PlayerId> last_redraws; // Public owner IDs only, never replacement counts or inventory.
     std::vector<RevealedItem> last_reveals; // Current main action only; JSON filters owner-only hand reveals.

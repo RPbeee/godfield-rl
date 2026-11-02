@@ -54,6 +54,21 @@ void add_curse(PlayerState& p, Curse curse) {
     }
     if (!has_curse(p, curse)) p.curses.insert(std::lower_bound(p.curses.begin(), p.curses.end(), curse), curse);
 }
+void change_guardian(MatchSnapshot& s, PlayerState& player, Guardian after, GuardianChangeReason reason) {
+    GuardianChange event{player.id,player.guardian,after,reason,0};
+    for (std::size_t seat=0; seat<s.state.players.size(); ++seat) {
+        const auto& viewer=s.state.players[seat];
+        if (!viewer.dead && !s.state.is_over && !player.dead && has_curse(viewer,Curse::fog) && is_enemy(player,viewer))
+            event.hidden_viewers |= static_cast<std::uint16_t>(1u<<seat);
+    }
+    player.guardian=after; s.last_guardian_changes.push_back(event);
+}
+void guardian_damage(MatchSnapshot& s, PlayerState& player, std::int64_t loss) {
+    if (loss<=0 || player.guardian==Guardian::none) return;
+    ++s.guardian_departure_rolls;
+    if (bounded(s.rng,100)<10) { ++s.guardian_departures; change_guardian(s,player,Guardian::none,GuardianChangeReason::departure); }
+}
+
 void closed_state(const SnapshotState& s, const MatchConfig& c) {
     validate_state(s);
     require(s.players.size() >= 2, "scoped match needs 2..9 players");
@@ -100,9 +115,9 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 495>& gift_tickets() {
+const std::array<CardId, 499>& gift_tickets() {
     static const auto pool = [] {
-        std::array<CardId, 495> values{};
+        std::array<CardId, 499> values{};
         std::size_t n = 0, models = 0;
         for (const auto& c : catalog()) if (match_supported(c.id)) {
             ++models;
@@ -111,7 +126,7 @@ const std::array<CardId, 495>& gift_tickets() {
                 values[n++] = c.id;
             }
         }
-        if (n != values.size() || models != 234) throw std::logic_error("scoped catalog changed");
+        if (n != values.size() || models != 236) throw std::logic_error("scoped catalog changed");
         return values;
     }();
     return pool;
@@ -476,18 +491,21 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         if (remaining && effect.element != Element::darkness) {
             if (effect.ability == Ability::absorb_hp)
                 change_resource(s.state.players[index(s, effect.source)], Resource::hp, remaining);
-            else if (effect.ability == Ability::deal_same_damage)
-                change_resource(s.state.players[index(s, effect.source)], Resource::hp, -remaining);
+            else if (effect.ability == Ability::deal_same_damage) {
+                auto& source=s.state.players[index(s,effect.source)]; const auto hp=source.hp;
+                change_resource(source,Resource::hp,-remaining); guardian_damage(s,source,hp-source.hp);
+            }
         }
         const auto hp = target.hp;
         if (remaining && effect.element == Element::darkness) target.hp = 0;
         else change_resource(target, Resource::hp, -remaining);
         target_damage = hp - target.hp;
         if (target_damage > 0 && effect.ability == Ability::add_curse_on_damage) add_curse(target, find_card(effect.models.front())->curse);
+        guardian_damage(s,target,target_damage);
     } else {
         switch (effect.ability) {
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
-        case Ability::boost_hp_or_deal_damage: change_resource(target, Resource::hp, effect.amount); break;
+        case Ability::boost_hp_or_deal_damage: { const auto hp=target.hp; change_resource(target, Resource::hp, effect.amount); guardian_damage(s,target,hp-target.hp); break; }
         case Ability::boost_mp: change_resource(target, Resource::mp, effect.amount); break;
         case Ability::boost_mp_and_add_curse:
             change_resource(target, Resource::mp, effect.amount);
@@ -496,6 +514,10 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         case Ability::boost_cp: case Ability::boost_cp_to_enemy: case Ability::boost_cp_of_everybody:
             change_resource(target, Resource::cp, effect.amount); break;
         case Ability::add_item: request_gift(s, index(s, target.id)); break;
+        case Ability::set_guardian:
+            ++s.guardian_summons;
+            change_guardian(s,target,static_cast<Guardian>(1+bounded(s.rng,10)),GuardianChangeReason::summon);
+            break;
         case Ability::take_cp:
             change_resource(target, Resource::cp, -effect.amount);
             change_resource(s.state.players[index(s, effect.source)], Resource::cp, effect.amount);
@@ -532,6 +554,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
     return target_damage;
 }
 bool next_action_effect(MatchSnapshot& s);
+bool next_automatic_guardian(MatchSnapshot& s);
 void advance(MatchSnapshot& s) {
     auto& owner = s.state.players[index(s, s.owner)];
     const auto external = s.batch->guardian_action.has_value();
@@ -556,6 +579,7 @@ void advance(MatchSnapshot& s) {
     }
     s.batch->tick_processed = true;
     if (next_action_effect(s)) return;
+    if (!external && next_automatic_guardian(s)) return;
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
         while (s.gifts[seat]) {
             if (!s.state.players[seat].dead) gift(s, seat);
@@ -634,6 +658,54 @@ bool next_action_effect(MatchSnapshot& s) {
     }
     return false;
 }
+const std::vector<CardId>& guardian_moves(Guardian guardian) {
+    static const auto moves=[] {
+        std::array<std::vector<CardId>,11> result;
+        for (const auto& card:catalog()) if (match_guardian_supported(card.id)) {
+            const auto weight=card.guardian_attack_rate ? card.guardian_attack_rate : 1;
+            for (int i=0;i<weight;++i) result[static_cast<std::size_t>(card.guardian)].push_back(card.id);
+        }
+        for (std::size_t i=1;i<result.size();++i)
+            if (result[i].size()!=(i<=8?20u:1u)) throw std::logic_error("canonical guardian table changed");
+        return result;
+    }();
+    return moves[static_cast<std::size_t>(guardian)];
+}
+bool next_automatic_guardian(MatchSnapshot& s) {
+    auto& batch=*s.batch; batch.guardian_stage_started=true;
+    if (s.state.players[index(s,batch.owner)].dead) { batch.guardian_cursor=s.state.players.size(); return false; }
+    while (batch.guardian_cursor<s.state.players.size()) {
+        const auto seat=batch.guardian_cursor++; const auto& source=s.state.players[seat];
+        if (source.dead || source.guardian==Guardian::none || !is_enemy(source,s.state.players[index(s,batch.owner)])) continue;
+        ++s.guardian_opportunities;
+        if (bounded(s.rng,100)>=25) continue;
+        const auto& moves=guardian_moves(source.guardian); const auto model=moves[bounded(s.rng,moves.size())];
+        const auto& card=*find_card(model); GuardianAction action{source.id,model,{}};
+        if (card.ability!=Ability::boost_cp_of_everybody) {
+            const auto hostile=card.atk>0 || card.ability==Ability::add_curse || card.ability==Ability::boost_cp_to_enemy || card.ability==Ability::take_cp;
+            std::array<PlayerId,player_capacity> targets{}; std::size_t count=0;
+            for (const auto& target:s.state.players) if (!target.dead && is_enemy(source,target)==hostile) targets[count++]=target.id;
+            require(count>0,"automatic guardian has no target"); action.target=targets[bounded(s.rng,count)];
+        }
+        ++s.auto_guardian_actions; s.last_guardian=action; s.last_auto_guardians.push_back(action);
+        if (!action.target) {
+            for (auto target:alive_players(s.state)) resolve(s,guardian_effect_for(action,target,s.rng),0);
+            continue;
+        }
+        auto effect=guardian_effect_for(action,*action.target,s.rng);
+        if (effect.hit_rate) {
+            effect.forced_hit=has_curse(s.state.players[index(s,*action.target)],Curse::darkcloud);
+            if (effect.forced_hit) ++s.chance_forced_hits;
+            else { ++s.chance_rolls; if (bounded(s.rng,100)>=static_cast<std::uint64_t>(effect.hit_rate)) continue; ++s.chance_hits; }
+        }
+        effect.redirect_rng=s.rng;
+        if (!damaging(effect) && effect.source==effect.target) { resolve(s,effect,0); continue; }
+        s.queue.push_back(std::move(effect)); s.phase=MatchPhase::response; s.actor=*action.target;
+        return true;
+    }
+    return false;
+}
+
 void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Command& response,
                       std::span<const CardId> models, std::int64_t damage) {
     if (!damaging(incoming) || damage <= 0 || s.state.players[index(s, response.actor)].dead) return;
@@ -660,6 +732,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
     s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset();
+    s.last_auto_guardians.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
     ActionBatch batch;
@@ -673,6 +746,8 @@ ActionBatch action_anchor(const MatchSnapshot& s) {
     batch.dream_rolls = s.dream_rolls; batch.dream_masks = s.dream_masks;
     batch.redraws = s.redraws; batch.redrawn_items = s.redrawn_items;
     batch.guardian_actions = s.guardian_actions;
+    batch.guardian_summons=s.guardian_summons; batch.guardian_opportunities=s.guardian_opportunities; batch.auto_guardian_actions=s.auto_guardian_actions;
+    batch.guardian_departure_rolls=s.guardian_departure_rolls; batch.guardian_departures=s.guardian_departures;
     batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
     batch.death_rolls = s.death_rolls; batch.death_hits = s.death_hits; batch.death_forced_hits = s.death_forced_hits;
     return batch;
@@ -821,16 +896,36 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
     const auto n = s.state.players.size();
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
-    require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= player_capacity * s.decisions, "invalid chance attempt counters");
-    require(s.chance_forced_hits <= player_capacity * s.decisions - s.chance_rolls, "invalid forced chance count");
+    require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= 2 * player_capacity * s.decisions, "invalid chance attempt counters");
+    require(s.chance_forced_hits <= 2 * player_capacity * s.decisions - s.chance_rolls, "invalid forced chance count");
     require(s.counter_hits <= s.counter_rolls && s.counter_rolls <= s.counter_created
         && s.counter_hits <= s.counter_started && s.counter_started <= s.counter_created
         && s.counter_created <= s.config.hand_limit * s.decisions, "invalid counter statistics");
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     require(s.guardian_actions <= s.decisions, "invalid guardian activation count");
+    require(s.guardian_summons<=s.decisions && s.guardian_opportunities<=player_capacity*s.decisions
+        && s.auto_guardian_actions<=s.guardian_opportunities && s.guardian_departures<=s.guardian_departure_rolls
+        && s.guardian_departure_rolls<=2*s.decisions,"invalid guardian lifecycle counts");
+    require(s.last_auto_guardians.size()<=n && s.last_auto_guardians.size()<=s.auto_guardian_actions,"invalid automatic guardian log");
+    std::size_t previous_seat=0; bool first_auto=true;
+    for (const auto& action:s.last_auto_guardians) {
+        require(match_guardian_supported(action.model),"invalid automatic model"); const auto seat=index(s,action.source);
+        require(first_auto || seat>previous_seat,"automatic source order invalid"); first_auto=false; previous_seat=seat;
+        if (find_card(action.model)->ability==Ability::boost_cp_of_everybody) require(!action.target,"automatic global target");
+        else { require(action.target.has_value(),"automatic target missing"); (void)index(s,*action.target); }
+    }
+    require(s.last_guardian_changes.size()<=3*s.decisions,"oversized guardian change log");
+    for (const auto& event:s.last_guardian_changes) {
+        (void)index(s,event.player);
+        require(static_cast<unsigned>(event.before)<=10 && static_cast<unsigned>(event.after)<=10
+            && static_cast<unsigned>(event.reason)<=1 && (event.hidden_viewers>>n)==0,"invalid guardian change");
+        if (event.reason==GuardianChangeReason::summon) require(event.after!=Guardian::none,"empty summoned guardian");
+        else require(event.before!=Guardian::none && event.after==Guardian::none,"invalid departed guardian");
+    }
+    if (!s.last_auto_guardians.empty()) require(s.last_guardian && *s.last_guardian==s.last_auto_guardians.back(),"latest automatic guardian mismatch");
     if (s.last_guardian) {
-        require(s.guardian_actions > 0 && s.decisions > 0 && match_guardian_supported(s.last_guardian->model), "invalid guardian event");
+        require((s.guardian_actions > 0 || s.auto_guardian_actions>0) && s.decisions > 0 && match_guardian_supported(s.last_guardian->model), "invalid guardian event");
         (void)index(s,s.last_guardian->source);
         if (find_card(s.last_guardian->model)->ability == Ability::boost_cp_of_everybody)
             require(!s.last_guardian->target, "global guardian event has target");
@@ -922,9 +1017,9 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& tick = *s.last_tick;
         const auto& owner = s.state.players[index(s, tick.owner)];
         require(s.decisions > 0 && (s.phase == MatchPhase::main || s.phase == MatchPhase::finished || (s.batch && s.batch->tick_processed))
-            && disease(tick.before) && disease(tick.after) && has_curse(owner, tick.after)
-            && tick.hp_before >= 1 && tick.hp_before <= 99 && tick.hp_after >= 0 && tick.hp_after <= 99 && owner.hp == tick.hp_after
-            && owner.dead == (tick.hp_after == 0),
+            && disease(tick.before) && disease(tick.after) && (s.last_auto_guardians.empty() ? has_curse(owner,tick.after) : true)
+            && tick.hp_before >= 1 && tick.hp_before <= 99 && tick.hp_after >= 0 && tick.hp_after <= 99
+            && (!s.last_auto_guardians.empty() || (owner.hp==tick.hp_after && owner.dead==(tick.hp_after==0))),
             "invalid disease tick boundary");
         const auto after = tick.worsened && tick.before != Curse::heaven ? static_cast<Curse>(static_cast<int>(tick.before) + 1) : tick.before;
         require(tick.after == after && tick.fallen == (tick.worsened && tick.before == Curse::heaven), "invalid disease tick progression");
@@ -971,6 +1066,9 @@ void validate_snapshot(const MatchSnapshot& s) {
             && (batch.guardian_action ? (batch.models == std::vector<CardId>{batch.guardian_action->model} && batch.attack == Command{})
                 : (batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()))
             && batch.targets.size() <= 2 * (n - 1) && batch.cursor <= batch.targets.size(), "invalid action batch shape");
+        require(batch.guardian_cursor<=n && (batch.guardian_stage_started || !batch.guardian_cursor)
+            && (!batch.guardian_stage_started || (batch.tick_processed && batch.cursor==batch.targets.size()))
+            && (!batch.guardian_action || (!batch.guardian_stage_started && !batch.guardian_cursor)),"invalid guardian stage");
         require(batch.decisions < s.decisions, "invalid action decision anchor");
         const auto action_decisions = s.decisions - batch.decisions;
         require(batch.counters_created <= action_decisions * s.config.hand_limit && s.counters.size() <= batch.counters_created
@@ -993,6 +1091,8 @@ void validate_snapshot(const MatchSnapshot& s) {
         replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
         replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
         replay.guardian_actions = batch.guardian_actions;
+        replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
+        replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
         replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
         replay.death_rolls = batch.death_rolls; replay.death_hits = batch.death_hits; replay.death_forced_hits = batch.death_forced_hits;
         replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
@@ -1025,7 +1125,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::counter_atk || c->ability == Ability::counter2x_atk
             || c->ability == Ability::counter_boost2x_mp || c->ability == Ability::counter_take_cp
             || c->ability == Ability::absorb_hp || c->ability == Ability::deal_same_damage || c->ability == Ability::attack_dyingly || curse
-            || c->ability == Ability::self_curse || c->ability == Ability::self_curse_and_redraw || c->ability == Ability::boost_mp_and_add_curse
+            || c->ability == Ability::set_guardian || c->ability == Ability::self_curse || c->ability == Ability::self_curse_and_redraw || c->ability == Ability::boost_mp_and_add_curse
             || c->ability == Ability::remove_mild_curses || c->ability == Ability::remove_all_curses
             || c->ability == Ability::remove_items || c->ability == Ability::remove_used_miracles
             || c->ability == Ability::atk_by2x_mp || c->ability == Ability::attack_twice || c->ability == Ability::attack_every_enemy
@@ -1225,7 +1325,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v29\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v30\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1255,12 +1355,33 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"overflow_rule\":\""; out += overflow_rule;
     out += "\",\"dream_rule\":\""; out += dream_rule;
     out += "\",\"redraw_rule\":\""; out += redraw_rule;
-    out += "\",\"guardian_rule\":\""; out += guardian_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"guardian_rule\":\""; out += guardian_rule;
+    out += "\",\"guardian_summon_rule\":\""; out += guardian_summon_rule;
+    out += "\",\"guardian_departure_rule\":\""; out += guardian_departure_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
     out += ",\"truncated\":"; out += data_.truncated ? "true" : "false";
     out += ",\"decisions\":" + std::to_string(data_.decisions) + ",\"board\":" + view_json(board);
+    const auto guardian_json=[&](const GuardianAction& action) {
+        out += "{\"source\":"+std::to_string(action.source)+",\"model\":"+std::to_string(action.model)+",\"guardian\":\"";
+        out += guardian_name(find_card(action.model)->guardian); out += "\",\"target\":";
+        out += action.target ? std::to_string(*action.target) : "null"; out += '}';
+    };
+    out += ",\"last_auto_guardians\":[";
+    for (std::size_t i=0;i<data_.last_auto_guardians.size();++i) { if(i)out+=','; guardian_json(data_.last_auto_guardians[i]); } out+=']';
+    out += ",\"last_guardian_changes\":[";
+    bool first_change=true; std::uint16_t viewer_bit=0;
+    if(viewer) for(std::size_t i=0;i<data_.state.players.size();++i) if(data_.state.players[i].id==*viewer)viewer_bit=static_cast<std::uint16_t>(1u<<i);
+    for(const auto& event:data_.last_guardian_changes) if(!(event.hidden_viewers&viewer_bit)) {
+        if(!first_change)out+=','; first_change=false;
+        out += "{\"player\":"+std::to_string(event.player)+",\"before\":";
+        if(event.before==Guardian::none)out+="null";else{out+='"';out+=guardian_name(event.before);out+='"';}
+        out+=",\"after\":";
+        if(event.after==Guardian::none)out+="null";else{out+='"';out+=guardian_name(event.after);out+='"';}
+        out+=",\"reason\":\"";out+=event.reason==GuardianChangeReason::summon?"summon":"departure";out+="\"}";
+    }
+    out+=']';
     out += ",\"last_guardian\":";
     if (!data_.last_guardian) out += "null";
     else {

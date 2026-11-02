@@ -21,6 +21,14 @@ std::uint64_t parse(const char* text, bool positive = true) {
 void mix(std::uint64_t& h, std::uint64_t value) {
     for (unsigned i = 0; i < 8; ++i) { h ^= (value >> (i * 8)) & 255; h *= 1099511628211ULL; }
 }
+// Self-target202 draws its body sign first. Isolate that body from later tick,
+// revival and automatic guardian effects in the same step.
+int self_random_hp_amount(std::uint64_t rng) {
+    auto z=rng+0x9e3779b97f4a7c15ULL;
+    z=(z^(z>>30))*0xbf58476d1ce4e5b9ULL;
+    z=(z^(z>>27))*0x94d049bb133111ebULL;
+    return ((z^(z>>31))&1) ? -10 : 10;
+}
 struct Stats {
     std::uint64_t games = 0, decisions = 0, draws = 0, truncations = 0, checksum = 0;
     std::uint64_t main = 0, responses = 0, physical = 0, first_uses = 0, recasts = 0, defense_cards = 0;
@@ -58,6 +66,8 @@ struct Stats {
     std::uint64_t dream_rolls = 0, dream_masks = 0, dream_main_commands = 0, dream_masked_commands = 0, dream_public_reveals = 0, dream_private_reveals = 0;
     std::uint64_t redraws = 0, redrawn_items = 0, redraw_notices = 0;
     std::uint64_t buy_self_plays = 0, buy_self_inspections = 0, buy_self_empty = 0;
+    std::uint64_t guardian_summons = 0, guardian_opportunities = 0, auto_guardian_actions = 0, guardian_departure_rolls = 0, guardian_departures = 0;
+    std::uint64_t auto_guardian_records = 0, guardian_change_records = 0;
     std::array<std::uint64_t, player_capacity> wins{};
     void append(const Stats& s) {
         games += s.games; decisions += s.decisions; draws += s.draws; truncations += s.truncations; checksum += s.checksum;
@@ -107,6 +117,8 @@ struct Stats {
         dream_rolls += s.dream_rolls; dream_masks += s.dream_masks; dream_main_commands += s.dream_main_commands; dream_masked_commands += s.dream_masked_commands; dream_public_reveals += s.dream_public_reveals; dream_private_reveals += s.dream_private_reveals;
         redraws += s.redraws; redrawn_items += s.redrawn_items; redraw_notices += s.redraw_notices;
         buy_self_plays += s.buy_self_plays; buy_self_inspections += s.buy_self_inspections; buy_self_empty += s.buy_self_empty;
+        guardian_summons += s.guardian_summons; guardian_opportunities += s.guardian_opportunities; auto_guardian_actions += s.auto_guardian_actions; guardian_departure_rolls += s.guardian_departure_rolls; guardian_departures += s.guardian_departures;
+        auto_guardian_records += s.auto_guardian_records; guardian_change_records += s.guardian_change_records;
         for (std::size_t i = 0; i < wins.size(); ++i) wins[i] += s.wins[i];
     }
 };
@@ -132,6 +144,10 @@ int main(int argc, char** argv) {
                     std::uint64_t hash = 14695981039346656037ULL; mix(hash, i);
                     while (!match.done()) {
                         const auto command = match.sample_action(policy); const auto& before = match.snapshot();
+                        const auto summons_before=before.guardian_summons, opportunities_before=before.guardian_opportunities, auto_guardians_before=before.auto_guardian_actions;
+                        const auto departure_rolls_before=before.guardian_departure_rolls, departures_before=before.guardian_departures;
+                        const auto auto_records_before=before.phase==MatchPhase::main?0:before.last_auto_guardians.size();
+                        const auto change_records_before=before.phase==MatchPhase::main?0:before.last_guardian_changes.size();
                         const auto redraws_before = before.redraws, redrawn_items_before = before.redrawn_items;
                         const auto redraw_notices_before = before.phase == MatchPhase::main ? 0 : before.last_redraws.size();
                         const auto dream_rolls_before = before.dream_rolls, dream_masks_before = before.dream_masks;
@@ -155,12 +171,12 @@ int main(int argc, char** argv) {
                                 ++stats.flash_response_commands;
                         }
                         std::optional<PlayerId> mp_counter_target;
-                        std::int64_t mp_counter_before = 0;
+                        std::int64_t mp_counter_gain = 0;
                         if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()) {
                             const auto& effect = before.queue.front();
                             if (effect.ability == Ability::counter_boost2x_mp) {
                                 ++stats.mp_counter_resolved; mp_counter_target = effect.target;
-                                mp_counter_before = find_player(before.state, effect.target)->mp;
+                                mp_counter_gain = std::min<std::int64_t>(99-find_player(before.state, effect.target)->mp,effect.amount);
                             } else if (effect.ability == Ability::counter_take_cp) {
                                 ++stats.cp_counter_resolved; stats.cp_counter_nominal += effect.amount;
                             }
@@ -302,6 +318,9 @@ int main(int argc, char** argv) {
                             if (find_card(item->model)->ability == Ability::boost_hp_or_deal_damage) random_hp_target = command.actor;
                         }
                         const auto random_hp_before = random_hp_target ? find_player(before.state, *random_hp_target)->hp : 0;
+                        const auto random_hp_amount = !random_hp_target ? 0 : before.phase==MatchPhase::response
+                            ? before.queue.front().amount : self_random_hp_amount(before.rng);
+                        const auto random_hp_body_delta = std::clamp<std::int64_t>(random_hp_before+random_hp_amount,0,99)-random_hp_before;
                         std::optional<PlayerId> herb_target;
                         if (command.kind == CommandKind::defend && command.items.empty() && !before.queue.empty()
                             && before.queue.front().ability == Ability::boost_mp_and_add_curse) herb_target = before.queue.front().target;
@@ -316,6 +335,13 @@ int main(int argc, char** argv) {
                         mix(hash, command.allocation.has_value());
                         if (command.allocation) { mix(hash, command.allocation->hp); mix(hash, command.allocation->mp); mix(hash, command.allocation->cp); }
                         const auto step = match.step(command); ++stats.decisions;
+                        stats.guardian_summons += match.snapshot().guardian_summons-summons_before;
+                        stats.guardian_opportunities += match.snapshot().guardian_opportunities-opportunities_before;
+                        stats.auto_guardian_actions += match.snapshot().auto_guardian_actions-auto_guardians_before;
+                        stats.guardian_departure_rolls += match.snapshot().guardian_departure_rolls-departure_rolls_before;
+                        stats.guardian_departures += match.snapshot().guardian_departures-departures_before;
+                        stats.auto_guardian_records += match.snapshot().last_auto_guardians.size()-auto_records_before;
+                        stats.guardian_change_records += match.snapshot().last_guardian_changes.size()-change_records_before;
                         stats.redraws += match.snapshot().redraws - redraws_before;
                         stats.redrawn_items += match.snapshot().redrawn_items - redrawn_items_before;
                         stats.redraw_notices += match.snapshot().last_redraws.size() - redraw_notices_before;
@@ -335,7 +361,7 @@ int main(int argc, char** argv) {
                             ++stats.fog_launches;
                             if (match.snapshot().last_fog->intended != match.snapshot().last_fog->target) ++stats.fog_target_changed;
                         }
-                        if (herb_target) { ++stats.heaven_herb_resolved; stats.heaven_herb_mp_gained += find_player(match.snapshot().state, *herb_target)->mp - herb_mp_before; }
+                        if (herb_target) { ++stats.heaven_herb_resolved; stats.heaven_herb_mp_gained += std::min<std::int64_t>(20,99-herb_mp_before); }
                         if (!had_purchase && match.snapshot().purchase) ++stats.buy_quotes;
                         if (buy_result_possible && match.snapshot().last_purchase) {
                             const auto& event = *match.snapshot().last_purchase;
@@ -390,12 +416,7 @@ int main(int argc, char** argv) {
                         }
                         if (random_hp_target) {
                             ++stats.random_hp_resolved;
-                            if (revived < tick_revived || revived - tick_revived > 1) throw std::logic_error("random HP body revived multiple recipients");
-                            // A negative body may revive from HP0 to10; remove
-                            // that separate boost before classifying its actual HP loss.
-                            const auto delta = find_player(match.snapshot().state, *random_hp_target)->hp - random_hp_before
-                                - 10 * static_cast<std::int64_t>(revived - tick_revived)
-                                - (tick && tick->owner == *random_hp_target ? tick->hp_after - tick->hp_before : 0);
+                            const auto delta=random_hp_body_delta;
                             if (delta < 0) { ++stats.random_hp_damages; stats.random_hp_lost += -delta; }
                             else { ++stats.random_hp_heals; stats.random_hp_gained += delta; }
                         }
@@ -412,6 +433,8 @@ int main(int argc, char** argv) {
                                 ? match.snapshot().death_bows - death_bows_before : 0;
                             if (removed < tick_bows) throw std::logic_error("tick bow consumption exceeds missing removal copies");
                             removed -= tick_bows;
+                            if (match.snapshot().auto_guardian_actions>auto_guardians_before)
+                                removed=std::min<std::size_t>(removal_token_count,removal_ability==Ability::remove_items?3:2);
                             if (removal_ability == Ability::remove_items) { ++stats.hand_removal_resolved; stats.hand_items_removed += removed; }
                             else { ++stats.used_removal_resolved; stats.used_miracles_removed += removed; }
                             const auto& event = match.snapshot().last_removal;
@@ -443,7 +466,7 @@ int main(int argc, char** argv) {
                         stats.counter_started += match.snapshot().counter_started - started_before;
                         stats.counter_rolls += match.snapshot().counter_rolls - counter_rolls_before;
                         stats.counter_hits += match.snapshot().counter_hits - counter_hits_before;
-                        if (mp_counter_target) stats.mp_counter_gained += find_player(match.snapshot().state, *mp_counter_target)->mp - mp_counter_before;
+                        if (mp_counter_target) stats.mp_counter_gained += mp_counter_gain;
                         if (bounced && step.actor == command.actor) ++stats.self_bounce_responses;
                         mix(hash, static_cast<unsigned>(step.phase)); mix(hash, step.terminated); mix(hash, step.truncated);
                     }
@@ -495,6 +518,11 @@ int main(int argc, char** argv) {
         if (stats.buy_self_inspections + stats.buy_self_empty != stats.buy_self_plays || stats.buy_self_plays > stats.buy_plays
             || stats.buy_self_empty > stats.buy_empty || stats.buy_quotes > stats.buy_plays - stats.buy_self_plays)
             throw std::logic_error("inconsistent self purchase inspection accounting");
+        if (stats.guardian_summons>stats.main || stats.guardian_opportunities>player_capacity*stats.main
+            || stats.auto_guardian_actions>stats.guardian_opportunities || stats.guardian_departures>stats.guardian_departure_rolls
+            || stats.guardian_departure_rolls>2*stats.decisions || stats.auto_guardian_records!=stats.auto_guardian_actions
+            || stats.guardian_change_records!=stats.guardian_summons+stats.guardian_departures)
+            throw std::logic_error("inconsistent guardian lifecycle accounting");
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=" << match_scope << "\ncards=" << match_catalog().size()
             << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
@@ -525,6 +553,7 @@ int main(int argc, char** argv) {
             << "\ndream_rule=" << dream_rule
             << "\nredraw_rule=" << redraw_rule
             << "\nguardian_rule=" << guardian_rule
+            << "\nguardian_summon_rule=" << guardian_summon_rule << "\nguardian_departure_rule=" << guardian_departure_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical
@@ -578,6 +607,10 @@ int main(int argc, char** argv) {
             << "\ndeath_bows=" << stats.death_bows << "\ndeath_created=" << stats.death_created << "\ndeath_started=" << stats.death_started
             << "\ndeath_rolls=" << stats.death_rolls << "\ndeath_hits=" << stats.death_hits << "\ndeath_misses=" << stats.death_rolls - stats.death_hits
             << "\ndeath_forced_hits=" << stats.death_forced_hits << "\ndeath_responses=" << stats.death_responses
+            << "\nguardian_summons=" << stats.guardian_summons << "\nguardian_opportunities=" << stats.guardian_opportunities
+            << "\nauto_guardian_actions=" << stats.auto_guardian_actions << "\nguardian_departure_rolls=" << stats.guardian_departure_rolls
+            << "\nguardian_departures=" << stats.guardian_departures << "\nauto_guardian_records=" << stats.auto_guardian_records
+            << "\nguardian_change_records=" << stats.guardian_change_records
             << "\nredraws=" << stats.redraws << "\nredrawn_items=" << stats.redrawn_items << "\nredraw_notices=" << stats.redraw_notices
             << "\ndream_rolls=" << stats.dream_rolls << "\ndream_masks=" << stats.dream_masks
             << "\ndream_main_commands=" << stats.dream_main_commands << "\ndream_masked_commands=" << stats.dream_masked_commands
