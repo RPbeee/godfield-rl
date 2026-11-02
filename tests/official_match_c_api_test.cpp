@@ -28,10 +28,16 @@ int main() {
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
         && gfo_match_status_size() == sizeof(gfo_match_status)
         && gfo_match_guardian_action_size() == sizeof(gfo_match_guardian_action)
-        && sizeof(gfo_match_guardian_action) == 24 && gfo_state_abi_version() == 1, "ABI sizes");
+        && sizeof(gfo_match_guardian_action) == 24 && gfo_state_abi_version() == 1
+        && gfo_match_guardian_payload_action_size() == 64 && sizeof(gfo_match_guardian_payload_action) == 64
+        && offsetof(gfo_match_guardian_payload_action, models) == 16
+        && offsetof(gfo_match_guardian_payload_action, guardian) == 52
+        && offsetof(gfo_match_guardian_payload_action, model_count) == 53
+        && offsetof(gfo_match_guardian_payload_action, has_target) == 54
+        && offsetof(gfo_match_guardian_payload_action, reserved) == 55, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v32"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v33"
         && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -265,7 +271,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v30\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v31\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2035,6 +2041,71 @@ int main() {
     check(gfo_match_step(guardian_match,&auto_pass,&result)==-2&&equal(result,departed_status)&&observe(guardian_match)==departed_view,
         "invalid later input preserves departure event and status");
     gfo_match_destroy(guardian_match);
+    // Additive64-byte payload input carries catalog models without inventing
+    // inventory tokens or changing the established command/status ABI2 widths.
+    check(!gfo_match_guardian_payload_supported(0,6)&&!gfo_match_guardian_payload_supported(255,6)
+        &&!gfo_match_guardian_payload_supported(9,3)&&!gfo_match_guardian_payload_supported(9,94)
+        &&!gfo_match_guardian_payload_supported(10,231)&&!gfo_match_guardian_payload_supported(10,232),"payload membership excludes unsupported roles and families");
+    unsigned earth_count=0,moon_count=0;
+    for(uint16_t model=0;model<=296;++model){earth_count+=gfo_match_guardian_payload_supported(9,model);moon_count+=gfo_match_guardian_payload_supported(10,model);}
+    check(earth_count==120&&moon_count==26,"separate standalone Earth and Moon capabilities");
+    cfg.initial_hand=0;cfg.max_decisions=64;
+    gfo_match* payload_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&payload_match)==0,"payload bridge create");
+    const auto load_payload_scene=[&](official::Guardian guardian,uint64_t update){
+        std::array<gfo_state_player,2> people{};
+        for(auto& person:people){person.hp=99;person.mp=10;person.cp=20;}
+        people[0].id=0;people[0].item_count=1;people[1].id=7;people[1].item_offset=1;people[1].guardian=static_cast<uint8_t>(guardian);
+        gfo_state_item mirror{};mirror.token=10;mirror.model=190;
+        gfo_state_meta meta{};meta.gf=12;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,&mirror,1,nullptr,0,&scene)==0,"payload typed scene create");
+        check(gfo_match_load_scene(payload_match,scene,0,0,&result)==0,"payload scene load");gfo_state_destroy(scene);
+    };
+    load_payload_scene(official::Guardian::earth,0);
+    gfo_match_guardian_payload_action payload{};payload.source=7;payload.guardian=9;payload.model_count=3;
+    payload.models[0]=58;payload.models[1]=203;payload.models[2]=83;payload.has_target=1;
+    const auto before_payload=observe(payload_match,1,7);const auto payload_status=status(payload_match);
+    for(unsigned error=0;error<10;++error){auto bad=payload;
+        if(error==0)bad.reserved[0]=1;if(error==1)bad.reserved[8]=1;if(error==2)bad.model_count=0;
+        if(error==3)bad.model_count=19;if(error==4)bad.has_target=2;if(error==5){bad.has_target=0;bad.target=1;}
+        if(error==6)bad.models[17]=6;if(error==7)bad.guardian=8;
+        if(error==8)bad.source=official::max_wire_integer+1;if(error==9)bad.target=official::max_wire_integer+1;
+        uint8_t marker=0xa5;result=payload_status;
+        check(gfo_match_guardian_payload_legal(payload_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_guardian_payload_step(payload_match,&bad,&result)==-2&&equal(result,payload_status)
+            &&observe(payload_match,1,7)==before_payload,"payload malformed input preserves marker, status and entire view");
+    }
+    result=payload_status;uint8_t marker=0xa5;
+    check(gfo_match_guardian_payload_legal(nullptr,&payload,&marker)==-1
+        &&gfo_match_guardian_payload_legal(payload_match,nullptr,&marker)==-1
+        &&gfo_match_guardian_payload_legal(payload_match,&payload,nullptr)==-1
+        &&gfo_match_guardian_payload_step(payload_match,nullptr,&result)==-1
+        &&gfo_match_guardian_payload_step(payload_match,&payload,nullptr)==-1
+        &&marker==0xa5&&equal(result,payload_status)&&observe(payload_match,1,7)==before_payload,"payload NULL guards are atomic");
+    check(gfo_match_guardian_payload_legal(payload_match,&payload,&legal)==0&&legal
+        &&observe(payload_match,1,7)==before_payload,"supplied composition legality uses no source inventory and has no side effect");
+    check(gfo_match_guardian_payload_step(payload_match,&payload,&result)==0&&result.owner==0&&result.actor==0&&result.decisions==1,
+        "payload source remains separate from ordinary turn owner");
+    const std::string payload_event="\"last_guardian_payload\":{\"source\":7,\"guardian\":\"earth\",\"models\":[58,203,83],\"target\":0}";
+    check(observe(payload_match,0,0).find(payload_event)!=std::string::npos
+        &&observe(payload_match,0,0).find("\"power\":35")!=std::string::npos
+        &&observe(payload_match,0,0).find("\"element\":\"water\"")!=std::string::npos
+        &&observe(payload_match,1,7).find("\"hand\":[]")!=std::string::npos
+        &&observe(payload_match,0,0).find("\"mp\":0")!=std::string::npos,"MP weapon burns launch source MP once and publishes actual ordered composition");
+    gfo_match_command payload_defense{};payload_defense.kind=1;payload_defense.item_count=1;payload_defense.items[0]=10;
+    check(gfo_match_step(payload_match,&payload_defense,&result)==0&&result.actor==7
+        &&observe(payload_match,0,0).find("\"power\":35")!=std::string::npos,"redirect retains precomputed payload after source MP becomes zero");
+    payload_defense.actor=7;payload_defense.item_count=0;payload_defense.items[0]=0;
+    check(gfo_match_step(payload_match,&payload_defense,&result)==0&&result.phase==0&&result.owner==0&&result.actor==0
+        &&observe(payload_match,0,0).find("\"hp\":64")!=std::string::npos&&observe(payload_match,0,0).find("\"gf\":12")!=std::string::npos
+        &&observe(payload_match,1,7).find("\"hand\":[]")!=std::string::npos,"response completion preserves owner/GF and gives no source operation gift or retention");
+    load_payload_scene(official::Guardian::moon,official::max_wire_integer);
+    payload={};payload.source=7;payload.guardian=10;payload.models[0]=235;payload.model_count=1;payload.target=7;payload.has_target=1;
+    const auto late_view=observe(payload_match,1,7);const auto late_status=status(payload_match);result=late_status;
+    check(gfo_match_guardian_payload_legal(payload_match,&payload,&legal)==0&&legal
+        &&gfo_match_guardian_payload_step(payload_match,&payload,&result)==-2&&equal(result,late_status)
+        &&observe(payload_match,1,7)==late_view,"late update exhaustion rolls back self-heal and payload event across C ABI");
+    gfo_match_destroy(payload_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

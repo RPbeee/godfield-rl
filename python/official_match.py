@@ -3,7 +3,7 @@
 NOT authoritative official-server equivalence. No account/network access,
 checkpoint replay or learning implementation is provided. load_scene is an
 explicit privileged initializer from an immutable OfficialState, not a replay of
-server attacks/events. Guardian activations must be supplied externally.
+server attacks/events. Ordinary Earth/Moon payloads must be supplied externally.
 All model generation is restricted to the native advertised supported pool.
 """
 from __future__ import annotations
@@ -74,6 +74,13 @@ class GuardianAction:
     target: int | None = None
 
 @dataclass(frozen=True)
+class GuardianPayloadAction:
+    source: int
+    guardian: str
+    models: tuple[int, ...]
+    target: int | None = None
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -103,6 +110,9 @@ class _Command(c.Structure):
 class _GuardianAction(c.Structure):
     _fields_ = [("source", c.c_uint64), ("target", c.c_uint64), ("model", c.c_uint16),
                 ("has_target", c.c_uint8), ("reserved", c.c_uint8 * 5)]
+class _GuardianPayloadAction(c.Structure):
+    _fields_ = [("source", c.c_uint64), ("target", c.c_uint64), ("models", c.c_uint16 * 18),
+                ("guardian", c.c_uint8), ("model_count", c.c_uint8), ("has_target", c.c_uint8), ("reserved", c.c_uint8 * 9)]
 class _Status(c.Structure):
     _fields_ = [("decisions", c.c_uint64), ("owner", c.c_uint64), ("actor", c.c_uint64),
         ("player_ids", c.c_uint64 * 9), ("rewards", c.c_double * 9), ("winners", c.c_uint64 * 9),
@@ -160,6 +170,19 @@ def _guardian_action(value):
         result.target = _integer(value.target, "guardian target"); result.has_target = 1
     return result
 
+def _guardian_payload_action(value):
+    if not isinstance(value, GuardianPayloadAction): raise InvalidMatchError("guardian payload operation requires GuardianPayloadAction")
+    if type(value.guardian) is not str or value.guardian not in ("earth", "moon"):
+        raise InvalidMatchError("guardian payload requires earth or moon")
+    if type(value.models) is not tuple or not 1 <= len(value.models) <= 18:
+        raise InvalidMatchError("guardian payload requires a tuple of1..18 models")
+    result = _GuardianPayloadAction(source=_integer(value.source, "guardian payload source"),
+                                    guardian=9 if value.guardian == "earth" else 10, model_count=len(value.models))
+    for index, model in enumerate(value.models): result.models[index] = _integer(model, "guardian payload model", 0, 65535)
+    if value.target is not None:
+        result.target = _integer(value.target, "guardian payload target"); result.has_target = 1
+    return result
+
 def _decode_status(value):
     if value.player_count > 9 or value.winner_count > 9 or value.phase > 3 or value.has_actor > 1:
         raise MatchError("invalid native status descriptor", -3)
@@ -192,15 +215,19 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
             for name in ("ruleset", "scope"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size"):
+            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v32"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v33"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
-            or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)):
+            or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)
+            or lib.gfo_match_guardian_payload_action_size() != c.sizeof(_GuardianPayloadAction)
+            or _GuardianPayloadAction.models.offset != 16 or _GuardianPayloadAction.guardian.offset != 52
+            or _GuardianPayloadAction.model_count.offset != 53 or _GuardianPayloadAction.has_target.offset != 54
+            or _GuardianPayloadAction.reserved.offset != 55):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
         lib.gfo_match_create.argtypes = [c.POINTER(_Config), c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(c.c_void_p)]
@@ -218,11 +245,19 @@ class Match:
         lib.gfo_match_guardian_legal.restype = c.c_int
         lib.gfo_match_guardian_step.argtypes = [c.c_void_p, c.POINTER(_GuardianAction), c.POINTER(_Status)]
         lib.gfo_match_guardian_step.restype = c.c_int
+        lib.gfo_match_guardian_payload_supported.argtypes = [c.c_uint8, c.c_uint16]; lib.gfo_match_guardian_payload_supported.restype = c.c_int
+        lib.gfo_match_guardian_payload_legal.argtypes = [c.c_void_p, c.POINTER(_GuardianPayloadAction), c.POINTER(c.c_uint8)]
+        lib.gfo_match_guardian_payload_legal.restype = c.c_int
+        lib.gfo_match_guardian_payload_step.argtypes = [c.c_void_p, c.POINTER(_GuardianPayloadAction), c.POINTER(_Status)]
+        lib.gfo_match_guardian_payload_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
         self.supported_models = tuple(card.id for card in self._data if lib.gfo_match_supported(card.id))
         self.supported_guardian_models = tuple(card.id for card in self._data if lib.gfo_match_guardian_supported(card.id))
+        self.supported_guardian_payload_models = {
+            name: tuple(card.id for card in self._data if lib.gfo_match_guardian_payload_supported(kind, card.id))
+            for name, kind in (("earth", 9), ("moon", 10))}
         self.gift_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
             or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
@@ -310,6 +345,17 @@ class Match:
         """Execute one externally selected action; no autonomous guardian policy."""
         self._open(); encoded = _guardian_action(action); result = _Status()
         _check(self._lib.gfo_match_guardian_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
+
+    def guardian_payload_legal(self, action):
+        self._open(); encoded = _guardian_payload_action(action); result = c.c_uint8()
+        _check(self._lib.gfo_match_guardian_payload_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def guardian_payload_step(self, action):
+        """Execute one supplied Earth/Moon model composition; no selector distribution is implied."""
+        self._open(); encoded = _guardian_payload_action(action); result = _Status()
+        _check(self._lib.gfo_match_guardian_payload_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
 
     def step(self, command):
