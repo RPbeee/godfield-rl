@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v45"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v46"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v43\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v44\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2770,10 +2770,129 @@ void confusion_sampler_independent_bigint_vectors(){
         const Command expected{0,CommandKind::play,{9007199254740991},7,{}};check(game.sample_confusion(rng)==expected&&rng==0xc301ea080b379aa3ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
 }
 
+SnapshotState payload_sampler_scene(Guardian guardian=Guardian::earth){SnapshotState state;state.gf=17;state.players={player(42,{},Team::one),player(0,{},Team::one),player(7,{},Team::two),player(99),player(100)};for(auto& p:state.players){p.hp=99;p.mp=0;p.cp=20;}state.players[0].guardian=guardian;state.players[4].dead=true;state.players[4].hp=0;return state;}
+Match payload_sampler_fixture(SnapshotState state,std::uint64_t seed=7,MatchConfig cfg={}){cfg.initial_hand=0;Match game(cfg);game.load_scene(std::move(state),7,seed);return game;}
+void payload_sampler_all_bases_and_source_relative_targets(){
+    for(auto guardian:{Guardian::earth,Guardian::moon}){auto game=payload_sampler_fixture(payload_sampler_scene(guardian));const auto before=game.snapshot();std::vector<CardId> bases;
+        for(const auto& card:catalog())if(match_guardian_payload_supported(guardian,card.id))bases.push_back(card.id);check(bases.size()==(guardian==Guardian::earth?120:26),"payload sampler has the existing narrow120/26 base domains");
+        for(std::size_t i=0;i<bases.size();++i){auto rng=grant_seed_for_word(10*bases.size()+i);const auto start=rng;const auto action=game.sample_guardian_payload(42,rng);
+            check(action.source==42&&action.guardian==guardian&&action.models.front()==bases[i]&&action.target&&game.guardian_payload_legal(action)&&game.snapshot()==before,"each unweighted base ticket is deterministic, legal and pure even when source is not ordinary owner");
+            const bool hostile=attack_power(action.models)>0||targets_enemy_by_default(action.models.front());const auto* target=find_player(before.state,*action.target);check(target&&!target->dead&&is_enemy(before.state.players[0],*target)==hostile,"target law is relative to the source, including chance attacks and zero-MP58");
+            std::vector<VisibleSelection> prefix;for(auto model:action.models){const auto* card=find_card(model);check(card&&match_supported(model)&&(guardian==Guardian::moon?card->category==Category::miracles:card->category!=Category::miracles)&&can_append_main(prefix,{model,false}),"every generated prefix remains in its guardian category domain and ordinary append grammar");prefix.push_back({model,false});}
+            if(guardian==Guardian::moon)check(action.models.size()==1&&rng==start+2*0x9e3779b97f4a7c15ULL,"Moon has no same-domain extras and consumes only base and target draws");
+        }
+        check(game.observe({}).find(guardian_payload_sampler_rule)!=std::string::npos,"public metadata declares only the static local selector rule");
+    }
+}
+void payload_sampler_extras_repeats_and_hand_independent_cap(){
+    auto game=payload_sampler_fixture(payload_sampler_scene());std::set<CardId> extras;bool repeated=false;
+    for(std::uint64_t seed=0;seed<4096;++seed){auto rng=seed;const auto action=game.sample_guardian_payload(42,rng);std::set<CardId> seen;
+        for(std::size_t i=1;i<action.models.size();++i){extras.insert(action.models[i]);repeated|=!seen.insert(action.models[i]).second;}
+    }
+    const std::set<CardId> expected{9,12,15,18,22,25,28,31,34,43,51,56,63,66,68,74,78,83,84,87,88,124,136,150,162,203};
+    check(extras==expected&&repeated,"all26 extras include addon armor and duplicate choices, rather than only main-start capable bases");
+    auto state=payload_sampler_scene();MatchConfig narrow;narrow.hand_limit=1;auto cap=payload_sampler_fixture(state,7,narrow);std::uint64_t rng=0x96c4;
+    const auto action=cap.sample_guardian_payload(42,rng);check(action.models==std::vector<CardId>{20,68,22,22,25,78,88,78,150,15,63,63,88,56,31,9,25,15}
+        &&rng==0x3fcd1e15e67a09b8ULL&&action.target==99&&cap.guardian_payload_legal(action),"fixed independent full18 vector ignores physical hand_limit1 and draws no stop coin after cap");
+    cap.guardian_payload_step(action);while(!cap.done()&&cap.snapshot().phase!=MatchPhase::main)cap.step(defend(*cap.snapshot().actor));
+    check(cap.snapshot().state.gf==17&&cap.snapshot().owner==7&&cap.snapshot().state.players[0].items.empty(),"generated long payload does not consume source inventory or advance the ordinary owner's GF");roundtrip(cap);
+}
+void payload_sampler_ignores_inventory_resources_and_defers_body_effects(){
+    for(auto guardian:{Guardian::earth,Guardian::moon}){auto low=payload_sampler_scene(guardian),high=low;high.players[0].mp=99;high.players[0].confusion_count=3;high.players[0].curses={Curse::fog,Curse::dream};for(unsigned i=0;i<18;++i)high.players[0].items.push_back({i,235,{},true});high.players[1].mp=99;
+        auto a=payload_sampler_fixture(low,0),b=payload_sampler_fixture(high,UINT64_MAX);const auto before_a=a.snapshot(),before_b=b.snapshot();bool high_cost=false;
+        for(std::uint64_t seed=0;seed<512;++seed){auto ra=seed,rb=seed;const auto ca=a.sample_guardian_payload(42,ra),cb=b.sample_guardian_payload(42,rb);check(ca==cb&&ra==rb&&a.snapshot()==before_a&&b.snapshot()==before_b,"MP, holding slots, curses, confusion and game RNG do not filter or mutate exogenous payload choice");high_cost|=find_card(ca.models.front())->cost>0;}
+        if(guardian==Guardian::moon)check(high_cost,"zero-MP Moon can choose costly miracles without a local affordability filter");
+    }
+    auto state=payload_sampler_scene();state.players[0].mp=17;state.players[0].confusion_count=3;auto game=payload_sampler_fixture(state);GuardianPayloadAction selected;bool found=false;
+    for(std::uint64_t seed=0;seed<4096&&!found;++seed){auto rng=seed;selected=game.sample_guardian_payload(42,rng);found=selected.models==std::vector<CardId>{58};}
+    check(found&&game.snapshot().state.players[0].mp==17,"sampling58 does not drain sourceMP or consume a confusion count");game.guardian_payload_step(selected);
+    check(game.snapshot().state.players[0].mp==0&&game.snapshot().state.players[0].confusion_count==3&&game.snapshot().queue.front().power==34,"only execution reads and drains58's launchMP, without a confused-owner launch debit");while(!game.done()&&game.snapshot().phase!=MatchPhase::main)game.step(defend(*game.snapshot().actor));
+    check(game.snapshot().state.gf==17&&!game.snapshot().last_tick&&!game.snapshot().guardian_opportunities&&!game.snapshot().auto_guardian_actions&&game.snapshot().state.players[0].items.empty(),"external sampled payload retains no-owner-tick/GF/auto or operation-gift schedule");roundtrip(game);
+}
+void payload_sampler_wrong_source_phases_and_late_failure_atomicity(){
+    const auto refuse=[](const Match& game,PlayerId source){const auto before=game.snapshot();std::uint64_t rng=UINT64_MAX;bool failed=false;try{(void)game.sample_guardian_payload(source,rng);}catch(const MatchError& e){failed=e.code==MatchErrorCode::invalid;}check(failed&&rng==UINT64_MAX&&game.snapshot()==before,"wrong source or phase rejects before chance commit without changing Match");};
+    auto state=payload_sampler_scene();auto game=payload_sampler_fixture(state);refuse(game,100);refuse(game,7);refuse(game,999);refuse(game,UINT64_MAX);game.guardian_payload_step({42,Guardian::earth,{6},7});refuse(game,42);
+    auto active=state;active.tiebreak_gf=0;MatchConfig cfg;cfg.external_grants=true;auto grant=payload_sampler_fixture(active,7,cfg);grant.step(pray(7));check(grant.snapshot().phase==MatchPhase::grant,"external gift waiting fixture is reached");refuse(grant,42);
+    auto trade=state;trade.players[2].items={{0,5,{},false}};trade.players[0].items={{0,6,{},false}};trade.players[2].cp=99;auto purchase=payload_sampler_fixture(trade);purchase.step({7,CommandKind::buy,{0},42});purchase.step(defend(42));check(purchase.snapshot().phase==MatchPhase::purchase,"guardian sampling purchase fixture is reached");refuse(purchase,42);
+    auto terminal=state;terminal.players[1].team=terminal.players[2].team=terminal.players[3].team=Team::one;auto ended=payload_sampler_fixture(terminal);check(ended.done(),"all-same-team fixture is naturally terminal");refuse(ended,42);
+    auto exhausted=state;exhausted.update_count=max_wire_integer;auto failing=payload_sampler_fixture(exhausted);const auto before=failing.snapshot();std::uint64_t committed=42,trial=committed;const auto action=failing.sample_guardian_payload(42,trial);bool failed=false;try{failing.guardian_payload_step(action);}catch(const MatchError&){failed=true;}
+    check(failed&&failing.snapshot()==before&&committed==42&&trial!=committed,"late execution update failure can preserve controller seed with copy-then-commit as well as Match state");Match copy;copy.restore(before);auto retry=committed;check(copy.sample_guardian_payload(42,retry)==action&&retry==trial,"snapshot plus saved external chance seed reproduce the entire sampled payload");
+}
+
+void payload_sampler_independent_bigint_vectors(){
+    std::vector<SnapshotState> fixtures(6);
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[0].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::earth;p.items={{0,208,{},false}};fixtures[0].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[0].players.push_back(std::move(p));}
+    {PlayerState p;p.id=99;p.name="reference";p.team=Team::two;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[0].players.push_back(std::move(p));}
+    {PlayerState p;p.id=8;p.name="reference";p.team=Team::two;p.dead=true;p.hp=0;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={{0,6,{},false}};fixtures[0].players.push_back(std::move(p));}
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[1].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[1].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::moon;p.items={};fixtures[1].players.push_back(std::move(p));}
+    {PlayerState p;p.id=99;p.name="reference";p.team=Team::two;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[1].players.push_back(std::move(p));}
+    {PlayerState p;p.id=8;p.name="reference";p.team=Team::two;p.dead=true;p.hp=0;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[1].players.push_back(std::move(p));}
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[2].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::earth;p.items={{0,208,{},false}};fixtures[2].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[2].players.push_back(std::move(p));}
+    {PlayerState p;p.id=99;p.name="reference";p.team=Team::two;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[2].players.push_back(std::move(p));}
+    {PlayerState p;p.id=8;p.name="reference";p.team=Team::two;p.dead=true;p.hp=0;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={{0,6,{},false}};fixtures[2].players.push_back(std::move(p));}
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[3].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[3].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::moon;p.items={};fixtures[3].players.push_back(std::move(p));}
+    {PlayerState p;p.id=99;p.name="reference";p.team=Team::two;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[3].players.push_back(std::move(p));}
+    {PlayerState p;p.id=8;p.name="reference";p.team=Team::two;p.dead=true;p.hp=0;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[3].players.push_back(std::move(p));}
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[4].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::earth;p.items={};fixtures[4].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::solo;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[4].players.push_back(std::move(p));}
+    {PlayerState p;p.id=7;p.name="reference";p.team=Team::two;p.dead=false;p.hp=99;p.mp=99;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[5].players.push_back(std::move(p));}
+    {PlayerState p;p.id=42;p.name="reference";p.team=Team::one;p.dead=false;p.hp=99;p.mp=0;p.cp=20;p.guardian=Guardian::earth;p.items={};fixtures[5].players.push_back(std::move(p));}
+    {PlayerState p;p.id=0;p.name="reference";p.team=Team::one;p.dead=true;p.hp=0;p.mp=0;p.cp=20;p.guardian=Guardian::none;p.items={};fixtures[5].players.push_back(std::move(p));}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{61},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0xdaa66d2c7ddf743fULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{219},7};check(game.sample_guardian_payload(0,rng)==expected&&rng==0x3c6ef372fe94f82aULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0xf13e6629a10d52c2ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{6},7};check(game.sample_guardian_payload(42,rng)==expected&&rng==0xcbe4d3561eecc701ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0xa69c93d13fa20f5fULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{58,12,22},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0xfa20e7e3baab73f2ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],7,7);const auto before=game.snapshot();std::uint64_t rng=0xa69c93d13fa20f5fULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{58,12,22},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0xfa20e7e3baab73f2ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0xcfa2a1469dd1df86ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{95},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x0c1194b99c66d7b0ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0x9dcdbd23e213e878ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{191},42};check(game.sample_guardian_payload(42,rng)==expected&&rng==0xda3cb096e0a8e0a2ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0x088ced37e50b167fULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{191},0};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x44fbe0aae3a00ea9ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0xfe64a9793ab722baULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{202},42};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x3ad39cec394c1ae4ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0xe310339e386a1acdULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{205},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x1f7f271136ff12f7ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0x89b14c9401a35eafULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{216},7};check(game.sample_guardian_payload(0,rng)==expected&&rng==0xc6204007003856d9ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[3],7,7);const auto before=game.snapshot();std::uint64_t rng=0x89b14c9401a35eafULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{216},7};check(game.sample_guardian_payload(0,rng)==expected&&rng==0xc6204007003856d9ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0x5eac0563eb7c428cULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{235},0};check(game.sample_guardian_payload(0,rng)==expected&&rng==0x9b1af8d6ea113ab6ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0x4bcf31ed1ca47430ULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{239},42};check(game.sample_guardian_payload(0,rng)==expected&&rng==0x883e25601b396c5aULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0xf0458218082e3087ULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{225},7};check(game.sample_guardian_payload(0,rng)==expected&&rng==0x2cb4758b06c328b1ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],7,7);const auto before=game.snapshot();std::uint64_t rng=0x56f07f7b29ed97fdULL;
+        const GuardianPayloadAction expected{0,Guardian::moon,{210},99};check(game.sample_guardian_payload(0,rng)==expected&&rng==0x935f72ee28829027ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0x0000000000000053ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{19,74,74,63},7};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x8ff34785799e5d10ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],7,7);const auto before=game.snapshot();std::uint64_t rng=0x00000000000096c4ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{20,68,22,22,25,78,88,78,150,15,63,63,88,56,31,9,25,15},99};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x3fcd1e15e67a09b8ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[4],7,7);const auto before=game.snapshot();std::uint64_t rng=0x088ced37e50b167fULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{191},42};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x44fbe0aae3a00ea9ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+    {Match game;game.load_scene(fixtures[5],7,7);const auto before=game.snapshot();std::uint64_t rng=0xcfa2a1469dd1df86ULL;
+        const GuardianPayloadAction expected{42,Guardian::earth,{95},7};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x0c1194b99c66d7b0ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),203> tests{{
+    const std::array<void(*)(),208> tests{{
         scope_reset_and_local_contract,
         weapon_frames_colors_owner_and_fixed_rewards,
         recovery_retention_capacity_and_atomicity,
@@ -2977,6 +3096,11 @@ int main(){
         confusion_sampler_execution_debits_only_at_launch,
         confusion_sampler_phase_seed_and_late_failure_atomicity,
         confusion_sampler_independent_bigint_vectors,
+        payload_sampler_all_bases_and_source_relative_targets,
+        payload_sampler_extras_repeats_and_hand_independent_cap,
+        payload_sampler_ignores_inventory_resources_and_defers_body_effects,
+        payload_sampler_wrong_source_phases_and_late_failure_atomicity,
+        payload_sampler_independent_bigint_vectors,
     }};
     for(auto test:tests)test();
 

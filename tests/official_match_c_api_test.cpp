@@ -56,8 +56,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v45"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v45 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v46"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v46 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v43\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v44\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2811,6 +2811,58 @@ int main() {
     check(gfo_match_sample_confusion(conf_sample_match,&conf_sample_rng,&conf_sample_out)==0
         &&conf_sample_rng==11400714819323198485ULL&&equal(conf_sample_out,conf_reject_expected),"zero first SplitMix word is rejected for three proposals before canonical discard selection");
     gfo_match_destroy(conf_sample_match);gfo_match_destroy(conf_sample_normal);
+    auto payload_sample_cfg=conf_sample_cfg;gfo_match* payload_sample_match=nullptr;
+    check(gfo_match_create(&payload_sample_cfg,players.data(),2,42,&payload_sample_match)==0,"ordinary guardian payload sampler create");
+    std::array<gfo_state_player,5> payload_sample_people{};
+    const std::array<uint64_t,5> payload_sample_ids{{0,17,23,42,99}};
+    for(std::size_t i=0;i<5;++i){payload_sample_people[i].id=payload_sample_ids[i];payload_sample_people[i].hp=99;payload_sample_people[i].team=(i==1||i==2)?1:2;}
+    payload_sample_people[0].confusion_count=1;payload_sample_people[1].confusion_count=3;
+    payload_sample_people[4].dead=1;payload_sample_people[4].hp=0;payload_sample_people[4].guardian=10;
+    const auto load_payload_sampler=[&](uint8_t guardian,uint64_t update){
+        payload_sample_people[1].guardian=guardian;gfo_state_meta meta{};meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,payload_sample_people.data(),5,nullptr,0,nullptr,0,&scene)==0
+            &&gfo_match_load_scene(payload_sample_match,scene,0,42,&result)==0,"load nonowner empty-hand zero-MP guardian source");gfo_state_destroy(scene);
+    };
+    load_payload_sampler(9,0);gfo_match_guardian_payload_action payload_sample_out;std::memset(&payload_sample_out,0xa5,sizeof payload_sample_out);
+    const auto payload_sample_old=payload_sample_out;uint64_t payload_sample_rng=123;
+    const auto payload_sample_before=observe(payload_sample_match,0,0);const auto payload_sample_status=status(payload_sample_match);
+    check(gfo_match_sample_guardian_payload(nullptr,17,&payload_sample_rng,&payload_sample_out)==-1
+        &&gfo_match_sample_guardian_payload(payload_sample_match,17,nullptr,&payload_sample_out)==-1
+        &&gfo_match_sample_guardian_payload(payload_sample_match,17,&payload_sample_rng,nullptr)==-1
+        &&payload_sample_rng==123&&equal(payload_sample_out,payload_sample_old),"guardian sampler NULL guards preserve all64 output bytes and chance stream");
+    for(uint64_t bad_source:{uint64_t{0},uint64_t{23},uint64_t{99},uint64_t{999},official::max_wire_integer+1})
+        check(gfo_match_sample_guardian_payload(payload_sample_match,bad_source,&payload_sample_rng,&payload_sample_out)==-2
+            &&payload_sample_rng==123&&equal(payload_sample_out,payload_sample_old)
+            &&equal(status(payload_sample_match),payload_sample_status)&&observe(payload_sample_match,0,0)==payload_sample_before,
+            "absent, dead, non-Earth/Moon and unsafe sources fail without a selection or mutation");
+    const auto payload_golden=[&](uint64_t seed,uint64_t next,std::initializer_list<uint16_t> models,uint64_t target){
+        gfo_match_guardian_payload_action expected{};expected.source=17;expected.target=target;expected.has_target=1;
+        expected.guardian=payload_sample_people[1].guardian;expected.model_count=static_cast<uint8_t>(models.size());std::copy(models.begin(),models.end(),expected.models);
+        payload_sample_rng=seed;payload_sample_out=payload_sample_old;const auto before=observe(payload_sample_match,0,0);const auto saved=status(payload_sample_match);
+        check(gfo_match_sample_guardian_payload(payload_sample_match,17,&payload_sample_rng,&payload_sample_out)==0
+            &&payload_sample_rng==next&&equal(payload_sample_out,expected)
+            &&gfo_match_guardian_payload_legal(payload_sample_match,&payload_sample_out,&legal)==0&&legal
+            &&equal(status(payload_sample_match),saved)&&observe(payload_sample_match,0,0)==before,
+            "independent guardian goldens match entire64-byte columns, source-inferred domain, explicit targets and next RNG");
+    };
+    payload_golden(0,15755400384260043839ULL,{61},42);
+    payload_golden(1,6018027440424182932ULL,{71,68,25},42);
+    payload_golden(42,1663341875487337619ULL,{19,51},0);
+    payload_golden(6,1663341875487337583ULL,{38,162},42);
+    payload_golden(201,15755400384260044040ULL,{58},0);
+    payload_golden(38596,4597363874025048504ULL,{20,68,22,22,25,78,88,78,150,15,63,63,88,56,31,9,25,15},42);
+    payload_golden(7046029254386353131ULL,15755400384260043839ULL,{61},42);
+    load_payload_sampler(10,0);
+    payload_golden(0,4354685564936845354ULL,{219},0);
+    payload_golden(1,4354685564936845355ULL,{229},42);
+    payload_golden(42,4354685564936845396ULL,{219},42);
+    payload_golden(7046029254386353131ULL,4354685564936845354ULL,{219},0);
+    load_payload_sampler(9,official::max_wire_integer);payload_sample_rng=201;
+    check(gfo_match_sample_guardian_payload(payload_sample_match,17,&payload_sample_rng,&payload_sample_out)==0,"guardian sampling does not inspect future update budget");
+    const auto payload_sample_late=observe(payload_sample_match,0,0);const auto payload_sample_late_status=status(payload_sample_match);result=payload_sample_late_status;
+    check(gfo_match_guardian_payload_step(payload_sample_match,&payload_sample_out,&result)==-2&&equal(result,payload_sample_late_status)
+        &&observe(payload_sample_match,0,0)==payload_sample_late,"separate payload application failure rolls back the entire current main state");
+    gfo_match_destroy(payload_sample_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

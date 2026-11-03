@@ -327,7 +327,7 @@ int main(int argc,char** argv) { try {
     }
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:local-normal-proposal-law-for-external-confusion;two-unchanged-clones-and-countzero-loaded-world-counterfactual;not-official-uniform-legal-confusion;world-count-selected-counter-and-independent-chance-action-hashes-plus-full-restore-audit"
-             <<"\nconfusion_rule="<<confusion_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nphenomenon_rule="<<phenomenon_rule
+             <<"\nconfusion_rule="<<confusion_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nguardian_payload_sampler_rule="<<guardian_payload_sampler_rule<<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nphenomenon_rule="<<phenomenon_rule
              <<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(phenomenon_actions); OUTPUT(main_launches); OUTPUT(confusion_commands); OUTPUT(normal_main_commands);

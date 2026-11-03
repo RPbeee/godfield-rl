@@ -1862,6 +1862,36 @@ bool Match::phenomenon_legal(const PhenomenonAction& action) const noexcept {
 MatchStep Match::phenomenon_step(const PhenomenonAction& action) {
     auto next=data_; execute_phenomenon(next,action); auto output=result(next); data_=std::move(next); return output;
 }
+GuardianPayloadAction Match::sample_guardian_payload(PlayerId source, std::uint64_t& chance_rng) const {
+    require(data_.phase==MatchPhase::main && !done(),"guardian payload sampling needs a main boundary");
+    const auto& player=data_.state.players[index(data_,source)];
+    require(!player.dead && (player.guardian==Guardian::earth || player.guardian==Guardian::moon),"payload sampler requires an alive Earth or Moon source");
+    auto rng=chance_rng;
+    GuardianPayloadAction selected{source,player.guardian,{},{}};
+    std::array<CardId,catalog_count> candidates; std::size_t count=0;
+    for (const auto& card:catalog()) if (match_guardian_payload_supported(selected.guardian,card.id)) candidates[count++]=card.id;
+    require(count>0,"empty guardian base candidate set");
+    selected.models.reserve(visible_hand_capacity);
+    selected.models.push_back(candidates[bounded(rng,count)]);
+    std::vector<VisibleSelection> prefix; prefix.reserve(visible_hand_capacity);
+    prefix.push_back({selected.models.front(),false});
+    while (selected.models.size()<visible_hand_capacity) {
+        count=0;
+        for (const auto& card:catalog()) if (match_supported(card.id) && payload_domain(selected.guardian,card)
+            && card.ability!=Ability::exchange && card.ability!=Ability::sell && card.ability!=Ability::buy && card.ability!=Ability::danger
+            && can_append_main(prefix,{card.id,false})) candidates[count++]=card.id;
+        if (!count || bounded(rng,2)==0) break;
+        const auto model=candidates[bounded(rng,count)]; selected.models.push_back(model); prefix.push_back({model,false});
+    }
+    const bool hostile=attack_power(selected.models)>0 || targets_enemy_by_default(selected.models.front());
+    std::array<PlayerId,player_capacity> targets; count=0;
+    for (const auto& target:data_.state.players) if (!target.dead && is_enemy(player,target)==hostile) targets[count++]=target.id;
+    require(count>0,"guardian payload has no live target candidates");
+    selected.target=targets[bounded(rng,count)];
+    prepare_guardian_payload(data_,selected);
+    chance_rng=rng;
+    return selected;
+}
 bool Match::guardian_payload_legal(const GuardianPayloadAction& action) const noexcept {
     try { prepare_guardian_payload(data_,action); return true; } catch (...) { return false; }
 }
@@ -1871,7 +1901,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v43\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v44\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1915,7 +1945,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
     out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule;
     out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule;
-    out += "\",\"confusion_sampler_rule\":\""; out += confusion_sampler_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"confusion_sampler_rule\":\""; out += confusion_sampler_rule;
+    out += "\",\"guardian_payload_sampler_rule\":\""; out += guardian_payload_sampler_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"gift_pool\":{\"include_fate\":"; out += data_.config.include_fate?"true":"false";
     out += ",\"models\":"+std::to_string(data_.config.include_fate?237:236)+",\"weight\":"+std::to_string(gift_weight())+'}';
     out += ",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";

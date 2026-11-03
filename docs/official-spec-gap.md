@@ -35,7 +35,7 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v45` / `godfield::official::Match` | 236モデル/重み499、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redraw/互換クラス限定maskの2〜9人/チーム対局と、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・外部global現象5種と応答付きのsourceなし現象3種・明示permutationの磁気嵐295・混乱289と外部指定主動作・外部結果付き207・外部指定悪魔5種・終末閾値とささげる・opt-in補充chance phase4を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v46` / `godfield::official::Match` | 236モデル/重み499、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redraw/互換クラス限定maskの2〜9人/チーム対局と、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・外部global現象5種と応答付きのsourceなし現象3種・明示permutationの磁気嵐295・混乱289と外部指定主動作・外部結果付き207・外部指定悪魔5種・終末閾値とささげる・opt-in補充chance phase4を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI2 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
@@ -174,7 +174,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v8の記録を現行v45の236モデルの速度・checksumの証拠として転記しない。
+v1〜v8の記録を現行v46の236モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -1912,3 +1912,64 @@ Cは512seedの184byte全Command/RNG parity、NULLと出力canary、zero-word、c
 | 9人 | 10,000 | 280,936 / 14,660 | 583,284 / 12,840 / 168,448 | `13860660018009438040` | `14649245508736495735` | `677400468030987553` |
 
 9人600sceneでは64289decisions、混乱launch16870（sampler照合・count減算とも同数）、通常main874、response34830、purchase727、grant10088を含む。FREE合成249・used選択3512・解除600、empty60scene・18used60scene、revival588・redraw2446を検査した。chance/action/world checksumは `5906155505931735076` / `8664201943862005947` / `17601305694920062430` でRelease/SAN一致。world/count＋選択counterの部分hashと、全private proofのrestore完全一致を区別する。このfixture分布はローカル通常方策の転用を検証するもので、公式の混乱行動分布やserver対局統計ではない。
+
+
+## v46：Earth/Moonの限定payloadサンプラー
+
+`official-execution-subset-v46` は `GuardianPayloadAction sample_guardian_payload(PlayerId source, uint64_t& chance_rng) const`、Cの `gfo_match_sample_guardian_payload`、Pythonの `sample_guardian_payload(source, chance_rng) -> (GuardianPayloadAction, next_rng)` を追加する。既存external payloadが受理するEarth120/Moon26の範囲で列と対象を生成し、`guardian_payload_step` へ渡せる。**公式一般selectorではなく、カテゴリ以外の重み・列長・追加・対象規約はローカル**である。
+
+Snapshot46は旧1〜45を拒否し、公開viewは `official-execution-view-v44`。scope、Config24/Command184/Status248/GuardianPayloadAction64byte、Match ABI2とphase0〜4はv45と同じ。既定canonical自動Earth285/Moon286は変更せず、今回のhelperを25%機会schedulerへ接続しない。旧37profile・台帳pins・既存report/測定・学習器なしの範囲を保つ。
+
+### 選出規約と現在の範囲
+
+| 項目 | v46のローカル規約 |
+| --- | --- |
+| source | main境界の生存Earth/Moon所持者。guardianをsource状態から推定し、普通ownerと同一でなくてもよい |
+| 基底 | 既存match_guardian_payload_supportedのEarth120/Moon26をID順で列挙し、一様に1種。giftRate重みは使わない |
+| 追加候補 | same-domain・supported・既存trade/danger禁止・そのprefixへのcan_append_mainを満たす全ID。基底capabilityで追加候補を絞らない |
+| 続行 | 候補が無ければcoinなしで終了。有ればbounded2の0で終了、1なら候補から一様1種を追加。重複ID可 |
+| 上限 | モデル列18個。config.hand_limitと独立し、18到達後のstop coinは引かない |
+| 対象 | composed attack_power>0または基底targets_enemy_by_defaultならsourceの生存敵、それ以外は生存味方（source自身を含む）。入力順から一様1人、singletonも1draw |
+
+Earthは武器106＋雑貨14の120基底で、そのうち88基底に26種の追加候補（追加防具124/136/150/162や203等）がある。実appendで2288の2列を確認した。Moon26はこの厳格なsame-domain規約では追加候補が0なので常に単品で、追加coinも引かない。Aura/Wide/FREE等を含む一般MC合成や、取引・通常防具・passive・207・285/286wrapperの全Earth/Moon処理へは広げない。
+
+対象は普通ownerでなく指定sourceを基準に `is_enemy` で分類する。solo同士を同じteam0だから味方とはしない。百分率攻撃はUI default-targetだけで判断せず正のpowerで敵向けとし、58はMP0でもweapon defaultにより敵向けになる。202の符号は未抽選のため非攻撃の味方向けのまま扱う。これらのtarget分布は公式確認済みではない。
+
+### MP・手札・RNG・実行
+
+sourceのMP、所持手札、空枠、confusion、Fog/Dreamをeligibilityへ使わない。MP0でもMoonの有料MCを選べ、実手札を持たないmodel列なので物理tokenを生成・消費しない。先頭58のlaunchMP×2とMP0、202の符号、counter/死亡/208/112/補充は、既存payload executorのゲームRNG/実行に残す。通常MC fee、operation gift、owner tick/GF/autoを新しく加えない。副作用による資源変動と、一般の使用料を支払うことは区別する。
+
+helperは外部chance seedのcopyで全列と対象を生成し、最後に既存prepare_guardian_payloadを通ってからseedをcommitする。候補不足や検証失敗で再抽選せず、Matchとseedを保つ。成功sampleもworld/game RNG/player policy RNG/decision/journal/public eventを変えない。sampleとstepは別transactionなので、late update/token等の実行失敗までまとめて扱うdriverはtrial seedを使い、step成功後だけcommitする。checkpointにはMatch snapshotと外部chance seedの両方を保存する。
+
+公開追加は静的 `guardian_payload_sampler_rule` のみで、future列・対象・seedは出さない。source選出や自動機会判定もhelperには含めず、通常samplerや既定auto schedulerは従来のまま。全公式Earth/Moon selector、Dream全分布・実体不適合入力、全補充経路の悪魔置換と権威的server scheduleは残件である。
+
+公開ruleは次のheader定数に一致する。
+
+```text
+experimental:privileged-const-main-boundary-alive-earth-or-moon-source-inferred-not-necessarily-owner;caller-owned-chance-rng-separate-from-game-and-policy;uniform-id-ordered-existing-supported120-earth-or26-moon-base;not-giftrate-weighted-no-source-mp-hand-slot-confusion-or-curse-filter;prefix-under18-scan-id-order-same-domain-supported-ordinary-append-excluding-trade-and-danger;empty-extra-candidates-stop-without-coin;nonempty-bounded2-zero-stops-one-appends-uniform-candidate-duplicates-allowed;earth88-bases-have26-extras-including-addon-armor-moon-no-extras-and-singleton;18-cap-independent-of-config-hand-limit-no-coin-after-cap;hostile-iff-composed-attack-power-positive-or-base-default-enemy-else-friendly;one-uniform-live-input-seat-enemy-of-source-or-ally-including-source-target-singleton-still-draws;202-sign-and58-mp-effects-deferred-to-body-no-game-rng-peek;final-existing-guardian-payload-prepare-before-chance-commit-no-reroll;no-match-state-game-rng-policy-rng-decision-journal-or-public-event-mutation;sampling-failure-preserves-chance-stream;sample-and-step-separate-transactions-late-step-failure-possible;controller-saves-external-chance-stream-alongside-match-snapshot;existing-64byte-payload-output-no-inventory-tokens-or-mp-payment-added;canonical-auto285286-and-default-behavior-unchanged-not-integrated-into-opportunity-scheduler;local-narrow-subset-not-all-earthmoon-trade-armor-passive-fate-wrapper-or-official-server-selector-equivalence
+```
+
+### v46の検証
+
+[一次appendと独立ローカルreferenceの生成器](../scripts/official_guardian_payload_sampler_oracle.cjs) / [保存report](../data/official-v2/guardian-payload-sampler-client-v46.json) は、実client appendで基底120/26・Earth88×26=2288追加pair・Moon0を照合し、LOCAL BigInt20goldensの全prefix候補も検査する。受信処理とMP表示の事実はv33reportの固定hashからの継承であり、今回の受信再実行とは呼ばない。
+
+独立LOCAL goldenはsource≠owner、MP0/99同choice、solo/ally/self/dead/singleton、58/202/MC/百分率、重複追加・full18・zero-word rejectionを含む。実appendに一致する候補であっても、その候補からの一様選出やcoin確率を公式selectorの証明にはしない。reportは95,565 bytes、SHA256 `9213e59fb379d621a3a442428119b00ca2c23ddc162eed0e01f0b909bdce35bb`、rootの `--check` はbyte一致した。
+
+Release CTest **145/145（69.28秒）**、ASan/UBSan CTest **105/105（141.95秒）** が全て通過した。native208関数とPython142メソッドは各1回・重複なしで登録し、C API/Python focused2件も初回で通過した。READMEのMP0 Moon例も実行し、`moon (235,) 42 0` → `main 7 17 0 50` が一致した。suite時間を速度比較や公式server適合数へ読み替えない。
+
+新native5群は120/26全基底ticket、source基準の敵/味方、全26extrasと追加防具・重複、独立full18 vectorとhand_limit1、MP/手札/curse/confusion/gameRNG不変な選出、MP58がstep時だけ34power/MP0となること、phase/source/自然終局拒否、late update失敗とchance copy-commit、snapshot＋外部seed再開、独立BigInt20goldensを検査する。Moonのextra draw0と、shapeと物理hand上限を混同しないことも確認した。
+
+Cは11固定goldenの64byte全header・padding/canary、NULL/source/phaseと失敗時の全出力保持を検査する。Python新3件は全120/26base witnessと独立参照、全26extras/18列/重複、source0/非owner17・solo/自己/味方/敵/dead、MP0/99/empty/full/giftpool、先頭58のbodyだけのMPdrain、strictinputとlate step rollbackを検査する。公式未確認のselectorと、既存payloadの効果解決を別々の範囲として扱う。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/Fate pool/Fate sampler/confusion sampler/新guardian payload samplerの各2人数、計32組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外の全fieldが一致した。独立familyは最大2系統を並行実行し、時間を速度比較には使わない。Release/SAN小行列17組もchecksumを含む非時間fieldが一致した。
+
+新helperを呼ばない既存15familyのgameplay fieldはv45と同値で、通常/canonical/payloadはchecksumも維持した。その他の旧版比較ではSnapshot.version46由来のchecksumを除き、外部chance/action、pool/reference、Fate manifestのversion非依存checksumは引き続き比較した。worker間・Release/SAN間では全checksumを照合する。既定auto285/286・通常配布・既存callerの振る舞いを変えていないことの回帰検査である。
+
+新 `godfield_guardian_payload_sampler_bench`（CTest `official_guardian_payload_sampler_benchmark 600 9 42 2`）はsource席・Earth/Moon・MP0/1/99・team/curse/confusion/holdingを変え、1payloadから全response/grantを解決する。2restore clonesの同choice/nextchance/Match不変と、MP/手札を変えてhand_limit1にした別sceneでも同choiceとなることを比較する。全prefix、source-relative target、Moon singleton/high-cost、先頭58/14/202、sourceの物理消費や一般MP feeがないこと、owner GF/tick/autoの維持、全checkpoint restoreを検査する。600scene以上でcompound/自己/敵/highcost/nonowner、3人以上では別味方、10000以上で全146基底と58/14/202の出現を要求した。full18は独立native/API vectorで確定的に検査し、稀な偶然に頼らない。
+
+| ローカルguardian選出・seed42 | scenes | 基底種数 | Earth複合列 / 追加数 | 自己 / 別味方 / 敵対象 | chance checksum | action checksum | world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- | --- |
+| 2人 | 100,000 | 146 | 18402 / 37009 | 14623 / 0 / 85377 | `14542496587766292104` | `4504792565828746021` | `9409136792974185313` |
+| 9人 | 10,000 | 146 | 1810 / 3648 | 1070 / 362 / 8568 | `15147013353315001003` | `1658180899462700799` | `17891271245382900376` |
+
+9人600sceneでは2406decisions、Earth300/Moon300、compound116列/233追加、重複9・setter列17、source≠owner528、自己/別味方/敵73/16/511を含む。MP不足Moon200、58/14/202は4/2/4、revival23・redraw184・guardian summon14も検査した。chance/action/world checksumは `2777545096584598747` / `17215112275432670988` / `1434169688558901987` でRelease/SAN一致。worldと選択counterの部分hashと、全private proofのrestore完全一致を区別する。このfixture統計を公式の選出分布や自動機会schedulerの実測とは呼ばない。

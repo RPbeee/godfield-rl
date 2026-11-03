@@ -344,6 +344,17 @@ def _decode_fate(value, storage, expected_token):
     except InvalidMatchError as error: raise MatchError("invalid native Fate shape", -3) from error
     return result
 
+def _decode_guardian_payload(value, expected_source):
+    if (value.source != expected_source or value.guardian not in (9, 10) or value.has_target != 1
+        or not 1 <= value.model_count <= 18 or any(value.reserved) or any(value.models[value.model_count:])
+        or any(not 1 <= model <= 296 for model in value.models[:value.model_count])):
+        raise MatchError("invalid native guardian payload descriptor", -3)
+    result = GuardianPayloadAction(value.source, "earth" if value.guardian == 9 else "moon",
+                                   tuple(value.models[:value.model_count]), value.target)
+    try: _guardian_payload_action(result)
+    except InvalidMatchError as error: raise MatchError("invalid native guardian payload shape", -3) from error
+    return result
+
 class Match:
     """Owned mutable experimental match. Successful commands commit individually.
 
@@ -366,7 +377,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v45"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v46"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or lib.gfo_match_player_size() != c.sizeof(_Player)
@@ -447,6 +458,8 @@ class Match:
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
         lib.gfo_match_sample_confusion.restype = c.c_int
+        lib.gfo_match_sample_guardian_payload.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.POINTER(_GuardianPayloadAction)]
+        lib.gfo_match_sample_guardian_payload.restype = c.c_int
         lib.gfo_match_sample_grant.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_DevilAction)]
         lib.gfo_match_sample_grant.restype = c.c_int
         lib.gfo_match_sample_fate.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.POINTER(_ItemSource), c.c_size_t, c.POINTER(_FateAction)]
@@ -662,6 +675,17 @@ class Match:
         self._open(); rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); result = _Command()
         _check(self._lib.gfo_match_sample_confusion(self._handle, c.byref(rng), c.byref(result)))
         return _decode_command(result), rng.value
+
+    def sample_guardian_payload(self, source, chance_rng):
+        """Return a local Earth/Moon payload and new chance RNG without a play.
+
+        The source's guardian determines its domain; MP/hand do not filter the
+        choice. This privileged local driver does not claim server selectors.
+        """
+        self._open(); source = _integer(source, "guardian source")
+        rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); result = _GuardianPayloadAction()
+        _check(self._lib.gfo_match_sample_guardian_payload(self._handle, source, c.byref(rng), c.byref(result)))
+        return _decode_guardian_payload(result, source), rng.value
 
     def sample_grant(self, chance_rng):
         """Privileged local chance: returns (GrantAction,new_rng), without changing the match.

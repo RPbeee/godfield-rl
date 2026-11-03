@@ -60,6 +60,35 @@ def fate_reference(seed, token, raw, actor=0):
         shuffle = ItemShuffleAction(tuple(order))
     return FateAction(actor, token, PhenomenonAction(model, recipient, guardians), shuffle), seed, draws
 
+def guardian_payload_reference(seed, source_id, raw, cards, bases):
+    mask, gamma, draws = (1 << 64)-1, 0x9e3779b97f4a7c15, 0
+    def bounded(bound):
+        nonlocal seed, draws
+        while True:
+            seed = (seed + gamma) & mask; draws += 1
+            value = seed
+            value = ((value ^ (value >> 30)) * 0xbf58476d1ce4e5b9) & mask
+            value = ((value ^ (value >> 27)) * 0x94d049bb133111eb) & mask
+            value ^= value >> 31
+            if value >= (1 << 64) % bound: return value % bound
+    source = next(player for player in raw["players"] if player["id"] == source_id)
+    guardian = source["guardian"]; models = [bases[guardian][bounded(len(bases[guardian]))]]
+    base = cards[models[0]]
+    # Under the strict current domain, only an ordinary nonchance Earth weapon
+    # can append; its fixed candidate set contains ordinary plus-ATK cards.
+    extras = [model for model, card in sorted(cards.items()) if card.get("giftRate", 0) > 0 and model != 207
+              and card["category"] in ("trade", "weapons", "armor", "sundries") and card.get("isPlusAtk", False)
+              and card.get("ability", "none") not in ("exchange", "sell", "buy", "danger")]
+    if guardian == "earth" and base["category"] == "weapons" and not base.get("hitRate", 0):
+        while len(models) < 18 and bounded(2): models.append(extras[bounded(len(extras))])
+    default_enemy = not base.get("hitRate", 0) and (base.get("atk", 0) > 0 or base["category"] == "weapons"
+        or base.get("ability", "none") in ("sell", "buy", "boostCPToEnemy", "takeCP", "addCurse", "removeItems", "removeUsedMiracles"))
+    hostile = sum(cards[model].get("atk", 0) for model in models) > 0 or default_enemy
+    def enemy(player): return (source.get("team", 0) == 0 and player["id"] != source_id) or source.get("team", 0) != player.get("team", 0)
+    targets = [player["id"] for player in raw["players"] if not player.get("dead", False) and enemy(player) == hostile]
+    target = targets[bounded(len(targets))]
+    return GuardianPayloadAction(source_id, guardian, tuple(models), target), seed, draws
+
 class MatchTests(unittest.TestCase):
     def match(self, **kwargs):
         value = Match(library=LIBRARY, **kwargs); self.addCleanup(value.close); return value
@@ -69,7 +98,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v45"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v46"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -77,7 +106,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v43")
+        self.assertEqual(own["schema"], "official-execution-view-v44")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -273,7 +302,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v43")
+        self.assertEqual(event["schema"], "official-execution-view-v44")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3960,6 +3989,108 @@ class MatchTests(unittest.TestCase):
         cutoff.confusion_step(Command(0, "sacrifice", (2,))); self.assertTrue(cutoff.status.truncated)
         self.assertTrue(cutoff.observe()["board"]["players"][0]["status"]["confused"])
         with self.assertRaises(InvalidMatchError): cutoff.sample_confusion(0)
+
+    def test_sample_guardian_payload_matches_independent_domain_and_rng_reference(self):
+        cards = {card["id"]: card for card in json.loads((Path(__file__).resolve().parents[1]/"data/official-v2/cards.json").read_text())}
+        contract = json.loads((Path(__file__).resolve().parents[1]/"data/official-v2/guardian-payload-client-v33.json").read_text())["local_adapter_contract"]
+        bases = {guardian: contract[guardian+"_base_ids"] for guardian in ("earth", "moon")}
+        raw = {"players": [{"id": 0, "team": 2, "hp": 99, "mp": 0, "cp": 0, "confusionCount": 1},
+            {"id": 17, "team": 1, "hp": 99, "mp": 0, "cp": 0, "confusionCount": 7, "guardian": "earth"},
+            {"id": 23, "team": 1, "hp": 99, "mp": 0, "cp": 0}, {"id": 42, "team": 2, "hp": 99, "mp": 0, "cp": 0},
+            {"id": 99, "team": 2, "hp": 0, "mp": 0, "cp": 0, "dead": True}]}
+        game = self.match(config=Config(initial_hand=0)); targets = set()
+        for guardian in ("earth", "moon"):
+            raw["players"][1]["guardian"] = guardian
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            self.assertEqual(tuple(bases[guardian]), game.supported_guardian_payload_models[guardian])
+            before, status = game.observe(17), game.status; witnesses = {}
+            for seed in range(10000):
+                expected, rng, draws = guardian_payload_reference(seed, 17, raw, cards, bases)
+                witnesses.setdefault(expected.models[0], seed)
+                if len(witnesses) == len(bases[guardian]): break
+            self.assertEqual(set(witnesses), set(bases[guardian]))
+            for seed in (*witnesses.values(), 0, 1, 6, 42, 201, 38596, 7046029254386353131, 2**64-1):
+                expected, rng, draws = guardian_payload_reference(seed, 17, raw, cards, bases)
+                self.assertEqual(game.sample_guardian_payload(17, seed), (expected, rng))
+                self.assertTrue(game.guardian_payload_legal(expected)); targets.add(expected.target)
+                self.assertNotEqual(expected.target, 99)
+                if guardian == "moon": self.assertEqual(len(expected.models), 1)
+            self.assertEqual((game.observe(17), game.status), (before, status))
+        self.assertEqual(targets, {0, 17, 23, 42})
+        raw["players"][1]["guardian"] = "earth"
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        maximal, rng = game.sample_guardian_payload(17, 38596)
+        self.assertEqual(len(maximal.models), 18); self.assertLess(len(set(maximal.models)), 18)
+        self.assertIn(150, maximal.models)
+        self.assertEqual(game.sample_guardian_payload(17, 6)[0].models, (38, 162))
+        for player in raw["players"]: player["team"] = 0
+        raw["players"][1]["guardian"] = "moon"
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        for seed in range(32):
+            expected, rng, draws = guardian_payload_reference(seed, 17, raw, cards, bases)
+            self.assertEqual(game.sample_guardian_payload(17, seed), (expected, rng))
+            if expected.target == 17: self.assertEqual(draws, 2)  # singleton ally bucket still draws
+        raw["players"][0]["guardian"] = "earth"
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        expected, rng, draws = guardian_payload_reference(0, 0, raw, cards, bases)
+        self.assertEqual(game.sample_guardian_payload(0, 0), (expected, rng))
+
+    def test_sample_guardian_payload_ignores_mp_inventory_pool_and_owner_for_choice(self):
+        raw = {"players": [{"id": 0, "team": 2, "hp": 99, "mp": 99, "cp": 99, "confusionCount": 1},
+            {"id": 17, "team": 1, "hp": 99, "mp": 0, "cp": 0, "guardian": "earth", "confusionCount": 3},
+            {"id": 23, "team": 1, "hp": 99, "mp": 99, "cp": 99}, {"id": 42, "team": 2, "hp": 99, "mp": 99, "cp": 99}]}
+        high = copy.deepcopy(raw); high["players"][1].update(mp=99, cp=99, items=[{"id": i, "modelId": 152} for i in range(18)])
+        low_game = self.match(config=Config(initial_hand=0)); high_game = self.match(config=Config(initial_hand=0, include_fate=True))
+        for game, scene_raw in ((low_game, raw), (high_game, high)):
+            with OfficialState(scene_raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before = (low_game.observe(17), high_game.observe(17))
+        for seed in range(128): self.assertEqual(low_game.sample_guardian_payload(17, seed), high_game.sample_guardian_payload(17, seed))
+        self.assertEqual((low_game.observe(17), high_game.observe(17)), before)
+        for game, power in ((low_game, 0), (high_game, 198)):
+            chosen, rng = game.sample_guardian_payload(17, 201)
+            self.assertEqual(chosen, GuardianPayloadAction(17, "earth", (58,), 0)); self.assertTrue(game.guardian_payload_legal(chosen))
+            hand = game.observe(17)["board"]["hand"]
+            game.guardian_payload_step(chosen); view = game.observe()
+            self.assertEqual((game.status.owner, game.actor, view["pending"]["source"], view["pending"]["power"]), (0, 0, 17, power))
+            self.assertEqual(view["board"]["players"][1]["status"]["mp"], 0)
+            self.assertEqual(view["board"]["players"][0]["status"]["mp"], 99)
+            self.assertEqual(game.observe(17)["board"]["hand"], hand)
+            self.assertTrue(view["board"]["players"][0]["status"]["confused"])
+
+    def test_sample_guardian_payload_bad_sources_phases_and_late_step_failure_are_atomic(self):
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [{"id": 0, "hp": 99, "mp": 99, "cp": 99,
+                 "items": [{"id": 0, "modelId": 6}, {"id": 1, "modelId": 5}, {"id": 2, "modelId": 152}]},
+            {"id": 17, "hp": 99, "mp": 99, "cp": 99, "guardian": "earth", "items": [{"id": 0, "modelId": 152}]},
+            {"id": 23, "hp": 99, "mp": 99, "cp": 99, "guardian": "mars"},
+            {"id": 42, "hp": 0, "mp": 99, "cp": 99, "guardian": "moon", "dead": True}]}
+        game = self.match(config=Config(initial_hand=0, external_grants=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(), game.status
+        for bad_source in (True, False, -1, 9007199254740992, "17", None, 0, 23, 42, 999):
+            with self.assertRaises(InvalidMatchError): game.sample_guardian_payload(bad_source, 0)
+        for bad_rng in (True, False, -1, 2**64, 0.0, "0", None):
+            with self.assertRaises(InvalidMatchError): game.sample_guardian_payload(17, bad_rng)
+        self.assertEqual((game.observe(), game.status), (before, status))
+        for phase in ("response", "purchase", "grant"):
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            if phase == "response": game.step(Command(0, "play", (0,), 17))
+            elif phase == "purchase": game.step(Command(0, "buy", (1,), 17)); game.step(Command(17, "defend"))
+            else: game.step(Command(0, "sacrifice", (2,)))
+            self.assertEqual(game.status.phase, phase); before, status = game.observe(), game.status
+            with self.assertRaises(InvalidMatchError): game.sample_guardian_payload(17, 0)
+            self.assertEqual((game.observe(), game.status), (before, status))
+        cutoff = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(raw, library=LIBRARY) as scene: cutoff.load_scene(scene, 0, 42)
+        cutoff.step(Command(0, "play", (0,), 17))
+        with self.assertRaises(InvalidMatchError): cutoff.sample_guardian_payload(17, 0)
+        raw["updateCount"] = 9007199254740991
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(17), game.status; selected, rng = game.sample_guardian_payload(17, 201)
+        self.assertTrue(game.guardian_payload_legal(selected))
+        with self.assertRaises(InvalidMatchError): game.guardian_payload_step(selected)
+        self.assertEqual((game.observe(17), game.status), (before, status))
+        game.close()
+        with self.assertRaises(InvalidMatchError): game.sample_guardian_payload(17, 0)
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

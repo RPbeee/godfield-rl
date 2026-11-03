@@ -309,7 +309,7 @@ int main(int argc,char** argv) { try {
     if(count>=600)for(auto resolutions:total.fairy_resources)check(resolutions>0,"grant benchmark omitted a fairy resource");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:explicit-external-grant-controller-after-one-original-action;ordinary-or-owned207-or-external-devil-debt;not-an-official-selector;world-selected-counter-hashes-plus-full-snapshot-restore-audit"
-             <<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmax_decisions=96";
+             <<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nguardian_payload_sampler_rule="<<guardian_payload_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmax_decisions=96";
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions);OUTPUT(responses);OUTPUT(purchase_commands);OUTPUT(terminated);OUTPUT(truncated);OUTPUT(grant_resolutions);OUTPUT(grant_artifacts);OUTPUT(grant_devils);
     OUTPUT(grant_roundtrips);OUTPUT(policy_refusals);OUTPUT(normal_copies);OUTPUT(devil_retries);OUTPUT(removed_copies);OUTPUT(removed_used);OUTPUT(removed_fake);OUTPUT(removed207);

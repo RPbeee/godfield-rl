@@ -322,7 +322,7 @@ int main(int argc, char** argv) { try {
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset
         <<"\nscope=experimental:external-targeted-source-free-phenomena291-292-293;explicit-scene-recipients;190-cancels;source-directed-counters-skipped;not-server-selector"
-        <<"\nphenomenon_rule="<<phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\ngrant_sampler_rule=" << grant_sampler_rule << "\nfate_pool_rule=" << fate_pool_rule << "\nfate_sampler_rule=" << fate_sampler_rule << "\nconfusion_sampler_rule=" << confusion_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players
+        <<"\nphenomenon_rule="<<phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\ngrant_sampler_rule=" << grant_sampler_rule << "\nfate_pool_rule=" << fate_pool_rule << "\nfate_sampler_rule=" << fate_sampler_rule << "\nconfusion_sampler_rule=" << confusion_sampler_rule << "\nguardian_payload_sampler_rule=" << guardian_payload_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players
         <<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(responses); OUTPUT(terminated); OUTPUT(truncated); OUTPUT(initial_world_responses);

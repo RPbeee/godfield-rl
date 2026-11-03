@@ -220,6 +220,16 @@ gfo_match_fate_action encode_fate(const official::FateAction& action,std::array<
     }
     return out;
 }
+gfo_match_guardian_payload_action encode_guardian_payload(const official::GuardianPayloadAction& action) {
+    valid(action.source<=official::max_wire_integer && action.target && *action.target<=official::max_wire_integer
+        && (action.guardian==official::Guardian::earth || action.guardian==official::Guardian::moon)
+        && !action.models.empty() && action.models.size()<=official::visible_hand_capacity
+        && official::match_guardian_payload_supported(action.guardian,action.models.front()));
+    gfo_match_guardian_payload_action out{};out.source=action.source;out.target=*action.target;out.has_target=1;
+    out.guardian=static_cast<uint8_t>(action.guardian);out.model_count=static_cast<uint8_t>(action.models.size());
+    for(std::size_t i=0;i<action.models.size();++i){valid(action.models[i]>=1 && action.models[i]<=official::catalog_count);out.models[i]=action.models[i];}
+    return out;
+}
 gfo_match_status status(const official::Match& match) {
     const auto& s = match.snapshot();
     if (s.state.players.size() > 9 || s.winners.size() > 9 || s.rewards.size() != s.state.players.size()) throw std::logic_error("invalid native match output sizes");
@@ -457,6 +467,14 @@ int gfo_match_sample_confusion(const gfo_match* match,uint64_t* chance_rng,gfo_m
     if(!match || !chance_rng || !out)return -1;
     try {
         auto rng=*chance_rng;const auto result=encode(match->value.sample_confusion(rng));
+        *out=result;*chance_rng=rng;return 0;
+    }catch(...){return error();}
+}
+int gfo_match_sample_guardian_payload(const gfo_match* match,uint64_t source,uint64_t* chance_rng,gfo_match_guardian_payload_action* out) {
+    if(!match || !chance_rng || !out)return -1;
+    try {
+        valid(source<=official::max_wire_integer);auto rng=*chance_rng;
+        const auto result=encode_guardian_payload(match->value.sample_guardian_payload(source,rng));
         *out=result;*chance_rng=rng;return 0;
     }catch(...){return error();}
 }

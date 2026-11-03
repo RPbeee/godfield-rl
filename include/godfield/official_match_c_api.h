@@ -162,6 +162,12 @@ int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_ma
 // selector is claimed. Sampling changes only chance_rng. Apply separately via
 // confusion_step, which performs the single count debit. Errors preserve out/RNG.
 int gfo_match_sample_confusion(const gfo_match* match, uint64_t* chance_rng, gfo_match_command* out);
+// Privileged local Earth/Moon payload driver at a main boundary. The alive
+// source need not be the ordinary owner; current guardian determines the domain.
+// Selection ignores source MP/hand. Only chance_rng changes, no play is committed.
+// Output uses the existing64-byte payload, explicit target and zeroed fixed tails.
+int gfo_match_sample_guardian_payload(const gfo_match* match, uint64_t source, uint64_t* chance_rng,
+                                      gfo_match_guardian_payload_action* out);
 // Privileged local chance helper, only in phase4. Uses the current recipient's
 // raw inventory for243, not a policy-visible hand. One bounded100 ticket:
 //240=0..6/241=7..11/242=12..14/243=15..19/244=20..24/normal=25..99.

@@ -307,7 +307,7 @@ int main(int argc,char** argv) {try {
     if(count>=10000)check(distinct==237 && total.fate_calls>0,"large fate pool fixture did not cover all237 gifted models and explicit gifted Fate use");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:opt-in-full237-weight500-gift-paths;explicit-owned207-outcome288-use;not-automatic-phenomenon-selection-or-official-server-rng;world-selected-counter-hashes-plus-full-snapshot-restore-audit"
-             <<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmax_decisions=96\ngift_models=237\ngift_weight=500\ndistinct_gift_models="<<distinct;
+             <<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nguardian_payload_sampler_rule="<<guardian_payload_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmax_decisions=96\ngift_models=237\ngift_weight=500\ndistinct_gift_models="<<distinct;
 #define OUTPUT(n) std::cout<<"\n" #n "="<<total.n
     OUTPUT(decisions);OUTPUT(player_commands);OUTPUT(responses);OUTPUT(grant_commands);OUTPUT(devil_calls);OUTPUT(fate_calls);OUTPUT(terminated);OUTPUT(truncated);
     OUTPUT(drawn_copies);OUTPUT(observed_copies);OUTPUT(fate207_copies);OUTPUT(fate207_owner_scenes);OUTPUT(used_input_copies);OUTPUT(redraws);OUTPUT(redrawn_items);OUTPUT(revivals);
