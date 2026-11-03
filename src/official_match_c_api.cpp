@@ -453,6 +453,13 @@ int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_ma
         *policy_rng = rng; *out = result; return 0;
     } catch (...) { return error(); }
 }
+int gfo_match_sample_confusion(const gfo_match* match,uint64_t* chance_rng,gfo_match_command* out) {
+    if(!match || !chance_rng || !out)return -1;
+    try {
+        auto rng=*chance_rng;const auto result=encode(match->value.sample_confusion(rng));
+        *out=result;*chance_rng=rng;return 0;
+    }catch(...){return error();}
+}
 int gfo_match_sample_grant(const gfo_match* match, uint64_t* chance_rng, gfo_match_grant_action* out) {
     if(!match || !chance_rng || !out) return -1;
     try {

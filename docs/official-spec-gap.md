@@ -35,7 +35,7 @@ Bの291神器と今回の全296モデルの差5は、Bが除外したtrade操作
 | 状態helper/表示分岐のoracle | 実client関数と抽出した霧の条件等22,140件が一致。tooltip/視覚部品のstubを含み、全UI操作やserver状態遷移のoracleではない |
 | `gfo_*` ABI1 / Python `OfficialData` | read-only台帳と合成preview。ゲームEnv、step/reset、対局の実行・報酬は提供しない |
 | `gfo_state_*` / Python `OfficialState` | C APIは型付き配列の所有コピー、PythonはJSON/dictのimportとdeepcopyしたrawの保持、viewと選択照会。入力フレームの状態を保持するが、対局を進めるstep/resetや乱数生成は提供しない |
-| `official-execution-subset-v44` / `godfield::official::Match` | 236モデル/重み499、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redraw/互換クラス限定maskの2〜9人/チーム対局と、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・外部global現象5種と応答付きのsourceなし現象3種・明示permutationの磁気嵐295・混乱289と外部指定主動作・外部結果付き207・外部指定悪魔5種・終末閾値とささげる・opt-in補充chance phase4を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
+| `official-execution-subset-v45` / `godfield::official::Match` | 236モデル/重み499、全7属性・単純武器/防御・HP/MP/CP回復・奇跡used保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・未使用手札/使用済み奇跡除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redraw/互換クラス限定maskの2〜9人/チーム対局と、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・外部global現象5種と応答付きのsourceなし現象3種・明示permutationの磁気嵐295・混乱289と外部指定主動作・外部結果付き207・外部指定悪魔5種・終末閾値とささげる・opt-in補充chance phase4を実行。ターン/補充/死亡順などはローカル実験規約で、公式server同等性は未検証 |
 | `gfo_match_*` ABI2 / Python `Match` / official bench | 限定対局のreset/legal/step/status/observe/sample、固定プレイヤー列の報酬を公開。既存read-only/legacy APIとは別。公式オンライン接続・学習器は含めない |
 
 公式完全シミュレーターは未達である。decoded frameの9人・チームとfresh部分viewに加え、
@@ -174,7 +174,7 @@ v3 seed42の2人100,000試合は3,905,076意思決定、勝数49,897/50,103、dr
 9人10,000試合で2.46832秒（1,154,300意思決定/秒）となり、前記の全決定的fieldを維持した。
 合法手sampler・実行・終了snapshot検証を含む。Release/SAN seed42各1,000試合の時間以外の全fieldも一致し、
 checksumは2人 `12257384685277614778`、9人 `9792092663242239069`。
-v1〜v8の記録を現行v44の236モデルの速度・checksumの証拠として転記しない。
+v1〜v8の記録を現行v45の236モデルの速度・checksumの証拠として転記しない。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過した（各 `-j4` 同時実行）。Python Matchは11ケース。
 全体検証後、0MPの追加Auraと既走査FREEのatomic pairを2組まで生成する専用native局面を追加し、Release1件/0.26秒・SAN1件/0.57秒で再検証済み。coreの追加変更は無い。
@@ -1857,3 +1857,58 @@ Cは10固定goldenの64byte全header、NULLと容量上限、short0/2の全byte�
 | 9人 | 10,000 | 10 | 435 / 593 / 2959 | 92642 | `6605635147833536315` | `10123717752832217994` | `17117080911192469713` |
 
 9人600sceneは2292decisions、1249responses、443grant、自己/別味方/敵対象32/38/159、545guardian割当を含む。295は57scene/5282copy（used500）、empty1・singleton0、他owner token0参照444を検査した。混乱launch減算400、revival147、redraw131、cutoff probe7も含む。chance/action/world checksumは `18250023012487255026` / `18054689840843982637` / `4349042520208376490` でRelease/SAN一致。world hashは選択counter等を含む部分hashであり、全private proofの一致は各checkpointのrestoreで別に検査する。このfixture統計はローカルpolicyのもので、公式の現象分布やserver対局の実測ではない。
+
+
+## v45：混乱中のローカル行動サンプラー
+
+`official-execution-subset-v45` は `Command sample_confusion(uint64_t& chance_rng) const`、Cの `gfo_match_sample_confusion`、Pythonの `sample_confusion(chance_rng) -> (Command, next_rng)` を追加する。正のconfusion_countを持つmain ownerに限り、既存のローカル通常方策と同じ候補生成でコマンドを作り、既存 `confusion_step` で実行できる。**公開資料に混乱専用の選択分布はなく、この方策を公式自動選択や全合法手の一様抽選とは呼ばない。**
+
+Snapshot45は旧1〜44を拒否し、公開viewは `official-execution-view-v43`。scope、Config24/Command184/Status248、Match ABI2とphase0〜4はv44と同じ。既定236/499・任意237/500の配布、通常player sampler、明示confusion command、Fate/grant APIを保つ。旧37profile・台帳pins・過去のreport/測定を保存し、学習器は追加しない。
+
+### 再利用する方策と実行の境界
+
+| 項目 | v45の契約 |
+| --- | --- |
+| 入口 | mainかつactor=owner、そのownerのcount>0。count0/response/purchase/grant/finishedではdraw前に拒否 |
+| 候補と重み | visible faceを使う通常proposal列の順序・多重度を維持。追加品coin、MP/FREE、target、SELL商品と相手、EXCHANGE配分も共通builderを使う |
+| 終末 | 同じdiscard proposal位置をactive時だけsacrifice9へ写す。候補順・選択回数の追加はない |
+| 207 | 通常proposalと同じくFate起動は除外する。discard/trade等は既存規約、Fate使用は別の明示Fate APIで行う |
+| 応答・購入・補充 | この入口では生成しない。通常の応答/購入sampler、既存grant APIで進める |
+| countと費用 | sample中はcount不変。accepted confusion_stepのlaunchで一度だけ減算し、body/cutoff/死亡/復活/元の手番進行を既存executorが処理する |
+
+実装は通常samplerのbuilderを共有し、正のcountに対するgateだけを専用入口で許可する。実Matchのcountを0にしたり、private履歴やproofを書き換えたりしない。コマンド完成後にconfusion用prepareで合法性を検証してからcallerのchance_rngだけをcommitする。失敗時に再抽選で分布を変えない。
+
+world、ゲームRNG、player policy RNG、count、decision、journal、public eventはsampleで変えない。公開追加は静的 `confusion_sampler_rule` だけで、future command、seed、残りの数字のcountは出さない。sampleとstepは別transactionであり、late update/token/GF失敗があり得るため、driverはchance copyからsampleしstep成功後だけcommitできる。Match snapshotとともに外部chance seedもcontroller側へ保存する。
+
+通常sample_actionは正の混乱mainを従来どおり拒否する。response/purchaseでownerの混乱countが残っていても、通常APIの操作では減算しない。公式の混乱候補・MP/target分布・反応や購入の自動化、Earth/Moon一般payload選出、公式Dream全分布・実体不適合入力、全経路の悪魔置換と権威的server scheduleは残件である。
+
+公開 `confusion_sampler_rule` は次のheader定数に一致する。
+
+```text
+experimental:privileged-const-positive-confused-main-owner-only-local-command-sampler;caller-owned-chance-rng-separate-from-game-and-player-policy;shared-visible-normal-proposal-generator-same-order-multiplicity-extra-item-coins-free-mp-target-sell-and-exchange-laws;not-uniform-over-all-legal-actions-and-not-an-official-confusion-distribution;count-gate-bypass-only-no-count-zeroing-or-history-rewrite;final-confusion-prepare-validation-before-chance-commit;no-match-state-game-rng-policy-rng-count-decision-journal-or-public-event-mutation;sampling-failure-preserves-chance-stream-no-reroll;apply-with-existing-confusion-step-one-launch-debit-before-body-and-cutoff;response-purchase-and-grant-not-sampled-here-use-existing-apis;207-fate-generation-excluded-existing-explicit-fate-api-remains;active-threshold-discard-proposal-maps-to-sacrifice-with-same-draws;sample-and-step-separate-transactions-late-step-failure-possible;external-chance-stream-not-in-match-snapshot-controller-checkpoints-it;default-player-sampler-and-existing-manual-confusion-commands-unchanged;server-command-selection-mp-target-and-event-schedule-unverified
+```
+
+### v45の検証
+
+[証拠と独立ローカルreferenceの生成器](../scripts/official_confusion_sampler_oracle.cjs) / [保存report](../data/official-v2/confusion-sampler-client-v45.json) は、JS/JA/EN/cardsとv37のarchive hashを照合する。v37の実receiver検証11ケースを**継承**し、今回の新しいreceiver実行は0件と明記した。生存者+3、useAttackItems後の1減算、補助/防御event単独で減算しないこと等の事実を、自動方策の証明へ読み替えない。
+
+別区分のLOCAL BigInt golden18件は、empty handとraw{199}の4候補、閾値null/0/17/18、token0/maxsafe、play時の既選択baseへの追加coinを固定する。候補数1/4のboundでは最初のzero wordを拒否せず、singletonも1drawする。reportは38,669 bytes、SHA256 `0a794fd302c6b556c0f177d1098d0ed877c8d9457f3972b8db6dabeb5cf4c9ee`、rootの `--check` はbyte一致した。複雑な全方策をgeneratorへ鏡写しする代わりに、豊富なfixtureでは通常count0版の独立sceneと結果・RNGを比較する。
+
+Release CTest **144/144（55.54秒）**、ASan/UBSan CTest **104/104（122.71秒）** が全て通過した。native203関数とPython139メソッドは各1回・重複なしで登録し、C API/Pythonのfocused2件も通過した。README例の `pray 0` → `main 7 1 True 11400714819323198527` も実行して一致した。suite時間を速度比較や公式serverの適合数へ読み替えない。
+
+新native5群ではsimple4proposal/empty/zero-word、閾値によるkind差替えとextra coin、9種のrich fixture×512seedでcount0版とCommand/next_rng一致、MP0+FREE・交換/売買・used18・Dream・207skip、本物の289履歴から実行した時のlaunchだけの減算、全phase拒否、late update失敗時のcount/盤面rollbackと外部seed copy-commit、独立BigInt18goldensを検査する。比較用worldはcountだけを0にして別Matchへload_sceneするもので、実samplerや履歴を改変しない。
+
+Cは512seedの184byte全Command/RNG parity、NULLと出力canary、zero-word、count0拒否とlate failureを検査した。Python新3件はMP/FREE/資源交換/売買/Dream/threshold9/207の除外、全phase・strictseed、実行時だけの1減算、late update/token/GF rollbackを確認する。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/Fate pool/Fate sampler/新confusion samplerの各2人数、計30組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外の全fieldが一致した。独立familyは最大2系統を並行実行し、時間を速度比較には用いない。Release/SAN小行列16組もchecksumを含む非時間fieldが一致した。
+
+新helperを呼ばない既存14familyのgameplay fieldはv44と同値で、通常/canonical/payloadはchecksumも維持した。その他の旧版比較ではSnapshot.version45由来のchecksumを除き、外部chance/action、pool/reference、Fateのmanifestのversion非依存checksumは引き続き照合した。worker間・Release/SAN間では全checksumを比較する。通常samplerの共有化が既存の候補順・乱数順を変えていないことを確認する検査である。
+
+新 `godfield_confusion_sampler_bench`（CTest `official_confusion_sampler_benchmark 600 9 42 2`）は289を1回または2回適用し、1pulseでは最大4round、2pulseでは最大3roundを進める。10fixture列にempty/18usedMC/Exchange/MP0+FREE/SELL/BUY/active sacrifice/207only/解除/HP低い208・112-richを置く。各confused mainで2unchanged restore clonesとcount0 rawworldの別load_sceneを同seedで比較し、accepted confusion_step後だけchanceをcommitする。無混乱main/response/purchaseは通常policy、grantはnormal0で進め、全checkpointを復元する。include_fate/external_grantsを混在し、通常main・response・purchase・grantと主要command/FREE/used/解除の実出現を600scene以上で要求する。
+
+| ローカル混乱抽選・seed42 | scenes | 混乱 / 通常main | response / purchase / grant | chance checksum | action checksum | world checksum |
+| --- | ---: | ---: | ---: | --- | --- | --- |
+| 2人 | 100,000 | 639,161 / 29,694 | 386,278 / 8,569 / 282,753 | `11178267938257247156` | `14037867797094491107` | `4857307360174753880` |
+| 9人 | 10,000 | 280,936 / 14,660 | 583,284 / 12,840 / 168,448 | `13860660018009438040` | `14649245508736495735` | `677400468030987553` |
+
+9人600sceneでは64289decisions、混乱launch16870（sampler照合・count減算とも同数）、通常main874、response34830、purchase727、grant10088を含む。FREE合成249・used選択3512・解除600、empty60scene・18used60scene、revival588・redraw2446を検査した。chance/action/world checksumは `5906155505931735076` / `8664201943862005947` / `17601305694920062430` でRelease/SAN一致。world/count＋選択counterの部分hashと、全private proofのrestore完全一致を区別する。このfixture分布はローカル通常方策の転用を検証するもので、公式の混乱行動分布やserver対局統計ではない。

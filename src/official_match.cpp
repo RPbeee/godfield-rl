@@ -1711,13 +1711,23 @@ bool Match::guardian_legal(const GuardianAction& action) const noexcept {
 MatchStep Match::guardian_step(const GuardianAction& action) {
     auto next = data_; execute_guardian(next,action); const auto output = result(next); data_ = std::move(next); return output;
 }
-Command Match::sample_action(std::uint64_t& policy_rng) const {
+Command Match::sample_action(std::uint64_t& policy_rng) const { return sample_command(policy_rng,false); }
+Command Match::sample_confusion(std::uint64_t& chance_rng) const {
+    require(data_.phase==MatchPhase::main && !done() && data_.actor==data_.owner
+        && data_.state.players[index(data_,data_.owner)].confusion_count>0,"confusion sampling requires the positive-count main owner");
+    auto rng=chance_rng;
+    auto command=sample_command(rng,true);
+    (void)prepare(data_,command,true);
+    chance_rng=rng;
+    return command;
+}
+Command Match::sample_command(std::uint64_t& policy_rng, bool allow_confused) const {
     if (data_.phase==MatchPhase::grant) unsupported("grant selection must be supplied by an external chance driver");
     require(!done() && data_.actor.has_value(), "cannot sample a finished match");
     auto rng = policy_rng;
     const auto actor = *data_.actor;
     const auto& own = data_.state.players[index(data_, actor)];
-    if (data_.phase==MatchPhase::main && own.confusion_count>0)
+    if (!allow_confused && data_.phase==MatchPhase::main && own.confusion_count>0)
         unsupported("confusion command selection must be supplied externally");
     if (data_.phase == MatchPhase::purchase) {
         const auto accept = own.items.size() < data_.config.hand_limit && bounded(rng, 2) == 0;
@@ -1861,7 +1871,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v42\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v43\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1904,7 +1914,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"grant_rule\":\""; out += grant_rule;
     out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
     out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule;
-    out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule;
+    out += "\",\"confusion_sampler_rule\":\""; out += confusion_sampler_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"gift_pool\":{\"include_fate\":"; out += data_.config.include_fate?"true":"false";
     out += ",\"models\":"+std::to_string(data_.config.include_fate?237:236)+",\"weight\":"+std::to_string(gift_weight())+'}';
     out += ",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";

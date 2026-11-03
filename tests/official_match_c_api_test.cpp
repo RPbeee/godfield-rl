@@ -56,8 +56,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v44"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v44 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v45"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v45 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v42\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v43\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2754,6 +2754,63 @@ int main() {
         &&fate_chance==6&&equal(fate_sample_out,fate_header_before)&&equal(fate_buffer,fate_buffer_before)
         &&observe(fate_sample_match,0,0)==overflow_fate_view,"invalid sampled289 is not rerolled and changes no chance stream, output or state");
     gfo_match_destroy(fate_sample_match);
+    auto conf_sample_cfg=fate_sample_cfg;conf_sample_cfg.max_decisions=64;conf_sample_cfg.external_grants=0;conf_sample_cfg.include_fate=0;
+    gfo_match* conf_sample_match=nullptr;gfo_match* conf_sample_normal=nullptr;
+    check(gfo_match_create(&conf_sample_cfg,players.data(),2,42,&conf_sample_match)==0
+        &&gfo_match_create(&conf_sample_cfg,players.data(),2,42,&conf_sample_normal)==0,"confusion sampler positive and count0 scene handles");
+    std::array<gfo_state_player,2> conf_sample_people{};conf_sample_people[0].id=0;conf_sample_people[0].item_count=6;
+    conf_sample_people[1].id=7;conf_sample_people[1].item_offset=6;conf_sample_people[1].item_count=1;
+    for(auto& person:conf_sample_people){person.hp=40;person.mp=10;person.cp=20;}
+    std::array<gfo_state_item,7> conf_sample_items{};
+    const std::array<uint16_t,6> conf_sample_models{{152,118,3,4,5,6}};
+    for(std::size_t i=0;i<6;++i){conf_sample_items[i].token=i;conf_sample_items[i].model=conf_sample_models[i];}conf_sample_items[6].model=152;
+    const auto load_confusion_sampler=[&](gfo_match* match,bool positive,uint64_t update){
+        conf_sample_people[0].confusion_count=positive?1:0;gfo_state_meta meta{};meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,conf_sample_people.data(),2,conf_sample_items.data(),7,nullptr,0,&scene)==0
+            &&gfo_match_load_scene(match,scene,0,42,&result)==0,"load fresh count0/positive policy counterfactual without editing action history");gfo_state_destroy(scene);
+    };
+    load_confusion_sampler(conf_sample_match,true,0);load_confusion_sampler(conf_sample_normal,false,0);
+    const auto conf_sample_before=observe(conf_sample_match,0,0);const auto conf_sample_status=status(conf_sample_match);
+    gfo_match_command conf_sample_out;std::memset(&conf_sample_out,0xa5,sizeof conf_sample_out);const auto conf_sample_old=conf_sample_out;uint64_t conf_sample_rng=123;
+    check(gfo_match_sample_confusion(nullptr,&conf_sample_rng,&conf_sample_out)==-1
+        &&gfo_match_sample_confusion(conf_sample_match,nullptr,&conf_sample_out)==-1
+        &&gfo_match_sample_confusion(conf_sample_match,&conf_sample_rng,nullptr)==-1
+        &&gfo_match_sample_confusion(conf_sample_normal,&conf_sample_rng,&conf_sample_out)==-2
+        &&gfo_match_sample_action(conf_sample_match,&conf_sample_rng,&conf_sample_out)==-5
+        &&conf_sample_rng==123&&equal(conf_sample_out,conf_sample_old)
+        &&observe(conf_sample_match,0,0)==conf_sample_before,"confusion sampler NULL/nonconfused gates and old normal refusal preserve184-byte out and chance stream");
+    std::array<bool,10> conf_sample_seen{};gfo_match_command conf_sample_discard{};
+    for(uint64_t seed=0;seed<512;++seed){auto chance=seed,policy=seed;gfo_match_command reference{};conf_sample_out=conf_sample_old;
+        check(gfo_match_sample_confusion(conf_sample_match,&chance,&conf_sample_out)==0
+            &&gfo_match_sample_action(conf_sample_normal,&policy,&reference)==0&&chance==policy&&equal(conf_sample_out,reference)
+            &&conf_sample_out.kind<conf_sample_seen.size()
+            &&gfo_match_confusion_legal(conf_sample_match,&conf_sample_out,&legal)==0&&legal
+            &&gfo_match_legal(conf_sample_normal,&conf_sample_out,&legal)==0&&legal,
+            "shared visible policy law matches count0 scene including whole184-byte canonical command and next RNG");
+        conf_sample_seen[conf_sample_out.kind]=true;if(conf_sample_out.kind==2)conf_sample_discard=conf_sample_out;
+    }
+    check(conf_sample_seen[0]&&conf_sample_seen[2]&&conf_sample_seen[4]&&conf_sample_seen[5]&&conf_sample_seen[6]
+        &&equal(status(conf_sample_match),conf_sample_status)&&observe(conf_sample_match,0,0)==conf_sample_before,
+        "play/discard/exchange/sell/buy branches were exercised without debiting confusion or changing any public state");
+    gfo_match_status conf_sample_reference_result{};
+    check(gfo_match_confusion_step(conf_sample_match,&conf_sample_discard,&result)==0
+        &&gfo_match_step(conf_sample_normal,&conf_sample_discard,&conf_sample_reference_result)==0&&equal(result,conf_sample_reference_result)
+        &&observe(conf_sample_match,0,0)==observe(conf_sample_normal,0,0),"only applying the selected command debits one count");
+    gfo_match_command conf_sample_prayer{};conf_sample_prayer.actor=7;conf_sample_prayer.kind=3;
+    check(gfo_match_step(conf_sample_match,&conf_sample_prayer,&result)==0&&gfo_match_step(conf_sample_normal,&conf_sample_prayer,&conf_sample_reference_result)==0
+        &&observe(conf_sample_match,1,7)==observe(conf_sample_normal,1,7),"repeated local sampling did not advance environment RNG before the next ordinary artifact");
+    load_confusion_sampler(conf_sample_match,true,official::max_wire_integer);const auto conf_sample_late=observe(conf_sample_match,0,0);const auto conf_sample_late_status=status(conf_sample_match);
+    conf_sample_rng=0;check(gfo_match_sample_confusion(conf_sample_match,&conf_sample_rng,&conf_sample_out)==0,"sampling ignores future update exhaustion");result=conf_sample_late_status;
+    check(gfo_match_confusion_step(conf_sample_match,&conf_sample_out,&result)==-2&&equal(result,conf_sample_late_status)
+        &&observe(conf_sample_match,0,0)==conf_sample_late,"failed later application restores the predebit state without undoing the separate chance sample");
+    conf_sample_people[0].item_count=2;conf_sample_people[0].confusion_count=1;conf_sample_people[1].item_offset=2;conf_sample_people[1].item_count=0;
+    gfo_state_meta conf_reject_meta{};gfo_state* conf_reject_scene=nullptr;
+    check(gfo_state_create(&conf_reject_meta,conf_sample_people.data(),2,conf_sample_items.data(),2,nullptr,0,&conf_reject_scene)==0
+        &&gfo_match_load_scene(conf_sample_match,conf_reject_scene,0,42,&result)==0,"three-proposal confusion rejection fixture");gfo_state_destroy(conf_reject_scene);
+    conf_sample_rng=7046029254386353131ULL;gfo_match_command conf_reject_expected{};conf_reject_expected.kind=2;conf_reject_expected.item_count=1;
+    check(gfo_match_sample_confusion(conf_sample_match,&conf_sample_rng,&conf_sample_out)==0
+        &&conf_sample_rng==11400714819323198485ULL&&equal(conf_sample_out,conf_reject_expected),"zero first SplitMix word is rejected for three proposals before canonical discard selection");
+    gfo_match_destroy(conf_sample_match);gfo_match_destroy(conf_sample_normal);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

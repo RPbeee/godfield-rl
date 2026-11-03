@@ -69,7 +69,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v44"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v45"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -77,7 +77,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v42")
+        self.assertEqual(own["schema"], "official-execution-view-v43")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -273,7 +273,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v42")
+        self.assertEqual(event["schema"], "official-execution-view-v43")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3872,6 +3872,94 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((game.observe(0), game.status), (before, status))
         game.close()
         with self.assertRaises(InvalidMatchError): game.sample_fate(0, 4)
+
+    def test_sample_confusion_matches_count0_visible_policy_including_free_trade_and_dream(self):
+        source = {"id": 0, "team": 1, "hp": 99, "mp": 0, "cp": 99, "confusionCount": 1,
+                  "curses": ["fog", "dream"], "items": [
+            {"id": 0, "modelId": 6}, {"id": 1, "modelId": 231}, {"id": 2, "modelId": 204},
+            {"id": 3, "modelId": 143}, {"id": 4, "modelId": 3}, {"id": 5, "modelId": 4},
+            {"id": 6, "modelId": 5}, {"id": 7, "modelId": 235, "used": True}, {"id": 8, "modelId": 83},
+            {"id": 9, "modelId": 118, "fakeModelId": 123}, {"id": 10, "modelId": 58},
+            {"id": 11, "modelId": 232}, {"id": 12, "modelId": 14}, {"id": 13, "modelId": 207},
+            {"id": 14, "modelId": 53}, {"id": 15, "modelId": 238}, {"id": 16, "modelId": 152}, {"id": 17, "modelId": 234}]}
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [source,
+            {"id": 7, "team": 1, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 152}]},
+            {"id": 42, "team": 2, "hp": 99, "mp": 99, "cp": 99}]}
+        normal_raw = copy.deepcopy(raw); normal_raw["players"][0]["confusionCount"] = 0
+        confused, normal = self.match(config=Config(initial_hand=0)), self.match(config=Config(initial_hand=0))
+        for game, scene_raw in ((confused, raw), (normal, normal_raw)):
+            with OfficialState(scene_raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = confused.observe(0), confused.status; normal_before = normal.observe(0)
+        seen, free_pair, chosen_sacrifice = set(), False, None
+        for seed in range(4096):
+            selected, rng = confused.sample_confusion(seed); reference, normal_rng = normal.sample_action(seed)
+            self.assertEqual((selected, rng), (reference, normal_rng)); self.assertTrue(confused.confusion_legal(selected))
+            self.assertTrue(normal.legal(selected)); self.assertFalse(confused.legal(selected))
+            self.assertNotEqual(selected.kind, "discard"); seen.add(selected.kind)
+            if selected.kind == "play":
+                self.assertNotIn(13, selected.items)
+                free_pair |= bool(set(selected.items) & {2, 3}) and bool(set(selected.items) & {1, 7, 11})
+            if selected.kind == "sacrifice": chosen_sacrifice = selected
+            if {"play", "exchange", "sell", "buy", "sacrifice"} <= seen and free_pair: break
+        self.assertTrue({"play", "exchange", "sell", "buy", "sacrifice"} <= seen); self.assertTrue(free_pair)
+        self.assertEqual((confused.observe(0), confused.status), (before, status)); self.assertEqual(normal.observe(0), normal_before)
+        with self.assertRaises(UnsupportedMatchError): confused.sample_action(42)
+        confused.confusion_step(chosen_sacrifice); normal.step(chosen_sacrifice)
+        self.assertEqual((confused.observe(0), confused.status), (normal.observe(0), normal.status))
+        self.assertFalse(confused.observe()["board"]["players"][0]["status"]["confused"])
+
+    def test_sample_confusion_bounded_rejection_strict_seed_and_late_failure(self):
+        raw = {"gf": 0, "players": [{"id": 0, "hp": 99, "mp": 0, "cp": 99, "confusionCount": 1,
+                    "items": [{"id": 0, "modelId": 152}, {"id": 1, "modelId": 118}]},
+                    {"id": 7, "hp": 99, "mp": 0, "cp": 99}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status
+        self.assertEqual(game.sample_confusion(7046029254386353131), (Command(0, "discard", (0,)), 11400714819323198485))
+        for invalid in (True, False, -1, 2**64, 0.0, "0", None):
+            with self.assertRaises(InvalidMatchError): game.sample_confusion(invalid)
+        self.assertEqual(game.sample_confusion(2**64-1), game.sample_confusion(2**64-1))
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        for exhausted in ("update", "gf", "token"):
+            altered = copy.deepcopy(raw); altered["tiebreakGF"] = 0
+            altered["players"][0]["items"] = [{"id": 0, "modelId": 152}]
+            if exhausted == "update": altered["updateCount"] = 9007199254740991
+            if exhausted == "gf": altered["gf"] = 9007199254740991
+            if exhausted == "token": altered["players"][0]["items"].append({"id": 9007199254740991, "modelId": 6})
+            with OfficialState(altered, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            before, status = game.observe(0), game.status
+            for seed in range(64):
+                selected, next_rng = game.sample_confusion(seed)
+                if selected.kind == "sacrifice": break
+            self.assertEqual(selected.kind, "sacrifice"); self.assertTrue(game.confusion_legal(selected))
+            with self.assertRaises(InvalidMatchError): game.confusion_step(selected)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        game.close()
+        with self.assertRaises(InvalidMatchError): game.sample_confusion(0)
+
+    def test_sample_confusion_rejects_nonconfused_main_and_every_nonmain_phase(self):
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [
+            {"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 6}, {"id": 1, "modelId": 5}, {"id": 2, "modelId": 152}]},
+            {"id": 7, "hp": 99, "mp": 99, "cp": 99, "confusionCount": 2, "items": [{"id": 0, "modelId": 152}]}]}
+        game = self.match(config=Config(initial_hand=0, external_grants=True))
+        for phase in ("main", "response", "purchase", "grant"):
+            scene_raw = copy.deepcopy(raw)
+            if phase in ("purchase", "grant"): scene_raw["players"][0]["confusionCount"] = 2
+            with OfficialState(scene_raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            if phase == "response": game.step(Command(0, "play", (0,), 7))
+            elif phase == "purchase": game.confusion_step(Command(0, "buy", (1,), 7)); game.step(Command(7, "defend"))
+            elif phase == "grant": game.confusion_step(Command(0, "sacrifice", (2,)))
+            self.assertEqual(game.status.phase, phase); before, status = game.observe(0), game.status
+            with self.assertRaises(InvalidMatchError): game.sample_confusion(0)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+            if phase in ("response", "purchase"):
+                selected, unused = game.sample_action(42); self.assertTrue(game.legal(selected))
+        cutoff = self.match(config=Config(initial_hand=0, max_decisions=1))
+        raw["players"][0]["confusionCount"] = 2
+        with OfficialState(raw, library=LIBRARY) as scene: cutoff.load_scene(scene, 0, 42)
+        cutoff.confusion_step(Command(0, "sacrifice", (2,))); self.assertTrue(cutoff.status.truncated)
+        self.assertTrue(cutoff.observe()["board"]["players"][0]["status"]["confused"])
+        with self.assertRaises(InvalidMatchError): cutoff.sample_confusion(0)
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

@@ -1,0 +1,1289 @@
+{
+  "schema_version": 1,
+  "title": "Inherited public confusion receiver facts and independent tiny LOCAL proposal reference v45",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "official_evidence": {
+    "execution_mode": "Inherited archived actual-client cases;receiver/control functions are NOT re-executed by this new script.",
+    "archive": {
+      "path": "data/official-v2/confusion-client-v37.json",
+      "sha256": "335a67ee5978deeda63fdde663274e5b22078c261e46c335581fa322056c83b5",
+      "bytes": 137800
+    },
+    "helper_sha256": {
+      "event_decoder": "a2c4ea34e8c271c7d687d5d5d347cb03d077bcf48ed7c8764aef4dba61d41ded",
+      "player_decoder": "3edbc29eb2265939474bd2111d1086935cfa2186bedf26791af3c2119beeeab4",
+      "confusion_setter": "0da95499be55d0c957e902ea94dbae271e10318431ca370fcc5e5fd9d55ed266",
+      "global_confusion_branch": "d59e91b48d3ec0daf79908299f93fd39d792005059d7bc3d76810cd1ff6770dd",
+      "remove_curses_branch": "45e482a8bd4b8fba5b98b5f61324f53aab9b4e2015c690d80affde1587606b8f",
+      "attack_use_branch": "8019325febcdfa33e4ef29176d2f2a1176eec94a87d2fe62b9e70917ae61f51b",
+      "defense_use_branch": "35ed3dc9aae36d737015e7d47af8eb52b47d4aa1245fd206c03e4bc9d4a87234",
+      "advance_gf_branch": "75c949ee968a78fe5de178d625c848bc5f360a0175997490953c1e1558a0f443",
+      "auxiliary_pray_discard": "691cc2d3817de4f5768d3ae5efb763a0c4753471752acb1c9ef8f10b523625c1",
+      "end_game_branch": "68c07f5f27c34761dd0ee5dcf9ed638b8c4799a136a7153a953b68ab10fed471",
+      "death_helper": "1f96035523d94232702983277cb473aa366509627b02ec5f27b6879e98a6fe22",
+      "command_activation": "cdbeb63e31eca727c1a87027cdb3b1dc94be9f957176af908287aa2fe11c8d0e"
+    },
+    "cases": [
+      {
+        "pointer": "/global_cases/0",
+        "claim": "Supplied confuseEverybody adds3 to each alive player;it does not select commands.",
+        "case_sha256": "ea30dd55e737367c8a1ba36aa067e8f9e636363a22f7128809b7429b22ec4c03",
+        "archived_case": {
+          "counts": [
+            0,
+            3
+          ],
+          "dead_mask": 0,
+          "viewer": 0,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": true,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 6,
+                "positive_frame": true,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/global_cases/2",
+        "claim": "The dead player is excluded from the additive global receiver.",
+        "case_sha256": "7cd80dc4f67eeafd12154cc5c794234bfe17832f3d00fba61e9d163007737d90",
+        "archived_case": {
+          "counts": [
+            0,
+            3
+          ],
+          "dead_mask": 2,
+          "viewer": 0,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": true,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": true,
+                "count": 3,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/attack_use_cases/18",
+        "claim": "Supplied empty useAttackItems decrements the current confused source once and draws one visual placeholder.",
+        "case_sha256": "d5a51f04ddc27b4a64145fffec4ace1760cd68939fe48ccbea8ed1f604e694e0",
+        "archived_case": {
+          "count": 3,
+          "viewer": 0,
+          "items": [],
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 2,
+                "positive_frame": true,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 1,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/attack_use_cases/20",
+        "claim": "Two supplied attack items still decrement once,not once per item.",
+        "case_sha256": "c3bead9b00553952eb1e825253181775d3ec5d96765c1bf0bfa02e9d66e5acfb",
+        "archived_case": {
+          "count": 3,
+          "viewer": 0,
+          "items": [
+            {
+              "id": 90,
+              "modelId": 6
+            },
+            {
+              "id": 91,
+              "modelId": 9
+            }
+          ],
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 2,
+                "positive_frame": true,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [
+                90,
+                91
+              ],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/auxiliary_cases/1",
+        "claim": "Supplied pray alone leaves confusion count unchanged;the complete server event sequence is not established.",
+        "case_sha256": "db201b0f81fa2abde56ce3970758d6ecad711afc96f15ae64fd84ec4209eb479",
+        "archived_case": {
+          "action": "pray",
+          "count": 3,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 1,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          },
+          "note": "Supplied event alone does not decrement confusion."
+        }
+      },
+      {
+        "pointer": "/auxiliary_cases/3",
+        "claim": "Supplied discard alone leaves confusion count unchanged;the complete server event sequence is not established.",
+        "case_sha256": "1f78cbda4513175ce0b4f7dea11fe6e2e43720482cc6bb289f8c0152ce02ec0e",
+        "archived_case": {
+          "action": "discard",
+          "count": 3,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 1,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          },
+          "note": "Supplied event alone does not decrement confusion."
+        }
+      },
+      {
+        "pointer": "/auxiliary_cases/7",
+        "claim": "Supplied useDefenseItems alone leaves confusion count unchanged;the complete server event sequence is not established.",
+        "case_sha256": "ff42cac43116010ca8d68e8dc4ee462fb7d0e17c7bc27855c8a70301fdabce83",
+        "archived_case": {
+          "action": "useDefenseItems",
+          "count": 3,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          },
+          "note": "Supplied event alone does not decrement confusion."
+        }
+      },
+      {
+        "pointer": "/remove_curses_cases/3",
+        "claim": "Curse-removal receiver does not clear the separate confusion count.",
+        "case_sha256": "7c571c015a8d319051253c7e15602fe25b303b73b69a5ed67a510dff35fe206e",
+        "archived_case": {
+          "count": 3,
+          "curses": [],
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 3,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 4,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/death_cases/2",
+        "claim": "Death clears confusion.",
+        "case_sha256": "69cf738ab28903d89700ea9a602c8a011386e9bef4d5d0db66117f093d991545",
+        "archived_case": {
+          "count": 3,
+          "result": {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        }
+      },
+      {
+        "pointer": "/ending_cases/0",
+        "claim": "End-game receiver clears all alive confusion counts.",
+        "case_sha256": "0f2db7b7f6e5b14e0e9f24bb751f8ab60783f6851f8f960a3566e8ea41824ac5",
+        "archived_case": {
+          "dead_mask": 0,
+          "result": {
+            "error": false,
+            "players": [
+              {
+                "id": 42,
+                "dead": false,
+                "count": 0,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 0,
+                "dead": false,
+                "count": 0,
+                "positive_frame": false,
+                "safe_integer": true
+              },
+              {
+                "id": 72,
+                "dead": false,
+                "count": 0,
+                "positive_frame": false,
+                "safe_integer": true
+              }
+            ],
+            "calls": {
+              "placeholders": 0,
+              "confusion_animations": 0,
+              "pray_animations": 0,
+              "discard_animations": 0,
+              "selected_ids": [],
+              "command_updates": []
+            }
+          }
+        }
+      },
+      {
+        "pointer": "/command_activation_cases/3",
+        "claim": "The actual local control activation branch still runs when confused;server authorization and automatic selection remain unknown.",
+        "case_sha256": "6d1ef5ebf2c6beb918ac71b979f5a090860378100aeeb44080fe0af35a6d7ec8",
+        "archived_case": {
+          "count": 3,
+          "viewer": 0,
+          "result": {
+            "error": false,
+            "calls": [
+              [
+                "owned-command"
+              ],
+              [
+                "command-side"
+              ],
+              [
+                "command-display"
+              ],
+              [
+                "hand-click-active"
+              ],
+              [
+                "target-click-active",
+                42
+              ],
+              [
+                "target-click-active",
+                0
+              ]
+            ]
+          }
+        }
+      }
+    ],
+    "locales": {
+      "ja": {
+        "url": "https://godfield.net/i18n/ja.json",
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "effect": "御乱心",
+        "description": "みんなが三回ずつ<br>勝手に行動する"
+      },
+      "en": {
+        "url": "https://godfield.net/i18n/en.json",
+        "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+        "effect": "Crazy",
+        "description": "Make everybody lose<br>control for 3 turns"
+      }
+    },
+    "interpretation": "Count+3 and received attack-use minus1 are source observations. They do not supply a random command generator,MP allocation,target distribution,response automation,purchase automation,timeout or manual authorization rule."
+  },
+  "local_reference": {
+    "official_client_selector": false,
+    "domain": "Only positive-confused alive main owner0,alive target roster[0,7],empty hand or one actual unused unmasked sundry199;no implementation of the general engine generator.",
+    "constants": {
+      "gamma": "0x9e3779b97f4a7c15",
+      "multiply1": "0xbf58476d1ce4e5b9",
+      "multiply2": "0x94d049bb133111eb"
+    },
+    "bounded_rule": "Unsigned SplitMix64;accept output>=2^64modn then outputmodn. Bounds1,2,4 divide2^64,so threshold0 and firstword0 is accepted.",
+    "proposal_rule": "Empty menu=[pray]. Raw199 menu=[pray,discard-or-sacrifice,play-self0,play-other7] in that order. At gf17 only nonnull threshold<=17 replaces discard with sacrifice in the same index.",
+    "extras_rule": "Only selected play runs the existing local extras coin for each raw copy. This tiny one-copy fixture consumes bounded2 for its already-selected base199 before ignoring that copy. Pray/discard/sacrifice consume no such coin.",
+    "fixtures": {
+      "empty": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 3,
+        "mp": 0,
+        "gf": 17,
+        "tiebreak_gf": null,
+        "alive_input_order": [
+          0,
+          7
+        ],
+        "items": [],
+        "proposal_menu": [
+          {
+            "actor": 0,
+            "kind": "pray",
+            "items": [],
+            "target": null,
+            "allocation": null
+          }
+        ]
+      },
+      "shell-threshold-null": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 3,
+        "mp": 0,
+        "gf": 17,
+        "tiebreak_gf": null,
+        "alive_input_order": [
+          0,
+          7
+        ],
+        "items": [
+          {
+            "token": 0,
+            "model": 199,
+            "used": false,
+            "fake_model": null
+          }
+        ],
+        "proposal_menu": [
+          {
+            "actor": 0,
+            "kind": "pray",
+            "items": [],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "discard",
+            "items": [
+              0
+            ],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              0
+            ],
+            "target": 0,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              0
+            ],
+            "target": 7,
+            "allocation": null
+          }
+        ]
+      },
+      "shell-threshold-0": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 3,
+        "mp": 0,
+        "gf": 17,
+        "tiebreak_gf": 0,
+        "alive_input_order": [
+          0,
+          7
+        ],
+        "items": [
+          {
+            "token": 9007199254740991,
+            "model": 199,
+            "used": false,
+            "fake_model": null
+          }
+        ],
+        "proposal_menu": [
+          {
+            "actor": 0,
+            "kind": "pray",
+            "items": [],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "sacrifice",
+            "items": [
+              9007199254740991
+            ],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              9007199254740991
+            ],
+            "target": 0,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              9007199254740991
+            ],
+            "target": 7,
+            "allocation": null
+          }
+        ]
+      },
+      "shell-threshold-17": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 3,
+        "mp": 0,
+        "gf": 17,
+        "tiebreak_gf": 17,
+        "alive_input_order": [
+          0,
+          7
+        ],
+        "items": [
+          {
+            "token": 0,
+            "model": 199,
+            "used": false,
+            "fake_model": null
+          }
+        ],
+        "proposal_menu": [
+          {
+            "actor": 0,
+            "kind": "pray",
+            "items": [],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "sacrifice",
+            "items": [
+              0
+            ],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              0
+            ],
+            "target": 0,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              0
+            ],
+            "target": 7,
+            "allocation": null
+          }
+        ]
+      },
+      "shell-threshold-18": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 3,
+        "mp": 0,
+        "gf": 17,
+        "tiebreak_gf": 18,
+        "alive_input_order": [
+          0,
+          7
+        ],
+        "items": [
+          {
+            "token": 9007199254740991,
+            "model": 199,
+            "used": false,
+            "fake_model": null
+          }
+        ],
+        "proposal_menu": [
+          {
+            "actor": 0,
+            "kind": "pray",
+            "items": [],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "discard",
+            "items": [
+              9007199254740991
+            ],
+            "target": null,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              9007199254740991
+            ],
+            "target": 0,
+            "allocation": null
+          },
+          {
+            "actor": 0,
+            "kind": "play",
+            "items": [
+              9007199254740991
+            ],
+            "target": 7,
+            "allocation": null
+          }
+        ]
+      }
+    },
+    "vectors": [
+      {
+        "label": "empty-singleton-first-zero-accepted",
+        "seed_expression": "-gamma mod2^64",
+        "fixture": "empty",
+        "seed": "0x61c8864680b583eb",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "empty-singleton-seed42",
+        "fixture": "empty",
+        "seed": "0x000000000000002a",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x9e3779b97f4a7c3f",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xbdd732262feb6e95",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-null-proposal0",
+        "first_word": "0x0000000000000000",
+        "fixture": "shell-threshold-null",
+        "seed": "0x61c8864680b583eb",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-null-proposal1",
+        "first_word": "0x0000000000000001",
+        "fixture": "shell-threshold-null",
+        "seed": "0xf8364607e9c949bd",
+        "proposal_index": 1,
+        "command": {
+          "actor": 0,
+          "kind": "discard",
+          "items": [
+            0
+          ],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x966dbfc16913c5d2",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000001",
+            "result": 1
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-null-proposal2",
+        "first_word": "0x0000000000000002",
+        "fixture": "shell-threshold-null",
+        "seed": "0x8ea405cd52dd0fa0",
+        "proposal_index": 2,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            0
+          ],
+          "target": 0,
+          "allocation": null
+        },
+        "next_rng": "0xcb12f940517207ca",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000002",
+            "result": 2
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x59fbf562544d405a",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-null-proposal3",
+        "first_word": "0x0000000000000003",
+        "fixture": "shell-threshold-null",
+        "seed": "0x8692f6950ca2a279",
+        "proposal_index": 3,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            0
+          ],
+          "target": 7,
+          "allocation": null
+        },
+        "next_rng": "0xc301ea080b379aa3",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000003",
+            "result": 3
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x14929b9877ee7ed8",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-0-proposal0",
+        "first_word": "0x0000000000000000",
+        "fixture": "shell-threshold-0",
+        "seed": "0x61c8864680b583eb",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-0-proposal1",
+        "first_word": "0x0000000000000001",
+        "fixture": "shell-threshold-0",
+        "seed": "0xf8364607e9c949bd",
+        "proposal_index": 1,
+        "command": {
+          "actor": 0,
+          "kind": "sacrifice",
+          "items": [
+            9007199254740991
+          ],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x966dbfc16913c5d2",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000001",
+            "result": 1
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-0-proposal2",
+        "first_word": "0x0000000000000002",
+        "fixture": "shell-threshold-0",
+        "seed": "0x8ea405cd52dd0fa0",
+        "proposal_index": 2,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            9007199254740991
+          ],
+          "target": 0,
+          "allocation": null
+        },
+        "next_rng": "0xcb12f940517207ca",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000002",
+            "result": 2
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x59fbf562544d405a",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-0-proposal3",
+        "first_word": "0x0000000000000003",
+        "fixture": "shell-threshold-0",
+        "seed": "0x8692f6950ca2a279",
+        "proposal_index": 3,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            9007199254740991
+          ],
+          "target": 7,
+          "allocation": null
+        },
+        "next_rng": "0xc301ea080b379aa3",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000003",
+            "result": 3
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x14929b9877ee7ed8",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-17-proposal0",
+        "first_word": "0x0000000000000000",
+        "fixture": "shell-threshold-17",
+        "seed": "0x61c8864680b583eb",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-17-proposal1",
+        "first_word": "0x0000000000000001",
+        "fixture": "shell-threshold-17",
+        "seed": "0xf8364607e9c949bd",
+        "proposal_index": 1,
+        "command": {
+          "actor": 0,
+          "kind": "sacrifice",
+          "items": [
+            0
+          ],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x966dbfc16913c5d2",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000001",
+            "result": 1
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-17-proposal2",
+        "first_word": "0x0000000000000002",
+        "fixture": "shell-threshold-17",
+        "seed": "0x8ea405cd52dd0fa0",
+        "proposal_index": 2,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            0
+          ],
+          "target": 0,
+          "allocation": null
+        },
+        "next_rng": "0xcb12f940517207ca",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000002",
+            "result": 2
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x59fbf562544d405a",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-17-proposal3",
+        "first_word": "0x0000000000000003",
+        "fixture": "shell-threshold-17",
+        "seed": "0x8692f6950ca2a279",
+        "proposal_index": 3,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            0
+          ],
+          "target": 7,
+          "allocation": null
+        },
+        "next_rng": "0xc301ea080b379aa3",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000003",
+            "result": 3
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x14929b9877ee7ed8",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-18-proposal0",
+        "first_word": "0x0000000000000000",
+        "fixture": "shell-threshold-18",
+        "seed": "0x61c8864680b583eb",
+        "proposal_index": 0,
+        "command": {
+          "actor": 0,
+          "kind": "pray",
+          "items": [],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-18-proposal1",
+        "first_word": "0x0000000000000001",
+        "fixture": "shell-threshold-18",
+        "seed": "0xf8364607e9c949bd",
+        "proposal_index": 1,
+        "command": {
+          "actor": 0,
+          "kind": "discard",
+          "items": [
+            9007199254740991
+          ],
+          "target": null,
+          "allocation": null
+        },
+        "next_rng": "0x966dbfc16913c5d2",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000001",
+            "result": 1
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-18-proposal2",
+        "first_word": "0x0000000000000002",
+        "fixture": "shell-threshold-18",
+        "seed": "0x8ea405cd52dd0fa0",
+        "proposal_index": 2,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            9007199254740991
+          ],
+          "target": 0,
+          "allocation": null
+        },
+        "next_rng": "0xcb12f940517207ca",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000002",
+            "result": 2
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x59fbf562544d405a",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      },
+      {
+        "label": "shell-threshold-18-proposal3",
+        "first_word": "0x0000000000000003",
+        "fixture": "shell-threshold-18",
+        "seed": "0x8692f6950ca2a279",
+        "proposal_index": 3,
+        "command": {
+          "actor": 0,
+          "kind": "play",
+          "items": [
+            9007199254740991
+          ],
+          "target": 7,
+          "allocation": null
+        },
+        "next_rng": "0xc301ea080b379aa3",
+        "calls": [
+          {
+            "stage": "proposal-choice",
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000003",
+            "result": 3
+          },
+          {
+            "stage": "extras-coin-for-already-selected-base199",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x14929b9877ee7ed8",
+            "result": 0
+          }
+        ],
+        "match_state_unchanged": true
+      }
+    ],
+    "ownership": "External chance RNG only. Reference does not debit confusion,consume items,apply cure,draw gifts,advance decisions or mutate Match state. sampling and confusion_step are separate transactions;caller stores the chance stream alongside its checkpoint."
+  },
+  "counts": {
+    "new_actual_receiver_executions": 0,
+    "inherited_actual_cases": 11,
+    "local_fixtures": 5,
+    "local_vectors": 18
+  },
+  "limitations": [
+    "All candidate order,uniform proposal ticket,SplitMix staging and extras coins here are LOCAL experimental rules,not official confusion selector evidence. This is not uniform sampling from the full legal-action set.",
+    "The source archive proves a received useAttackItems decrement,including empty arrays. Mapping every accepted logical main command to one decrement is an existing local contract;pray/discard auxiliary events by themselves do not establish that mapping.",
+    "No primary source specifies confused MP/CP allocation,buy agreement,response automation,target weighting or how a supplied attack command is chosen. Existing ordinary response/purchase APIs are separate;this reference does not automate them.",
+    "The tiny oracle deliberately doesnot mirror the general proposal generator or its compound/FREE/trade/MP/resource branches. Native/API tests cover legality,phase/owner/count gates,failure atomicity,bounds and all body execution.",
+    "JA/EN lose-control wording is not evidence that the displayed clickable controls authorize manual server commands. Old Flash ILLUSION is a different effect and supplies no current confusion chooser.",
+    "Pinned bundle/locale hashes and the inherited archive are checked. No new official receiver execution,network/account/game startup,engine/build execution or existing file modification is performed."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_confusion_sampler_oracle.cjs --client /path/main.dart.js --locale-ja /path/ja.json --locale-en /path/en.json [--check]"
+}

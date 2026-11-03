@@ -357,7 +357,7 @@ int main(int argc,char** argv) { try {
     }
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:local-uniform-ten-phenomena-fate-sampler;independent-external-chance-rng;ordinary-owner-schedule;not-official-selector-or-distribution;world-selected-counter-hashes-plus-full-restore-audit"
-             <<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
+             <<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nfate_pool_rule="<<fate_pool_rule<<"\nfate_sampler_rule="<<fate_sampler_rule<<"\nconfusion_sampler_rule="<<confusion_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions);OUTPUT(grant_commands);OUTPUT(sampler_checks);OUTPUT(invalid_sampler_checks);OUTPUT(confused_policy_refusals);OUTPUT(target_self);OUTPUT(target_ally);OUTPUT(target_enemy);OUTPUT(guardian_assignments);
     OUTPUT(include_fate_scenes);OUTPUT(external_grant_scenes);OUTPUT(cutoff_probes);OUTPUT(shuffle_empty);OUTPUT(shuffle_single);OUTPUT(shuffle_other_token0);

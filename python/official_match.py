@@ -366,7 +366,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v44"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v45"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or lib.gfo_match_player_size() != c.sizeof(_Player)
@@ -445,6 +445,8 @@ class Match:
         lib.gfo_match_grant_step.argtypes = [c.c_void_p, c.POINTER(_DevilAction), c.POINTER(_Status)]
         lib.gfo_match_grant_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
+        lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
+        lib.gfo_match_sample_confusion.restype = c.c_int
         lib.gfo_match_sample_grant.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_DevilAction)]
         lib.gfo_match_sample_grant.restype = c.c_int
         lib.gfo_match_sample_fate.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.POINTER(_ItemSource), c.c_size_t, c.POINTER(_FateAction)]
@@ -649,6 +651,16 @@ class Match:
     def sample_action(self, policy_rng):
         self._open(); rng = c.c_uint64(_integer(policy_rng, "policy_rng", 0, 2**64 - 1)); result = _Command()
         _check(self._lib.gfo_match_sample_action(self._handle, c.byref(rng), c.byref(result)))
+        return _decode_command(result), rng.value
+
+    def sample_confusion(self, chance_rng):
+        """Return a local visible-policy Command and new chance RNG for confusion.
+
+        Sampling preserves the count and match. Use confusion_step separately
+        to commit the command and debit one count; no server selector is implied.
+        """
+        self._open(); rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); result = _Command()
+        _check(self._lib.gfo_match_sample_confusion(self._handle, c.byref(rng), c.byref(result)))
         return _decode_command(result), rng.value
 
     def sample_grant(self, chance_rng):

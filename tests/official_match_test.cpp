@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v44"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v45"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v42\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v43\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2679,10 +2679,101 @@ void fate_sampler_independent_bigint_vectors(){
         check(game.sample_fate(0,rng)==expected&&rng==0xb8f5d7dbd1668d5fULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
 }
 
+void confusion_sampler_simple_proposals_and_zero_word(){
+    for(int threshold:{-1,0,17,18}){auto state=scene({199},{});state.gf=17;if(threshold>=0)state.tiebreak_gf=threshold;state.players[0].confusion_count=3;auto game=fixture(state);const auto before=game.snapshot();
+        for(unsigned slot=0;slot<4;++slot){auto rng=grant_seed_for_word(100+slot);const auto first=rng;const auto command=game.sample_confusion(rng);const auto kind=slot==0?CommandKind::pray:slot==1?(threshold>=0&&threshold<=17?CommandKind::sacrifice:CommandKind::discard):CommandKind::play;
+            const Command expected{0,kind,slot?std::vector<ItemToken>{0}:std::vector<ItemToken>{},slot>=2?std::optional<PlayerId>{slot==2?0ULL:7ULL}:std::nullopt,{}};
+            check(command==expected&&rng==first+(slot>=2?2:1)*0x9e3779b97f4a7c15ULL&&game.confusion_legal(command)&&!game.legal(command)&&game.snapshot()==before,"simple confused proposals retain order/multiplicity, base extra coin and threshold mapping without a count debit");
+        }
+    }
+    for(bool item:{false,true}){auto state=scene({},{});if(item)state.players[0].items.push_back({0,199,{},false});state.players[0].confusion_count=3;auto game=fixture(state);auto rng=0ULL-0x9e3779b97f4a7c15ULL;const auto command=game.sample_confusion(rng);
+        check(command==pray(0)&&rng==0&&game.snapshot().state.players[0].confusion_count==3,"zero SplitMix word is accepted for bounds1/4 and a singleton still consumes one draw");
+    }
+}
+void confusion_sampler_counterfactual_visible_law_and_rich_columns(){
+    const std::array<std::vector<CardId>,9> hands{{{},{207},{3,199},{4,6,235},{5},{235,204},{118,6,235},{235},{199,203,239}}};
+    bool free=false,exchange=false,sell=false,buy=false,used=false,sacrifice=false;
+    for(unsigned fixture_id=0;fixture_id<hands.size();++fixture_id){auto state=scene({}, {6,235});for(auto id:hands[fixture_id])state.players[0].items.push_back({state.players[0].items.size(),id,{},false});
+        state.players[0].confusion_count=3;state.players[0].mp=fixture_id==5?0:99;state.players[0].cp=99;state.players[0].hp=40;
+        if(fixture_id==6){state.players[0].curses={Curse::dream};state.players[0].items[0].fake_model=123;state.players[0].items[2].used=true;}
+        if(fixture_id==7){state.players[0].items.clear();for(unsigned i=0;i<18;++i)state.players[0].items.push_back({i,235,{},true});}
+        if(fixture_id==8)state.tiebreak_gf=0;
+        MatchConfig cfg;cfg.include_fate=true;cfg.external_grants=true;auto game=fixture(state,cfg);auto plain_state=state;plain_state.players[0].confusion_count=0;auto reference=fixture(plain_state,cfg);const auto before=game.snapshot();
+        for(std::uint64_t seed=0;seed<512;++seed){auto a=seed,b=seed;const auto command=game.sample_confusion(a),ordinary=reference.sample_action(b);
+            check(command==ordinary&&a==b&&game.snapshot()==before&&game.confusion_legal(command)&&reference.legal(ordinary),"confusion chance policy exactly shares the ordinary visible proposal law and external stream progression");
+            free|=fixture_id==5&&command.kind==CommandKind::play&&command.items.size()>1;exchange|=command.kind==CommandKind::exchange;sell|=command.kind==CommandKind::sell;buy|=command.kind==CommandKind::buy;sacrifice|=command.kind==CommandKind::sacrifice;
+            if(fixture_id==7)used|=!command.items.empty();if(command.kind==CommandKind::exchange)check(command.allocation&&command.allocation->hp+command.allocation->mp+command.allocation->cp==state.players[0].hp+state.players[0].mp+state.players[0].cp,"sampled resource allocation conserves the visible resource total");
+            if(fixture_id==1)check(command.kind!=CommandKind::play,"ordinary confusion proposals do not invent a Fate outcome for207");
+        }
+    }
+    check(free&&exchange&&sell&&buy&&used&&sacrifice,"rich fixtures cover FREE, resource/trade operations, used miracles and active sacrifice");
+}
+void confusion_sampler_execution_debits_only_at_launch(){
+    for(std::uint64_t seed=0;seed<8;++seed){auto state=scene({},{});state.players[0].hp=state.players[1].hp=99;MatchConfig cfg;cfg.external_grants=true;cfg.max_decisions=128;auto game=fixture(state,cfg);game.phenomenon_step({289,{},{}});std::uint64_t chance=seed,policy=77;unsigned launches=0;
+        while(!game.done()&&(launches<6||game.snapshot().phase!=MatchPhase::main)){const auto before=game.snapshot();bool debit=false;PlayerId debited=0;
+            if(before.phase==MatchPhase::main){const auto* p=find_player(before.state,before.owner);if(!p->confusion_count)break;auto trial=chance;const auto command=game.sample_confusion(trial);check(game.snapshot()==before,"query leaves complete source journal and count unchanged");game.confusion_step(command);chance=trial;++launches;debit=true;debited=before.owner;}
+            else if(before.phase==MatchPhase::grant)game.grant_step({*before.pending_grant,0,{},{}});else game.step(game.sample_action(policy));
+            for(const auto& p:before.state.players){const auto* q=find_player(game.snapshot().state,p.id);auto expected=p.confusion_count;if(debit&&p.id==debited)--expected;if(q->dead||game.snapshot().terminated)expected=0;check(q->confusion_count==expected,"only accepted launch/death/natural end changes confusion; responses and grants do not debit");}
+            roundtrip(game);
+        }
+        check(launches>0,"sampled confused turns actually execute through the existing confusion executor");
+    }
+}
+void confusion_sampler_phase_seed_and_late_failure_atomicity(){
+    const auto reject_sample=[](const Match& game){const auto before=game.snapshot();std::uint64_t rng=UINT64_MAX;bool failed=false;try{(void)game.sample_confusion(rng);}catch(const MatchError& error){failed=error.code==MatchErrorCode::invalid;}check(failed&&rng==UINT64_MAX&&game.snapshot()==before,"non-confused or non-main sampling refuses without changing output entropy or Match");};
+    Match normal;reject_sample(normal);auto state=scene({6,199},{});state.players[0].confusion_count=3;auto response=fixture(state);response.confusion_step(play(0,{0},7));reject_sample(response);
+    auto active=scene({199},{});active.tiebreak_gf=0;active.players[0].confusion_count=3;auto grant=grant_fixture(active);grant.confusion_step({0,CommandKind::sacrifice,{0},{}});reject_sample(grant);
+    auto trade_state=scene({5},{6});trade_state.players[0].confusion_count=3;trade_state.players[0].cp=99;auto purchase=fixture(trade_state);purchase.confusion_step({0,CommandKind::buy,{0},7});if(purchase.snapshot().phase==MatchPhase::response)purchase.step(defend(*purchase.snapshot().actor));check(purchase.snapshot().phase==MatchPhase::purchase,"BUY fixture reaches confirmation");reject_sample(purchase);
+    auto ended_state=scene({},{});ended_state.players[0].confusion_count=3;auto ended=grant_fixture(ended_state,7,1);ended.confusion_step(pray(0));reject_sample(ended);
+    auto exhausted=ended_state;exhausted.update_count=max_wire_integer;auto game=fixture(exhausted);const auto before=game.snapshot();std::uint64_t committed=42,trial=committed;const auto command=game.sample_confusion(trial);bool failed=false;try{game.confusion_step(command);}catch(const MatchError&){failed=true;}
+    check(failed&&game.snapshot()==before&&committed==42&&trial!=committed,"caller copy-commit keeps chance and count atomic across a later step update failure");
+    Match restored;restored.restore(before);auto retry=committed;check(restored.sample_confusion(retry)==command&&retry==trial,"snapshot plus controller seed reproduce the same command without rewriting history");
+    check(game.observe({}).find(confusion_sampler_rule)!=std::string::npos,"public metadata explains the static local policy without revealing a future command");
+}
+
+void confusion_sampler_independent_bigint_vectors(){
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x0000000000000000ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x000000000000002aULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x9e3779b97f4a7c3fULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x0000000000000000ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0xf8364607e9c949bdULL;
+        const Command expected{0,CommandKind::discard,{0},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x966dbfc16913c5d2ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8ea405cd52dd0fa0ULL;
+        const Command expected{0,CommandKind::play,{0},0,{}};check(game.sample_confusion(rng)==expected&&rng==0xcb12f940517207caULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8692f6950ca2a279ULL;
+        const Command expected{0,CommandKind::play,{0},7,{}};check(game.sample_confusion(rng)==expected&&rng==0xc301ea080b379aa3ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=0;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x0000000000000000ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=0;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0xf8364607e9c949bdULL;
+        const Command expected{0,CommandKind::sacrifice,{9007199254740991},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x966dbfc16913c5d2ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=0;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8ea405cd52dd0fa0ULL;
+        const Command expected{0,CommandKind::play,{9007199254740991},0,{}};check(game.sample_confusion(rng)==expected&&rng==0xcb12f940517207caULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=0;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8692f6950ca2a279ULL;
+        const Command expected{0,CommandKind::play,{9007199254740991},7,{}};check(game.sample_confusion(rng)==expected&&rng==0xc301ea080b379aa3ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};state.tiebreak_gf=17;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x0000000000000000ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};state.tiebreak_gf=17;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0xf8364607e9c949bdULL;
+        const Command expected{0,CommandKind::sacrifice,{0},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x966dbfc16913c5d2ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};state.tiebreak_gf=17;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8ea405cd52dd0fa0ULL;
+        const Command expected{0,CommandKind::play,{0},0,{}};check(game.sample_confusion(rng)==expected&&rng==0xcb12f940517207caULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{0,199,{},false}};state.tiebreak_gf=17;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8692f6950ca2a279ULL;
+        const Command expected{0,CommandKind::play,{0},7,{}};check(game.sample_confusion(rng)==expected&&rng==0xc301ea080b379aa3ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=18;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        const Command expected{0,CommandKind::pray,{},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x0000000000000000ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=18;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0xf8364607e9c949bdULL;
+        const Command expected{0,CommandKind::discard,{9007199254740991},{},{}};check(game.sample_confusion(rng)==expected&&rng==0x966dbfc16913c5d2ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=18;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8ea405cd52dd0fa0ULL;
+        const Command expected{0,CommandKind::play,{9007199254740991},0,{}};check(game.sample_confusion(rng)==expected&&rng==0xcb12f940517207caULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+    {auto state=scene({},{});state.gf=17;state.players[0].mp=0;state.players[0].confusion_count=3;state.players[0].items={{9007199254740991,199,{},false}};state.tiebreak_gf=18;auto game=fixture(state);const auto before=game.snapshot();std::uint64_t rng=0x8692f6950ca2a279ULL;
+        const Command expected{0,CommandKind::play,{9007199254740991},7,{}};check(game.sample_confusion(rng)==expected&&rng==0xc301ea080b379aa3ULL&&game.snapshot()==before,"independent BigInt simple proposal vectors match canonical command and nextRNG");}
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),198> tests{{
+    const std::array<void(*)(),203> tests{{
         scope_reset_and_local_contract,
         weapon_frames_colors_owner_and_fixed_rewards,
         recovery_retention_capacity_and_atomicity,
@@ -2881,6 +2972,11 @@ int main(){
         fate_sampler_shuffle_postconsume_source_qualified_capacity,
         fate_sampler_phase_and_late_step_failure_transactions,
         fate_sampler_independent_bigint_vectors,
+        confusion_sampler_simple_proposals_and_zero_word,
+        confusion_sampler_counterfactual_visible_law_and_rich_columns,
+        confusion_sampler_execution_debits_only_at_launch,
+        confusion_sampler_phase_seed_and_late_failure_atomicity,
+        confusion_sampler_independent_bigint_vectors,
     }};
     for(auto test:tests)test();
 
