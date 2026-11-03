@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v39"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v40"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -79,7 +79,7 @@ void recovery_retention_capacity_and_atomicity(){
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
     const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=1;if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
-        if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].mp=100;if(error==4)bad.players[0].confusion_count=-1;if(error==5)bad.tiebreak_gf=10;
+        if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].mp=100;if(error==4)bad.players[0].confusion_count=-1;if(error==5)bad.tiebreak_gf=-1;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
 
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v37\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v38\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2234,6 +2234,66 @@ void devil_full_proof_tamper_and_following_anchor_prefixes(){
     m.item_shuffle_step(shuffle_order(m.snapshot().state));check(m.snapshot().devil_actions==2&&!m.snapshot().last_devil,"standalone shuffle retains devil cumulative history without recursive proof");roundtrip(m);
 }
 
+void sacrifice_threshold_scene_and_transition_boundaries(){
+    for(auto threshold:std::vector<std::optional<std::int64_t>>{{},0,1,17,18,static_cast<std::int64_t>(max_wire_integer)})for(std::int64_t gf:{0,16,17,18}){
+        auto s=scene({199},{199});s.gf=gf;s.tiebreak_gf=threshold;auto m=fixture(s);const bool active=threshold&&gf>=*threshold;
+        check(m.legal({0,active?CommandKind::sacrifice:CommandKind::discard,{0},{}})&&!m.legal({0,active?CommandKind::discard:CommandKind::sacrifice,{0},{}}),"only the launch-stage canonical operation is accepted");
+        check(m.observe({}).find(std::string("\"apocalypse_active\":")+(active?"true":"false"))!=std::string::npos,"public apocalypse bool is derived from the same threshold as legality");roundtrip(m);
+    }
+    auto s=scene({199},{199});s.gf=17;s.tiebreak_gf=18;auto m=fixture(s);m.step({0,CommandKind::discard,{0},{}});
+    check(m.snapshot().state.gf==18&&m.snapshot().owner==7&&m.snapshot().state.players[0].items.empty()&&m.snapshot().rng==1234
+        &&m.legal({7,CommandKind::sacrifice,{0},{}})&&!m.legal({7,CommandKind::discard,{0},{}}),"prethreshold discard grants nothing and switches the next owner at the GF boundary");roundtrip(m);
+    const auto exact=m.snapshot();auto bad=m.snapshot().state;bad.tiebreak_gf=-1;bool failed=false;try{m.load_scene(bad,7,0);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"negative Match threshold rejects atomically");
+    m.reset(std::array<PlayerSetup,2>{{{0,Team::solo,"A"},{7,Team::solo,"B"}}},0);check(!m.snapshot().state.tiebreak_gf&&m.observe({}).find("\"apocalypse_active\":false")!=std::string::npos,"reset restores the unchanged no-threshold default");
+}
+void sacrifice_multi_used_fake_inert_and_zero_fee(){
+    CardId armor=0,face=0;for(auto a:match_catalog())for(auto b:match_catalog())if(!armor&&find_card(a)->category==Category::armor&&match_dream_compatible(a,b)){armor=a;face=b;}
+    check(armor&&face,"compatible masked armor fixture exists");auto s=scene({235,236,178,168,207},{});s.players[0].items.push_back({5,armor,face,false});s.players[0].items[0].used=true;s.players[0].mp=0;s.players[0].curses={Curse::dream,Curse::flash};s.tiebreak_gf=0;
+    auto m=fixture(s);const Command command{0,CommandKind::sacrifice,{0,1,2,3,4,5},{}};check(m.legal(command),"Flash does not restrict main sacrifice and zeroMP does not charge selected miracles");m.step(command);
+    check(m.snapshot().state.players[0].items.size()==6&&m.snapshot().next_token==12&&m.snapshot().state.players[0].mp==0
+        &&m.snapshot().state.players[0].curses==s.players[0].curses&&m.snapshot().redraws==0&&m.snapshot().fate_actions==0&&m.snapshot().devil_actions==0
+        &&m.snapshot().last_reveals==std::vector<RevealedItem>{{0,face,armor,false}}&&m.snapshot().owner==7&&m.snapshot().state.gf==1,"all selected physical copies are consumed, one normal gift per copy is deferred, and selected abilities do not fire");
+    for(const auto& item:m.snapshot().state.players[0].items)check(item.token>=6&&!item.used&&match_supported(item.model),"new gifts are fresh unused ordinary copies, without207 or a new devil roll");roundtrip(m);
+}
+void sacrifice_full18_and_cutoff_cancels_all_gifts(){
+    SnapshotState s;auto p=player(0);for(ItemToken i=0;i<18;++i)p.items.push_back({i,235,{},true});p.mp=0;s.players={p,player(7)};s.tiebreak_gf=0;
+    Command command{0,CommandKind::sacrifice,{},{}};for(ItemToken i=0;i<18;++i)command.items.push_back(i);auto m=fixture(s);m.step(command);
+    check(m.snapshot().state.players[0].items.size()==18&&m.snapshot().next_token==36&&m.snapshot().state.players[0].mp==0,"eighteen used miracles are fully removed and replaced without retention or MP charge");for(const auto& item:m.snapshot().state.players[0].items)check(item.token>=18&&!item.used,"every maximum-width replacement is fresh and unused");roundtrip(m);
+    MatchConfig cap;cap.max_decisions=1;Match cut(cap);cut.load_scene(s,0,7);cut.step(command);check(cut.snapshot().truncated&&cut.snapshot().state.players[0].items.empty()&&cut.snapshot().next_token==18&&cut.snapshot().rng==7&&cut.snapshot().state.gf==0,"cutoff commits all sacrifices before canceling all deferred gifts and owner advance");roundtrip(cut);
+}
+void sacrifice_role_identity_and_phase_rejections(){
+    auto s=scene({6,208,209,199,235},{});s.tiebreak_gf=0;auto m=fixture(s);
+    for(auto command:std::vector<Command>{{0,CommandKind::discard,{3},{}},{0,CommandKind::sacrifice,{},{}},{0,CommandKind::sacrifice,{3,3},{}},{0,CommandKind::sacrifice,{999},{}},{0,CommandKind::sacrifice,{0},{}},{0,CommandKind::sacrifice,{1},{}},{0,CommandKind::sacrifice,{2},{}},{0,CommandKind::sacrifice,{3},7},{7,CommandKind::sacrifice,{3},{}},{0,CommandKind::sacrifice,{3},{},ResourceAllocation{40,10,20}}})reject(m,command);
+    check(!match_supported(2)&&m.legal({0,CommandKind::sacrifice,{3,4},{}}),"the virtual operation2 is not an owned artifact and selected copies are the whole payload");
+    m.step(play(0,{0},7));check(m.snapshot().phase==MatchPhase::response,"ordinary attack supplies a pending rejection scene");reject(m,{7,CommandKind::sacrifice,{},{}});roundtrip(m);
+    auto pre=s;pre.tiebreak_gf.reset();auto inactive=fixture(pre);reject(inactive,{0,CommandKind::sacrifice,{3},{}});
+}
+void sacrifice_confusion_one_debit_and_sampler_parity(){
+    auto s=scene({235,207,199,6},{});s.tiebreak_gf=0;s.players[0].items[0].used=true;s.players[0].mp=0;s.players[0].confusion_count=3;auto m=fixture(s);Command operation{0,CommandKind::sacrifice,{0,1,2},{}};
+    reject(m,operation);check(m.confusion_legal(operation),"confused actor may receive an externally resolved sacrifice");m.confusion_step(operation);check(m.snapshot().state.players[0].confusion_count==2&&m.snapshot().state.players[0].items.size()==4&&m.snapshot().owner==7,"multi-copy sacrifice debits one confusion turn and grants three copies");roundtrip(m);
+    s.players[0].confusion_count=0;auto active=fixture(s);s.tiebreak_gf.reset();auto inactive=fixture(s);bool saw=false;
+    for(std::uint64_t seed=0;seed<512;++seed){auto a=seed,b=seed;const auto x=inactive.sample_action(a);auto y=active.sample_action(b);check(active.legal(y)&&inactive.legal(x),"both stage samplers return legal operations");
+        if(x.kind==CommandKind::discard){check(y.kind==CommandKind::sacrifice,"only discard proposal kind changes at apocalypse");y.kind=CommandKind::discard;saw=true;}
+        check(x==y&&a==b,"threshold operation replacement changes no proposal identity, weighting or policy RNG consumption");}
+    check(saw,"parity seed sweep exercises actual sacrifice proposals");
+}
+void sacrifice_tick_death_revival_and_natural_completion(){
+    for(bool revive:{false,true}){
+        auto s=revive?scene({199,112,208},{}):scene({199,112},{});s.players.push_back(player(9));s.gf=17;s.tiebreak_gf=17;s.players[0].hp=1;s.players[0].curses={Curse::cold};s.players[1].hp=s.players[2].hp=99;s.players[1].curses=s.players[2].curses={Curse::darkcloud};auto m=fixture(s);m.step({0,CommandKind::sacrifice,{0},{}});roundtrip(m);
+        if(!revive){check(m.snapshot().batch&&m.snapshot().batch->attack.kind==CommandKind::sacrifice&&m.snapshot().batch->tick_processed&&m.snapshot().queue[0].is_death,"sacrifice owner tick can suspend in the shared death112 FIFO with the original launch kind");while(!m.done()&&m.snapshot().phase!=MatchPhase::main){m.step(defend(*m.snapshot().actor));roundtrip(m);}}
+        check(m.snapshot().owner==7&&m.snapshot().state.gf==18&&m.snapshot().last_tick&&m.snapshot().state.players[0].dead!=revive,"ordinary owner tick/death or revival completes before next owner GF");
+        if(revive)check(m.snapshot().revivals==1&&m.snapshot().next_token==5&&m.snapshot().state.players[0].items.size()==3,"surviving208 adds its own deferred gift in addition to the sacrifice replacement");else check(m.snapshot().state.players[0].items.empty()&&m.snapshot().next_token==2,"dead sacrificer receives no deferred gift");roundtrip(m);
+    }
+    auto s=scene({199,112},{});s.players[0].hp=1;s.players[0].curses={Curse::cold};s.tiebreak_gf=0;auto m=fixture(s);m.step({0,CommandKind::sacrifice,{0},{}});check(m.snapshot().terminated&&m.snapshot().state.players[0].items.size()==1&&m.snapshot().death_created==0&&m.snapshot().next_token==2,"natural duel outcome precedes death-bow consumption and cancels sacrifice gift");roundtrip(m);
+}
+void sacrifice_exhaustion_rollback_and_launch_threshold_replay(){
+    for(unsigned limit=0;limit<3;++limit){auto s=scene({199},{});s.tiebreak_gf=0;if(limit==0)s.update_count=max_wire_integer;if(limit==1)s.players[0].items[0].token=max_wire_integer;if(limit==2)s.gf=max_wire_integer;auto m=fixture(s);const auto before=m.snapshot();const auto token=s.players[0].items[0].token;check(m.legal({0,CommandKind::sacrifice,{token},{}}),"late counter/token/GF constraints do not make a well-formed selection noncanonical");bool failed=false;try{m.step({0,CommandKind::sacrifice,{token},{}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"late failure rolls back consumed copies, all gift RNG and the stage snapshot");}
+    bool pending=false;for(std::uint64_t seed=0;seed<128&&!pending;++seed){auto s=scene({235,199},{});s.players[0].items[0].used=true;s.players[0].hp=s.players[1].hp=99;s.players[1].guardian=Guardian::mars;s.tiebreak_gf=0;Match m;m.load_scene(s,0,seed);m.step({0,CommandKind::sacrifice,{0},{}});if(m.snapshot().phase!=MatchPhase::response)continue;pending=true;roundtrip(m);const auto exact=m.snapshot();
+        for(unsigned error=0;error<4;++error){auto bad=exact;if(error==0)bad.batch->attack.kind=CommandKind::discard;if(error==1)bad.batch->initial_state.tiebreak_gf.reset();if(error==2)bad.batch->initial_state.tiebreak_gf=1;if(error==3)++bad.gifts[0];bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"whole pending replay rejects the wrong stage, launch kind and reserved copy count");}
+        while(!m.done()&&m.snapshot().phase!=MatchPhase::main){std::uint64_t rng=seed;const auto action=m.sample_action(rng);m.step(action);roundtrip(m);}check(m.snapshot().owner==7&&m.snapshot().state.gf==1,"sacrifice resumes after guardian response before a single GF advance");}
+    check(pending,"seed sweep covers a sacrifice paused during automatic guardian follow-up");
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -2404,6 +2464,14 @@ int main(){
     devil_posthumous_fifo_real_source_zero_and_owner_resume();
     devil_guardian_departure_local_rule_and_fog_filter();
     devil_full_proof_tamper_and_following_anchor_prefixes();
+    sacrifice_threshold_scene_and_transition_boundaries();
+    sacrifice_multi_used_fake_inert_and_zero_fee();
+    sacrifice_full18_and_cutoff_cancels_all_gifts();
+    sacrifice_role_identity_and_phase_rejections();
+    sacrifice_confusion_one_debit_and_sampler_parity();
+    sacrifice_tick_death_revival_and_natural_completion();
+    sacrifice_exhaustion_rollback_and_launch_threshold_replay();
+
 
 
 

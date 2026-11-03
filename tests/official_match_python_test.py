@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v39"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v40"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v37")
+        self.assertEqual(own["schema"], "official-execution-view-v38")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v37")
+        self.assertEqual(event["schema"], "official-execution-view-v38")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2161,7 +2161,7 @@ class MatchTests(unittest.TestCase):
         bad_scenes = []
         unsupported = copy.deepcopy(base); unsupported["players"][0]["items"] = [{"id": 0, "modelId": 1}]; bad_scenes.append(unsupported)
         oversized = copy.deepcopy(base); oversized["players"][1]["items"] = [{"id": i, "modelId": 6} for i in range(19)]; bad_scenes.append(oversized)
-        tied = copy.deepcopy(base); tied["tiebreakGF"] = 30; bad_scenes.append(tied)
+        tied = copy.deepcopy(base); tied["tiebreakGF"] = -1; bad_scenes.append(tied)
         active = copy.deepcopy(base); active["attacks"] = [{"sourcePlayerId": 0}]; bad_scenes.append(active)
         for raw_scene in bad_scenes:
             with OfficialState(raw_scene, library=LIBRARY) as invalid_scene:
@@ -3275,6 +3275,135 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(game.devil_legal(DevilAction(7, 240)))
         with self.assertRaises(InvalidMatchError): game.devil_step(DevilAction(7, 240))
         self.assertEqual((game.observe(7), game.status), (before, status))
+
+    def test_sacrifice_threshold_domain_and_discard_boundary_are_exclusive(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 0, "cp": 20, "items": [{"id": 0, "modelId": 152}]},
+                            {"id": 7, "hp": 40, "mp": 0, "cp": 20}]}
+        for gf, threshold in ((0, None), (0, 0), (2, 3), (3, 3), (4, 3), (0, 9007199254740991), (9007199254740991, 9007199254740991)):
+            raw["gf"] = gf; raw["tiebreakGF"] = threshold
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            active = threshold is not None and gf >= threshold
+            before, status = game.observe(0), game.status
+            self.assertEqual(before["apocalypse_active"], active)
+            self.assertEqual(before["board"]["tiebreak_gf"], threshold)
+            self.assertEqual(game.legal(Command(0, "discard", (0,))), not active)
+            self.assertEqual(game.legal(Command(0, "sacrifice", (0,))), active)
+            wrong = Command(0, "discard" if active else "sacrifice", (0,))
+            with self.assertRaises(InvalidMatchError): game.step(wrong)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["gf"] = 0; raw["tiebreakGF"] = -1
+        with OfficialState(raw, library=LIBRARY) as scene:
+            with self.assertRaises(InvalidMatchError): game.load_scene(scene, 0, 0)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["tiebreakGF"] = 9007199254740992
+        with self.assertRaises(ValueError): OfficialState(raw, library=LIBRARY)
+
+    def test_sacrifice_removes_used_fake_and207_then_replaces_each_copy(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"gf": 4, "tiebreakGF": 4, "players": [
+            {"id": 0, "hp": 40, "mp": 0, "cp": 20, "curses": ["dream"], "items": [
+                {"id": 0, "modelId": 235, "used": True}, {"id": 1, "modelId": 23, "fakeModelId": 13},
+                {"id": 2, "modelId": 207}, {"id": 3, "modelId": 208}, {"id": 4, "modelId": 209}, {"id": 5, "modelId": 6}]},
+            {"id": 7, "hp": 40, "mp": 0, "cp": 20}]}
+        # Dream compatibility preserves category, so a disguised weapon remains unsacrificable.
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        for token in (1, 3, 4, 5): self.assertFalse(game.legal(Command(0, "sacrifice", (token,))))
+        raw["players"][0]["items"][1] = {"id": 1, "modelId": 118, "fakeModelId": 123}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        # Both armor IDs belong to the pinned neutral ordinary-defense class.
+        self.assertTrue(game.legal(Command(0, "sacrifice", (0, 1, 2))))
+        game.step(Command(0, "sacrifice", (0, 1, 2)))
+        view, hand = game.observe(), game.observe(0)["board"]["hand"]
+        self.assertEqual({i["token"] for i in hand}, {3, 4, 5, 6, 7, 8})
+        self.assertFalse(any(i["used"] for i in hand)); self.assertEqual(view["board"]["players"][0]["used_models"], [])
+        self.assertEqual(view["last_reveals"], [{"owner": 0, "face": 123, "model": 118}])
+        self.assertEqual((game.actor, view["board"]["gf"], view["board"]["players"][0]["status"]["mp"]), (7, 5, 0))
+        self.assertIsNone(view["last_fate"]); self.assertIsNone(view["last_devil"])
+        for maximum in (512, 1):
+            full = self.match(config=Config(initial_hand=0, max_decisions=maximum))
+            raw["players"][0]["items"] = [{"id": i, "modelId": 235, "used": True} for i in range(18)]
+            raw["players"][0]["curses"] = []
+            with OfficialState(raw, library=LIBRARY) as scene: full.load_scene(scene, 0, 0)
+            full.step(Command(0, "sacrifice", tuple(range(18))))
+            hand = full.observe(0)["board"]["hand"]
+            self.assertEqual({item["token"] for item in hand}, set(range(18, 36)) if maximum != 1 else set())
+            self.assertTrue(all(not item["used"] for item in hand))
+            self.assertEqual(full.status.truncated, maximum == 1)
+
+    def test_sacrifice_confusion_tick_death_and_revival_use_normal_turn_rules(self):
+        raw = {"gf": 4, "tiebreakGF": 0, "players": [
+            {"id": 0, "hp": 40, "mp": 0, "cp": 20, "curses": ["cold"], "confusionCount": 1,
+             "items": [{"id": 0, "modelId": 152}]}, {"id": 7, "hp": 40, "mp": 0, "cp": 20}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        command = Command(0, "sacrifice", (0,)); before, status = game.observe(0), game.status
+        self.assertFalse(game.legal(command)); self.assertTrue(game.confusion_legal(command))
+        with self.assertRaises(UnsupportedMatchError): game.step(command)
+        with self.assertRaises(UnsupportedMatchError): game.sample_action(3)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.confusion_step(command); view = game.observe()
+        self.assertFalse(view["board"]["players"][0]["status"]["confused"])
+        self.assertEqual(view["board"]["players"][0]["status"]["hp"], 39)
+        self.assertEqual((game.actor, view["board"]["gf"], len(game.observe(0)["board"]["hand"])), (7, 5, 1))
+        raw["players"][0].update(hp=1, confusionCount=0)
+        for amulet in (False, True):
+            raw["players"][0]["items"] = [{"id": 0, "modelId": 152}] + ([{"id": 1, "modelId": 208}] if amulet else [])
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            game.step(command)
+            if amulet:
+                self.assertFalse(game.done); self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 10)
+                self.assertEqual({item["token"] for item in game.observe(0)["board"]["hand"]}, {2, 3})
+            else:
+                self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (7,))
+                self.assertEqual(game.observe(0)["board"]["hand"], [])
+                self.assertTrue(game.observe()["apocalypse_active"])
+
+    def test_sacrifice_sampler_maps_discard_without_extra_policy_rng(self):
+        raw = {"gf": 0, "players": [{"id": 0, "hp": 40, "mp": 20, "cp": 20, "items": [
+                    {"id": 0, "modelId": 235, "used": True}, {"id": 1, "modelId": 152}]},
+                    {"id": 7, "hp": 40, "mp": 20, "cp": 20}]}
+        inactive, active = self.match(config=Config(initial_hand=0)), self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: inactive.load_scene(scene, 0, 3)
+        raw["tiebreakGF"] = 0
+        with OfficialState(raw, library=LIBRARY) as scene: active.load_scene(scene, 0, 3)
+        before = (inactive.observe(0), active.observe(0)); seen = False
+        for rng in range(64):
+            ordinary, ra = inactive.sample_action(rng); apocalypse, rb = active.sample_action(rng)
+            expected = Command(ordinary.actor, "sacrifice" if ordinary.kind == "discard" else ordinary.kind,
+                               ordinary.items, ordinary.target, ordinary.allocation)
+            self.assertEqual((apocalypse, rb), (expected, ra))
+            self.assertTrue(inactive.legal(ordinary)); self.assertTrue(active.legal(apocalypse))
+            self.assertNotEqual(ordinary.kind, "sacrifice"); self.assertNotEqual(apocalypse.kind, "discard")
+            seen |= apocalypse.kind == "sacrifice"
+        self.assertTrue(seen); self.assertEqual((inactive.observe(0), active.observe(0)), before)
+
+    def test_sacrifice_invalid_shape_cutoff_and_late_exhaustion_are_atomic(self):
+        raw = {"gf": 4, "tiebreakGF": 0, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20,
+                    "items": [{"id": 0, "modelId": 152}]}, {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(0), game.status
+        for command in (Command(0, "sacrifice"), Command(0, "sacrifice", (0, 0)), Command(0, "sacrifice", (0,), 0),
+                        Command(0, "sacrifice", (0,), allocation=(40, 10, 20)), Command(7, "sacrifice", (0,))):
+            self.assertFalse(game.legal(command))
+            with self.assertRaises(InvalidMatchError): game.step(command)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        for exhausted in ("update", "gf", "token"):
+            altered = copy.deepcopy(raw)
+            if exhausted == "update": altered["updateCount"] = 9007199254740991
+            if exhausted == "gf": altered["gf"] = 9007199254740991
+            if exhausted == "token": altered["players"][0]["items"].append({"id": 9007199254740991, "modelId": 6})
+            with OfficialState(altered, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            before, status = game.observe(0), game.status; command = Command(0, "sacrifice", (0,))
+            self.assertTrue(game.legal(command))
+            with self.assertRaises(InvalidMatchError): game.step(command)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        cutoff = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(altered, library=LIBRARY) as scene: cutoff.load_scene(scene, 0, 0)
+        cutoff.step(command); self.assertTrue(cutoff.status.truncated)
+        self.assertTrue(cutoff.observe()["apocalypse_active"])
+        self.assertEqual({item["token"] for item in cutoff.observe(0)["board"]["hand"]}, {9007199254740991})
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

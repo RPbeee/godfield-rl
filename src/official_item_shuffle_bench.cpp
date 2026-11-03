@@ -221,7 +221,7 @@ int main(int argc,char** argv) { try {
           && total.terminated+total.truncated<=count,"item shuffle benchmark accounting failed");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:external-explicit295-permutations-then-one-ordinary-action;private-manifest-and-world-slot-hashes-plus-full-restore-audit;not-server-selector-or-rng-distribution"
-             <<"\nitem_shuffle_rule="<<item_shuffle_rule<<"\nconfusion_rule="<<confusion_rule<<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
+             <<"\nitem_shuffle_rule="<<item_shuffle_rule<<"\nconfusion_rule="<<confusion_rule<<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(pending_commands); OUTPUT(responses); OUTPUT(purchase_commands); OUTPUT(terminated); OUTPUT(truncated);
     OUTPUT(copies); OUTPUT(empty_scenes); OUTPUT(max_copies); OUTPUT(dead_input_scenes); OUTPUT(used_copies); OUTPUT(unused_miracles);

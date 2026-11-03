@@ -54,8 +54,8 @@ int main() {
         &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v39"
-        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;not-official-server-equivalence", "explicit v16 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v40"
+        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;not-official-server-equivalence", "explicit v40 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -288,7 +288,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v37\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v38\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2474,6 +2474,66 @@ int main() {
     check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&legal&&gfo_match_devil_step(devil_match,&devil,&result)==-2
         &&equal(result,late_devil_status)&&observe(devil_match,0,0)==late_devil,"late devil update exhaustion restores resources, confusion, event and all caller bytes");
     gfo_match_destroy(devil_match);
+    cfg.initial_hand=0;cfg.hand_limit=18;cfg.max_decisions=64;
+    gfo_match* sacrifice_match=nullptr;gfo_match* discard_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&sacrifice_match)==0&&gfo_match_create(&cfg,players.data(),2,0,&discard_match)==0,"sacrifice bridge create without virtual owned2");
+    const auto load_sacrifice_scene=[&](gfo_match* match,int64_t gf,bool threshold,int64_t at,int confused,uint64_t update){
+        std::array<gfo_state_player,2> people{};people[0].id=0;people[1].id=7;
+        for(auto& person:people){person.hp=40;person.mp=0;person.cp=20;}
+        people[0].confusion_count=confused;people[0].item_count=5;people[1].item_offset=5;
+        std::array<gfo_state_item,5> items{};items[0].model=235;items[0].used=1;
+        for(std::size_t i=1;i<items.size();++i)items[i].token=i;
+        items[1].model=207;items[2].model=6;items[3].model=208;items[4].model=209;
+        gfo_state_meta meta{};meta.gf=gf;meta.has_tiebreak=threshold;meta.tiebreak_gf=at;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),nullptr,0,&scene)==0,"typed threshold scene");
+        check(gfo_match_load_scene(match,scene,0,0,&result)==0,"load nonnegative apocalypse threshold scene");gfo_state_destroy(scene);
+    };
+    gfo_match_command sacrifice{};sacrifice.kind=9;sacrifice.item_count=2;sacrifice.items[0]=0;sacrifice.items[1]=1;
+    for(int boundary=0;boundary<5;++boundary){const bool has=boundary!=0;const int64_t gf=boundary<2?0:boundary;
+        const int64_t threshold=boundary<2?0:3;const bool active=has&&gf>=threshold;
+        load_sacrifice_scene(sacrifice_match,gf,has,threshold,0,0);const auto before=observe(sacrifice_match,0,0);const auto saved=status(sacrifice_match);
+        auto discard=sacrifice;discard.kind=2;
+        check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&bool(legal)==active
+            &&gfo_match_legal(sacrifice_match,&discard,&legal)==0&&bool(legal)==!active
+            &&before.find(active?"\"apocalypse_active\":true":"\"apocalypse_active\":false")!=std::string::npos,
+            "null, explicit0 and threshold minus/equal/plus1 select exactly one operation");
+        const auto wrong=active?discard:sacrifice;result=saved;
+        check(gfo_match_step(sacrifice_match,&wrong,&result)==-2&&equal(result,saved)&&observe(sacrifice_match,0,0)==before,
+            "wrong operation at the GF boundary is fully atomic");
+    }
+    load_sacrifice_scene(sacrifice_match,1,true,1,0,0);const auto sacrifice_before=observe(sacrifice_match,0,0);const auto sacrifice_status=status(sacrifice_match);
+    for(unsigned error=0;error<5;++error){auto bad=sacrifice;
+        if(error==0)bad.kind=10;if(error==1)bad.items[17]=1;if(error==2)bad.reserved[0]=1;
+        if(error==3)bad.reserved_tail[0]=1;if(error==4)bad.item_count=19;
+        result=sacrifice_status;uint8_t marker=0xa5;
+        check(gfo_match_legal(sacrifice_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_step(sacrifice_match,&bad,&result)==-2&&equal(result,sacrifice_status)
+            &&observe(sacrifice_match,0,0)==sacrifice_before,"opcode9 retains all command transport guards and rejects opcode10");
+    }
+    for(uint64_t forbidden:{uint64_t{2},uint64_t{3},uint64_t{4}}){auto bad=sacrifice;bad.item_count=1;bad.items[0]=forbidden;bad.items[1]=0;
+        check(gfo_match_legal(sacrifice_match,&bad,&legal)==0&&!legal,"weapons, amulets and mortars remain unsacrificable");
+    }
+    check(gfo_match_step(sacrifice_match,&sacrifice,&result)==0&&result.owner==7&&result.actor==7&&result.decisions==1
+        &&hand_size(sacrifice_match,0)==5&&!has_token(sacrifice_match,0,0)&&!has_token(sacrifice_match,0,1)
+        &&has_token(sacrifice_match,0,5)&&has_token(sacrifice_match,0,6),"sacrifice erases retained MC and207 then reserves one ordinary gift per physical copy");
+    load_sacrifice_scene(sacrifice_match,0,true,0,0,0);load_sacrifice_scene(discard_match,0,false,0,0,0);bool sampled_sacrifice=false;
+    for(uint64_t seed=0;seed<64;++seed){auto ra=seed,rb=seed;gfo_match_command ordinary{},apocalypse{};
+        check(gfo_match_sample_action(discard_match,&ra,&ordinary)==0&&gfo_match_sample_action(sacrifice_match,&rb,&apocalypse)==0,"sampler encodes new opcode9");
+        auto expected=ordinary;if(expected.kind==2)expected.kind=9;
+        check(equal(expected,apocalypse)&&ra==rb&&gfo_match_legal(sacrifice_match,&apocalypse,&legal)==0&&legal,
+            "sacrifice is a one-for-one proposal mapping without extra policy RNG");sampled_sacrifice|=apocalypse.kind==9;
+    }
+    check(sampled_sacrifice,"opcode9 sampler branch was actually exercised");
+    load_sacrifice_scene(sacrifice_match,0,true,0,1,0);const auto confused_sacrifice=observe(sacrifice_match,0,0);const auto confused_sacrifice_status=status(sacrifice_match);result=confused_sacrifice_status;
+    check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&!legal&&gfo_match_step(sacrifice_match,&sacrifice,&result)==-5
+        &&equal(result,confused_sacrifice_status)&&observe(sacrifice_match,0,0)==confused_sacrifice
+        &&gfo_match_confusion_legal(sacrifice_match,&sacrifice,&legal)==0&&legal
+        &&gfo_match_confusion_step(sacrifice_match,&sacrifice,&result)==0
+        &&observe(sacrifice_match,0,0).find("\"confused\":true")==std::string::npos,"supplied confusion command accepts opcode9 and debits one count");
+    load_sacrifice_scene(sacrifice_match,1,true,0,0,official::max_wire_integer);const auto late_sacrifice=observe(sacrifice_match,0,0);const auto late_sacrifice_status=status(sacrifice_match);result=late_sacrifice_status;
+    check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&legal&&gfo_match_step(sacrifice_match,&sacrifice,&result)==-2
+        &&equal(result,late_sacrifice_status)&&observe(sacrifice_match,0,0)==late_sacrifice,"late sacrifice failure restores used state, copies, gifts and caller output");
+    gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

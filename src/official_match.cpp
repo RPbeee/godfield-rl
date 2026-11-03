@@ -78,7 +78,7 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
     validate_state(s);
     require(s.players.size() >= 2, "scoped match needs 2..9 players");
     require(s.gf >= 0, "negative GF outside scoped runtime");
-    if (s.tiebreak_gf) unsupported("tiebreak is not implemented");
+    require(!s.tiebreak_gf || *s.tiebreak_gf>=0,"negative apocalypse threshold outside scoped runtime");
     for (const auto& p : s.players) {
         require(p.hp >= 0 && p.hp <= 99 && p.mp >= 0 && p.mp <= 99 && p.cp >= 0 && p.cp <= 99, "scene resources outside 0..99");
         require(p.dead || p.hp > 0, "HP0 without resolved death is not a quiescent scene");
@@ -190,6 +190,7 @@ void consume(MatchSnapshot& s, std::size_t seat, const std::vector<ItemToken>& t
     }
 }
 bool damaging(const EffectFrame& effect) { return effect.power > 0 || effect.category == Category::weapons; }
+bool apocalypse_active(const SnapshotState& state) { return state.tiebreak_gf && state.gf>=*state.tiebreak_gf; }
 bool discardable(const Card& card) {
     return card.category != Category::weapons && card.ability != Ability::revive && card.ability != Ability::attract_danger;
 }
@@ -210,7 +211,7 @@ ResponseContext response_context(const MatchSnapshot& s) {
 }
 std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool confusion_command=false) {
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
-    if (static_cast<unsigned>(command.kind) > 8) unsupported("unsupported match command kind");
+    if (static_cast<unsigned>(command.kind) > 9) unsupported("unsupported match command kind");
     require(command.kind == CommandKind::exchange || !command.allocation, "only exchange accepts a resource allocation");
     const auto& own = s.state.players[index(s, command.actor)];
     require(!own.dead, "dead actor");
@@ -251,9 +252,10 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool
         require(std::none_of(own.items.begin(), own.items.end(), [](const auto& item) { return find_card(face_model(item))->category == Category::weapons; }), "visible weapon prevents prayer");
         return actual_models;
     }
-    if (command.kind == CommandKind::discard) {
-        require(!models.empty() && !command.target, "discard needs items and no target");
-        for (auto id : models) require(discardable(*find_card(id)), "cannot discard weapons or passive artifacts");
+    if (command.kind == CommandKind::discard || command.kind==CommandKind::sacrifice) {
+        require((command.kind==CommandKind::sacrifice)==apocalypse_active(s.state),"discard or sacrifice does not match the current apocalypse stage");
+        require(!models.empty() && !command.target, "discard or sacrifice needs items and no target");
+        for (auto id : models) require(discardable(*find_card(id)), "cannot discard or sacrifice weapons or passive artifacts");
         return actual_models;
     }
     if (command.kind == CommandKind::exchange) {
@@ -1077,8 +1079,10 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             }
             s.queue.clear(); completed = !s.purchase;
         }
-    } else if (command.kind == CommandKind::discard) {
-        consume(s, seat, command.items, true); completed = true;
+    } else if (command.kind == CommandKind::discard || command.kind==CommandKind::sacrifice) {
+        consume(s, seat, command.items, true);
+        if (command.kind==CommandKind::sacrifice) for (std::size_t i=0;i<command.items.size();++i) request_gift(s,seat);
+        completed = true;
     } else if (command.kind == CommandKind::pray) {
         request_gift(s, seat); completed = true;
     } else if (command.kind == CommandKind::exchange) {
@@ -1605,7 +1609,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
         if (!weapon) add(CommandKind::pray, {}, {});
         for (const auto& item : own.items) {
             const auto& c = *find_card(face_model(item));
-            if (discardable(c)) add(CommandKind::discard, item.token, {});
+            if (discardable(c)) add(apocalypse_active(data_.state)?CommandKind::sacrifice:CommandKind::discard, item.token, {});
             if (c.ability == Ability::exchange) add(CommandKind::exchange, item.token, {});
             else if (c.ability == Ability::sell) {
                 if (std::any_of(own.items.begin(), own.items.end(), [&](const auto& commodity) { return commodity.token != item.token && !commodity.used; }))
@@ -1704,7 +1708,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v37\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v38\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1742,8 +1746,10 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"item_shuffle_rule\":\""; out += item_shuffle_rule;
     out += "\",\"confusion_rule\":\""; out += confusion_rule;
     out += "\",\"fate_rule\":\""; out += fate_rule;
-    out += "\",\"devil_rule\":\""; out += devil_rule; out += "\",\"phase\":\""; out += phase;
-    out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
+    out += "\",\"devil_rule\":\""; out += devil_rule;
+    out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
+    out += ",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
     out += ",\"truncated\":"; out += data_.truncated ? "true" : "false";

@@ -290,7 +290,7 @@ int main(int argc,char** argv) { try {
           && total.terminated+total.truncated<=count,"fate benchmark accounting failed");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:owned207-with-external-ten-outcomes;ordinary-owner-schedule;not-official-selector-or-distribution;world-selected-counter-hashes-plus-full-restore-audit"
-             <<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
+             <<"\nfate_rule="<<fate_rule<<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(responses); OUTPUT(purchase_commands); OUTPUT(terminated); OUTPUT(truncated); OUTPUT(fate_actions); OUTPUT(confusion_debits);
     OUTPUT(shuffle_scenes); OUTPUT(shuffle_copies); OUTPUT(shuffle_used_copies); OUTPUT(used_input_copies); OUTPUT(used_preserved_at_launch);
