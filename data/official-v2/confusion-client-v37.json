@@ -1,0 +1,6217 @@
+{
+  "schema_version": 1,
+  "scope": "actual-public-client-confusion-count-and-control-projection;not-authoritative-auto-selector",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "locales": {
+    "ja": {
+      "url": "https://godfield.net/i18n/ja.json",
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "model": {
+        "imageName": "mushroom-outbreak",
+        "category": "phenomena",
+        "guardian": "jupiter",
+        "ability": "confuseEverybody",
+        "name": "きのこ大発生"
+      },
+      "description": "みんなが三回ずつ<br>勝手に行動する",
+      "effect": "御乱心"
+    },
+    "en": {
+      "url": "https://godfield.net/i18n/en.json",
+      "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+      "model": {
+        "imageName": "mushroom-outbreak",
+        "category": "phenomena",
+        "guardian": "jupiter",
+        "ability": "confuseEverybody",
+        "name": "Mushroom Outbreak"
+      },
+      "description": "Make everybody lose<br>control for 3 turns",
+      "effect": "Crazy"
+    }
+  },
+  "helper_sha256": {
+    "event_decoder": "a2c4ea34e8c271c7d687d5d5d347cb03d077bcf48ed7c8764aef4dba61d41ded",
+    "player_decoder": "3edbc29eb2265939474bd2111d1086935cfa2186bedf26791af3c2119beeeab4",
+    "confusion_setter": "0da95499be55d0c957e902ea94dbae271e10318431ca370fcc5e5fd9d55ed266",
+    "global_confusion_branch": "d59e91b48d3ec0daf79908299f93fd39d792005059d7bc3d76810cd1ff6770dd",
+    "remove_curses_branch": "45e482a8bd4b8fba5b98b5f61324f53aab9b4e2015c690d80affde1587606b8f",
+    "attack_use_branch": "8019325febcdfa33e4ef29176d2f2a1176eec94a87d2fe62b9e70917ae61f51b",
+    "defense_use_branch": "35ed3dc9aae36d737015e7d47af8eb52b47d4aa1245fd206c03e4bc9d4a87234",
+    "advance_gf_branch": "75c949ee968a78fe5de178d625c848bc5f360a0175997490953c1e1558a0f443",
+    "auxiliary_pray_discard": "691cc2d3817de4f5768d3ae5efb763a0c4753471752acb1c9ef8f10b523625c1",
+    "end_game_branch": "68c07f5f27c34761dd0ee5dcf9ed638b8c4799a136a7153a953b68ab10fed471",
+    "death_helper": "1f96035523d94232702983277cb473aa366509627b02ec5f27b6879e98a6fe22",
+    "command_activation": "cdbeb63e31eca727c1a87027cdb3b1dc94be9f957176af908287aa2fe11c8d0e"
+  },
+  "methods": [
+    "A.to/tO real event/player decoders",
+    "ks.k complete confuseEverybody/useAttackItems/auxiliary/removeCurses/advanceGF/endGame branches with synchronous Future shell",
+    "c5.fq/sc8/hO real player projection/setter/death (visual frames stubbed)",
+    "fv.fF complete command activation branch (reactive local holder and visual command/layout constructors stubbed)"
+  ],
+  "counts": {
+    "player_decode_projection": 22,
+    "setter": 6,
+    "global": 48,
+    "raw_safe_boundary": 5,
+    "attack_use": 36,
+    "auxiliary": 12,
+    "remove_curses": 6,
+    "advance_gf": 9,
+    "death": 4,
+    "ending": 4,
+    "command_activation": 6,
+    "total": 158
+  },
+  "decoder_cases": [
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": []
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": []
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": null
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": null
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": "3"
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": "3"
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": true
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": true
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 0
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 0
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 1
+      },
+      "decoded_count": 1,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 1,
+        "positive_frame": true,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 1
+      },
+      "decoded_count": 1,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 3
+      },
+      "decoded_count": 3,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 3,
+        "positive_frame": true,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 3
+      },
+      "decoded_count": 3,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 6
+      },
+      "decoded_count": 6,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 6,
+        "positive_frame": true,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 6
+      },
+      "decoded_count": 6,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": -1
+      },
+      "decoded_count": -1,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": -1
+      },
+      "decoded_count": -1,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 1.5
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 1.5
+      },
+      "decoded_count": 0,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": false,
+        "items": [],
+        "confusionCount": 9007199254740991
+      },
+      "decoded_count": 9007199254740991,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 9007199254740991,
+        "positive_frame": true,
+        "safe_integer": true
+      }
+    },
+    {
+      "input": {
+        "id": 0,
+        "dead": true,
+        "items": [],
+        "confusionCount": 9007199254740991
+      },
+      "decoded_count": 9007199254740991,
+      "result": {
+        "id": 0,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    }
+  ],
+  "setter_cases": [
+    {
+      "count": -3,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": -3,
+        "positive_frame": false,
+        "safe_integer": true
+      },
+      "frames_created": 1,
+      "frames_removed": 1
+    },
+    {
+      "count": 0,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      },
+      "frames_created": 1,
+      "frames_removed": 1
+    },
+    {
+      "count": 1,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 1,
+        "positive_frame": true,
+        "safe_integer": true
+      },
+      "frames_created": 2,
+      "frames_removed": 1
+    },
+    {
+      "count": 3,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 3,
+        "positive_frame": true,
+        "safe_integer": true
+      },
+      "frames_created": 2,
+      "frames_removed": 1
+    },
+    {
+      "count": 6,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 6,
+        "positive_frame": true,
+        "safe_integer": true
+      },
+      "frames_created": 2,
+      "frames_removed": 1
+    },
+    {
+      "count": 9007199254740991,
+      "result": {
+        "id": 0,
+        "dead": false,
+        "count": 9007199254740991,
+        "positive_frame": true,
+        "safe_integer": true
+      },
+      "frames_created": 2,
+      "frames_removed": 1
+    }
+  ],
+  "global_cases": [
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 2,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 2,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 3,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3
+      ],
+      "dead_mask": 3,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 2,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 2,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 7,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6
+      ],
+      "dead_mask": 7,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 10,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 10,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 15,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9
+      ],
+      "dead_mask": 15,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 10,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 10,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 31,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "dead_mask": 31,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 42,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 42,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 63,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15
+      ],
+      "dead_mask": 63,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 42,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 42,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 127,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18
+      ],
+      "dead_mask": 127,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": false,
+            "count": 24,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": false,
+            "count": 24,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 170,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 170,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 255,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21
+      ],
+      "dead_mask": 255,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": false,
+            "count": 24,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": false,
+            "count": 27,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": false,
+            "count": 12,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": false,
+            "count": 18,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": false,
+            "count": 24,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": false,
+            "count": 27,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 170,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": false,
+            "count": 27,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 170,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 9,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": false,
+            "count": 15,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": false,
+            "count": 21,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": false,
+            "count": 27,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 511,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": true,
+            "count": 24,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "counts": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24
+      ],
+      "dead_mask": 511,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 73,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 74,
+            "dead": true,
+            "count": 12,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 75,
+            "dead": true,
+            "count": 15,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 76,
+            "dead": true,
+            "count": 18,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 77,
+            "dead": true,
+            "count": 21,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 78,
+            "dead": true,
+            "count": 24,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    }
+  ],
+  "raw_boundary_cases": [
+    {
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "local_safe_plus3": true
+    },
+    {
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 6,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "local_safe_plus3": true
+    },
+    {
+      "count": 9007199254740988,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 9007199254740991,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "local_safe_plus3": true
+    },
+    {
+      "count": 9007199254740989,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 9007199254740992,
+            "positive_frame": true,
+            "safe_integer": false
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "local_safe_plus3": false
+    },
+    {
+      "count": 9007199254740991,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 9007199254740994,
+            "positive_frame": true,
+            "safe_integer": false
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 3,
+            "positive_frame": true,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "local_safe_plus3": false
+    }
+  ],
+  "attack_use_cases": [
+    {
+      "count": 0,
+      "viewer": 0,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": -1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 0,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 1,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90,
+            91
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": -1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 0,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 1,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90,
+            91
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": -1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 2,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 0,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 1,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 0,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [
+            90,
+            91
+          ],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": 1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": -1,
+      "items": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 6,
+      "viewer": -1,
+      "items": [
+        {
+          "id": 90,
+          "modelId": 6
+        },
+        {
+          "id": 91,
+          "modelId": 9
+        }
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 5,
+            "positive_frame": true,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    }
+  ],
+  "auxiliary_cases": [
+    {
+      "action": "pray",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 1,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "pray",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 1,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "discard",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 1,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "discard",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 1,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "sacrifice",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 1,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "sacrifice",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 1,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "useDefenseItems",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "useDefenseItems",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "Supplied event alone does not decrement confusion."
+    },
+    {
+      "action": "confuse",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "No matching action branch;ignored by this renderer."
+    },
+    {
+      "action": "confuse",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "No matching action branch;ignored by this renderer."
+    },
+    {
+      "action": "removeConfusion",
+      "count": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "No matching action branch;ignored by this renderer."
+    },
+    {
+      "action": "removeConfusion",
+      "count": 3,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      },
+      "note": "No matching action branch;ignored by this renderer."
+    }
+  ],
+  "remove_curses_cases": [
+    {
+      "count": 0,
+      "curses": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "curses": [
+        "cold",
+        "flash"
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "curses": [
+        "cold",
+        "fog",
+        "dream",
+        "flash",
+        "darkcloud"
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "curses": [],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "curses": [
+        "cold",
+        "flash"
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "curses": [
+        "cold",
+        "fog",
+        "dream",
+        "flash",
+        "darkcloud"
+      ],
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    }
+  ],
+  "advance_gf_cases": [
+    {
+      "count": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 1,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": 1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 1,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 1,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 1,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "count": 3,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 4,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 1,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    }
+  ],
+  "death_cases": [
+    {
+      "count": 0,
+      "result": {
+        "id": 42,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "count": 1,
+      "result": {
+        "id": 42,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "count": 3,
+      "result": {
+        "id": 42,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    },
+    {
+      "count": 6,
+      "result": {
+        "id": 42,
+        "dead": true,
+        "count": 0,
+        "positive_frame": false,
+        "safe_integer": true
+      }
+    }
+  ],
+  "ending_cases": [
+    {
+      "dead_mask": 0,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "dead_mask": 1,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "dead_mask": 2,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": false,
+            "count": 0,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    },
+    {
+      "dead_mask": 7,
+      "result": {
+        "error": false,
+        "players": [
+          {
+            "id": 42,
+            "dead": true,
+            "count": 3,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 0,
+            "dead": true,
+            "count": 6,
+            "positive_frame": false,
+            "safe_integer": true
+          },
+          {
+            "id": 72,
+            "dead": true,
+            "count": 9,
+            "positive_frame": false,
+            "safe_integer": true
+          }
+        ],
+        "calls": {
+          "placeholders": 0,
+          "confusion_animations": 0,
+          "pray_animations": 0,
+          "discard_animations": 0,
+          "selected_ids": [],
+          "command_updates": []
+        }
+      }
+    }
+  ],
+  "command_activation_cases": [
+    {
+      "count": 0,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "owned-command"
+          ],
+          [
+            "command-side"
+          ],
+          [
+            "command-display"
+          ],
+          [
+            "hand-click-active"
+          ],
+          [
+            "target-click-active",
+            42
+          ],
+          [
+            "target-click-active",
+            0
+          ]
+        ]
+      }
+    },
+    {
+      "count": 0,
+      "viewer": 1,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "foreign-command",
+            42
+          ]
+        ]
+      }
+    },
+    {
+      "count": 0,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "foreign-command",
+            42
+          ]
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 0,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "owned-command"
+          ],
+          [
+            "command-side"
+          ],
+          [
+            "command-display"
+          ],
+          [
+            "hand-click-active"
+          ],
+          [
+            "target-click-active",
+            42
+          ],
+          [
+            "target-click-active",
+            0
+          ]
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "viewer": 1,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "foreign-command",
+            42
+          ]
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "viewer": -1,
+      "result": {
+        "error": false,
+        "calls": [
+          [
+            "foreign-command",
+            42
+          ]
+        ]
+      }
+    }
+  ],
+  "adapter_contract": {
+    "source": "external resolved Command,not an automatic action selector",
+    "confusion_application": "289:alive count plus3;signed-safe overflow rejected atomically",
+    "main": "positive-count actor requires dedicated supplied-command API;ordinary main blocked;responses/purchase unchanged",
+    "decrement": "local:once on accepted supplied main launch including auxiliary-like commands;no automatic distribution inferred",
+    "clear": "death/end clear",
+    "unsupported": "random policy,automatic timing,phenomenon207 selection,server command authorization"
+  },
+  "conclusions": [
+    "confuseEverybody iterates the !dead input roster and adds3 to its existing count;it does not reset to3 or impose a client cap. HP0 alone is not a dead flag.",
+    "The useAttackItems receiver decrements its current source once only when count>0,including empty item arrays. Neither item count nor viewer changes the decrement. A confused local source with an empty array also gets one empty gift-placeholder widget.",
+    "pray/discard/sacrifice/useDefenseItems receiver events alone do not decrement. removeCurses also leaves the separate count unchanged. No confuse/removeConfusion action is recognized by this receiver. This does not establish the complete server event sequence for any logical command.",
+    "advanceGF chooses the supplied player pane and shows a confusion animation when its count is positive,without decrement. This is not a startTurn wire action.",
+    "sc8 stores its raw number and draws a noninteractive positive-count frame. Death clears it;endGame clears every !dead player. Fresh player projection applies positive decoded counts,then death clears them.",
+    "fv.fF still activates local hand/target/command controls for a positive-count owner. This display path is not evidence of server permission to submit manual moves during confusion.",
+    "The local dedicated external resolved-command API and its decrement stage are explicit experimental restrictions,not a public-client automatic selection/scheduling implementation."
+  ],
+  "limitations": [
+    "No authoritative server selector,legal-action distribution,response automation,CP/MP choice,target distribution,no-item policy or timeout trigger is present in these receiver facts. JA/EN promise loss of control for3turns but do not specify those choices.",
+    "The unsafe+3 UI examples deliberately show raw JavaScript number behavior;the adapter rejects arithmetic outside signed safe integers. No arbitrary small confusion cap is claimed.",
+    "Old Flash Jupiter ILLUSION changes fake hand appearance and is not current289 confusion. No old confusion policy is used as evidence.",
+    "DOM/resource visuals,Future delays,used-pane rendering and final command widgets are scaffolding. Real event dispatch,player decoder,count setter,live filtering and manual-control branch are unchanged. No network/account/application startup runs."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_confusion_oracle.cjs --client /path/main.dart.js --locale-ja /path/ja.json --locale-en /path/en.json [--check]"
+}

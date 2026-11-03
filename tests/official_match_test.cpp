@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v36"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v37"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -79,7 +79,7 @@ void recovery_retention_capacity_and_atomicity(){
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
     const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("string-of-fate");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
-        if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].mp=100;if(error==4)bad.players[0].confusion_count=1;if(error==5)bad.tiebreak_gf=10;
+        if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].mp=100;if(error==4)bad.players[0].confusion_count=-1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
 
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v34\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v35\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -1828,7 +1828,7 @@ PhenomenonAction global_action(CardId model,const SnapshotState& state){
     if(model==296)for(const auto& p:state.players)if(!p.dead)a.guardians.push_back(p.guardian);return a;
 }
 void phenomenon_capabilities_fever_replacement_and_atomic_roles(){
-    const std::set<CardId> supported{287,288,290,291,292,293,294,296};for(CardId id=0;id<=300;++id)check(match_phenomenon_supported(id)==supported.contains(id),"only the eight implemented global or targeted phenomena are advertised");for(auto id:supported)check(!match_supported(id),"phenomena are never ordinary hand/gift models");check(!match_supported(207)&&match_catalog().size()==236&&match_gift_weight()==499,"Fate selector and ordinary gift pool remain unchanged");
+    const std::set<CardId> supported{287,288,289,290,291,292,293,294,296};for(CardId id=0;id<=300;++id)check(match_phenomenon_supported(id)==supported.contains(id),"only the nine implemented global or targeted phenomena are advertised");for(auto id:supported)check(!match_supported(id),"phenomena are never ordinary hand/gift models");check(!match_supported(207)&&match_catalog().size()==236&&match_gift_weight()==499,"Fate selector and ordinary gift pool remain unchanged");
     auto state=phenomenon_scene(9,true);Match m;m.load_scene(state,0,123);const auto before=m.snapshot();PhenomenonAction a{287,{},{}};check(m.phenomenon_legal(a)&&m.snapshot()==before,"global legality is pure");m.phenomenon_step(a);
     check(m.snapshot().phenomenon_actions==1&&m.snapshot().decisions==1&&m.snapshot().state.update_count==1&&m.snapshot().rng==123&&m.snapshot().state.gf==37&&m.snapshot().owner==0&&m.snapshot().actor==0&&m.snapshot().phase==MatchPhase::main&&!m.snapshot().batch,"source-free global pulse consumes exactly one decision without RNG, ordinary turn or batch");
     for(std::size_t i=0;i<state.players.size();++i){auto expected=state.players[i];if(!expected.dead){std::erase_if(expected.curses,[](auto c){return c>=Curse::cold&&c<=Curse::heaven;});expected.curses.insert(expected.curses.begin(),Curse::fever);}check(m.snapshot().state.players[i]==expected,"Fever directly replaces all existing disease ranks including Heaven without HP, inventory, guardian, revive or death effects");}
@@ -1857,7 +1857,7 @@ void phenomenon_guardian_nine_assignments_event_time_fog_and_cutoff(){
 void phenomenon_strict_shapes_pending_exclusion_and_late_rollback(){
     auto state=phenomenon_scene(9,true);Match m;m.load_scene(state,0,5);m.phenomenon_step({288,{},{}});
     const auto reject_global=[&](PhenomenonAction action){const auto before=m.snapshot();check(!m.phenomenon_legal(action)&&m.snapshot()==before,"invalid global legality leaves the previous action intact");bool failed=false;try{m.phenomenon_step(action);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"invalid global shape leaves the complete state and public event unchanged");};
-    for(auto a:std::vector<PhenomenonAction>{{0,{},{}},{207,{},{}},{289,{},{}},{291,{},{}},{292,{},{}},{293,{},{}},{295,{},{}},{287,0,{}},{288,{}, {Guardian::mars}},{290,0,{}},{294,{},{}},{294,state.players.back().id,{}},{294,999,{}},{294,0,{Guardian::mars}},{296,{},{}},{296,{},std::vector<Guardian>(7,Guardian::mars)},{296,{},std::vector<Guardian>(9,Guardian::mars)},{296,0,std::vector<Guardian>(8,Guardian::mars)},{296,{},std::vector<Guardian>(8,Guardian::none)},{296,{},std::vector<Guardian>(8,static_cast<Guardian>(255))}})reject_global(a);
+    for(auto a:std::vector<PhenomenonAction>{{0,{},{}},{207,{},{}},{297,{},{}},{291,{},{}},{292,{},{}},{293,{},{}},{295,{},{}},{287,0,{}},{288,{}, {Guardian::mars}},{290,0,{}},{294,{},{}},{294,state.players.back().id,{}},{294,999,{}},{294,0,{Guardian::mars}},{296,{},{}},{296,{},std::vector<Guardian>(7,Guardian::mars)},{296,{},std::vector<Guardian>(9,Guardian::mars)},{296,0,std::vector<Guardian>(8,Guardian::mars)},{296,{},std::vector<Guardian>(8,Guardian::none)},{296,{},std::vector<Guardian>(8,static_cast<Guardian>(255))}})reject_global(a);
     m=fixture(scene({6},{}));m.step(play(0,{0},7));reject_global({290,{},{}});m=fixture(scene({5},{6}));m.step({0,CommandKind::buy,{0},7});m.step(defend(7));check(m.snapshot().phase==MatchPhase::purchase,"purchase is genuinely pending before a global rejection");reject_global({290,{},{}});
     for(auto model:{CardId{287},CardId{288},CardId{290},CardId{294},CardId{296}}){auto broken=state;broken.update_count=max_wire_integer;Match late;late.load_scene(broken,0,7);const auto before=late.snapshot();const auto action=global_action(model,broken);check(late.phenomenon_legal(action),"update counter exhaustion is late rather than an input-shape error");bool failed=false;try{late.phenomenon_step(action);}catch(const MatchError&){failed=true;}check(failed&&late.snapshot()==before,"late update failure rolls back every already-applied global resource/curse/guardian and event");}
 }
@@ -1940,6 +1940,104 @@ void item_shuffle_prefix_and_all_later_actions_replay(){
     for(unsigned count:{2u,9u})for(std::uint64_t seed=0;seed<16;++seed){SnapshotState state;for(unsigned i=0;i<count;++i){auto p=player(i?100+i:0,{6,190,178,208,112,235});p.items[5].used=true;p.hp=p.mp=p.cp=99;if(i%2==0)p.curses={Curse::fog,Curse::dream};p.guardian=static_cast<Guardian>(1+(seed+i)%10);state.players.push_back(p);}MatchConfig cap;cap.max_decisions=96;Match a(cap),b(cap);a.load_scene(state,0,seed);b.load_scene(state,0,seed);
         for(unsigned pulse=0;pulse<3;++pulse){auto action=shuffle_order(a.snapshot().state);std::rotate(action.order.begin(),action.order.begin()+static_cast<std::ptrdiff_t>((seed+pulse)%action.order.size()),action.order.end());check(a.item_shuffle_step(action)==b.item_shuffle_step(action)&&a.snapshot()==b.snapshot(),"repeated completed shuffle proofs preserve identical whole-world values and prefix counters");roundtrip(a);}check(a.snapshot().phenomenon_actions==3&&a.snapshot().rng==seed,"explicit permutation prefixes add no random draws");std::uint64_t pa=seed,pb=seed;
         while(!a.done()){const auto before=a.snapshot();const auto ca=a.sample_action(pa),cb=b.sample_action(pb);check(ca==cb&&pa==pb&&a.legal(ca)&&a.snapshot()==before,"ordinary visible policy remains pure while a private manifest proof is present");check(a.step(ca)==b.step(cb)&&a.snapshot()==b.snapshot()&&a.snapshot().phenomenon_actions==3&&!a.snapshot().last_item_shuffle,"subsequent ordinary/counter/death/redraw/auto replay uses the shuffled world and clears only the old proof");roundtrip(a);}}
+}
+
+// This proposal adapter belongs only to the privileged test controller. It does
+// not implement the server's automatic confusion selector.
+Command confusion_test_proposal(const Match& game,std::uint64_t& policy) {
+    auto s=game.snapshot(); const auto actor=*s.actor;
+    for(auto& p:s.state.players)if(p.id==actor)p.confusion_count=0;
+    s.last_phenomenon.reset(); s.last_item_shuffle.reset();
+    Match controller(s.config); controller.restore(s);return controller.sample_action(policy);
+}
+void confusion_addition_scope_and_projection(){
+    auto s=phenomenon_scene(9,true);
+    for(std::size_t i=0;i<s.players.size();++i)s.players[i].confusion_count=s.players[i].dead?0:static_cast<std::int64_t>(i);
+    Match m;m.load_scene(s,0,42);const auto before=m.snapshot();
+    check(m.phenomenon_legal({289,{},{}})&&m.snapshot()==before,"confusion addition legality is pure");
+    m.phenomenon_step({289,{},{}});auto expected=s;++expected.update_count;
+    for(auto& p:expected.players)if(!p.dead)p.confusion_count+=3;
+    check(m.snapshot().state==expected&&m.snapshot().rng==42&&m.snapshot().owner==0&&m.snapshot().phenomenon_actions==1
+        &&!m.snapshot().batch&&!m.snapshot().last_tick,"289 adds three to alive counts only with no ordinary scheduling or random draw");
+    check(m.observe(0).find(confusion_rule)!=std::string::npos&&m.observe({}).find("confusionCount")==std::string::npos
+        &&m.observe(0).find("confusion_command")==std::string::npos,"public metadata declares policy scope while hiding raw durations and replay marker");roundtrip(m);
+    m.phenomenon_step({289,{},{}});for(const auto& p:m.snapshot().state.players)
+        check(p.confusion_count==find_player(s,p.id)->confusion_count+(p.dead?0:6),"reapplication adds rather than clamps to three");roundtrip(m);
+    auto bad=m.snapshot();bad.state.players[0].confusion_count=2;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}
+    check(failed,"completed confusion event requires its positive increment postcondition");
+}
+void confusion_api_gate_overflow_and_transaction(){
+    auto s=scene({6},{});s.players[0].confusion_count=3;Match m;m.load_scene(s,0,7);const auto before=m.snapshot();const auto cmd=play(0,{0},7);
+    reject(m,cmd);check(m.confusion_legal(cmd)&&m.snapshot()==before,"only externally supplied confusion command may launch a confused owner");
+    std::uint64_t policy=19;bool failed=false;try{(void)m.sample_action(policy);}catch(const MatchError& e){failed=e.code==MatchErrorCode::unsupported;}
+    check(failed&&policy==19&&m.snapshot()==before,"normal sampler leaves state and policy RNG untouched when no server confusion selector exists");
+    for(auto invalid:std::vector<Command>{pray(0),play(7,{0},0),play(0,{999},7),defend(0),play(0,{0},999)}){
+        check(!m.confusion_legal(invalid),"external resolution still enforces normal actor phase items target and prayer rules");failed=false;
+        try{m.confusion_step(invalid);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"invalid external command is atomic");}
+    auto zero=s;zero.players[0].confusion_count=0;m.load_scene(zero,0,7);check(m.legal(cmd)&&!m.confusion_legal(cmd),"unconfused actor uses the normal API exclusively");
+    auto limit=s;limit.players[0].confusion_count=max_wire_integer-3;m.load_scene(limit,0,7);m.phenomenon_step({289,{},{}});check(m.snapshot().state.players[0].confusion_count==max_wire_integer,"last safe global increment is exact");roundtrip(m);
+    const auto full=m.snapshot();check(!m.phenomenon_legal({289,{},{}}),"289 preflights every live count before modifying any player");failed=false;
+    try{m.phenomenon_step({289,{},{}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==full,"count exhaustion preserves notice counters and all state");
+    auto late=s;late.update_count=max_wire_integer;m.load_scene(late,0,7);const auto exhausted=m.snapshot();failed=false;
+    try{m.confusion_step(cmd);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exhausted,"late update exhaustion rolls back debit consumption launch and RNG");
+    for(unsigned error=0;error<2;++error){auto invalid=s;if(error==0)invalid.players[0].confusion_count=-1;else{invalid.players[1].dead=true;invalid.players[1].hp=0;invalid.players[1].confusion_count=1;}
+        failed=false;try{m.load_scene(invalid,0,7);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exhausted,"negative or dead positive confusion count cannot enter the closed runtime");}
+}
+void confusion_all_main_kinds_debit_and_cures_preserve(){
+    for(const auto kind:{CommandKind::pray,CommandKind::discard,CommandKind::exchange,CommandKind::play}){
+        auto s=scene(kind==CommandKind::exchange?std::initializer_list<CardId>{3}:kind==CommandKind::play?std::initializer_list<CardId>{200}:std::initializer_list<CardId>{199},{});
+        s.players[0].confusion_count=3;s.players[0].curses={Curse::fog,Curse::dream};Match m;m.load_scene(s,0,7);
+        Command cmd=kind==CommandKind::pray?pray(0):kind==CommandKind::discard?Command{0,kind,{0},{}}:kind==CommandKind::exchange?Command{0,kind,{0},{},ResourceAllocation{40,10,20}}:play(0,{0},0);
+        check(m.confusion_legal(cmd),"supplied auxiliary/prayer command uses explicit local useAttackItems mapping");m.confusion_step(cmd);
+        check(m.snapshot().state.players[0].confusion_count==2&&m.snapshot().decisions==1&&m.snapshot().owner==7,"all supplied main kinds debit once and then perform ordinary completion");
+        if(kind==CommandKind::play)check(m.snapshot().state.players[0].curses.empty(),"all-cure removes curses without clearing remaining confusion");roundtrip(m);
+    }
+    auto s=scene({},{});s.players[0].confusion_count=3;s.players[0].guardian=Guardian::neptune;s.players[0].curses={Curse::fog};Match m;m.load_scene(s,0,9);
+    m.guardian_step({0,275,0});check(m.snapshot().state.players[0].confusion_count==3&&m.snapshot().state.players[0].curses.empty(),"external cure does not consume a confused main turn");
+    m.item_shuffle_step({});m.phenomenon_step({290,{},{}});check(m.snapshot().state.players[0].confusion_count==3,"unrelated external effects preserve confusion count");roundtrip(m);
+}
+void confusion_launch_response_replay_and_tamper(){
+    auto s=scene({6,190},{190});s.players[0].confusion_count=s.players[1].confusion_count=3;Match m;m.load_scene(s,0,7);
+    m.confusion_step(play(0,{0},7));check(m.snapshot().phase==MatchPhase::response&&m.snapshot().batch->confusion_command
+        &&m.snapshot().batch->initial_state.players[0].confusion_count==3&&m.snapshot().state.players[0].confusion_count==2,"pending launch anchor precedes the sole count debit");roundtrip(m);
+    const auto exact=m.snapshot();for(unsigned error=0;error<6;++error){auto bad=exact;if(error==0)bad.batch->confusion_command=false;if(error==1)bad.state.players[0].confusion_count=3;if(error==2)bad.batch->initial_state.players[0].confusion_count=2;if(error==3)bad.batch->initial_state.players[0].confusion_count=0;if(error==4)bad.batch->phenomenon_action=PhenomenonAction{291,7,{}};if(error==5)bad.batch->attack.actor=7;
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"confusion replay rejects omitted marker forged count anchor and external-domain mixing");}
+    check(!m.confusion_legal(defend(7,{0}))&&m.legal(defend(7,{0})),"confused responder remains on ordinary response API");m.step(defend(7,{0}));
+    check(m.snapshot().actor==0&&m.snapshot().state.players[1].confusion_count==3,"reflector's count is not spent on a defense");roundtrip(m);
+    m.step(defend(0,{1}));check(m.snapshot().state.players[0].confusion_count==2&&m.snapshot().state.players[1].confusion_count==3,"repeated owner response never repeats launch debit");roundtrip(m);
+    while(m.snapshot().phase==MatchPhase::response){m.step(defend(*m.snapshot().actor));roundtrip(m);}
+}
+void confusion_purchase_and_sale_resolution(){
+    for(bool buy:{false,true}){
+        auto s=buy?scene({5},{6}):scene({4,6},{});for(auto& p:s.players){p.confusion_count=3;p.cp=99;}
+        Match m;m.load_scene(s,0,9);Command cmd=buy?Command{0,CommandKind::buy,{0},7}:Command{0,CommandKind::sell,{0,1},7};m.confusion_step(cmd);
+        check(m.snapshot().state.players[0].confusion_count==2,"trade launch debits exactly one confused turn");roundtrip(m);m.step(defend(7));roundtrip(m);
+        if(buy){check(m.snapshot().phase==MatchPhase::purchase&&m.snapshot().actor==0,"external confusion buy retains ordinary buyer decision escrow");m.step({0,CommandKind::accept,{},{}});roundtrip(m);}
+        check(m.snapshot().phase==MatchPhase::main&&m.snapshot().state.players[0].confusion_count==2&&m.snapshot().state.players[1].confusion_count==3,"trade defense delivery and purchase decision do not debit either participant again");
+    }
+}
+void confusion_death_revival_end_and_cutoff(){
+    for(bool revive:{false,true}){
+        auto s=revive?scene({208},{}):scene({},{});s.players.push_back(player(9));for(auto& p:s.players)p.confusion_count=3;Match m;m.load_scene(s,7,9);
+        m.phenomenon_step({291,0,{}});m.step(defend(0));
+        check(m.snapshot().state.players[0].confusion_count==(revive?3:0)&&m.snapshot().state.players[0].dead!=revive
+            &&m.snapshot().state.players[1].confusion_count==3,"only actual death clears confusion while revival and other players preserve it");roundtrip(m);
+    }
+    auto s=scene({},{});for(auto& p:s.players)p.confusion_count=3;Match m;m.load_scene(s,7,9);m.phenomenon_step({291,0,{}});m.step(defend(0));
+    check(m.done()&&m.snapshot().terminated&&m.snapshot().state.players[0].confusion_count==0&&m.snapshot().state.players[1].confusion_count==0,"natural end clears every survivor's confusion");roundtrip(m);
+    auto bad=m.snapshot();bad.state.players[1].confusion_count=1;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed,"natural terminal snapshot requires end-event count clear");
+    MatchConfig cap;cap.max_decisions=1;Match cut(cap);cut.load_scene(s,0,9);cut.confusion_step(pray(0));check(cut.snapshot().truncated&&cut.snapshot().state.players[0].confusion_count==2&&cut.snapshot().state.players[1].confusion_count==3,"decision cutoff preserves remaining counts after the launch debit");roundtrip(cut);
+}
+void confusion_seeded_external_controller_rollouts(){
+    for(unsigned players:{2u,9u})for(std::uint64_t seed=0;seed<20;++seed){MatchConfig c;c.max_decisions=128;Match a(c),b(c);std::vector<PlayerSetup> roster;
+        for(unsigned i=0;i<players;++i)roster.push_back({i?100+7*i:0,Team::solo,"P"});a.reset(roster,seed);a.phenomenon_step({289,{},{}});b.restore(a.snapshot());std::uint64_t pa=seed,pb=seed;
+        while(!a.done()){
+            const auto before=a.snapshot();const auto* owner=find_player(before.state,before.owner);const bool confused=before.phase==MatchPhase::main&&owner->confusion_count>0;
+            const auto ca=confused?confusion_test_proposal(a,pa):a.sample_action(pa),cb=confused?confusion_test_proposal(b,pb):b.sample_action(pb);
+            check(ca==cb&&pa==pb&&a.snapshot()==before,"privileged test controller proposals are reproducible and state-pure");
+            check((confused?a.confusion_step(ca):a.step(ca))==(confused?b.confusion_step(cb):b.step(cb))&&a.snapshot()==b.snapshot(),"mixed normal and external-confusion commands reproduce full queues counters guardian and RNG");roundtrip(a);
+        }
+    }
 }
 
 }
@@ -2088,5 +2186,13 @@ int main(){
     item_shuffle_invalid_cover_pending_and_rollback();
     item_shuffle_full_proof_rejects_tampering();
     item_shuffle_prefix_and_all_later_actions_replay();
+    confusion_addition_scope_and_projection();
+    confusion_api_gate_overflow_and_transaction();
+    confusion_all_main_kinds_debit_and_cures_preserve();
+    confusion_launch_response_replay_and_tamper();
+    confusion_purchase_and_sale_resolution();
+    confusion_death_revival_end_and_cutoff();
+    confusion_seeded_external_controller_rollouts();
+
     std::cout<<"Experimental official match passed (236subset/canonical-guardian-auto/self-buy/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

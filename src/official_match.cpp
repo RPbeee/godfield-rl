@@ -82,9 +82,9 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         require(p.hp >= 0 && p.hp <= 99 && p.mp >= 0 && p.mp <= 99 && p.cp >= 0 && p.cp <= 99, "scene resources outside 0..99");
         require(p.dead || p.hp > 0, "HP0 without resolved death is not a quiescent scene");
         require(p.items.size() <= c.hand_limit, "scene inventory exceeds configured display limit");
-        if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return !supported_curse(curse); })
-            || p.confusion_count)
-            unsupported("only diseases, Fog, Dream, Flash and DarkCloud are implemented among scoped curses and confusion");
+        if (std::any_of(p.curses.begin(), p.curses.end(), [](auto curse) { return !supported_curse(curse); }))
+            unsupported("only diseases, Fog, Dream, Flash and DarkCloud are implemented among scoped curses");
+        require(p.confusion_count >= 0 && (!p.dead || !p.confusion_count), "invalid scoped confusion count");
         require(p.curses.size() <= 5 && std::count_if(p.curses.begin(), p.curses.end(), disease) <= 1 && std::is_sorted(p.curses.begin(), p.curses.end())
             && std::adjacent_find(p.curses.begin(), p.curses.end()) == p.curses.end(), "noncanonical scoped curses");
         for (const auto& item : p.items) {
@@ -114,6 +114,7 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     s.terminated = true; s.truncated = false; s.state.is_over = true;
     s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.deaths.clear(); s.purchase.reset();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
+    for (auto& player:s.state.players) if (!player.dead) player.confusion_count=0;
     s.winners = result.winners;
     s.rewards.assign(s.state.players.size(), 0);
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
@@ -206,12 +207,14 @@ ResponseContext response_context(const MatchSnapshot& s) {
     const auto& effect = s.queue.front();
     return {has_curse(s.state.players[index(s, effect.target)], Curse::flash), effect.category, effect.element, damaging(effect)};
 }
-std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command) {
+std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool confusion_command=false) {
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
     if (static_cast<unsigned>(command.kind) > 8) unsupported("unsupported match command kind");
     require(command.kind == CommandKind::exchange || !command.allocation, "only exchange accepts a resource allocation");
     const auto& own = s.state.players[index(s, command.actor)];
     require(!own.dead, "dead actor");
+    if (confusion_command) require(s.phase==MatchPhase::main && own.confusion_count>0, "resolved confusion command requires a confused main actor");
+    else if (s.phase==MatchPhase::main && own.confusion_count>0) unsupported("confused main actor requires an externally resolved confusion command");
     require(command.items.size() <= s.config.hand_limit, "too many selected items");
     std::unordered_set<ItemToken> selected;
     std::vector<CardId> models, actual_models;
@@ -370,6 +373,8 @@ void phenomenon_shape(const MatchSnapshot& s, const PhenomenonAction& action, bo
 void prepare_phenomenon(const MatchSnapshot& s, const PhenomenonAction& action) {
     require(s.phase==MatchPhase::main && !s.terminated && !s.truncated,"phenomenon requires a main boundary");
     phenomenon_shape(s,action);
+    if (action.model==289) for (const auto& player:s.state.players) if (!player.dead)
+        require(player.confusion_count<=static_cast<std::int64_t>(max_wire_integer)-3,"confusion count exhausted");
 }
 void prepare_guardian(const MatchSnapshot& s, const GuardianAction& action) {
     require(s.phase == MatchPhase::main && !s.terminated && !s.truncated, "guardian activation needs a main boundary");
@@ -468,7 +473,7 @@ void finalize_deaths(MatchSnapshot& s) {
             change_resource(player, Resource::hp, amount);
             request_gift(s, seat);
             ++s.revivals;
-        } else { player.dead = true; --alive; died.push_back(seat); }
+        } else { player.dead = true; player.confusion_count=0; --alive; died.push_back(seat); }
     }
     // The public client renders a server-provided posthumous attack. Its gate,
     // copy count and scheduling here are the explicit local death_rule.
@@ -947,6 +952,7 @@ void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
             player.curses.insert(std::lower_bound(player.curses.begin(),player.curses.end(),Curse::fever),Curse::fever);
             break;
         case 288: add_curse(player,Curse::fog); break;
+        case 289: player.confusion_count+=3; break;
         case 290: player.hp=1; break;
         case 294: player.cp=0; break;
         case 296: change_guardian(s,player,action.guardians[assignment++],GuardianChangeReason::phenomenon); break;
@@ -954,17 +960,19 @@ void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
         }
     }
     if (action.model==294) change_resource(s.state.players[index(s,*action.recipient)],Resource::cp,collected);
-    // These five primitives never create HP0/death or pending work. Keep the
+    // These six primitives never create HP0/death or pending work. Keep the
     // ordinary owner and complete only the external decision/cutoff boundary.
     complete_decision(s,false);
 }
 // Used by both the live transactional step and privileged journal replay.
-void execute(MatchSnapshot& s, const Command& command) {
-    const auto models = prepare(s, command); const auto seat = index(s, command.actor);
+void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false) {
+    const auto models = prepare(s, command,confusion_command); const auto seat = index(s, command.actor);
     if (s.phase == MatchPhase::main) clear_events(s);
     bool completed = false;
     if (s.phase == MatchPhase::main) {
-        auto batch = action_anchor(s); batch.attack = command; batch.models = models; s.batch = std::move(batch);
+        auto batch = action_anchor(s); batch.attack = command; batch.models = models;
+        batch.confusion_command=confusion_command; s.batch = std::move(batch);
+        if (confusion_command) --s.state.players[seat].confusion_count;
     }
     if (s.phase == MatchPhase::purchase) {
         s.batch->responses.push_back(command);
@@ -1130,6 +1138,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             for (const auto& player:s.state.players) if (!player.dead) {
                 if (action.model==287) require(has_curse(player,Curse::fever),"Fever replacement postcondition missing");
                 if (action.model==288) require(has_curse(player,Curse::fog),"global Fog postcondition missing");
+                if (action.model==289) require(player.confusion_count>=3,"global confusion increment postcondition missing");
                 if (action.model==290) require(player.hp==1,"global HP setter postcondition missing");
                 if (action.model==294 && player.id!=*action.recipient) require(player.cp==0,"collection debit postcondition missing");
                 if (action.model==296) {
@@ -1266,7 +1275,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(s.terminated != s.truncated && s.state.is_over == s.terminated, "invalid episode boundary");
         if (s.terminated) {
             require(natural.terminal && s.winners == natural.winners, "invalid natural outcome");
-            MatchSnapshot expected = s; finish(expected, natural); require(s.rewards == expected.rewards, "invalid terminal rewards");
+            MatchSnapshot expected = s; finish(expected, natural); require(s.rewards == expected.rewards && s.state==expected.state, "invalid terminal rewards or uncleared confusion");
         } else require(!natural.terminal && s.decisions == s.config.max_decisions && s.winners.empty()
             && std::all_of(s.rewards.begin(), s.rewards.end(), [](auto v) { return v == 0; }), "invalid truncation");
         return;
@@ -1285,6 +1294,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(batch.owner == s.owner && batch.initial_state.players.size() == n
             && !(batch.guardian_action && batch.guardian_payload_action)
             && !(batch.phenomenon_action && (batch.guardian_action || batch.guardian_payload_action))
+            && !(batch.confusion_command && (batch.phenomenon_action || batch.guardian_action || batch.guardian_payload_action))
             && (batch.phenomenon_action ? (targeted_phenomenon(batch.phenomenon_action->model)
                 && batch.models==std::vector<CardId>{batch.phenomenon_action->model} && batch.attack==Command{})
                 : batch.guardian_action ? (batch.models == std::vector<CardId>{batch.guardian_action->model} && batch.attack == Command{})
@@ -1314,7 +1324,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         if (batch.phenomenon_action) execute_phenomenon(replay,*batch.phenomenon_action);
         else if (batch.guardian_payload_action) execute_guardian_payload(replay,*batch.guardian_payload_action);
         else if (batch.guardian_action) execute_guardian(replay,*batch.guardian_action);
-        else execute(replay, batch.attack);
+        else execute(replay, batch.attack,batch.confusion_command);
         for (const auto& response : batch.responses) {
             require(replay.batch.has_value(), "action journal continues after its batch ended");
             execute(replay, response);
@@ -1347,7 +1357,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
 bool match_item_shuffle_supported(CardId id) noexcept { return id==295; }
-bool match_phenomenon_supported(CardId id) noexcept { return id==287 || id==288 || (id>=290 && id<=294) || id==296; }
+bool match_phenomenon_supported(CardId id) noexcept { return (id>=287 && id<=294) || id==296; }
 bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept {
     const auto* card=find_card(id);
     return card && match_supported(id) && payload_domain(guardian,*card) && can_start_main(id)
@@ -1411,6 +1421,12 @@ MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
 }
+bool Match::confusion_legal(const Command& command) const noexcept {
+    try { (void)prepare(data_,command,true); return true; } catch (...) { return false; }
+}
+MatchStep Match::confusion_step(const Command& command) {
+    auto next=data_; execute(next,command,true); auto output=result(next); data_=std::move(next); return output;
+}
 bool Match::guardian_legal(const GuardianAction& action) const noexcept {
     try { prepare_guardian(data_,action); return true; } catch (...) { return false; }
 }
@@ -1422,6 +1438,8 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     auto rng = policy_rng;
     const auto actor = *data_.actor;
     const auto& own = data_.state.players[index(data_, actor)];
+    if (data_.phase==MatchPhase::main && own.confusion_count>0)
+        unsupported("confusion command selection must be supplied externally");
     if (data_.phase == MatchPhase::purchase) {
         const auto accept = own.items.size() < data_.config.hand_limit && bounded(rng, 2) == 0;
         Command selected{actor,accept ? CommandKind::accept : CommandKind::decline,{},{}};
@@ -1564,7 +1582,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v34\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v35\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1599,7 +1617,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"guardian_departure_rule\":\""; out += guardian_departure_rule;
     out += "\",\"guardian_payload_rule\":\""; out += guardian_payload_rule;
     out += "\",\"phenomenon_rule\":\""; out += phenomenon_rule;
-    out += "\",\"item_shuffle_rule\":\""; out += item_shuffle_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"item_shuffle_rule\":\""; out += item_shuffle_rule;
+    out += "\",\"confusion_rule\":\""; out += confusion_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

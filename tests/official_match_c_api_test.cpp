@@ -47,7 +47,7 @@ int main() {
         && offsetof(gfo_match_item_shuffle_action, count) == 8, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v36"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v37"
         && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -281,7 +281,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v34\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v35\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2118,8 +2118,8 @@ int main() {
     gfo_match_destroy(payload_match);
     unsigned phenomenon_count=0;
     for(uint16_t model=0;model<=296;++model)phenomenon_count+=gfo_match_phenomenon_supported(model);
-    check(phenomenon_count==8&&gfo_match_phenomenon_supported(287)&&gfo_match_phenomenon_supported(288)
-        &&gfo_match_phenomenon_supported(290)&&gfo_match_phenomenon_supported(291)
+    check(phenomenon_count==9&&gfo_match_phenomenon_supported(287)&&gfo_match_phenomenon_supported(288)
+        &&gfo_match_phenomenon_supported(289)&&gfo_match_phenomenon_supported(290)&&gfo_match_phenomenon_supported(291)
         &&gfo_match_phenomenon_supported(292)&&gfo_match_phenomenon_supported(293)&&gfo_match_phenomenon_supported(294)&&gfo_match_phenomenon_supported(296)
         &&!gfo_match_supported(207)&&gfo_match_catalog_count()==236,"phenomena are a separate capability and do not alter weighted gifts");
     gfo_match* pulse_match=nullptr;
@@ -2293,6 +2293,61 @@ int main() {
     check(gfo_match_item_shuffle_step(shuffle_match,&shuffle,&result)==-2&&equal(result,late_shuffle_status)
         &&observe(shuffle_match,0,0)==late_shuffle,"late update exhaustion restores old owner-token pairs and event history");
     gfo_match_destroy(shuffle_match);
+    // Confused-owner commands use the unchanged ordinary wire, but remain a
+    // privileged externally resolved route rather than a fabricated selector.
+    cfg.initial_hand=0;cfg.hand_limit=1;cfg.max_decisions=64;
+    gfo_match* confused_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&confused_match)==0,"confusion bridge create");
+    const auto load_confused_scene=[&](int64_t count,uint64_t update){
+        std::array<gfo_state_player,2> people{};people[0].id=0;people[1].id=7;
+        for(std::size_t i=0;i<2;++i){auto& person=people[i];person.hp=40;person.mp=10;person.cp=20;
+            person.confusion_count=count;person.item_offset=i;person.item_count=1;}
+        std::array<gfo_state_item,2> items{};for(auto& item:items)item.model=208;
+        gfo_state_meta meta{};meta.gf=9;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),nullptr,0,&scene)==0,"typed positive confusion count scene");
+        check(gfo_match_load_scene(confused_match,scene,0,0,&result)==0,"load confusion scene");gfo_state_destroy(scene);
+    };
+    const auto confused_flags=[&](){const auto view=observe(confused_match,0,0);std::size_t count=0,pos=0;
+        while((pos=view.find("\"confused\":true",pos))!=std::string::npos){++count;++pos;}return count;};
+    load_confused_scene(1,0);
+    gfo_match_command supplied_prayer{};supplied_prayer.kind=3;
+    const auto confused_before=observe(confused_match,0,0);const auto confused_status=status(confused_match);result=confused_status;
+    check(gfo_match_legal(confused_match,&supplied_prayer,&legal)==0&&!legal
+        &&gfo_match_confusion_legal(confused_match,&supplied_prayer,&legal)==0&&legal
+        &&gfo_match_step(confused_match,&supplied_prayer,&result)==-5&&equal(result,confused_status)
+        &&observe(confused_match,0,0)==confused_before,"normal main is blocked while supplied confusion command preflight is pure");
+    uint64_t confused_policy=123;gfo_match_command confused_sample{};std::memset(&confused_sample,0x5a,sizeof(confused_sample));const auto confused_sample_before=confused_sample;
+    check(gfo_match_sample_action(confused_match,&confused_policy,&confused_sample)==-5&&confused_policy==123
+        &&equal(confused_sample,confused_sample_before)&&observe(confused_match,0,0)==confused_before,"unsupported confused policy sampling preserves caller RNG, command and world");
+    check(confused_flags()==2&&gfo_match_confusion_step(confused_match,&supplied_prayer,&result)==0&&result.actor==7&&confused_flags()==1,
+        "one externally supplied main consumes one count and resumes ordinary input order");
+    supplied_prayer.actor=7;
+    check(gfo_match_confusion_step(confused_match,&supplied_prayer,&result)==0&&result.actor==0&&confused_flags()==0,
+        "other owner counts remain independent and eventually return to ordinary control");
+    supplied_prayer.actor=0;
+    check(gfo_match_confusion_legal(confused_match,&supplied_prayer,&legal)==0&&!legal
+        &&gfo_match_legal(confused_match,&supplied_prayer,&legal)==0&&legal,"confusion route requires a positive count, not just a valid ordinary command");
+    gfo_match_phenomenon_action mushrooms{};mushrooms.model=289;
+    check(gfo_match_phenomenon_supported(289)&&gfo_match_phenomenon_step(confused_match,&mushrooms,&result)==0&&confused_flags()==2
+        &&observe(confused_match,0,0).find("\"last_phenomenon\":{\"model\":289,\"recipient\":null}")!=std::string::npos
+        &&observe(confused_match,0,0).find("confusionCount")==std::string::npos,"289 adds hidden counts and publishes only the existing boolean and phenomenon event");
+    const auto mushroom_view=observe(confused_match,0,0);const auto mushroom_status=status(confused_match);result=mushroom_status;uint8_t confusion_marker=0xa5;
+    auto bad_confusion=supplied_prayer;bad_confusion.reserved[4]=1;
+    check(gfo_match_confusion_legal(confused_match,&bad_confusion,&confusion_marker)==-2&&confusion_marker==0xa5
+        &&gfo_match_confusion_step(confused_match,&bad_confusion,&result)==-2&&equal(result,mushroom_status)
+        &&gfo_match_confusion_legal(nullptr,&supplied_prayer,&confusion_marker)==-1
+        &&gfo_match_confusion_step(confused_match,nullptr,&result)==-1
+        &&gfo_match_confusion_step(confused_match,&supplied_prayer,nullptr)==-1
+        &&observe(confused_match,0,0)==mushroom_view,"confusion functions retain command padding, NULL and output atomicity guards");
+    load_confused_scene(official::max_wire_integer-2,0);const auto overflow_confusion=observe(confused_match,0,0);const auto overflow_confusion_status=status(confused_match);result=overflow_confusion_status;
+    check(gfo_match_phenomenon_legal(confused_match,&mushrooms,&legal)==0&&!legal
+        &&gfo_match_phenomenon_step(confused_match,&mushrooms,&result)==-2&&equal(result,overflow_confusion_status)
+        &&observe(confused_match,0,0)==overflow_confusion,"289 preflights every live count before adding3 to any participant");
+    load_confused_scene(1,official::max_wire_integer);const auto late_confusion=observe(confused_match,0,0);const auto late_confusion_status=status(confused_match);result=late_confusion_status;
+    check(gfo_match_confusion_legal(confused_match,&supplied_prayer,&legal)==0&&legal
+        &&gfo_match_confusion_step(confused_match,&supplied_prayer,&result)==-2&&equal(result,late_confusion_status)
+        &&observe(confused_match,0,0)==late_confusion&&confused_flags()==2,"late update failure restores the predecrement positive count and full old event state");
+    gfo_match_destroy(confused_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

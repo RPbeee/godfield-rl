@@ -93,6 +93,10 @@ int gfo_match_load_scene(gfo_match* match, const gfo_state* state,
 int gfo_match_get_status(const gfo_match* match, gfo_match_status* out);
 int gfo_match_legal(const gfo_match* match, const gfo_match_command* command, uint8_t* out);
 int gfo_match_step(gfo_match* match, const gfo_match_command* command, gfo_match_status* out);
+// Privileged externally resolved ordinary main command for a confused owner.
+// No automatic selector is provided. Uses the unchanged184-byte command.
+int gfo_match_confusion_legal(const gfo_match* match, const gfo_match_command* command, uint8_t* out);
+int gfo_match_confusion_step(gfo_match* match, const gfo_match_command* command, gfo_match_status* out);
 // Externally selected guardian action; no autonomous scheduling or summoning.
 // Source must own the matching guardian. Absent target requires canonical0.
 int gfo_match_guardian_legal(const gfo_match* match, const gfo_match_guardian_action* action, uint8_t* out);

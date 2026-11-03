@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v36"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v37"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v34")
+        self.assertEqual(own["schema"], "official-execution-view-v35")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v34")
+        self.assertEqual(event["schema"], "official-execution-view-v35")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2542,7 +2542,7 @@ class MatchTests(unittest.TestCase):
 
     def test_phenomenon_strict_fields_pending_exclusion_and_late_atomicity(self):
         game = self.match(config=Config(initial_hand=0))
-        self.assertEqual(game.supported_phenomenon_models, (287, 288, 290, 291, 292, 293, 294, 296))
+        self.assertEqual(game.supported_phenomenon_models, (287, 288, 289, 290, 291, 292, 293, 294, 296))
         self.assertTrue(set(game.supported_phenomenon_models).isdisjoint(game.supported_models))
         raw = {"players": [{"id": 0, "hp": 40, "mp": 99, "cp": 99, "guardian": "earth"},
                              {"id": 23, "hp": 40, "mp": 99, "cp": 99}]}
@@ -2553,7 +2553,7 @@ class MatchTests(unittest.TestCase):
                           PhenomenonAction(296, guardians=(1, "moon")), PhenomenonAction(296, guardians=("mars",) * 10)):
             with self.assertRaises(InvalidMatchError): game.phenomenon_legal(malformed)
             with self.assertRaises(InvalidMatchError): game.phenomenon_step(malformed)
-        for invalid in (PhenomenonAction(289), PhenomenonAction(294), PhenomenonAction(287, 0), PhenomenonAction(294, 999),
+        for invalid in (PhenomenonAction(207), PhenomenonAction(294), PhenomenonAction(287, 0), PhenomenonAction(294, 999),
                         PhenomenonAction(296), PhenomenonAction(296, guardians=("mars",)),
                         PhenomenonAction(287, guardians=("mars", "moon"))):
             self.assertFalse(game.phenomenon_legal(invalid))
@@ -2920,6 +2920,117 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(cut.status.truncated); self.assertFalse(cut.status.terminated)
         self.assertEqual({item["token"]: item["face"] for item in cut.observe(0)["board"]["hand"]}, {1: 191})
         self.assertEqual(cut.observe()["last_phenomenon"], {"model": 295, "recipient": None})
+
+    def test_confusion_global_increment_and_supplied_main_replaces_no_selector(self):
+        game = self.match(config=Config(initial_hand=0, hand_limit=1))
+        raw = {"gf": 9, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 1,
+                    "items": [{"id": 0, "modelId": 208}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 2, "items": [{"id": 0, "modelId": 208}]},
+                    {"id": 23, "hp": 0, "mp": 10, "cp": 20, "dead": True}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.phenomenon_step(PhenomenonAction(289))
+        self.assertEqual(game.observe()["last_phenomenon"], {"model": 289, "recipient": None})
+        self.assertEqual([p["status"]["confused"] for p in game.observe()["board"]["players"]], [True, True, False])
+        before, status = game.observe(0), game.status
+        command = Command(0, "pray")
+        self.assertFalse(game.legal(command)); self.assertTrue(game.confusion_legal(command))
+        with self.assertRaises(UnsupportedMatchError): game.step(command)
+        with self.assertRaises(UnsupportedMatchError): game.sample_action(123)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        remaining = {0: 4, 7: 5}; commands = 0
+        while any(remaining.values()):
+            owner = game.actor; action = Command(owner, "pray")
+            if remaining[owner]:
+                self.assertTrue(game.confusion_legal(action)); game.confusion_step(action); remaining[owner] -= 1
+            else:
+                self.assertFalse(game.confusion_legal(action)); self.assertTrue(game.legal(action)); game.step(action)
+            commands += 1; self.assertLessEqual(commands, 10)
+            status_by_id = {p["id"]: p["status"] for p in game.observe()["board"]["players"]}
+            self.assertEqual([status_by_id[player]["confused"] for player in (0, 7)], [remaining[0] > 0, remaining[7] > 0])
+        self.assertEqual(commands, 10)
+        for private in ("confusion_count", "confusionCount", "confusion_command"):
+            self.assertNotIn(private, game.observe()); self.assertNotIn(private, game.observe()["board"]["players"][0]["status"])
+
+    def test_confusion_one_decay_per_main_responses_and_purchase_do_not_decay(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 14, "cp": 99, "confusionCount": 2,
+                    "items": [{"id": 0, "modelId": 235}, {"id": 1, "modelId": 204}]},
+                    {"id": 7, "hp": 40, "mp": 99, "cp": 99, "confusionCount": 1,
+                     "items": [{"id": 0, "modelId": 190}, {"id": 1, "modelId": 152}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.confusion_step(Command(0, "play", (0, 1), 7))
+        self.assertTrue(game.observe()["board"]["players"][0]["status"]["confused"])
+        self.assertFalse(game.confusion_legal(Command(7, "defend", (0,))))
+        game.step(Command(7, "defend", (0,))); game.step(Command(0, "defend"))
+        self.assertEqual([p["status"]["confused"] for p in game.observe()["board"]["players"]], [True, True])
+        self.assertEqual(game.observe()["board"]["players"][0]["status"]["mp"], 14)
+        game.confusion_step(Command(7, "discard", (1,)))
+        game.confusion_step(Command(0, "play", (0,), 0))
+        self.assertEqual([p["status"]["confused"] for p in game.observe()["board"]["players"]], [False, False])
+        self.assertEqual(game.observe()["board"]["players"][0]["status"]["mp"], 7)
+        raw["players"][0]["items"] = [{"id": 0, "modelId": 5}]
+        raw["players"][1]["items"] = [{"id": 0, "modelId": 233}]
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.confusion_step(Command(0, "buy", (0,), 7)); game.step(Command(7, "defend"))
+        self.assertEqual(game.status.phase, "purchase")
+        self.assertFalse(game.confusion_legal(Command(0, "accept")))
+        self.assertTrue(game.legal(Command(0, "accept"))); game.step(Command(0, "accept"))
+        self.assertEqual([p["status"]["confused"] for p in game.observe()["board"]["players"]], [True, True])
+
+    def test_confusion_cures_revival_natural_finish_and_cutoff(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 3,
+                    "curses": ["cold", "fog", "dream", "flash", "darkcloud"],
+                    "items": [{"id": 0, "modelId": 200}, {"id": 1, "modelId": 199}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.confusion_step(Command(0, "play", (0,), 0)); game.step(Command(7, "pray"))
+        game.confusion_step(Command(0, "play", (1,), 0))
+        self.assertEqual(game.observe()["board"]["players"][0]["status"]["curses"], [])
+        self.assertTrue(game.observe()["board"]["players"][0]["status"]["confused"])
+        raw = {"players": [{"id": 0, "hp": 5, "mp": 10, "cp": 20, "confusionCount": 1,
+                              "items": [{"id": 0, "modelId": 208}]}, {"id": 7, "hp": 99, "mp": 10, "cp": 20}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.phenomenon_step(PhenomenonAction(291, 0)); game.step(Command(0, "defend"))
+        self.assertEqual((game.observe()["board"]["players"][0]["status"]["hp"], game.observe()["board"]["players"][0]["status"]["confused"]), (10, True))
+        raw = {"players": [{"id": 0, "team": 1, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 2,
+                    "items": [{"id": 0, "modelId": 64}]},
+                    {"id": 7, "team": 1, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 3},
+                    {"id": 23, "team": 2, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 4}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.confusion_step(Command(0, "play", (0,), 23)); game.step(Command(23, "defend"))
+        self.assertTrue(game.status.terminated); self.assertEqual(game.status.winners, (0, 7))
+        self.assertFalse(any(p["status"]["confused"] for p in game.observe()["board"]["players"]))
+        cut = self.match(config=Config(initial_hand=0, max_decisions=1))
+        raw["players"][0]["items"] = []
+        with OfficialState(raw, library=LIBRARY) as scene: cut.load_scene(scene, 0, 0)
+        cut.confusion_step(Command(0, "pray"))
+        self.assertTrue(cut.status.truncated); self.assertTrue(cut.observe()["board"]["players"][0]["status"]["confused"])
+
+    def test_confusion_overflow_external_preservation_and_late_atomicity(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 9007199254740989,
+                    "items": [{"id": 0, "modelId": 6}]}, {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(0), game.status
+        self.assertFalse(game.phenomenon_legal(PhenomenonAction(289)))
+        with self.assertRaises(InvalidMatchError): game.phenomenon_step(PhenomenonAction(289))
+        for invalid in (Command(7, "pray"), Command(0, "defend"), Command(0, "discard", (0,))):
+            self.assertFalse(game.confusion_legal(invalid))
+            with self.assertRaises(InvalidMatchError): game.confusion_step(invalid)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["players"][0]["confusionCount"] = 1
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.item_shuffle_step(ItemShuffleAction((ItemSource(0, 0),)))
+        self.assertTrue(game.observe()["board"]["players"][0]["status"]["confused"])
+        raw["updateCount"] = 9007199254740991
+        raw["players"][0]["items"] = [{"id": 0, "modelId": 95}]
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(0), game.status
+        action = Command(0, "play", (0,))
+        self.assertTrue(game.confusion_legal(action))
+        with self.assertRaises(InvalidMatchError): game.confusion_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

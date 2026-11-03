@@ -267,7 +267,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v36"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v37"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
@@ -294,6 +294,10 @@ class Match:
         lib.gfo_match_get_status.argtypes = [c.c_void_p, c.POINTER(_Status)]; lib.gfo_match_get_status.restype = c.c_int
         lib.gfo_match_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(c.c_uint8)]; lib.gfo_match_legal.restype = c.c_int
         lib.gfo_match_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_Status)]; lib.gfo_match_step.restype = c.c_int
+        lib.gfo_match_confusion_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(c.c_uint8)]
+        lib.gfo_match_confusion_legal.restype = c.c_int
+        lib.gfo_match_confusion_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_Status)]
+        lib.gfo_match_confusion_step.restype = c.c_int
         lib.gfo_match_guardian_supported.argtypes = [c.c_uint16]; lib.gfo_match_guardian_supported.restype = c.c_int
         lib.gfo_match_guardian_legal.argtypes = [c.c_void_p, c.POINTER(_GuardianAction), c.POINTER(c.c_uint8)]
         lib.gfo_match_guardian_legal.restype = c.c_int
@@ -450,6 +454,18 @@ class Match:
     def step(self, command):
         self._open(); encoded = _command(command); result = _Status()
         _check(self._lib.gfo_match_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
+
+    def confusion_legal(self, command):
+        """Validate an externally resolved confused-owner main command; no selector."""
+        self._open(); encoded = _command(command); result = c.c_uint8()
+        _check(self._lib.gfo_match_confusion_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def confusion_step(self, command):
+        """Execute one supplied confused-owner action and consume one confusion count."""
+        self._open(); encoded = _command(command); result = _Status()
+        _check(self._lib.gfo_match_confusion_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
 
     def sample_action(self, policy_rng):

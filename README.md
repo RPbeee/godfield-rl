@@ -22,8 +22,8 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 [限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v2/README.md)を参照してください。
-限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadとglobal現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。
-公式の237モデル全配布や全固有効果、一般effect queue、公式Dream全候補分布・実体不適合入力、取引server挙動の未確定部分、Earth/Moonの一般神器/奇跡選出・207からの全現象抽選・289の混乱・悪魔・終末には未対応です。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadとglobal現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。混乱289と外部指定の混乱主動作も扱い、自動選択分布は実装しません。
+公式の237モデル全配布や全固有効果、一般effect queue、公式Dream全候補分布・実体不適合入力、取引server挙動の未確定部分、Earth/Moonの一般神器/奇跡選出・207からの全現象抽選・混乱の自動選択分布・悪魔・終末には未対応です。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v36` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 236モデル/重み499、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v37` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 236モデル/重み499、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289と外部指定主動作、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -248,8 +248,8 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
 236モデル/重み499を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
 奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種・閃光付与/反撃/解除7種・暗雲・除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redrawと互換クラス限定mask・201/239召喚とcanonical42自動行動/離脱、2〜9人とチームを扱います。
-rulesetは `official-execution-subset-v36`、scopeは `experimental:236-models;not-official-server-equivalence` です。
-対象外のモデル・互換クラス外または不正なfake・病気4種/Fog/Dream/閃光/暗雲以外の災い・不正な守護神identity・混乱・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
+rulesetは `official-execution-subset-v37`、scopeは `experimental:236-models;not-official-server-equivalence` です。
+対象外のモデル・互換クラス外または不正なfake・病気4種/Fog/Dream/閃光/暗雲以外の災い・不正な守護神identity・不正な混乱count・終末設定を持つ局面は、黙って通常品へ置換せず拒否します。
 read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
 
 主動作から応答へ進み、body効果・死亡の後に自然終局/cutoffを優先します。全action完了時に元ownerの病気tickと再死亡/終局判定を挟み、継続なら敵守護神の自動stageを反応/FIFOまで解決してから補充・次ownerへ進みます。
@@ -261,7 +261,7 @@ read-onlyな `OfficialState` が表示できる局面を、全てこの実行器
 
 プレイヤーsourceを持つ反射は元のpower/category/abilityとownerを保ち、現在のsource/targetだけを交換します。sourceなし現象の190は返却先なしとして取り消す別の実験規約です。
 属性消去は反射後も無属性を維持し、原発奇跡の再課金・新sourceへの取得は行いません。
-各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version36の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35は拒否します。
+各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version37の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36は拒否します。
 普通防具→反射は現行clientの追加条件で不受理で、反射前に許すのは連続した属性消去だけです。
 自己反射にもresponseを作るのは明示的な実験規約です。公開viewに未来RNG・消費token来歴は出しません。
 
@@ -278,7 +278,7 @@ matching遮断は現在のpayload全体を取消し、原発者のMPや既消費
 ＜壁＞は通常は初回/再使用とも6MP、初回はused保持し、空きがあれば補充1・満杯なら0。v4では直後のFREEで費用0にもできます。
 遮断後は未終局・未打切りの場合だけまとめて補充してownerを巡回します。
 blockイベントが元効果をどう取り消すかはclientの演出だけで証明できず、この実行器の明示規約です。
-公開JSONは `official-execution-view-v34`、Snapshot36、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
+公開JSONは `official-execution-view-v35`、Snapshot37、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
 
 FREEは直前のMCだけを無料化し、複数MC→FREEペアも全て免除します。MP不足のMCを含む途中prefixでは拒否せず、完成列の最終費用を検証します。
 壁233→FREEは全選択を消費/used保持する契約で、旧版の「特殊後FREE未消費」は採用しません。
@@ -422,7 +422,7 @@ raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していま
 これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
 
 以下は過去の **v1・132モデル/重み308** のRelease計測（seed42、1 worker）です。
-現行v36の性能やchecksumを示すものではありません。
+現行v37の性能やchecksumを示すものではありません。
 
 | 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -460,7 +460,7 @@ Python Match10ケースも通過。公式assetsの再取得hashと296モデルfa
 9人10,000試合が2.46832秒（1,154,300意思決定/秒）で、上表の全決定的fieldを維持しました。
 合法手sampler・実行・終了snapshot検証を含みます。Release/SAN各1,000試合の時間以外の全集計も一致しました。
 勝数・反射/消去の集計は[契約文書のv3記録](docs/official-execution-subset.md#v3の過去の検証と集計)へ記載しています。
-これらのv1〜v8結果は現行v36の236モデルの速度・checksumではありません。
+これらのv1〜v8結果は現行v37の236モデルの速度・checksumではありません。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過しました（各 `-j4` 同時実行）。Python Matchは11ケースです。
 その後、0MPの追加Aura+FREE pairを生成する専用native局面を追加し、Release/SAN各1件も通過しました（0.26/0.57秒）。coreの追加変更はありません。
@@ -1769,3 +1769,89 @@ v36の最終全suiteはRelease **135/135件**（23.82秒）、ASan/UBSan **95/95
 | 9人 | 10,000 | 48,722 / 28,117 / 605 | 928,747 / 162 | `8353509864660691491` | `421095288420525988` | `17742503789800449523` |
 
 shuffle smoke600sceneは2,963decisions/1,719responses/44purchase、55,724copy（empty7、used5,029）、mask保存1,588/解除930を記録した。後続通常行動ではcounter138、死亡時frame75、revival54、redraw167、自動guardian1,000も通過し、world checksum `2901487151624391478` がRelease/SANで一致した。shuffle自体はRNG/GF/tick/autoを変えず、これらはその後の普通の主動作に由来する。manifest/world hashと全snapshot restoreを区別し、公式のshuffle分布・server schedulingの証拠とはしない。
+
+
+## v37：混乱289と外部指定の混乱主動作
+
+`official-execution-subset-v37` はgeneric現象へ289のconfuseEverybodyを加え、9 genericモデルと専用295を合わせて10現象効果を外部入力で扱う。通常配布236モデル/重み499、canonical42自動guardianとtyped Earth/Moon payloadの範囲は変更しない。Snapshot37は旧1〜36を拒否し、公開viewは `official-execution-view-v35`。Match ABI2と既存Commandの幅/opcode/phaseを維持し、同じCommandを受ける外部 `confusion_legal` / `confusion_step` を追加する。207の自動現象抽選や混乱の自動選択分布を実装する更新ではない。旧37profile、official-v2 pins、各版の実測・v10/v16訂正履歴を保存し、学習器を追加しない。
+
+### 現行clientで確定するcountと表示
+
+公式JAは「みんなが三回ずつ勝手に行動する」、ENはlose control for 3 turnsと説明する。実clientのconfuseEverybody受信branchはalive全員のcountへ3を加算し、再付与を3へclampしない。useAttackItemsの末尾は正countだけを1減らし、itemsが空でも同じである。`advanceGF` 受信時は正countなら御乱心の演出を行う。ここにstartTurnというwire actionを仮定しない。死亡表示は本人countを0にし、endGameはalive全員を0にする。
+
+混乱は病気/Fog/Dream/閃光/暗雲のcurse集合とは別の状態で、普通のmild/all cureはcountを解除しない。HP0から208で救済され、実死亡を経なければcountを保持する。公開viewは既存のconfused boolだけを返し、数値countや残り自動選択を公開しない。Fogの既存status pane非表示にも従う。
+
+clientは受信した行動を表示するが、勝手に選ぶcommand・対象・候補の分布、responseや購入確認を誰が選ぶかは示さない。旧FlashのJUPITER/ILLUSIONは見かけの神器を変える別効果で、今回の混乱countや自動行動policyの根拠にしない。
+
+### 選択分布を作らない外部control入口
+
+mainでownerのcountが正の場合だけ、外部 `confusion_step(Command)` を受理する。同じ通常commandのshape・所有token・visible selection・MP等を検査し、受理した起動のbodyより前にcountを1減らす。祈り/捨てる/取引/両替にもuseAttackItems（emptyを含む）と補助eventを対応させて1減らすのは、明示的なローカルscheduleである。responseとpurchase決定は通常のstep/samplerで進み、countを減らさない。
+
+混乱ownerのmainでは通常のlegal/step/samplerを拒否し、その拒否でpolicy RNGも変更せず、playerが自由に選んだ行動を自動選択と呼び替えない。外部driverがcommandを指定する特権入口であり、一様な乱数選択・完全な公式混乱AI・自動連続実行を実装したとは呼ばない。1回の外部指定は1decisionで、既存のbody/反撃/死後work/購入/補充・tick・guardian stageを通常主動作として進める。未来の混乱行動やpolicy RNGを公開しない。
+
+### 外部指定の混乱主動作の最小例
+
+`PYTHONPATH=python python3` で実行できる。289と、その後の祈りを外部で明示する例で、自動選択分布を再現するものではない。genericの対応9モデルと295専用APIは別である。
+
+```python
+from official_state import OfficialState
+from official_match import Match, PhenomenonAction, Command
+
+raw = {"gf": 0, "players": [
+    {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": []},
+    {"id": 7, "hp": 40, "mp": 10, "cp": 20,
+     "items": [{"id": 10, "modelId": 6}]},
+]}
+with OfficialState(raw) as scene, Match() as game:
+    game.load_scene(scene, owner=0, seed=42)
+    game.phenomenon_step(PhenomenonAction(289))
+    command = Command(0, "pray")
+    print(len(game.supported_phenomenon_models), game.legal(command),
+          game.confusion_legal(command))
+    # 9 False True
+    game.confusion_step(command)
+    board = game.observe()["board"]
+    print(game.status.phase, game.status.owner, board["gf"])
+    # main 7 1
+```
+
+### bounded count・回復・再生
+
+Matchのcountは0〜JS safe integer上限の非負整数で、dead sceneのcountは0に限定する。289はaliveへ3ずつ加算するため、1人でも加算が上限を超える場合はworld・RNG・意思決定数・eventを一切変更せず失敗する。289自体はglobalな即時外部効果で、乱数・通常ownerのtick/GF/auto・品消費・操作giftを起こさない。
+
+混乱主動作のjournalは減算前のanchorと専用起動flagを保持し、減算・通常main・全response/purchaseを同executorからreplayして全snapshotを比較する。死亡で0、自然終局ではaliveを0へ更新するが、decision cutoffではendGameを仮定せず残countを保持する。通常cure、revival、外部guardian/payload/shuffle/globalの処理はcountを勝手に回復せず、それらに伴う実死亡/自然終局だけを既存の共通境界で扱う。
+
+現在の範囲は混乱の付与と外部指定commandを進める基盤までである。自動選択分布、207のselector、Earth/Moon一般selector、公式Dream全分布・実体不適合入力、悪魔・終末は残件として維持する。既存の公式client表示とこのローカルcontrol契約を、権威的serverの全面再現へ読み替えない。
+
+v37の公開exact規約はheaderと同じ次の2文字列である。過去版の文字列はその版の履歴として保持する。
+
+`confusion_rule`:
+
+```text
+experimental:external-resolved-command-only-no-auto-selector;289-add3-to-every-alive-count-no-clamp;nonnegative-safe-wire-counts-dead-zero;main-positive-owner-only-dedicated-confusion-api;ordinary-main-and-sampler-reject-without-policy-rng-change;usual-visible-composition-mp-items-target-and-allocation-validation;one-count-debit-at-launch-before-body-and-cutoff;all-main-kinds-mapped-to-useAttackItems-including-empty-pray-and-auxiliary-discard-trade-exchange;pre-debit-anchor-and-private-confusion-marker-whole-pending-replay;responses-and-purchase-no-debit-and-use-normal-api;no-extra-selector-rng-or-operation-fee;ordinary-body-gifts-owner-tick-gf-auto-and-next-owner;revival-preserves-count-death-clears-natural-end-clears-alive-cutoff-preserves;curse-cures-and-unrelated-external-effects-preserve-count;public-confused-bool-only-with-existing-fog-dead-and-end-filter;server-command-generation-and-selection-distribution-unverified
+```
+
+`phenomenon_rule`:
+
+```text
+experimental:external-source-free-phenomena287-288-289-290-291-292-293-294-296;main-boundary-one-injection-decision;global5-unchanged-from-v34-plus289-alive-count-plus3-immediate-atomic-no-rng;targeted291-light50-292-dark30-at75-percent-293-hpplus50-cap99;explicit-single-alive-recipient291-to294;no-target-selector-wide-or-fog-reselection;targeted3-always-response-after-single-target-chance-and-darkcloud;environmental-frame-origin-source-absent-not-player0;190-consume-and-reserve-response-gift-then-cancel-without-return-recipient;source-directed-counters-not-created-without-source;187-self-mp-counter-and112-death-use-real-player-sources;ordinary-defense-filter-revival-death-redraw-and-deferred-gifts;targeted3-original-action-anchor-and-full-response-replay;no-owner-tick-gf-auto-source-items-mp-fee-or-operation-gift;resume-owner-or-next-alive-with-natural-before-cutoff;287-direct-fever-replacement-no-upgrade-or-heavenfall;288-idempotent-fog;290-direct-hp1-not-damage;294-sum-alive-cp-then-zero-all-before-recipient-cap99;296-exact-alive-count-explicit-guardian1-to10;guardian-changes-event-time-fog-filtered;public-model-recipient-only-no-assignment-array-or-cp-total;207-selector-unsupported;289-counts-require-dedicated-confusion-command-api;295-requires-dedicated-item-shuffle-api
+```
+
+### v37の検証
+
+[confusion一次oracle](scripts/official_confusion_oracle.cjs) / [保存report](data/official-v2/confusion-client-v37.json) は158ケース、137,800bytes、SHA256 `335a67ee5978deeda63fdde663274e5b22078c261e46c335581fa322056c83b5` を記録し、rootの `--check` はbyte一致した。内訳はdecoder/fresh投影22・setter6・global48・safe-number境界5・attack use36・補助event12・cure6・advanceGF9・死亡4・終局4・command活性化6。実decoder、global/useAttackItems/補助/removeCurses/advanceGF/endGameの受信branch、player投影・setter・死亡処理・command活性化を、DOM/widget・同期Future等のshellを使って照合する。アプリ起動・ネットワーク・server自動選択は実行しない。
+
+primaryではpray/discard/sacrifice/useDefenseItemsのevent単独には減算が無く、減算はuseAttackItems末尾にある。したがって実行器で祈り/捨てる/取引/両替を一律1減算へ対応づける部分は、完全なserver event列から導いた事実ではない。正countでも実clientの `fv.fF` は本人のhand/target/command controlsを活性化するが、これもserverが手動入力を受理する証拠ではない。専用外部APIと通常main拒否は明示的な実験制限である。raw JSのunsafeな加算表示を示す境界ケースと、Matchのsafe integerを超えた加算のatomic拒否も区別する。
+
+新[confusion専用bench](src/official_confusion_bench.cpp) は289を1回または2回適用し、初期alive数×3回までのmain起動と、その全response/purchase決定を進める。countを0にした特権cloneで既存samplerからcommandを提案するのはテストcontrollerだけの方策で、live matchを変更せず、公式の混乱selectorとは呼ばない。通常main API拒否・policy RNG不変、専用APIの適法性、減算前anchor/flag、他者count保存と死亡/自然終局のclearを各stepの全snapshot restoreと合わせて検査する。world/countと選択した累計のhashを全field hashと呼ばず、私的journalまで含む一致はrestore比較で確認する。最終実行結果は次の確定欄へ記録する。
+
+v37の最終全suiteはRelease **136/136件**（20.73秒）、ASan/UBSan **96/96件**（50.70秒）が通過した。native151群は全てmainへ各1回登録し、Release/SAN単体も通過した。Python105件、C API/Python focused2件、固定query384件、旧173/298ケースと実clientの2,360回のlegality照会も維持した。新7群はglobal加算・safe境界、専用API/通常sampler拒否の原子性、全主動作の1減算とcure、反射応答とproof改竄、売買/購入確認、死亡/復活/自然終局/cutoff、2/9人×20seedの外部controllerによる再生を検査する。READMEのPython例も実行して `9 False True` と `main 7 1` を確認した。suite時間をエンジン性能比較に使わない。
+
+通常/canonical/payload/global phenomenon/targeted phenomenon/shuffle/confusionの各2人数、計14組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで実行し、worker数・時間・速度以外の全fieldが一致した。既存の通常/canonical/payloadはv36のgameplay field・checksumを維持した。global/targeted現象とshuffleはSnapshot.version37をhashへ含むためchecksumが変わるが、その他のgameplay fieldはv36と同値だった。Release/SANの通常1,000局×2人数・canonical420・payload456・global500・targeted600・shuffle600・confusion600の計8組も非時間fieldが一致した。
+
+| 明示混乱controller・seed42 | scenes | 混乱main / 通常main | decisions / responses / purchase | natural / cutoff | primitive checksum | 後続world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2人 | 100,000 | 594,773 / 0 | 1,185,985 / 432,355 / 8,857 | 2,784 / 0 | `18137689041152655999` | `13524298264185358902` |
+| 9人 | 10,000 | 189,284 / 34 | 639,946 / 427,284 / 8,344 | 0 / 9,979 | `10157322869025728524` | `17185602672145400864` |
+
+confusion smoke600sceneは289を900回、main11,347回（混乱11,346/通常1）、全38,399decisions、25,671responses/481purchaseを実行した。付与24,138point・最大count8、減算前anchor10,353回、counter1,786予約/1,735開始、death588予約/400開始、revival494、redraw2,138、自動guardian15,940を含み、world checksum `16730214666434115189` がRelease/SANで一致した。count8には初期の既存countと再付与を含む。ベンチは各scene最大64decisionsまたは初期alive数×3mainまでの有限実行で、9人smokeの599cutoffや大規模9人の9,979cutoffはその設定による。全sceneの自然決着や公式の混乱分布を検証した数字ではない。selector用RNGをengineへ追加せず、cloneによるcommand提案はテスト方策として区別する。

@@ -236,6 +236,22 @@ int gfo_match_step(gfo_match* match, const gfo_match_command* input, gfo_match_s
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
 }
+int gfo_match_confusion_legal(const gfo_match* match, const gfo_match_command* input, uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = command(*input);
+        const uint8_t result = match->value.confusion_legal(parsed);
+        *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_confusion_step(gfo_match* match, const gfo_match_command* input, gfo_match_status* out) {
+    if (!match || !input || !out) return -1;
+    try {
+        const auto parsed = command(*input); auto next = match->value;
+        next.confusion_step(parsed); const auto result = status(next);
+        match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
 int gfo_match_guardian_legal(const gfo_match* match, const gfo_match_guardian_action* input, uint8_t* out) {
     if (!match || !input || !out) return -1;
     try {
