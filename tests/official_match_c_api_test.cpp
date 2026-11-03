@@ -43,7 +43,7 @@ int main() {
         && offsetof(gfo_match_phenomenon_action, reserved) == 21, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v34"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v35"
         && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -277,7 +277,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v32\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v33\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2114,8 +2114,9 @@ int main() {
     gfo_match_destroy(payload_match);
     unsigned phenomenon_count=0;
     for(uint16_t model=0;model<=296;++model)phenomenon_count+=gfo_match_phenomenon_supported(model);
-    check(phenomenon_count==5&&gfo_match_phenomenon_supported(287)&&gfo_match_phenomenon_supported(288)
-        &&gfo_match_phenomenon_supported(290)&&gfo_match_phenomenon_supported(294)&&gfo_match_phenomenon_supported(296)
+    check(phenomenon_count==8&&gfo_match_phenomenon_supported(287)&&gfo_match_phenomenon_supported(288)
+        &&gfo_match_phenomenon_supported(290)&&gfo_match_phenomenon_supported(291)
+        &&gfo_match_phenomenon_supported(292)&&gfo_match_phenomenon_supported(293)&&gfo_match_phenomenon_supported(294)&&gfo_match_phenomenon_supported(296)
         &&!gfo_match_supported(207)&&gfo_match_catalog_count()==236,"phenomena are a separate capability and do not alter weighted gifts");
     gfo_match* pulse_match=nullptr;
     check(gfo_match_create(&cfg,players.data(),2,0,&pulse_match)==0,"phenomenon bridge create");
@@ -2172,6 +2173,62 @@ int main() {
         &&gfo_match_phenomenon_step(pulse_match,&pulse,&result)==-2&&equal(result,late_pulse_status)
         &&observe(pulse_match,0,0)==late_pulse_view,"late update exhaustion rolls back all guardian changes and public events");
     gfo_match_destroy(pulse_match);
+    // Targeted weather has no player source. PlayerID0 remains a real player
+    // for ordinary and derived frames, never a sentinel for that absence.
+    cfg.initial_hand=0;cfg.max_decisions=64;
+    gfo_match* weather_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&weather_match)==0,"targeted phenomenon bridge create");
+    const auto load_weather_scene=[&](int target_hp,uint64_t update){
+        std::array<gfo_state_player,3> people{};
+        people[0].id=0;people[1].id=7;people[2].id=23;
+        for(auto& person:people){person.hp=99;person.mp=10;person.cp=20;}
+        people[1].hp=target_hp;people[1].mp=0;people[1].item_count=3;people[2].item_offset=3;
+        std::array<gfo_state_item,3> items{};
+        items[0].token=10;items[0].model=189;items[1].token=11;items[1].model=187;items[2].token=12;items[2].model=190;
+        gfo_state_meta meta{};meta.gf=8;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),people.size(),items.data(),items.size(),nullptr,0,&scene)==0,"typed source-free targeted scene");
+        check(gfo_match_load_scene(weather_match,scene,0,0,&result)==0,"load targeted scene");gfo_state_destroy(scene);
+    };
+    load_weather_scene(99,0);
+    gfo_match_phenomenon_action weather{};weather.model=291;weather.recipient=7;weather.has_recipient=1;
+    const auto weather_before=observe(weather_match,0,0);
+    check(gfo_match_phenomenon_legal(weather_match,&weather,&legal)==0&&legal&&observe(weather_match,0,0)==weather_before
+        &&gfo_match_phenomenon_step(weather_match,&weather,&result)==0&&result.actor==7&&result.owner==0&&result.phase==1,
+        "targeted environmental launch is a pure-query then one external decision");
+    const auto active_weather=observe(weather_match,0,0);
+    check(active_weather.find("\"origin\":null,\"source\":null,\"target\":7")!=std::string::npos
+        &&active_weather.find("\"environmental\":true")!=std::string::npos
+        &&active_weather.find("\"category\":\"phenomena\"")!=std::string::npos
+        &&active_weather.find("\"power\":50")!=std::string::npos,"null source/origin are distinct from the unrelated live player0");
+    gfo_match_command weather_defense{};weather_defense.actor=7;weather_defense.kind=1;weather_defense.item_count=2;
+    weather_defense.items[0]=10;weather_defense.items[1]=11;
+    check(gfo_match_step(weather_match,&weather_defense,&result)==0&&result.actor==7&&result.phase==1
+        &&observe(weather_match,0,0).find("\"origin\":7,\"source\":7,\"target\":7")!=std::string::npos
+        &&observe(weather_match,0,0).find("\"environmental\":false")!=std::string::npos
+        &&observe(weather_match,0,0).find("\"models\":[187]")!=std::string::npos
+        &&observe(weather_match,0,0).find("\"amount\":100")!=std::string::npos,
+        "MP self-counter is generated with a real source and does not inherit environmental absence");
+    weather_defense.item_count=0;weather_defense.items[0]=weather_defense.items[1]=0;
+    check(gfo_match_step(weather_match,&weather_defense,&result)==0&&result.owner==0&&result.actor==0&&result.phase==0
+        &&observe(weather_match,0,0).find("\"hp\":49,\"mp\":99")!=std::string::npos
+        &&observe(weather_match,1,0).find("\"hand\":[]")!=std::string::npos
+        &&observe(weather_match,0,0).find("\"gf\":8")!=std::string::npos,
+        "ordinary responses get their gifts but environmental action has no source operation gift or GF advance");
+    load_weather_scene(40,0);weather.model=293;
+    auto wrong_weather_actor=owner_pray;wrong_weather_actor.actor=999;
+    check(gfo_match_step(weather_match,&wrong_weather_actor,&result)==-2,"wrong ordinary actor does not mutate the source-free scene");
+    check(gfo_match_phenomenon_step(weather_match,&weather,&result)==0&&result.phase==1,"recovery50 waits for the selected recipient response");
+    weather_defense.item_count=1;weather_defense.items[0]=12;
+    check(gfo_match_step(weather_match,&weather_defense,&result)==0&&result.phase==0&&result.actor==0
+        &&observe(weather_match,0,0).find("\"hp\":40,\"mp\":0")!=std::string::npos
+        &&!has_token(weather_match,7,12)&&hand_size(weather_match,7)==3,
+        "mirror consumes and gets its gift while cancelling source-free recovery without inventing player0 as source");
+    load_weather_scene(40,official::max_wire_integer);weather.model=292;
+    const auto weather_late_view=observe(weather_match,0,0);const auto weather_late_status=status(weather_match);result=weather_late_status;
+    check(gfo_match_phenomenon_legal(weather_match,&weather,&legal)==0&&legal
+        &&gfo_match_phenomenon_step(weather_match,&weather,&result)==-2&&equal(result,weather_late_status)
+        &&observe(weather_match,0,0)==weather_late_view,"late update failure rolls back the percentage launch draw and pending environmental frame");
+    gfo_match_destroy(weather_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

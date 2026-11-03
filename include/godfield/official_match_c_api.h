@@ -94,8 +94,8 @@ int gfo_match_guardian_step(gfo_match* match, const gfo_match_guardian_action* a
 // guardian is Earth9 or Moon10. No source items, ordinary MP fee or retention.
 int gfo_match_guardian_payload_legal(const gfo_match* match, const gfo_match_guardian_payload_action* action, uint8_t* out);
 int gfo_match_guardian_payload_step(gfo_match* match, const gfo_match_guardian_payload_action* action, gfo_match_status* out);
-// Externally supplied resolved global pulse, not a random phenomenon selector.
-// Only294 accepts a recipient; only296 accepts guardian assignments (1..10),
+// Externally supplied phenomenon, not a random selector.291..293 await responses.
+// 291..294 require an alive recipient; only296 accepts guardian assignments (1..10),
 // exactly one per alive player in input order. Unused fields/tails must be0.
 int gfo_match_phenomenon_legal(const gfo_match* match, const gfo_match_phenomenon_action* action, uint8_t* out);
 int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_action* action, gfo_match_status* out);

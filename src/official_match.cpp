@@ -335,11 +335,13 @@ EffectFrame payload_effect_for(const MatchSnapshot& s, const GuardianPayloadActi
                               std::int64_t launch_mp, int random_hp_delta) {
     return effect_for(s,action.models,target,{},launch_mp,random_hp_delta,action.source,action.guardian,false);
 }
-void phenomenon_shape(const MatchSnapshot& s, const PhenomenonAction& action) {
+bool targeted_phenomenon(CardId model) { return model>=291 && model<=293; }
+void phenomenon_shape(const MatchSnapshot& s, const PhenomenonAction& action, bool historical=false) {
     if (!match_phenomenon_supported(action.model)) unsupported("unsupported global phenomenon primitive");
-    if (action.model==294) {
-        require(action.recipient.has_value(),"collection requires an explicit recipient");
-        require(!s.state.players[index(s,*action.recipient)].dead,"collection recipient is dead");
+    if (action.model==294 || targeted_phenomenon(action.model)) {
+        require(action.recipient.has_value(),"phenomenon requires an explicit recipient");
+        const auto& recipient=s.state.players[index(s,*action.recipient)];
+        require((historical && targeted_phenomenon(action.model)) || !recipient.dead,"phenomenon recipient is dead");
     } else require(!action.recipient,"this phenomenon takes no recipient");
     if (action.model==296) {
         const auto count=std::count_if(s.state.players.begin(),s.state.players.end(),[](const auto& p){return !p.dead;});
@@ -373,13 +375,21 @@ EffectFrame guardian_effect_for(const GuardianAction& action, PlayerId target, s
     return effect;
 }
 
+EffectFrame phenomenon_effect_for(const PhenomenonAction& action, std::uint64_t rng) {
+    const auto& card=*find_card(action.model); EffectFrame effect;
+    effect.target=effect.initial_target=*action.recipient; effect.models={action.model};
+    effect.category=Category::phenomena; effect.element=card.element; effect.power=card.atk;
+    effect.ability=card.ability; effect.amount=card.ability_value; effect.hit_rate=card.hit_rate;
+    effect.redirect_rng=rng; effect.environmental=true;
+    return effect;
+}
 PlayerId sample_bounce_target(const MatchSnapshot& s, std::uint64_t& rng) {
     std::array<PlayerId, player_capacity> alive;
     std::size_t count = 0;
     for (const auto& player : s.state.players) if (!player.dead) alive[count++] = player.id;
     return alive[bounded(rng, count)];
 }
-struct ResponseResult { std::int64_t defense = 0; Reaction reaction = Reaction::none; };
+struct ResponseResult { std::int64_t defense = 0; Reaction reaction = Reaction::none; bool environmental_cancel = false; };
 // Composition is validated separately by the public-client append predicate.
 // A filter belongs to the incoming payload; a reflector never contributes ATK/DEF.
 ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> models) {
@@ -389,7 +399,8 @@ ResponseResult apply_response(EffectFrame& effect, std::span<const CardId> model
         if (c.ability == Ability::filter_atk_element) effect.element.reset();
         const auto reaction = reaction_for(id, effect.category, effect.element);
         if (reaction == Reaction::reflect) {
-            std::swap(effect.source, effect.target);
+            if (effect.environmental) result.environmental_cancel=true;
+            else std::swap(effect.source, effect.target);
             result.reaction = reaction;
         } else if (reaction == Reaction::bounce) {
             effect.source = effect.target; // Next target is sampled by the caller.
@@ -606,7 +617,7 @@ bool next_action_effect(MatchSnapshot& s);
 bool next_automatic_guardian(MatchSnapshot& s);
 void advance(MatchSnapshot& s) {
     auto& owner = s.state.players[index(s, s.owner)];
-    const auto external = s.batch->guardian_action.has_value() || s.batch->guardian_payload_action.has_value();
+    const auto external = s.batch->guardian_action.has_value() || s.batch->guardian_payload_action.has_value() || s.batch->phenomenon_action.has_value();
     const auto current = std::find_if(owner.curses.begin(), owner.curses.end(), disease);
     if (!s.batch->tick_processed && !owner.dead && current != owner.curses.end()) {
         DiseaseTick tick; tick.owner = owner.id; tick.before = *current; tick.hp_before = static_cast<int>(owner.hp);
@@ -653,8 +664,10 @@ void advance(MatchSnapshot& s) {
 }
 bool next_action_effect(MatchSnapshot& s) {
     auto& batch = *s.batch;
-    const auto origin = batch.guardian_action ? batch.guardian_action->source : batch.guardian_payload_action ? batch.guardian_payload_action->source : batch.owner;
-    if (s.state.players[index(s, origin)].dead) batch.cursor = batch.targets.size();
+    if (!batch.phenomenon_action) {
+        const auto origin = batch.guardian_action ? batch.guardian_action->source : batch.guardian_payload_action ? batch.guardian_payload_action->source : batch.owner;
+        if (s.state.players[index(s,origin)].dead) batch.cursor=batch.targets.size();
+    }
     while (!s.deaths.empty()) {
         auto effect = std::move(s.deaths.front()); s.deaths.erase(s.deaths.begin());
         if (s.state.players[index(s, effect.target)].dead) continue;
@@ -698,7 +711,8 @@ bool next_action_effect(MatchSnapshot& s) {
         }
         // Original payloads use the launch anchor, never a source's later MP
         // or a previous hit's redirected/filtered frame.
-        if (batch.guardian_action) s.queue.push_back(guardian_effect_for(*batch.guardian_action, target, s.rng));
+        if (batch.phenomenon_action) s.queue.push_back(phenomenon_effect_for(*batch.phenomenon_action,s.rng));
+        else if (batch.guardian_action) s.queue.push_back(guardian_effect_for(*batch.guardian_action, target, s.rng));
         else if (batch.guardian_payload_action) s.queue.push_back(payload_effect_for(s,*batch.guardian_payload_action,target,batch.guardian_payload_mp,batch.random_hp_delta));
         else s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items,
                                         find_player(batch.initial_state, batch.owner)->mp, batch.random_hp_delta, batch.owner));
@@ -764,8 +778,12 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
         if (card.ability != Ability::counter_atk && card.ability != Ability::counter2x_atk
             && card.ability != Ability::counter_boost2x_mp && card.ability != Ability::counter_take_cp
             && card.ability != Ability::counter_curse) continue;
+        // The UI still permits these armor selections. Without an incoming
+        // player source only the MP counter has a defined (self) recipient.
+        if (incoming.environmental && card.ability!=Ability::counter_boost2x_mp) continue;
         EffectFrame effect;
-        effect.origin = response.actor; effect.source = response.actor; effect.target = incoming.source;
+        effect.origin = response.actor; effect.source = response.actor;
+        effect.target = card.ability==Ability::counter_boost2x_mp ? response.actor : incoming.source;
         effect.models = {card.id}; effect.tokens = {response.items[i]}; effect.category = Category::armor;
         effect.element = card.element;
         if (card.ability == Ability::counter_atk || card.ability == Ability::counter2x_atk)
@@ -855,6 +873,12 @@ void execute_guardian_payload(MatchSnapshot& s, const GuardianPayloadAction& act
 }
 void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
     prepare_phenomenon(s,action); clear_events(s);
+    if (targeted_phenomenon(action.model)) {
+        auto batch=action_anchor(s); batch.phenomenon_action=action; batch.models={action.model};
+        batch.tick_processed=true; batch.chance=find_card(action.model)->hit_rate>0; batch.targets={*action.recipient};
+        s.batch=std::move(batch); s.last_phenomenon=action; ++s.phenomenon_actions;
+        const auto completed=!next_action_effect(s); complete_decision(s,completed); return;
+    }
     s.last_phenomenon=action; ++s.phenomenon_actions;
     std::int64_t collected=0;
     if (action.model==294) for (const auto& player:s.state.players) if (!player.dead) collected+=player.cp;
@@ -902,7 +926,9 @@ void execute(MatchSnapshot& s, const Command& command) {
                 if (card.ability == Ability::self_curse_and_redraw) redraw(s, seat);
             }
         }
-        if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
+        if (response.environmental_cancel) {
+            s.queue.clear(); completed=true;
+        } else if (response.reaction == Reaction::reflect || response.reaction == Reaction::bounce) {
             if (response.reaction == Reaction::bounce) effect.target = sample_bounce_target(s, s.rng);
             effect.redirects.push_back({command.actor, models, command.items, effect.target});
             if (s.state.players[index(s, effect.target)].dead) { s.queue.clear(); completed = true; }
@@ -1022,27 +1048,31 @@ void validate_snapshot(const MatchSnapshot& s) {
         else require(event.after!=Guardian::none && s.last_phenomenon && s.last_phenomenon->model==296,"invalid phenomenon guardian change");
     }
     if (s.last_phenomenon) {
-        const auto& action=*s.last_phenomenon; phenomenon_shape(s,action);
-        require(s.phenomenon_actions>0 && s.decisions>0 && !s.terminated
-            && (s.phase==MatchPhase::main || s.truncated) && !s.batch
-            && !s.last_guardian && !s.last_guardian_payload && s.last_auto_guardians.empty()
-            && !s.last_tick && !s.last_fog && s.last_reveals.empty() && s.last_redraws.empty()
-            && !s.last_sale && !s.last_purchase && !s.last_danger && !s.last_removal,"invalid completed phenomenon boundary");
-        std::size_t assigned=0;
-        for (const auto& player:s.state.players) if (!player.dead) {
-            if (action.model==287) require(has_curse(player,Curse::fever),"Fever replacement postcondition missing");
-            if (action.model==288) require(has_curse(player,Curse::fog),"global Fog postcondition missing");
-            if (action.model==290) require(player.hp==1,"global HP setter postcondition missing");
-            if (action.model==294 && player.id!=*action.recipient) require(player.cp==0,"collection debit postcondition missing");
-            if (action.model==296) {
-                require(assigned<s.last_guardian_changes.size(),"missing global guardian change");
-                const auto& event=s.last_guardian_changes[assigned];
-                require(event.player==player.id && event.after==action.guardians[assigned] && player.guardian==event.after
-                    && event.reason==GuardianChangeReason::phenomenon && event.hidden_viewers==guardian_hidden_viewers(s,player),"global guardian assignment postcondition mismatch");
-                ++assigned;
+        const auto& action=*s.last_phenomenon; phenomenon_shape(s,action,targeted_phenomenon(action.model));
+        require(s.phenomenon_actions>0 && s.decisions>0 && !s.last_guardian && !s.last_guardian_payload
+            && s.last_auto_guardians.empty() && !s.last_tick && !s.last_fog,"invalid phenomenon announcement");
+        if (!targeted_phenomenon(action.model)) {
+            require(!s.terminated
+                && (s.phase==MatchPhase::main || s.truncated) && !s.batch
+                && !s.last_guardian && !s.last_guardian_payload && s.last_auto_guardians.empty()
+                && !s.last_tick && !s.last_fog && s.last_reveals.empty() && s.last_redraws.empty()
+                && !s.last_sale && !s.last_purchase && !s.last_danger && !s.last_removal,"invalid completed phenomenon boundary");
+            std::size_t assigned=0;
+            for (const auto& player:s.state.players) if (!player.dead) {
+                if (action.model==287) require(has_curse(player,Curse::fever),"Fever replacement postcondition missing");
+                if (action.model==288) require(has_curse(player,Curse::fog),"global Fog postcondition missing");
+                if (action.model==290) require(player.hp==1,"global HP setter postcondition missing");
+                if (action.model==294 && player.id!=*action.recipient) require(player.cp==0,"collection debit postcondition missing");
+                if (action.model==296) {
+                    require(assigned<s.last_guardian_changes.size(),"missing global guardian change");
+                    const auto& event=s.last_guardian_changes[assigned];
+                    require(event.player==player.id && event.after==action.guardians[assigned] && player.guardian==event.after
+                        && event.reason==GuardianChangeReason::phenomenon && event.hidden_viewers==guardian_hidden_viewers(s,player),"global guardian assignment postcondition mismatch");
+                    ++assigned;
+                }
             }
+            require(s.last_guardian_changes.size()==assigned,"unexpected guardian changes for global primitive");
         }
-        require(s.last_guardian_changes.size()==assigned,"unexpected guardian changes for global primitive");
     }
     if (!s.last_auto_guardians.empty()) require(s.last_guardian && *s.last_guardian==s.last_auto_guardians.back(),"latest automatic guardian mismatch");
     if (s.last_guardian) {
@@ -1185,13 +1215,16 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& batch = *s.batch;
         require(batch.owner == s.owner && batch.initial_state.players.size() == n
             && !(batch.guardian_action && batch.guardian_payload_action)
-            && (batch.guardian_action ? (batch.models == std::vector<CardId>{batch.guardian_action->model} && batch.attack == Command{})
+            && !(batch.phenomenon_action && (batch.guardian_action || batch.guardian_payload_action))
+            && (batch.phenomenon_action ? (targeted_phenomenon(batch.phenomenon_action->model)
+                && batch.models==std::vector<CardId>{batch.phenomenon_action->model} && batch.attack==Command{})
+                : batch.guardian_action ? (batch.models == std::vector<CardId>{batch.guardian_action->model} && batch.attack == Command{})
                 : batch.guardian_payload_action ? (batch.models==batch.guardian_payload_action->models && batch.models.size()<=visible_hand_capacity && batch.attack==Command{})
                 : (batch.models.size() <= s.config.hand_limit && batch.attack.items.size() == batch.models.size()))
             && batch.targets.size() <= 2 * (n - 1) && batch.cursor <= batch.targets.size(), "invalid action batch shape");
         require(batch.guardian_cursor<=n && (batch.guardian_stage_started || !batch.guardian_cursor)
             && (!batch.guardian_stage_started || (batch.tick_processed && batch.cursor==batch.targets.size()))
-            && (!(batch.guardian_action || batch.guardian_payload_action) || (!batch.guardian_stage_started && !batch.guardian_cursor))
+            && (!(batch.guardian_action || batch.guardian_payload_action || batch.phenomenon_action) || (!batch.guardian_stage_started && !batch.guardian_cursor))
             && batch.guardian_payload_mp>=0 && batch.guardian_payload_mp<=99
             && (batch.guardian_payload_action || batch.guardian_payload_mp==0),"invalid guardian stage");
         require(batch.decisions < s.decisions, "invalid action decision anchor");
@@ -1224,7 +1257,8 @@ void validate_snapshot(const MatchSnapshot& s) {
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
         require(batch.attack.kind != CommandKind::defend && batch.attack.kind != CommandKind::accept
             && batch.attack.kind != CommandKind::decline, "action journal has no valid main command");
-        if (batch.guardian_payload_action) execute_guardian_payload(replay,*batch.guardian_payload_action);
+        if (batch.phenomenon_action) execute_phenomenon(replay,*batch.phenomenon_action);
+        else if (batch.guardian_payload_action) execute_guardian_payload(replay,*batch.guardian_payload_action);
         else if (batch.guardian_action) execute_guardian(replay,*batch.guardian_action);
         else execute(replay, batch.attack);
         for (const auto& response : batch.responses) {
@@ -1258,7 +1292,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
-bool match_phenomenon_supported(CardId id) noexcept { return id==287 || id==288 || id==290 || id==294 || id==296; }
+bool match_phenomenon_supported(CardId id) noexcept { return id==287 || id==288 || (id>=290 && id<=294) || id==296; }
 bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept {
     const auto* card=find_card(id);
     return card && match_supported(id) && payload_domain(guardian,*card) && can_start_main(id)
@@ -1469,7 +1503,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v32\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v33\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1615,7 +1649,9 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     if (data_.queue.empty()) out += "null";
     else {
         const auto& e = data_.queue.front();
-        out += "{\"origin\":" + std::to_string(e.origin) + ",\"source\":" + std::to_string(e.source) + ",\"target\":" + std::to_string(e.target) + ",\"models\":[";
+        out += "{\"origin\":"; out+=e.environmental?"null":std::to_string(e.origin);
+        out += ",\"source\":"; out+=e.environmental?"null":std::to_string(e.source);
+        out += ",\"target\":" + std::to_string(e.target) + ",\"models\":[";
         bool first = true; for (auto id : e.models) { if (!first) out += ','; first = false; out += std::to_string(id); }
         out += "],\"category\":\""; out += category_name(e.category); out += "\",\"element\":";
         if (e.element) { out += '"'; out += element_name(*e.element); out += '"'; } else out += "null";
@@ -1630,6 +1666,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += ",\"bounces\":" + std::to_string(bounces);
         out += ",\"hit_rate\":" + std::to_string(e.hit_rate);
         out += ",\"counter\":"; out += e.is_counter ? "true" : "false";
+        out += ",\"environmental\":"; out += e.environmental ? "true" : "false";
         // The flag belongs to activation, before any reflection. Redirection
         // to a visible pane must not reveal the original hidden recipient.
         out += ",\"death\":"; out += e.is_death ? "true" : "false";

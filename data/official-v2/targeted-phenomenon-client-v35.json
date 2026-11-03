@@ -1,0 +1,6168 @@
+{
+  "schema_version": 1,
+  "scope": "public-client-targeted-phenomenon-frame-and-numeric-projection;not-authoritative-source-free-return-or-selection",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "models": [
+    {
+      "id": 291,
+      "imageName": "gigantic-tub",
+      "category": "phenomena",
+      "element": "light",
+      "atk": 50,
+      "ability": "attackSomebody",
+      "name": "巨大なタライ"
+    },
+    {
+      "id": 292,
+      "imageName": "black-hole",
+      "category": "phenomena",
+      "element": "darkness",
+      "atk": 30,
+      "hitRate": 75,
+      "name": "ブラックホール"
+    },
+    {
+      "id": 293,
+      "imageName": "warm-current",
+      "category": "phenomena",
+      "guardian": "neptune",
+      "ability": "boostHP",
+      "abilityValue": 50,
+      "name": "暖流"
+    }
+  ],
+  "helper_sha256": {
+    "next_attack_source_lookup": "5c3a39b11e367d828e0e79f57caf6eac29ca566f245de2dc9103e584ecb7e855",
+    "attack_decoder": "c2eda61004ba97cdf0e6c15243a1405c702f8a7d31620f2a57b19ef063db35cd",
+    "frame": "48e78d1eab61ea3d655c0e4b916ae199648863bf1fa774060bb818c65370f38f",
+    "summary": "92e1e2e302ad75631563235771ddcb8921dd636d4e29b83e11b2d61463828650",
+    "damage": "8081f1184b5a34b6b316484ecfcc55418e4249899cf4669c322c4ed5b6a043ea",
+    "dark_damage": "3e15c0b2a4d799da1f7cfc9d16438dc2f7823199067ca4b4ce21a11cc59b6935",
+    "boost_hp": "e6e5d657dfcddf871dc77f62463791cd3913acbbaf34eb9552eca8a81ba6765e",
+    "reflect": "81b8edfd4fbc51c32851e2087eddb2e370f00c8afa01d45b592e702df3a93e36",
+    "current_target": "a9e2efedc7ebf44e107d0357f542abf1f4a5ca1e98b6e111cb5a5ec494a40a11"
+  },
+  "methods": [
+    "A.p6/A.to decoders",
+    "fs.fu actual frame projection with visual/widget shells",
+    "dA.gf2/iI and tz/lc/ld actual summary/arithmetic",
+    "jO.eu/aN.e0 unchanged response append/reaction predicates",
+    "ks.k complete boostHP/dealDamage/dealDarkDamage/reflect receive branches with synchronous Future/animation shells",
+    "fv.gan/bv/aT current-pane helpers and c5.eV unchanged HP arithmetic"
+  ],
+  "counts": {
+    "frame_cases": 18,
+    "boost_hp_cases": 29,
+    "damage_event_cases": 32,
+    "dark_event_cases": 8,
+    "numeric_event_cases": 69,
+    "reflection_cases": 6,
+    "decoder_cases": 8
+  },
+  "frames": [
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 291,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          291
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 50,
+        "element": "light",
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": [
+          50,
+          0
+        ],
+        "widget_overrides": [
+          [
+            291,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 292,
+      "metadata_guardian_family": null,
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          292
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": true,
+        "power": 30,
+        "element": "darkness",
+        "hit_rate": 75,
+        "composition_mp_cost": 0,
+        "summary": [
+          30,
+          75
+        ],
+        "widget_overrides": [
+          [
+            292,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          11,
+          17,
+          20,
+          24,
+          37,
+          49,
+          77,
+          108,
+          113,
+          114,
+          115,
+          116,
+          117,
+          118,
+          119,
+          120,
+          121,
+          122,
+          123,
+          124,
+          125,
+          126,
+          127,
+          128,
+          129,
+          130,
+          131,
+          132,
+          133,
+          134,
+          135,
+          136,
+          137,
+          138,
+          139,
+          140,
+          141,
+          142,
+          143,
+          144,
+          145,
+          146,
+          147,
+          148,
+          149,
+          150,
+          151,
+          152,
+          153,
+          154,
+          155,
+          156,
+          157,
+          158,
+          159,
+          160,
+          161,
+          162,
+          163,
+          164,
+          165,
+          166,
+          167,
+          168,
+          169,
+          170,
+          171,
+          172,
+          173,
+          174,
+          175,
+          176,
+          177,
+          178,
+          179,
+          180,
+          181,
+          182,
+          183,
+          184,
+          185,
+          186,
+          187,
+          188,
+          189,
+          190
+        ],
+        "filter_prefix_is_legal": true,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": null,
+      "environmental_annotation": true,
+      "annotation_origin": null,
+      "annotation_source": null,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          null
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 0,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 0,
+      "decoded_target_id": 42,
+      "supplied_source_object": 0,
+      "environmental_annotation": false,
+      "annotation_origin": 0,
+      "annotation_source": 0,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          0
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": false,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [
+          190
+        ],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    },
+    {
+      "model": 293,
+      "metadata_guardian_family": "neptune",
+      "raw_attack": {
+        "playerId": 17,
+        "itemModelIds": [
+          293
+        ],
+        "targetPlayerId": 42
+      },
+      "decoded_player_id": 17,
+      "decoded_target_id": 42,
+      "supplied_source_object": 17,
+      "environmental_annotation": false,
+      "annotation_origin": 17,
+      "annotation_source": 17,
+      "flash_context": true,
+      "projection": {
+        "source_inputs": [
+          17
+        ],
+        "guardian_art": [
+          null
+        ],
+        "raw_category": "phenomena",
+        "effective_category": "phenomena",
+        "attack_flag": false,
+        "power": 0,
+        "element": null,
+        "hit_rate": 0,
+        "composition_mp_cost": 0,
+        "summary": null,
+        "widget_overrides": [
+          [
+            293,
+            0,
+            0,
+            0,
+            null,
+            0,
+            0,
+            0
+          ]
+        ]
+      },
+      "response": {
+        "allowed_from_empty": [
+          190
+        ],
+        "filter_prefix_is_legal": false,
+        "allowed_after_filter": [],
+        "special_reactions": {
+          "190": "reflect"
+        },
+        "special_reactions_after_filter": {
+          "190": "reflect"
+        }
+      }
+    }
+  ],
+  "numeric_events": [
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 50,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 50,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 0,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 50,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 0,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 50,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 51,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 51,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 1,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 51,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 1,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 51,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 90,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 90,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 40,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 90,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 40,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 90,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 49,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 49,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 49,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 49,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 49,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 49,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 49,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 49,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 50,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 50,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 50,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 50,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 50,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 50,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 50,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 50,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 98,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 98,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 98,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 98,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 98,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 98,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 98,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 98,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 99,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "warm-single-hp50",
+      "initial_hp": 99,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "player0-only-via-current-pane",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "current_pane_player": 0,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 58,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 40,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": []
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 1,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 1,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 40,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 40,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 39,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 39,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 0
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 99,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 98,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 1
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 98,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 49,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 50
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 49,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            50,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "supplied-damage-not-metadata-calculation",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDamage",
+        "playerId": 42,
+        "damage": 100
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "damage",
+            100,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 0,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 0,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 0,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            0,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 1,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 1,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 1,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            1,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 40,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            40,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 40,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 40,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            40,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 99,
+      "initial_dead": false,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": false
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": false
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            99,
+            1
+          ]
+        ]
+      }
+    },
+    {
+      "label": "dark-current-pane-setter",
+      "initial_hp": 99,
+      "initial_dead": true,
+      "raw_event": {
+        "action": "dealDarkDamage"
+      },
+      "current_pane_player": 42,
+      "source_pane_player": null,
+      "real_player0_exists": true,
+      "before": [
+        {
+          "id": 0,
+          "hp": 8,
+          "dead": false
+        },
+        {
+          "id": 42,
+          "hp": 99,
+          "dead": true
+        },
+        {
+          "id": 77,
+          "hp": 55,
+          "dead": false
+        }
+      ],
+      "result": {
+        "error": false,
+        "after": [
+          {
+            "id": 0,
+            "hp": 8,
+            "dead": false
+          },
+          {
+            "id": 42,
+            "hp": 0,
+            "dead": true
+          },
+          {
+            "id": 77,
+            "hp": 55,
+            "dead": false
+          }
+        ],
+        "animations": [
+          [
+            "dark-damage",
+            99,
+            1
+          ]
+        ]
+      }
+    }
+  ],
+  "reflection_cases": [
+    {
+      "model": 291,
+      "old_source_player": null,
+      "ui_allows_190": true,
+      "receiver_error": true,
+      "final_target": 42,
+      "conclusion": "Forced source-null renderer has no player return address; local cancellation is not derived here."
+    },
+    {
+      "model": 291,
+      "old_source_player": 0,
+      "ui_allows_190": true,
+      "receiver_error": false,
+      "final_target": 0,
+      "conclusion": "A real player0 source is a player return address, unlike source-null."
+    },
+    {
+      "model": 292,
+      "old_source_player": null,
+      "ui_allows_190": true,
+      "receiver_error": true,
+      "final_target": 42,
+      "conclusion": "Forced source-null renderer has no player return address; local cancellation is not derived here."
+    },
+    {
+      "model": 292,
+      "old_source_player": 0,
+      "ui_allows_190": true,
+      "receiver_error": false,
+      "final_target": 0,
+      "conclusion": "A real player0 source is a player return address, unlike source-null."
+    },
+    {
+      "model": 293,
+      "old_source_player": null,
+      "ui_allows_190": true,
+      "receiver_error": true,
+      "final_target": 42,
+      "conclusion": "Forced source-null renderer has no player return address; local cancellation is not derived here."
+    },
+    {
+      "model": 293,
+      "old_source_player": 0,
+      "ui_allows_190": true,
+      "receiver_error": false,
+      "final_target": 0,
+      "conclusion": "A real player0 source is a player return address, unlike source-null."
+    }
+  ],
+  "decoder_cases": [
+    {
+      "input": {},
+      "kind": "attack",
+      "output": {
+        "player_id": 0,
+        "target_player_id": 0,
+        "guardian": null,
+        "models": [],
+        "atk": 0,
+        "hit_rate": 0
+      }
+    },
+    {
+      "input": {
+        "playerId": 0,
+        "targetPlayerId": 0,
+        "itemModelIds": [
+          291
+        ]
+      },
+      "kind": "attack",
+      "output": {
+        "player_id": 0,
+        "target_player_id": 0,
+        "guardian": null,
+        "models": [
+          291
+        ],
+        "atk": 0,
+        "hit_rate": 0
+      }
+    },
+    {
+      "input": {
+        "playerId": 17,
+        "targetPlayerId": 42,
+        "itemModelIds": [
+          292
+        ]
+      },
+      "kind": "attack",
+      "output": {
+        "player_id": 17,
+        "target_player_id": 42,
+        "guardian": null,
+        "models": [
+          292
+        ],
+        "atk": 0,
+        "hit_rate": 0
+      }
+    },
+    {
+      "input": {
+        "playerId": "17",
+        "targetPlayerId": "42",
+        "itemModelIds": [
+          293
+        ]
+      },
+      "kind": "attack",
+      "output": {
+        "player_id": 0,
+        "target_player_id": 0,
+        "guardian": null,
+        "models": [
+          293
+        ],
+        "atk": 0,
+        "hit_rate": 0
+      }
+    },
+    {
+      "input": {
+        "guardian": "neptune",
+        "playerId": 17,
+        "targetPlayerId": 42,
+        "itemModelIds": [
+          293
+        ]
+      },
+      "kind": "attack",
+      "output": {
+        "player_id": 17,
+        "target_player_id": 42,
+        "guardian": "neptune",
+        "models": [
+          293
+        ],
+        "atk": 0,
+        "hit_rate": 0
+      }
+    },
+    {
+      "input": {
+        "action": "dealDamage",
+        "playerId": 0,
+        "damage": 50
+      },
+      "kind": "event",
+      "output": {
+        "action": "dealDamage",
+        "player_id": 0,
+        "damage": 50,
+        "hp": 0
+      }
+    },
+    {
+      "input": {
+        "action": "boostHP",
+        "playerId": 0,
+        "hp": 50
+      },
+      "kind": "event",
+      "output": {
+        "action": "boostHP",
+        "player_id": 0,
+        "damage": 0,
+        "hp": 50
+      }
+    },
+    {
+      "input": {
+        "action": "boostHP",
+        "playerId": 42,
+        "hp": 50
+      },
+      "kind": "event",
+      "output": {
+        "action": "boostHP",
+        "player_id": 42,
+        "damage": 0,
+        "hp": 50
+      }
+    }
+  ],
+  "adapter_contract": {
+    "model291": "Light50;external-explicit-single-alive-target;no-target-selector",
+    "model292": "Dark30/rate75;explicit-single-target;percentage/DarkCloud behavior is separately declared local execution",
+    "model293": "nonattack HP+50;single-target-only;Neptune family metadata is not a source player or summon",
+    "environmental_frame": "separate no-player environmental marker;source/origin JSONnull;ordinary owner is not fabricated as attacker",
+    "source_free_responses": "190 cancels a source-free payload locally;source-directed-counter181/182/183/184/185/186/188 generation skips without an originating player;187 MP self-counter may proceed",
+    "not_proved": "Source-free return/counter behavior, selector, RNG schedule, whole-world target expansion and authoritative damage/death queues"
+  },
+  "network_or_application_startup": false,
+  "conclusions": [
+    "All three standalone models retain raw category phenomena.291/292 have an attack flag;293 does not. Model293 guardian-familyNeptune does not become attack DTO guardian art or a player source.",
+    "190 is the only special reaction for these phenomena. Physical/miracle bounce/reflect/block matching does not apply; some such cards can still serve ordinary DEF when their values and the incoming attribute allow it.",
+    "291 Light disallows ordinary DEF until189 filters the attribute.292 Dark permits ordinary DEF selection; the server damage calculation is not executed by this predicate oracle.293 nonattack permits190 but not ordinaryDEF/filter.",
+    "187 and other zero-DEF armor counters can be admitted by the visible ordinary-defense predicate for attack payloads, depending on attribute/filter/Flash. Admission does not establish a valid source-free counter target or body effect.",
+    "Frame.fu accepts a supplied null source object separately from a decoded numeric playerId. A.p6 defaults absent/noninteger playerId to0; the actual nextAttack caller normally performs roster lookup, so numeric0 is not a no-source wire tag.",
+    "dealDamage/boostHP event.playerId0 means currentpane gan(), even if realplayer0 exists elsewhere. Explicit nonzero event IDs use roster lookup. Darkdamage always sets currentpane HP0. These numeric handlers do not finalize dead status.",
+    "The generic reflect receiver requires the old source-pane player. A forced null-source render fails before it can establish a return address; a real player0 source returns to player0. Local source-free cancellation is a new explicit execution rule.",
+    "HP50 is clipped by actual c5.eV to99, but the singular boostHP event does not establish whether a server would send it once or for multiple recipients."
+  ],
+  "limitations": [
+    "Environment/origin-null annotations are adapter semantics, not fields decoded from the official attack DTO or evidence that a source-null network event is emitted by the server.",
+    "All response-after-filter lists are raw append probes; the filter prefix itself must first be legal, especially for nonattack293 and Flash single-card contexts.",
+    "The received amount is supplied by events: this oracle does not derive ATK minus DEF, sample75percent, chooseDarkCloud hits, generate counter/death/guardian effects, or prove ordinary owner/timing/gift/cutoff semantics.",
+    "The 190 cancellation and source-targeted counter skip/self-MP exception are explicit local policies. UI acceptance or a failed artificially source-null render is not proof of the corresponding server rule.",
+    "The input scenes include deliberately transient HP0/dead combinations to isolate numeric display behavior. They are not claims of legal executable Match states.",
+    "No network, account, DOM, timer or Dart application startup runs. Widgets/text/animation and Future scheduling are stubbed while actual decoder, frame, summary, response predicate and numeric/control-flow helpers run unchanged."
+  ],
+  "generator": "node scripts/official_targeted_phenomenon_oracle.cjs --client /path/to/main.dart.js [--check]"
+}

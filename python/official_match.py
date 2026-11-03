@@ -241,7 +241,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v34"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v35"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
@@ -396,7 +396,7 @@ class Match:
         return bool(result.value)
 
     def phenomenon_step(self, action):
-        """Apply one supplied global pulse; no occurrence or assignment distribution is implied."""
+        """Apply one supplied phenomenon; targeted effects await responses. No selector distribution is implied."""
         self._open(); encoded = _phenomenon_action(action); result = _Status()
         _check(self._lib.gfo_match_phenomenon_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
