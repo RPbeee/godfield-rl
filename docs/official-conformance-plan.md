@@ -214,7 +214,7 @@ v18は全Release CTest129件/17.79秒・ASan/UBSan89件/46.30秒が通過した�
 全効果の一般キュー、互換クラス外Dream・取引server挙動・Earth/Moonの一般神器/奇跡選出・207/残る現象・悪魔・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
-v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデル、v9の194モデル、v10の201モデル、v11の204モデル、v12の206モデル、v13の208モデル、v14の209モデル、v15の210モデル、v16の211モデル、v17の213モデルとv18の214モデルの計測・checksumは過去の証拠として保持し、現行v43の236モデルの検証とは分ける。
+v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデル、v9の194モデル、v10の201モデル、v11の204モデル、v12の206モデル、v13の208モデル、v14の209モデル、v15の210モデル、v16の211モデル、v17の213モデルとv18の214モデルの計測・checksumは過去の証拠として保持し、現行v44の236モデルの検証とは分ける。
 
 
 ## v19：直近除去結果の公開と検査
@@ -1477,3 +1477,63 @@ Release CTest **142/142（28.40秒）**、ASan/UBSan CTest **102/102（54.98秒�
 | 9人 | 10,000 | 237 | 155,942 / 155,942 | 320 / 47 | `17957368678633913634` | `999832884538341161` |
 
 9人600sceneでは1559decisions、9364新token・9364観測copy、16個の207、明示Fate1回、redraw100、revival132を含む。独立参照の補助probeは6経路、91copyを照合し、207は6経路すべてで到達、reference checksum `10292494696839945612` が一致した。world＋選択counterのchecksumは `10861144430966346463`、全private proofは各checkpointのrestore完全一致で別に検査する。新token数・観測copy数・独立probeの集計は別であり、これらを公式serverの出現分布や超常現象selectorの検証として扱わない。
+
+
+## v44：運命のひものローカル結果サンプラー
+
+`official-execution-subset-v44` は `FateAction sample_fate(ItemToken token, uint64_t& chance_rng) const`、Cの `gfo_match_sample_fate`、Pythonの `sample_fate(token, chance_rng) -> (FateAction, next_rng)` を追加する。player/controllerが選んだ所有207のtokenに対して、結果と必要なpayloadをchance側で生成し、既存 `fate_step` に渡せる。**現象の選出率・対象・守護神割当・入替分布は公式未確認のローカル規約**で、旧Flashの分布・効果を現行公式の証拠にしない。
+
+Snapshot44は旧1〜43を拒否し、公開viewは `official-execution-view-v42`。scope、Config24/Command184/Status248/FateAction64byteとMatch ABI2、phase0〜4はv43と同じ。既定236/499・任意237/500の配布や、明示FateActionで指定する既存driverは変えない。旧37profile・台帳pins・既存report/実測を保存し、学習器は追加しない。
+
+### chanceで選ぶ範囲
+
+| 項目 | ローカルな生成規約 |
+| --- | --- |
+| 現象287〜296 | SplitMix64のrejection bounded10から287+ticketを各1/10。公開された公式率ではない |
+| 291〜294のrecipient | 生存者の入力順から一様に1人。owner/味方も含み、候補1人でもdrawする |
+| 296の日食 | 生存者の入力順で各1draw、Guardian1〜10を各1/10。重複や現在と同種も許す |
+| 295の磁気嵐 | 生存者のraw inventoryからsource-qualified(owner,token)列を作り、使うowner/tokenの207だけ1個除く。N→2の後方Fisher-Yatesで各bounded(i)を1draw |
+| 295の0/1copy | permutation drawなし。別ownerの同token0、別の207、used奇跡・passive・互換fakeは残し、dead inventoryと未到着の予約giftは入れない |
+
+manifestは消費後の物理copyに対応し、最大9人×18copy−1=161。元のMatchから207を先に実消費するものではない。引いた結果を既存prepare_fateで検証してからchance_rngをcommitする。289の混乱countが表現不能なら、再抽選で分布を変えず、Match/RNGを保持して拒否する。混乱中のownerでもsampleでき、実countの減算は後のFate起動で一度だけ行う。
+
+### 特権・保存・失敗の境界
+
+抽選中はworld、ゲームRNG、player policy RNG、decision、journal、public eventを変えない。公開viewへ追加するのは静的 `fate_sampler_rule` だけで、future outcome、manifest、seedは出さない。このAPIは全員のrawcopyを扱う特権chance controller用であり、返却payloadを通常player policyの選択肢として渡す設計ではない。
+
+sampleとfate_stepは別transactionである。sampleが成功しても、その後の295のfresh token枯渇、update/GFの枯渇等で実行が失敗する場合がある。driverはchance seedのcopyでsampleし、fate_step成功後だけseedをcommitできる。Match snapshotだけでは外部chance streamを保存しないので、controllerのcheckpointにもseedを持たせる。適用後は既存Fate/grant proofが受理したpayloadと応答列を再生する。
+
+通常player samplerは引き続き207を起動しない。player側がひもを使うtokenを選び、chance側が結果を選ぶ分担で、結果/recipient/shuffleをplayerの戦略選択に変えない。混乱の自動command、Earth/Moonの一般payload選出、公式Dream全分布・実体不適合入力、全配布経路への悪魔置換と権威的server scheduleは残件である。
+
+### Cの可変長出力
+
+Cは既存64byte FateActionと、callerが所有するItemSource配列を使う。`gfo_match_sample_fate(match, token, &chance_rng, order, capacity, &out)` に0〜162のcapacityを渡す。capacity0ならNULL配列を使え、non295とempty295は0bufferで成功する。必要なmanifestがcapacityを超えた場合は-4で、chance_rng・out・配列の全byteを変えない。最大162枠を予約すれば現在の最大161copyを含められる。
+
+成功時は必要なprefixだけを書き、tailは変えない。out.shuffle.orderは非empty時にcaller配列を指し、empty295/non295ではNULL。has_shuffleはemptyでも295なら1を保つ。callerは入力としてfate_stepへ渡す間その配列を保持する。Pythonは内部162枠の配列からimmutableなFateAction/tupleItemSourceへcopyし、native pointerの寿命を返却objectへ持ち込まない。
+
+公開 `fate_sampler_rule` は次のheader定数に一致する。
+
+```text
+experimental:privileged-const-owned207-main-owner-token-local-fate-sampler;caller-owned-chance-rng-separate-from-game-and-policy;splitmix64-rejection-bounded10-model287-plus-ticket-uniform-local-not-published-rates;291-to294-one-uniform-alive-input-seat-recipient-including-owner-and-allies-singleton-draw;296-one-uniform-present-guardian1-to10-per-alive-input-seat-including-existing-type;295-alive-input-seat-raw-copy-source-qualified-manifest-excludes-only-selected-owner-token207-no-reserved-gifts;295-backward-fisher-yates-from-N-to2-one-bounded-i-draw-per-swap-empty-and-singleton-no-draw;used-passive-compatible-fake-and-other207-copies-eligible-dead-copies-excluded;confused-owner-allowed-launch-debit-only-in-fate-step;prepare-fate-validation-before-chance-commit-no-reroll-on-domain-overflow;no-match-state-game-policy-rng-decision-or-public-event-mutation;sampling-failure-preserves-chance-stream;sample-and-step-separate-transactions-late-execution-failure-possible;external-chance-rng-not-in-match-snapshot-controller-checkpoints-it;normal-player-sampler-still-does-not-select207;no-automatic-confusion-or-earth-moon-general-selector;all-outcome-recipient-guardian-and-permutation-laws-local-not-official-server-equivalence
+```
+
+### v44の検証
+
+[一次資料と独立ローカルreferenceの生成器](../scripts/official_fate_sampler_oracle.cjs) / [保存report](../data/official-v2/fate-sampler-client-v44.json) は、実Reference等5ケースと、**別区分のLOCAL BigInt golden17件**を保存する。全10ticket、zero-word rejection、owner/ally宛先、0/1/7/161copy、dead除外・他ownerの同token0・別207保持、9人分guardianを含む。これは公式chooser goldenではない。reportは93,246 bytes、SHA256 `a9a9ff64258836e073b713f84b3954c59149ec0190d2182ceba501a9663ce207`、rootの `--check` はbyte一致した。
+
+Release CTest **143/143（41.92秒）**、ASan/UBSan CTest **103/103（99.69秒）** が全て通過した。native198関数とPython136メソッドは各1回・重複なしで登録し、C API/Pythonのfocused2件も初回で通過した。README例の `290 0` → `main 1 1 11400714819323198527` も実行して一致した。suite時間を速度差や公式server適合数へ読み替えない。
+
+新native5群では全10ticketと既存executorへの適用、pure queryとzero-word rejection、alive順の自己/味方/敵対象と全guardian、混乱countのsafe整数境界・289のno-reroll失敗、0/1/2/143/161copyのsource-qualified manifest、別owner token0/別207/deadの区別、phase/token拒否、late token枯渇とchance copy-commit、snapshot＋外部RNG再開、独立BigInt17goldensの全payload/next_rng一致を検査した。
+
+Cは10固定goldenの64byte全header、NULLと容量上限、short0/2の全byte保持、prefix/tailとpointer、empty/singleton295、289overflowを検査する。Python新3件は独立参照による256seed/全10結果と対象・guardian、0/1/161copyのimmutable tupleとnative bufferの寿命分離、全phase/strict token・seed、無再抽選・未来step失敗を検査した。抽選結果をplayer選択へ流すことなく、既存Fate/grant proofとゲームRNGを保つことを別々に確認する。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/Fate pool/新Fate samplerの各2人数、計28組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで実行し、worker数・時間・速度以外の全fieldが一致した。Release/SAN小行列15組もchecksumを含む非時間fieldが一致した。新helperを呼ばない既存13familyのgameplay fieldはv43と同値で、通常/canonical/payloadはchecksumも維持した。その他の旧版比較ではSnapshot.version44由来のchecksumを除き、外部chance/action、pool/referenceのversion非依存checksumは引き続き比較した。worker間・Release/SAN間では全checksumを比較する。
+
+新 `godfield_fate_sampler_bench`（CTest `official_fate_sampler_benchmark 600 9 42 2`）は全choiceをhelperに任せ、一つのowned207の起動から全response/grantを経てmainまたは終局/cutoffまで進める。各sample前に2restore clonesへ同chance seedを渡し、action/next_rng/Match不変を照合し、実step成功後だけchance streamをcommitする。include_fate/external_grants、混乱、複数207、他owner token0、used/fake/passive、dead、postconsume0/1copyを含み、97scene毎はmax_decisions2でcutoffを検査する。600scene以上で10結果・自己/敵のrecipient、3人以上では別の味方recipientも実際に選ばれることを検査した。normal207 command/通常policyの除外、sourceなしframeと実source0、既存Fate/grant proofとowner/GF/混乱減算も照合する。
+
+| ローカルFate抽選・seed42 | scenes | 結果種数 | 自己 / 別味方 / 敵対象 | 入替copy | chance checksum | action checksum | world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- | --- |
+| 2人 | 100,000 | 10 | 19835 / 0 / 20061 | 200021 | `2423874525599104466` | `9734039227367663945` | `11787821991074239004` |
+| 9人 | 10,000 | 10 | 435 / 593 / 2959 | 92642 | `6605635147833536315` | `10123717752832217994` | `17117080911192469713` |
+
+9人600sceneは2292decisions、1249responses、443grant、自己/別味方/敵対象32/38/159、545guardian割当を含む。295は57scene/5282copy（used500）、empty1・singleton0、他owner token0参照444を検査した。混乱launch減算400、revival147、redraw131、cutoff probe7も含む。chance/action/world checksumは `18250023012487255026` / `18054689840843982637` / `4349042520208376490` でRelease/SAN一致。world hashは選択counter等を含む部分hashであり、全private proofの一致は各checkpointのrestoreで別に検査する。このfixture統計はローカルpolicyのもので、公式の現象分布やserver対局の実測ではない。

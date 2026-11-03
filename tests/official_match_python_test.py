@@ -34,6 +34,32 @@ def grant_reference(seed, tokens, target=0):
     if model == 244: resource = ("hp", "mp", "cp")[bounded(3)]
     return GrantAction(target, model, resource, tuple(removed)), seed, ticket, draws
 
+def fate_reference(seed, token, raw, actor=0):
+    mask, gamma, draws = (1 << 64)-1, 0x9e3779b97f4a7c15, 0
+    def bounded(bound):
+        nonlocal seed, draws
+        while True:
+            seed = (seed + gamma) & mask; draws += 1
+            value = seed
+            value = ((value ^ (value >> 30)) * 0xbf58476d1ce4e5b9) & mask
+            value = ((value ^ (value >> 27)) * 0x94d049bb133111eb) & mask
+            value ^= value >> 31
+            if value >= (1 << 64) % bound: return value % bound
+    model = 287 + bounded(10)
+    alive = [player for player in raw["players"] if not player.get("dead", False)]
+    recipient, guardians, shuffle = None, (), None
+    if 291 <= model <= 294: recipient = alive[bounded(len(alive))]["id"]
+    if model == 296:
+        names = ("mars", "mercury", "jupiter", "saturn", "uranus", "pluto", "neptune", "venus", "earth", "moon")
+        guardians = tuple(names[bounded(10)] for unused in alive)
+    if model == 295:
+        order = [ItemSource(player["id"], item["id"]) for player in alive for item in player.get("items", [])
+                 if (player["id"], item["id"]) != (actor, token)]
+        for length in range(len(order), 1, -1):
+            other = bounded(length); order[length-1], order[other] = order[other], order[length-1]
+        shuffle = ItemShuffleAction(tuple(order))
+    return FateAction(actor, token, PhenomenonAction(model, recipient, guardians), shuffle), seed, draws
+
 class MatchTests(unittest.TestCase):
     def match(self, **kwargs):
         value = Match(library=LIBRARY, **kwargs); self.addCleanup(value.close); return value
@@ -43,7 +69,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v43"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v44"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -51,7 +77,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v41")
+        self.assertEqual(own["schema"], "official-execution-view-v42")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -247,7 +273,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v41")
+        self.assertEqual(event["schema"], "official-execution-view-v42")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3754,6 +3780,98 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((len(game.gift_models), game.gift_weight), (237, 500))
         game.reset(1464)
         self.assertEqual(game.observe()["gift_pool"], {"include_fate": True, "models": 237, "weight": 500})
+
+    def test_sample_fate_all_outcomes_targets_guardians_and_reference_nonmutation(self):
+        raw = {"gf": 0, "players": [
+            {"id": 0, "team": 1, "hp": 99, "mp": 99, "cp": 99, "confusionCount": 1, "curses": ["dream"], "items": [
+                {"id": 0, "modelId": 207}, {"id": 2, "modelId": 235, "used": True}, {"id": 9, "modelId": 207},
+                {"id": 5, "modelId": 118, "fakeModelId": 123}]},
+            {"id": 7, "team": 1, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 152}, {"id": 1, "modelId": 235, "used": True}]},
+            {"id": 42, "team": 2, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 6}, {"id": 3, "modelId": 209}]},
+            {"id": 23, "team": 2, "hp": 0, "mp": 99, "cp": 99, "dead": True, "items": [{"id": 0, "modelId": 208}]}]}
+        game, control = [self.match(config=Config(initial_hand=0)) for _ in range(2)]
+        for match in (game, control):
+            with OfficialState(raw, library=LIBRARY) as scene: match.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status; models, recipients, guardians = set(), set(), set()
+        for seed in (*range(256), 2**64-1, 7046029254386353131):
+            expected, rng, draws = fate_reference(seed, 0, raw)
+            self.assertEqual(game.sample_fate(0, seed), (expected, rng)); self.assertTrue(game.fate_legal(expected))
+            self.assertEqual(game.sample_fate(0, seed), (expected, rng)); models.add(expected.outcome.model)
+            if expected.outcome.recipient is not None: recipients.add(expected.outcome.recipient)
+            guardians.update(expected.outcome.guardians)
+            if expected.shuffle:
+                self.assertEqual(set(expected.shuffle.order), {ItemSource(0, 2), ItemSource(0, 9), ItemSource(0, 5),
+                    ItemSource(7, 0), ItemSource(7, 1), ItemSource(42, 0), ItemSource(42, 3)})
+        self.assertEqual(models, set(range(287, 297))); self.assertEqual(recipients, {0, 7, 42})
+        self.assertEqual(len(guardians), 10); self.assertEqual((game.observe(0), game.status), (before, status))
+        for match in (game, control): match.fate_step(FateAction(0, 0, PhenomenonAction(290)))
+        self.assertEqual((game.observe(0), game.status), (control.observe(0), control.status))
+        self.assertFalse(game.observe()["board"]["players"][0]["status"]["confused"])
+
+    def test_sample_fate_empty_singleton_and161_source_manifest_are_owned_copies(self):
+        for count in (0, 1, 161):
+            if count < 2:
+                players = [{"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 207}]},
+                           {"id": 7, "hp": 99, "mp": 99, "cp": 99,
+                            "items": [{"id": 0, "modelId": 235, "used": True}] if count else []}]
+            else:
+                players = [{"id": seat*17, "hp": 99, "mp": 99, "cp": 99, "items": [
+                    {"id": token, "modelId": 207 if seat == 0 and token == 0 else 235,
+                     "used": not (seat == 0 and token == 0)} for token in range(18)]} for seat in range(9)]
+            raw = {"players": players}; game = self.match(config=Config(initial_hand=0))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            before, status = game.observe(0), game.status
+            expected, rng, draws = fate_reference(4, 0, raw)
+            chosen, actual_rng = game.sample_fate(0, 4)
+            self.assertEqual((chosen, actual_rng), (expected, rng)); self.assertEqual(chosen.outcome.model, 295)
+            self.assertEqual(len(chosen.shuffle.order), count); self.assertEqual(draws, 1 + max(0, count-1))
+            self.assertNotIn(ItemSource(0, 0), chosen.shuffle.order); self.assertTrue(game.fate_legal(chosen))
+            game.sample_fate(0, 17)  # A fresh native buffer must not alter the previous returned tuple.
+            self.assertEqual(chosen, expected); self.assertEqual((game.observe(0), game.status), (before, status))
+            game.fate_step(chosen); self.assertEqual(game.observe()["last_fate"]["phenomenon"], 295)
+
+    def test_sample_fate_invalid_inputs_overflow_without_reroll_and_future_step_failure(self):
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [
+            {"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 207},
+                {"id": 1, "modelId": 6}, {"id": 2, "modelId": 5}, {"id": 3, "modelId": 152}]},
+            {"id": 7, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 152}]}]}
+        game = self.match(config=Config(initial_hand=0, external_grants=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status
+        for invalid in (True, False, -1, 9007199254740992, 0.0, "0", None):
+            with self.assertRaises(InvalidMatchError): game.sample_fate(invalid, 4)
+        for invalid in (True, False, -1, 2**64, 0.0, "0", None):
+            with self.assertRaises(InvalidMatchError): game.sample_fate(0, invalid)
+        for token in (1, 2, 999):
+            with self.assertRaises(InvalidMatchError): game.sample_fate(token, 4)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        for phase in ("response", "purchase", "grant"):
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            if phase == "response": game.step(Command(0, "play", (1,), 7))
+            elif phase == "purchase": game.step(Command(0, "buy", (2,), 7)); game.step(Command(7, "defend"))
+            else: game.step(Command(0, "sacrifice", (3,)))
+            self.assertEqual(game.status.phase, phase); before, status = game.observe(0), game.status
+            with self.assertRaises(InvalidMatchError): game.sample_fate(0, 4)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        cut = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(raw, library=LIBRARY) as scene: cut.load_scene(scene, 0, 42)
+        cut.step(Command(0, "play", (1,), 7))
+        with self.assertRaises(InvalidMatchError): cut.sample_fate(0, 4)
+        overflow = copy.deepcopy(raw); overflow["players"][1]["confusionCount"] = 9007199254740991
+        with OfficialState(overflow, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status
+        self.assertEqual(fate_reference(6, 0, overflow)[0].outcome.model, 289)
+        with self.assertRaises(InvalidMatchError): game.sample_fate(0, 6)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["players"][0]["items"] = [{"id": 0, "modelId": 207}, {"id": 9007199254740991, "modelId": 6}]
+        raw["players"][1]["items"] = []; raw["players"][0]["confusionCount"] = 1
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status; chosen, chance_rng = game.sample_fate(0, 4)
+        self.assertEqual(chosen.outcome.model, 295); self.assertTrue(game.fate_legal(chosen))
+        with self.assertRaises(InvalidMatchError): game.fate_step(chosen)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.close()
+        with self.assertRaises(InvalidMatchError): game.sample_fate(0, 4)
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

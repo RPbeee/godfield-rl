@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v43"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v44"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v41\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v42\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2556,10 +2556,133 @@ void fate_pool_default_parity_and_late_failure_transactions(){
     }
 }
 
+void fate_sampler_all_tickets_pure_and_executable(){
+    auto state=scene({207},{});state.players[0].hp=state.players[1].hp=99;auto game=fixture(state);const auto before=game.snapshot();std::set<CardId> outcomes;
+    for(unsigned ticket=0;ticket<10;++ticket){auto rng=grant_seed_for_word(100+ticket);const auto first=rng;const auto action=game.sample_fate(0,rng);auto repeat=first;
+        check(action.actor==0&&action.token==0&&action.outcome.model==287+ticket&&game.sample_fate(0,repeat)==action&&repeat==rng&&game.snapshot()==before,"every local Fate ticket returns the exact reproducible payload without consuming its source");
+        check(game.fate_legal(action)&&action.shuffle.has_value()==(ticket==8),"all ten sampled actions obey the existing Fate shape contract");
+        if(ticket<=3||ticket==8)check(rng==first+0x9e3779b97f4a7c15ULL,"global primitives and empty shuffle consume only the outcome draw");
+        Match copy;copy.restore(before);copy.fate_step(action);while(!copy.done()&&copy.snapshot().phase!=MatchPhase::main){if(copy.snapshot().phase==MatchPhase::grant)copy.grant_step({*copy.snapshot().pending_grant,0,{},{}});else{auto policy=19ULL;copy.step(copy.sample_action(policy));}}
+        roundtrip(copy);check(copy.snapshot().fate_actions==1,"sampled Fate result uses the original executor and one activation");outcomes.insert(action.outcome.model);
+    }
+    check(outcomes.size()==10&&game.observe({}).find(fate_sampler_rule)!=std::string::npos,"all outcomes are local policy choices declared by public static metadata");
+    auto rejected_zero=0ULL-0x9e3779b97f4a7c15ULL;const auto rejected=game.sample_fate(0,rejected_zero);check(rejected.outcome.model==292&&game.snapshot()==before,"bounded10 rejects the first zero word instead of selecting287");
+}
+void fate_sampler_alive_targets_guardians_and_confusion_boundaries(){
+    SnapshotState state;state.players={player(42,{207},Team::one),player(0,{},Team::one),player(9),player(2),player(900)};state.players[2].dead=true;state.players[2].hp=0;state.players[0].guardian=Guardian::earth;
+    Match game;game.load_scene(state,42,7);const auto before=game.snapshot();std::set<PlayerId> targets;std::set<unsigned> guardians;
+    for(unsigned n=0;n<2048;++n){auto rng=grant_seed_for_word(104+10*n);const auto action=game.sample_fate(0,rng);check(action.outcome.model==291&&action.outcome.recipient&&*action.outcome.recipient!=9&&game.snapshot()==before,"targets are drawn from the current live input roster without mutating hidden state");targets.insert(*action.outcome.recipient);
+        rng=grant_seed_for_word(109+10*n);const auto eclipse=game.sample_fate(0,rng);check(eclipse.outcome.model==296&&!eclipse.outcome.recipient&&eclipse.outcome.guardians.size()==4&&!eclipse.shuffle,"eclipse has exactly one guardian for each live input seat");for(auto guardian:eclipse.outcome.guardians){check(guardian>=Guardian::mars&&guardian<=Guardian::moon,"sampled guardian is present enum1..10");guardians.insert(static_cast<unsigned>(guardian));}
+    }
+    check(targets==std::set<PlayerId>{42,0,2,900}&&guardians.size()==10,"local target law includes self/allies and all ten present guardian types");
+    auto high=scene({207},{});high.players[1].confusion_count=max_wire_integer;auto overflow=fixture(high);const auto exact=overflow.snapshot();auto rng=grant_seed_for_word(102);const auto old_rng=rng;bool failed=false;try{(void)overflow.sample_fate(0,rng);}catch(const MatchError&){failed=true;}
+    check(failed&&rng==old_rng&&overflow.snapshot()==exact,"unrepresentable sampled289 is rejected without reroll, chance commit or source consumption");
+    high.players[0].confusion_count=max_wire_integer-2;high.players[1].confusion_count=max_wire_integer-3;auto valid=fixture(high);rng=grant_seed_for_word(102);const auto action=valid.sample_fate(0,rng);
+    check(valid.snapshot().state.players[0].confusion_count==max_wire_integer-2&&valid.fate_legal(action),"confused owner can sample before its one launch debit");valid.fate_step(action);check(valid.snapshot().state.players[0].confusion_count==max_wire_integer,"debit then sampled289 plus3 respects the exact safe-integer boundary");roundtrip(valid);
+}
+void fate_sampler_shuffle_postconsume_source_qualified_capacity(){
+    for(unsigned remaining=0;remaining<=2;++remaining){auto state=scene({207},{});for(unsigned i=0;i<remaining;++i)state.players[1].items.push_back({i,235,{},true});auto game=fixture(state);auto rng=grant_seed_for_word(108);const auto original=rng;const auto action=game.sample_fate(0,rng);
+        check(action.shuffle&&action.shuffle->order.size()==remaining&&rng==original+(1+(remaining>1))*0x9e3779b97f4a7c15ULL,"empty/single shuffle consumes no permutation draw and two copies use one backward swap");
+        for(const auto& key:action.shuffle->order)check(key.owner==7,"another owner's token0 is retained when source token0 is consumed");game.fate_step(action);roundtrip(game);
+    }
+    for(bool dead_last:{false,true}){SnapshotState state;for(unsigned seat=0;seat<9;++seat){PlayerState p;p.id=seat?100+seat:0;p.name="S"+std::to_string(seat);p.hp=99;p.mp=99;p.cp=20;p.curses={Curse::dream};for(unsigned i=0;i<18;++i)p.items.push_back({i,235,{},true});p.items[1]={1,207,{},false};p.items[2]={2,208,{},false};p.items[3]={3,114,125,false};if(!seat)p.items[0]={0,207,{},false};if(dead_last&&seat==8){p.dead=true;p.hp=0;}state.players.push_back(std::move(p));}
+        auto game=fixture(state);const auto before=game.snapshot();auto rng=grant_seed_for_word(108);const auto action=game.sample_fate(0,rng);std::set<std::pair<PlayerId,ItemToken>> actual,expected;
+        for(const auto& p:before.state.players)if(!p.dead)for(const auto& copy:p.items)if(p.id!=0||copy.token!=0)expected.emplace(p.id,copy.token);
+        for(const auto& key:action.shuffle->order)check(actual.emplace(key.owner,key.token).second,"shuffle chooses each source-qualified physical copy once");
+        check(actual==expected&&actual.size()==(dead_last?143:161)&&actual.contains({101,0})&&actual.contains({0,1})&&game.snapshot()==before,"maximum manifest excludes only chosen207, includes other207/used/fake/passive copies and omits dead inventories");
+        game.fate_step(action);check(game.snapshot().last_fate&&game.snapshot().last_fate->action==action,"sampled full manifest survives in the original ownedFate proof");if(dead_last)check(game.snapshot().state.players[8]==before.state.players[8],"shuffle and subsequent gifts preserve a dead participant's inventory");roundtrip(game);
+    }
+}
+void fate_sampler_phase_and_late_step_failure_transactions(){
+    const auto refuse=[](const Match& game,ItemToken token){const auto before=game.snapshot();std::uint64_t rng=UINT64_MAX;bool failed=false;try{(void)game.sample_fate(token,rng);}catch(const MatchError&){failed=true;}check(failed&&rng==UINT64_MAX&&game.snapshot()==before,"bad phase/token refuses without changing Match or external chance seed");};
+    Match no_fate;refuse(no_fate,UINT64_MAX);auto own=fixture(scene({207,6},{}));refuse(own,1);refuse(own,99);own.step(play(0,{1},7));refuse(own,0);
+    auto pending_state=scene({207,199},{});pending_state.tiebreak_gf=0;auto pending=grant_fixture(pending_state);pending.step({0,CommandKind::sacrifice,{1},{}});refuse(pending,0);
+    auto ended=grant_fixture(scene({207},{}),7,1);ended.fate_step({0,0,{288,{},{}},{}});refuse(ended,0);
+    auto exhausted=scene({207},{235});exhausted.players[1].items[0].token=max_wire_integer;auto game=fixture(exhausted);const auto before=game.snapshot();auto committed=grant_seed_for_word(108),trial=committed;const auto action=game.sample_fate(0,trial);bool failed=false;try{game.fate_step(action);}catch(const MatchError&){failed=true;}
+    check(failed&&game.snapshot()==before&&committed!=trial&&committed==grant_seed_for_word(108),"sample and execution are separate transactions; a caller can defer chance commit across late shuffle token exhaustion");
+    Match restored;restored.restore(before);auto replay=committed;check(restored.sample_fate(0,replay)==action&&replay==trial,"Match snapshot plus caller-saved chance seed reproduce the complete source-qualified result");
+}
+
+void fate_sampler_independent_bigint_vectors(){
+    std::vector<SnapshotState> fixtures(4);
+    { PlayerState p;p.id=42;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,207,{},false}};fixtures[0].players.push_back(std::move(p));}
+    { PlayerState p;p.id=7;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={};fixtures[0].players.push_back(std::move(p));}
+    { PlayerState p;p.id=42;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,207,{},false},{17,6,{},false}};fixtures[1].players.push_back(std::move(p));}
+    { PlayerState p;p.id=7;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={};fixtures[1].players.push_back(std::move(p));}
+    { PlayerState p;p.id=42;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::one;p.curses={Curse::dream};p.items={{0,207,{},false},{11,235,{},true},{15,207,{},false},{23,6,8,false}};fixtures[2].players.push_back(std::move(p));}
+    { PlayerState p;p.id=0;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,120,{},false},{41,208,{},false}};fixtures[2].players.push_back(std::move(p));}
+    { PlayerState p;p.id=7;p.name="reference";p.hp=0;p.mp=99;p.cp=20;p.dead=true;p.team=Team::solo;p.items={{0,6,{},false},{45,207,{},false}};fixtures[2].players.push_back(std::move(p));}
+    { PlayerState p;p.id=99;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::one;p.items={{0,199,{},false},{9,218,{},true}};fixtures[2].players.push_back(std::move(p));}
+    { PlayerState p;p.id=42;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,207,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=0;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=7;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=99;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=1001;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=314;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=8;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=9;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    { PlayerState p;p.id=9007199254740991;p.name="reference";p.hp=99;p.mp=99;p.cp=20;p.dead=false;p.team=Team::solo;p.items={{0,6,{},false},{1,6,{},false},{2,6,{},false},{3,6,{},false},{4,6,{},false},{5,6,{},false},{6,6,{},false},{7,6,{},false},{8,6,{},false},{9,6,{},false},{10,6,{},false},{11,6,{},false},{12,6,{},false},{13,6,{},false},{14,6,{},false},{15,6,{},false},{16,6,{},false},{17,6,{},false}};fixtures[3].players.push_back(std::move(p));}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x57b4c1fc7ebefd60ULL;
+        FateAction expected{42,0,{287,{},{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xf5ec3bb5fe097975ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x386f616ea5d6a384ULL;
+        FateAction expected{42,0,{288,{},{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xd6a6db2825211f99ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x445dad76252c0cfdULL;
+        FateAction expected{42,0,{289,{},{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xe295272fa4768912ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x808ec78cc797ebc5ULL;
+        FateAction expected{42,0,{290,{},{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x1ec6414646e267daULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0xcd46863b18fc3046ULL;
+        FateAction expected{42,0,{291,99,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x09b579ae17912870ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x6b6dc62e56527ad9ULL;
+        FateAction expected{42,0,{292,0,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xa7dcb9a154e77303ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x447c8b806a150d26ULL;
+        FateAction expected{42,0,{293,0,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x80eb7ef368aa0550ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x973cb970b2c591edULL;
+        FateAction expected{42,0,{294,0,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xd3abace3b15a8a17ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0xa0cae6e9a463f84dULL;
+        FateAction expected{42,0,{295,{},{}},{}};
+        expected.shuffle=ItemShuffleAction{{{42,11},{0,41},{42,15},{0,0},{99,0},{99,9},{42,23}}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xf44f3afc1f6d5ce0ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x29a03e5c9696abe0ULL;
+        FateAction expected{42,0,{296,{},{static_cast<Guardian>(2),static_cast<Guardian>(10),static_cast<Guardian>(10)}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xa27e254293c09c34ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x61c8864680b583ebULL;
+        FateAction expected{42,0,{292,42,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x3c6ef372fe94f82aULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[0],42,7);const auto before=game.snapshot();std::uint64_t rng=0xa0cae6e9a463f84dULL;
+        FateAction expected{42,0,{295,{},{}},{}};
+        expected.shuffle=ItemShuffleAction{{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x3f0260a323ae7462ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[1],42,7);const auto before=game.snapshot();std::uint64_t rng=0xa0cae6e9a463f84dULL;
+        FateAction expected{42,0,{295,{},{}},{}};
+        expected.shuffle=ItemShuffleAction{{{42,17}}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x3f0260a323ae7462ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[3],42,7);const auto before=game.snapshot();std::uint64_t rng=0xa0cae6e9a463f84dULL;
+        FateAction expected{42,0,{295,{},{}},{}};
+        expected.shuffle=ItemShuffleAction{{{314,12},{1001,0},{9007199254740991,16},{7,14},{0,8},{314,6},{42,7},{99,10},{99,8},{7,15},{8,16},{99,12},{9007199254740991,13},{42,6},{8,2},{1001,8},{99,2},{0,4},{99,9},{42,15},{314,3},{9007199254740991,1},{9,16},{314,1},{0,1},{7,0},{314,2},{9007199254740991,0},{9007199254740991,7},{42,13},{42,4},{99,1},{1001,10},{1001,3},{7,17},{7,5},{7,6},{8,12},{9,12},{9007199254740991,2},{1001,17},{314,13},{99,13},{8,13},{42,9},{9,1},{9007199254740991,15},{8,3},{8,6},{42,16},{42,2},{9,11},{7,3},{1001,4},{314,0},{99,11},{99,5},{7,12},{7,4},{9,3},{1001,5},{0,13},{0,11},{99,15},{9,7},{99,16},{7,13},{0,9},{9007199254740991,10},{8,9},{314,9},{42,5},{7,16},{314,8},{9,4},{0,15},{9,9},{8,1},{9007199254740991,9},{9,2},{8,5},{0,12},{8,8},{314,5},{7,7},{9,10},{0,5},{314,17},{7,1},{9,15},{314,15},{99,14},{99,0},{7,9},{1001,12},{8,14},{1001,16},{0,16},{7,10},{8,10},{1001,13},{99,4},{7,8},{0,3},{42,17},{1001,7},{7,2},{8,17},{9,8},{9007199254740991,3},{9,17},{314,4},{99,7},{9007199254740991,5},{42,14},{0,6},{0,14},{99,3},{1001,6},{314,16},{99,17},{1001,15},{9007199254740991,12},{42,1},{42,10},{8,4},{0,10},{9007199254740991,17},{1001,14},{9007199254740991,11},{8,11},{1001,9},{9,6},{314,11},{42,8},{314,10},{8,7},{314,14},{99,6},{314,7},{42,12},{0,7},{9,14},{0,0},{9007199254740991,8},{7,11},{9007199254740991,6},{9007199254740991,4},{42,11},{1001,11},{1001,1},{1001,2},{42,3},{0,2},{8,15},{9007199254740991,14},{0,17},{9,0},{9,5},{9,13},{8,0}}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x21ae7492b23c0182ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[3],42,7);const auto before=game.snapshot();std::uint64_t rng=0x29a03e5c9696abe0ULL;
+        FateAction expected{42,0,{296,{},{static_cast<Guardian>(2),static_cast<Guardian>(10),static_cast<Guardian>(10),static_cast<Guardian>(7),static_cast<Guardian>(7),static_cast<Guardian>(5),static_cast<Guardian>(3),static_cast<Guardian>(2),static_cast<Guardian>(3)}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0x57caff9b8f7f84b2ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x808110a8378ab12aULL;
+        FateAction expected{42,0,{291,42,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xbcf0041b361fa954ULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+    {Match game;game.load_scene(fixtures[2],42,7);const auto before=game.snapshot();std::uint64_t rng=0x7c86e468d2d19535ULL;
+        FateAction expected{42,0,{291,99,{}},{}};
+        check(game.sample_fate(0,rng)==expected&&rng==0xb8f5d7dbd1668d5fULL&&game.snapshot()==before,"independent BigInt local Fate reference matches full payload and nextRNG");}
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),193> tests{{
+    const std::array<void(*)(),198> tests{{
         scope_reset_and_local_contract,
         weapon_frames_colors_owner_and_fixed_rewards,
         recovery_retention_capacity_and_atomicity,
@@ -2753,6 +2876,11 @@ int main(){
         fate_pool_dream_singleton_and_ordinary_role_boundaries,
         fate_pool_owned_use_and_pending_proof_replay,
         fate_pool_default_parity_and_late_failure_transactions,
+        fate_sampler_all_tickets_pure_and_executable,
+        fate_sampler_alive_targets_guardians_and_confusion_boundaries,
+        fate_sampler_shuffle_postconsume_source_qualified_capacity,
+        fate_sampler_phase_and_late_step_failure_transactions,
+        fate_sampler_independent_bigint_vectors,
     }};
     for(auto test:tests)test();
 

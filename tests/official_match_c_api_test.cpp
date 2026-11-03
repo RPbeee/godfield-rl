@@ -56,8 +56,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v43"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v43 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v44"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v44 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v41\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v42\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2684,6 +2684,76 @@ int main() {
         &&gfo_match_get_gift_weight(fate_pool_match,&pool_weight)==0&&pool_weight==499
         &&gfo_match_gift_supported(fate_pool_match,207,&pool_allowed)==0&&!pool_allowed,
         "explicitfalse retains the original pool descriptors");gfo_match_destroy(fate_pool_match);
+    auto fate_sample_cfg=fate_pool_cfg;fate_sample_cfg.initial_hand=0;fate_sample_cfg.max_decisions=64;
+    gfo_match* fate_sample_match=nullptr;check(gfo_match_create(&fate_sample_cfg,players.data(),2,42,&fate_sample_match)==0,"fate sampler bridge create");
+    std::array<gfo_state_player,3> fate_sample_people{};
+    for(auto& person:fate_sample_people){person.hp=99;person.mp=99;person.cp=99;}
+    fate_sample_people[0].id=0;fate_sample_people[0].confusion_count=1;fate_sample_people[0].item_count=3;
+    fate_sample_people[1].id=7;fate_sample_people[1].item_offset=3;fate_sample_people[1].item_count=1;
+    fate_sample_people[2].id=23;fate_sample_people[2].hp=0;fate_sample_people[2].dead=1;fate_sample_people[2].item_offset=4;fate_sample_people[2].item_count=1;
+    std::array<gfo_state_item,5> fate_sample_items{};
+    fate_sample_items[0].model=207;fate_sample_items[1].model=207;fate_sample_items[1].token=9;
+    fate_sample_items[2].model=235;fate_sample_items[2].token=2;fate_sample_items[2].used=1;
+    fate_sample_items[3].model=152;fate_sample_items[4].model=208;
+    gfo_state_meta fate_sample_meta{};gfo_state* fate_sample_scene=nullptr;
+    check(gfo_state_create(&fate_sample_meta,fate_sample_people.data(),3,fate_sample_items.data(),5,nullptr,0,&fate_sample_scene)==0
+        &&gfo_match_load_scene(fate_sample_match,fate_sample_scene,0,42,&result)==0,"load confused main source with two207 copies and a dead inventory");gfo_state_destroy(fate_sample_scene);
+    std::array<gfo_match_item_source,164> fate_buffer;for(auto& entry:fate_buffer)entry={0xababababababababULL,0xcdcdcdcdcdcdcdcdULL};
+    const auto fate_buffer_before=fate_buffer;gfo_match_fate_action fate_sample_out;std::memset(&fate_sample_out,0xa5,sizeof fate_sample_out);
+    const auto fate_header_before=fate_sample_out;uint64_t fate_chance=4;const auto fate_query_view=observe(fate_sample_match,0,0);const auto fate_query_status=status(fate_sample_match);
+    check(gfo_match_sample_fate(nullptr,0,&fate_chance,fate_buffer.data()+1,162,&fate_sample_out)==-1
+        &&gfo_match_sample_fate(fate_sample_match,0,nullptr,fate_buffer.data()+1,162,&fate_sample_out)==-1
+        &&gfo_match_sample_fate(fate_sample_match,0,&fate_chance,fate_buffer.data()+1,162,nullptr)==-1
+        &&gfo_match_sample_fate(fate_sample_match,0,&fate_chance,nullptr,1,&fate_sample_out)==-1
+        &&gfo_match_sample_fate(fate_sample_match,0,&fate_chance,nullptr,163,&fate_sample_out)==-2
+        &&gfo_match_sample_fate(fate_sample_match,0,&fate_chance,reinterpret_cast<gfo_match_item_source*>(uintptr_t{1}),std::numeric_limits<size_t>::max(),&fate_sample_out)==-2
+        &&fate_chance==4&&equal(fate_sample_out,fate_header_before)&&equal(fate_buffer,fate_buffer_before),"Fate variable manifest NULL and capacity guards never read or write caller storage");
+    for(uint64_t bad_token:{uint64_t{2},uint64_t{99},official::max_wire_integer+1})
+        check(gfo_match_sample_fate(fate_sample_match,bad_token,&fate_chance,fate_buffer.data()+1,162,&fate_sample_out)==-2
+            &&fate_chance==4&&equal(fate_sample_out,fate_header_before)&&equal(fate_buffer,fate_buffer_before),"Fate invalid token rejects before sampling or short-buffer resolution");
+    check(gfo_match_sample_fate(fate_sample_match,0,&fate_chance,nullptr,0,&fate_sample_out)==-4
+        &&gfo_match_sample_fate(fate_sample_match,0,&fate_chance,fate_buffer.data()+1,2,&fate_sample_out)==-4
+        &&fate_chance==4&&equal(fate_sample_out,fate_header_before)&&equal(fate_buffer,fate_buffer_before),"short Fate manifest is an atomic -4 including the entire caller tail");
+    struct FateGolden{uint64_t seed,next;uint16_t model;uint8_t targeted;uint64_t target;};
+    const std::array<FateGolden,10> fate_goldens{{
+        {2,11400714819323198487ULL,287,0,0},{15,11400714819323198500ULL,288,0,0},{6,11400714819323198491ULL,289,0,0},
+        {3,11400714819323198488ULL,290,0,0},{20,4354685564936845374ULL,291,1,7},{0,4354685564936845354ULL,292,1,0},
+        {10,4354685564936845364ULL,293,1,0},{7,4354685564936845361ULL,294,1,0},
+        {4,15755400384260043843ULL,295,0,0},{17,15755400384260043856ULL,296,0,0}
+    }};
+    for(const auto& golden:fate_goldens){fate_chance=golden.seed;fate_buffer=fate_buffer_before;fate_sample_out=fate_header_before;gfo_match_fate_action expected{};
+        expected.outcome.model=golden.model;expected.outcome.has_recipient=golden.targeted;expected.outcome.recipient=golden.target;
+        if(golden.model==296){expected.outcome.guardian_count=2;expected.outcome.guardians[0]=4;expected.outcome.guardians[1]=7;}
+        if(golden.model==295){expected.has_shuffle=1;expected.shuffle={fate_buffer.data()+1,3};}
+        check(gfo_match_sample_fate(fate_sample_match,0,&fate_chance,fate_buffer.data()+1,162,&fate_sample_out)==0
+            &&fate_chance==golden.next&&equal(fate_sample_out,expected),"ten independent Fate goldens include targetID0 and full canonical64-byte headers");
+        auto expected_buffer=fate_buffer_before;
+        if(golden.model==295){expected_buffer[1]={0,9};expected_buffer[2]={7,0};expected_buffer[3]={0,2};}
+        check(equal(fate_buffer,expected_buffer)&&equal(status(fate_sample_match),fate_query_status)
+            &&observe(fate_sample_match,0,0)==fate_query_view,"Fate output points at caller prefix, preserves guards/tail and never consumes a card or confusion count");
+    }
+    fate_chance=2;check(gfo_match_sample_fate(fate_sample_match,0,&fate_chance,nullptr,0,&fate_sample_out)==0
+        &&!fate_sample_out.has_shuffle&&!fate_sample_out.shuffle.order&&!fate_sample_out.shuffle.count,"non295 Fate succeeds without any manifest storage");
+    for(std::size_t count=0;count<=1;++count){
+        fate_sample_people[0].item_count=1;fate_sample_people[1].item_offset=1;fate_sample_people[1].item_count=count;
+        fate_sample_items[1]={};fate_sample_items[1].model=235;fate_sample_items[1].used=1;
+        check(gfo_state_create(&fate_sample_meta,fate_sample_people.data(),2,fate_sample_items.data(),1+count,nullptr,0,&fate_sample_scene)==0
+            &&gfo_match_load_scene(fate_sample_match,fate_sample_scene,0,42,&result)==0,"load empty or singleton post207 manifest");gfo_state_destroy(fate_sample_scene);
+        fate_chance=4;fate_buffer=fate_buffer_before;
+        check(gfo_match_sample_fate(fate_sample_match,0,&fate_chance,count?fate_buffer.data()+1:nullptr,count,&fate_sample_out)==0
+            &&fate_chance==11400714819323198489ULL&&fate_sample_out.has_shuffle&&fate_sample_out.shuffle.count==count
+            &&fate_sample_out.shuffle.order==(count?fate_buffer.data()+1:nullptr),"zero and singleton Fate shuffles consume no Fisher-Yates draws");
+        if(count)check(fate_buffer[1].owner==7&&fate_buffer[1].token==0&&equal(fate_buffer[0],fate_buffer_before[0])
+            &&equal(fate_buffer[2],fate_buffer_before[2]),"singleton caller source copy remains guarded");
+    }
+    fate_sample_people[1].confusion_count=official::max_wire_integer;
+    check(gfo_state_create(&fate_sample_meta,fate_sample_people.data(),2,fate_sample_items.data(),2,nullptr,0,&fate_sample_scene)==0
+        &&gfo_match_load_scene(fate_sample_match,fate_sample_scene,0,42,&result)==0,"load unrepresentable289 target count");gfo_state_destroy(fate_sample_scene);
+    fate_chance=6;fate_buffer=fate_buffer_before;fate_sample_out=fate_header_before;const auto overflow_fate_view=observe(fate_sample_match,0,0);
+    check(gfo_match_sample_fate(fate_sample_match,0,&fate_chance,fate_buffer.data()+1,162,&fate_sample_out)==-2
+        &&fate_chance==6&&equal(fate_sample_out,fate_header_before)&&equal(fate_buffer,fate_buffer_before)
+        &&observe(fate_sample_match,0,0)==overflow_fate_view,"invalid sampled289 is not rerolled and changes no chance stream, output or state");
+    gfo_match_destroy(fate_sample_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

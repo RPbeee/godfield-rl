@@ -1,0 +1,3585 @@
+{
+  "schema_version": 1,
+  "title": "Public Fate no-rate evidence and independent LOCAL sampler v44 vectors",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "official_evidence": {
+    "reference_helper": "io.jh actual formatter (visual card/text construction stubbed)",
+    "reference_helper_sha256": "ce54283575fdb542b00c45e536bbe455cec25ea635d3d5f58b3f213d96e2bf85",
+    "reference_cases": [
+      {
+        "locale": "ja",
+        "model": 207,
+        "rendered_rate_label": "授かり率: 1/500"
+      },
+      {
+        "locale": "ja",
+        "model": 291,
+        "rendered_rate_label": null
+      },
+      {
+        "locale": "ja",
+        "model": 295,
+        "rendered_rate_label": null
+      },
+      {
+        "locale": "ja",
+        "model": 296,
+        "rendered_rate_label": null
+      },
+      {
+        "locale": "en",
+        "model": 207,
+        "rendered_rate_label": "Gift Rate: 1/500"
+      }
+    ],
+    "phenomenon_rate_field_presence": [
+      {
+        "model": 287,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 288,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 289,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 290,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 291,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 292,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 293,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 294,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 295,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      },
+      {
+        "model": 296,
+        "gift_rate_present": false,
+        "appearance_rate_present": false,
+        "guardian_attack_rate_present": false
+      }
+    ],
+    "locales": {
+      "ja": {
+        "url": "https://godfield.net/i18n/ja.json",
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "fate_description": "超常現象が起こる",
+        "shuffle_description": "みんなの神器が<br>無作為に入れ替わる",
+        "guardian_description": "みんなに守護神が宿る"
+      },
+      "en": {
+        "url": "https://godfield.net/i18n/en.json",
+        "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+        "fate_description": "Cause<br>a phenomenon",
+        "shuffle_description": "Shuffle everybody's<br>artifacts",
+        "guardian_description": "Summon guardians<br>to everybody"
+      }
+    },
+    "boundary": "No published uniform10phenomenon rate,all-alive recipient distribution,independent guardian-type distribution or uniformfixedslotpermutation is established. Missing rate metadata is not zero-probability."
+  },
+  "local_reference": {
+    "official_client_selector": false,
+    "constants": {
+      "gamma": "0x9e3779b97f4a7c15",
+      "multiply1": "0xbf58476d1ce4e5b9",
+      "multiply2": "0x94d049bb133111eb"
+    },
+    "bounded_rule": "Unsigned SplitMix64,accept output>=2^64modn then outputmodn;all state/word values are exact hexadecimal uint64.",
+    "model_rule": "One bounded10,model287+ticket,equal10localoutcomes.",
+    "target_rule": "291..294:one bounded(aliveCount) chooses among all !deadplayers in input order,including owner and allies;no resource/HP/team preference.",
+    "guardian_rule": "296:one bounded10+1 peraliveplayer in input order;knownGuardian codes1..10;independent localassignments,including same types.",
+    "shuffle_rule": "295:alive input order then rawinventory order;remove exactly the selected(owner,token)207copy;other207/used/fake/passives are preserved. Backward Fisher-Yates for n=N..2 choosesj=bounded(n)andswapspositionsn-1/j;N0/1extra draws0.",
+    "guardian_codes": [
+      {
+        "id": 1,
+        "name": "mars"
+      },
+      {
+        "id": 2,
+        "name": "mercury"
+      },
+      {
+        "id": 3,
+        "name": "jupiter"
+      },
+      {
+        "id": 4,
+        "name": "saturn"
+      },
+      {
+        "id": 5,
+        "name": "uranus"
+      },
+      {
+        "id": 6,
+        "name": "pluto"
+      },
+      {
+        "id": 7,
+        "name": "neptune"
+      },
+      {
+        "id": 8,
+        "name": "venus"
+      },
+      {
+        "id": 9,
+        "name": "earth"
+      },
+      {
+        "id": 10,
+        "name": "moon"
+      }
+    ],
+    "fixtures": {
+      "empty_after_consumption": {
+        "owner": 42,
+        "token": 0,
+        "players": [
+          {
+            "id": 42,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": "solo",
+            "dead": false,
+            "items": []
+          }
+        ]
+      },
+      "one_after_consumption": {
+        "owner": 42,
+        "token": 0,
+        "players": [
+          {
+            "id": 42,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": "solo",
+            "dead": false,
+            "items": []
+          }
+        ]
+      },
+      "mixed_dead_and_duplicate_tokens": {
+        "owner": 42,
+        "token": 0,
+        "players": [
+          {
+            "id": 42,
+            "team": "red",
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 11,
+                "model": 235,
+                "used": true
+              },
+              {
+                "token": 15,
+                "model": 207
+              },
+              {
+                "token": 23,
+                "model": 6,
+                "fake": 8
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 120
+              },
+              {
+                "token": 41,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": "solo",
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 45,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 99,
+            "team": "red",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 199
+              },
+              {
+                "token": 9,
+                "model": 218,
+                "used": true
+              }
+            ]
+          }
+        ]
+      },
+      "full9x18": {
+        "owner": 42,
+        "token": 0,
+        "players": [
+          {
+            "id": 42,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 99,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 1001,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 314,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 8,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 9,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          },
+          {
+            "id": 9007199254740991,
+            "team": "solo",
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 1,
+                "model": 6
+              },
+              {
+                "token": 2,
+                "model": 6
+              },
+              {
+                "token": 3,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 6
+              },
+              {
+                "token": 5,
+                "model": 6
+              },
+              {
+                "token": 6,
+                "model": 6
+              },
+              {
+                "token": 7,
+                "model": 6
+              },
+              {
+                "token": 8,
+                "model": 6
+              },
+              {
+                "token": 9,
+                "model": 6
+              },
+              {
+                "token": 10,
+                "model": 6
+              },
+              {
+                "token": 11,
+                "model": 6
+              },
+              {
+                "token": 12,
+                "model": 6
+              },
+              {
+                "token": 13,
+                "model": 6
+              },
+              {
+                "token": 14,
+                "model": 6
+              },
+              {
+                "token": 15,
+                "model": 6
+              },
+              {
+                "token": 16,
+                "model": 6
+              },
+              {
+                "token": 17,
+                "model": 6
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "vectors": [
+      {
+        "label": "model-boundary-287",
+        "first_word": "0x0000000000000064",
+        "seed": "0x57b4c1fc7ebefd60",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 0,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 287,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xf5ec3bb5fe097975",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000064",
+            "result": 0
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-288",
+        "first_word": "0x0000000000000065",
+        "seed": "0x386f616ea5d6a384",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 1,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 288,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xd6a6db2825211f99",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000065",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-289",
+        "first_word": "0x0000000000000066",
+        "seed": "0x445dad76252c0cfd",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 2,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 289,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xe295272fa4768912",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000066",
+            "result": 2
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-290",
+        "first_word": "0x0000000000000067",
+        "seed": "0x808ec78cc797ebc5",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 3,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 290,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0x1ec6414646e267da",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000067",
+            "result": 3
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-291",
+        "first_word": "0x0000000000000068",
+        "seed": "0xcd46863b18fc3046",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 4,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 291,
+            "recipient": 99,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0x09b579ae17912870",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000068",
+            "result": 4
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xacfbd88754946c16",
+            "result": 2
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-292",
+        "first_word": "0x0000000000000069",
+        "seed": "0x6b6dc62e56527ad9",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 5,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 292,
+            "recipient": 0,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xa7dcb9a154e77303",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000069",
+            "result": 5
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xa05357453cda8312",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-293",
+        "first_word": "0x000000000000006a",
+        "seed": "0x447c8b806a150d26",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 6,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 293,
+            "recipient": 0,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0x80eb7ef368aa0550",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006a",
+            "result": 6
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xb9b45f1124b75068",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-294",
+        "first_word": "0x000000000000006b",
+        "seed": "0x973cb970b2c591ed",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 7,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 294,
+            "recipient": 0,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xd3abace3b15a8a17",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006b",
+            "result": 7
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x53296ffcf6f6a2ed",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-295",
+        "first_word": "0x000000000000006c",
+        "seed": "0xa0cae6e9a463f84d",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 8,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 295,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": {
+            "order": [
+              {
+                "owner": 42,
+                "token": 11
+              },
+              {
+                "owner": 0,
+                "token": 41
+              },
+              {
+                "owner": 42,
+                "token": 15
+              },
+              {
+                "owner": 0,
+                "token": 0
+              },
+              {
+                "owner": 99,
+                "token": 0
+              },
+              {
+                "owner": 99,
+                "token": 9
+              },
+              {
+                "owner": 42,
+                "token": 23
+              }
+            ]
+          }
+        },
+        "next_rng": "0xf44f3afc1f6d5ce0",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006c",
+            "result": 8
+          },
+          {
+            "bound": 7,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0x8e66c6d0b1141b6e",
+            "result": 2
+          },
+          {
+            "bound": 6,
+            "threshold": "0x0000000000000004",
+            "rejected_words": [],
+            "accepted_word": "0xe5d079cd452a036a",
+            "result": 2
+          },
+          {
+            "bound": 5,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xecacc227e4d29de2",
+            "result": 2
+          },
+          {
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x2ee8ec079a573333",
+            "result": 3
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xad41da2e5b4e40b2",
+            "result": 1
+          },
+          {
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x774e0ee4a63c9f2d",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "model-boundary-296",
+        "first_word": "0x000000000000006d",
+        "seed": "0x29a03e5c9696abe0",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 9,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 296,
+            "recipient": null,
+            "guardians": [
+              2,
+              10,
+              10
+            ]
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xa27e254293c09c34",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006d",
+            "result": 9
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x4f68407face44bed",
+            "result": 1
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0046409579114487",
+            "result": 9
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x52bccd1625d31d69",
+            "result": 9
+          }
+        ]
+      },
+      {
+        "label": "first-zero-rejected-by-bounded10",
+        "seed_expression": "-gamma mod2^64",
+        "seed": "0x61c8864680b583eb",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 5,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 292,
+            "recipient": 42,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0x3c6ef372fe94f82a",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [
+              "0x0000000000000000"
+            ],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 5
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x6e789e6aa1b965f4",
+            "result": 0
+          }
+        ]
+      },
+      {
+        "label": "shuffle-empty_after_consumption",
+        "seed": "0xa0cae6e9a463f84d",
+        "fixture": "empty_after_consumption",
+        "alive_input_order": [
+          42,
+          7
+        ],
+        "ticket": 8,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 295,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": {
+            "order": []
+          }
+        },
+        "next_rng": "0x3f0260a323ae7462",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006c",
+            "result": 8
+          }
+        ]
+      },
+      {
+        "label": "shuffle-one_after_consumption",
+        "seed": "0xa0cae6e9a463f84d",
+        "fixture": "one_after_consumption",
+        "alive_input_order": [
+          42,
+          7
+        ],
+        "ticket": 8,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 295,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": {
+            "order": [
+              {
+                "owner": 42,
+                "token": 17
+              }
+            ]
+          }
+        },
+        "next_rng": "0x3f0260a323ae7462",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006c",
+            "result": 8
+          }
+        ]
+      },
+      {
+        "label": "shuffle-full9x18",
+        "seed": "0xa0cae6e9a463f84d",
+        "fixture": "full9x18",
+        "alive_input_order": [
+          42,
+          0,
+          7,
+          99,
+          1001,
+          314,
+          8,
+          9,
+          9007199254740991
+        ],
+        "ticket": 8,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 295,
+            "recipient": null,
+            "guardians": []
+          },
+          "shuffle": {
+            "order": [
+              {
+                "owner": 314,
+                "token": 12
+              },
+              {
+                "owner": 1001,
+                "token": 0
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 16
+              },
+              {
+                "owner": 7,
+                "token": 14
+              },
+              {
+                "owner": 0,
+                "token": 8
+              },
+              {
+                "owner": 314,
+                "token": 6
+              },
+              {
+                "owner": 42,
+                "token": 7
+              },
+              {
+                "owner": 99,
+                "token": 10
+              },
+              {
+                "owner": 99,
+                "token": 8
+              },
+              {
+                "owner": 7,
+                "token": 15
+              },
+              {
+                "owner": 8,
+                "token": 16
+              },
+              {
+                "owner": 99,
+                "token": 12
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 13
+              },
+              {
+                "owner": 42,
+                "token": 6
+              },
+              {
+                "owner": 8,
+                "token": 2
+              },
+              {
+                "owner": 1001,
+                "token": 8
+              },
+              {
+                "owner": 99,
+                "token": 2
+              },
+              {
+                "owner": 0,
+                "token": 4
+              },
+              {
+                "owner": 99,
+                "token": 9
+              },
+              {
+                "owner": 42,
+                "token": 15
+              },
+              {
+                "owner": 314,
+                "token": 3
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 1
+              },
+              {
+                "owner": 9,
+                "token": 16
+              },
+              {
+                "owner": 314,
+                "token": 1
+              },
+              {
+                "owner": 0,
+                "token": 1
+              },
+              {
+                "owner": 7,
+                "token": 0
+              },
+              {
+                "owner": 314,
+                "token": 2
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 0
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 7
+              },
+              {
+                "owner": 42,
+                "token": 13
+              },
+              {
+                "owner": 42,
+                "token": 4
+              },
+              {
+                "owner": 99,
+                "token": 1
+              },
+              {
+                "owner": 1001,
+                "token": 10
+              },
+              {
+                "owner": 1001,
+                "token": 3
+              },
+              {
+                "owner": 7,
+                "token": 17
+              },
+              {
+                "owner": 7,
+                "token": 5
+              },
+              {
+                "owner": 7,
+                "token": 6
+              },
+              {
+                "owner": 8,
+                "token": 12
+              },
+              {
+                "owner": 9,
+                "token": 12
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 2
+              },
+              {
+                "owner": 1001,
+                "token": 17
+              },
+              {
+                "owner": 314,
+                "token": 13
+              },
+              {
+                "owner": 99,
+                "token": 13
+              },
+              {
+                "owner": 8,
+                "token": 13
+              },
+              {
+                "owner": 42,
+                "token": 9
+              },
+              {
+                "owner": 9,
+                "token": 1
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 15
+              },
+              {
+                "owner": 8,
+                "token": 3
+              },
+              {
+                "owner": 8,
+                "token": 6
+              },
+              {
+                "owner": 42,
+                "token": 16
+              },
+              {
+                "owner": 42,
+                "token": 2
+              },
+              {
+                "owner": 9,
+                "token": 11
+              },
+              {
+                "owner": 7,
+                "token": 3
+              },
+              {
+                "owner": 1001,
+                "token": 4
+              },
+              {
+                "owner": 314,
+                "token": 0
+              },
+              {
+                "owner": 99,
+                "token": 11
+              },
+              {
+                "owner": 99,
+                "token": 5
+              },
+              {
+                "owner": 7,
+                "token": 12
+              },
+              {
+                "owner": 7,
+                "token": 4
+              },
+              {
+                "owner": 9,
+                "token": 3
+              },
+              {
+                "owner": 1001,
+                "token": 5
+              },
+              {
+                "owner": 0,
+                "token": 13
+              },
+              {
+                "owner": 0,
+                "token": 11
+              },
+              {
+                "owner": 99,
+                "token": 15
+              },
+              {
+                "owner": 9,
+                "token": 7
+              },
+              {
+                "owner": 99,
+                "token": 16
+              },
+              {
+                "owner": 7,
+                "token": 13
+              },
+              {
+                "owner": 0,
+                "token": 9
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 10
+              },
+              {
+                "owner": 8,
+                "token": 9
+              },
+              {
+                "owner": 314,
+                "token": 9
+              },
+              {
+                "owner": 42,
+                "token": 5
+              },
+              {
+                "owner": 7,
+                "token": 16
+              },
+              {
+                "owner": 314,
+                "token": 8
+              },
+              {
+                "owner": 9,
+                "token": 4
+              },
+              {
+                "owner": 0,
+                "token": 15
+              },
+              {
+                "owner": 9,
+                "token": 9
+              },
+              {
+                "owner": 8,
+                "token": 1
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 9
+              },
+              {
+                "owner": 9,
+                "token": 2
+              },
+              {
+                "owner": 8,
+                "token": 5
+              },
+              {
+                "owner": 0,
+                "token": 12
+              },
+              {
+                "owner": 8,
+                "token": 8
+              },
+              {
+                "owner": 314,
+                "token": 5
+              },
+              {
+                "owner": 7,
+                "token": 7
+              },
+              {
+                "owner": 9,
+                "token": 10
+              },
+              {
+                "owner": 0,
+                "token": 5
+              },
+              {
+                "owner": 314,
+                "token": 17
+              },
+              {
+                "owner": 7,
+                "token": 1
+              },
+              {
+                "owner": 9,
+                "token": 15
+              },
+              {
+                "owner": 314,
+                "token": 15
+              },
+              {
+                "owner": 99,
+                "token": 14
+              },
+              {
+                "owner": 99,
+                "token": 0
+              },
+              {
+                "owner": 7,
+                "token": 9
+              },
+              {
+                "owner": 1001,
+                "token": 12
+              },
+              {
+                "owner": 8,
+                "token": 14
+              },
+              {
+                "owner": 1001,
+                "token": 16
+              },
+              {
+                "owner": 0,
+                "token": 16
+              },
+              {
+                "owner": 7,
+                "token": 10
+              },
+              {
+                "owner": 8,
+                "token": 10
+              },
+              {
+                "owner": 1001,
+                "token": 13
+              },
+              {
+                "owner": 99,
+                "token": 4
+              },
+              {
+                "owner": 7,
+                "token": 8
+              },
+              {
+                "owner": 0,
+                "token": 3
+              },
+              {
+                "owner": 42,
+                "token": 17
+              },
+              {
+                "owner": 1001,
+                "token": 7
+              },
+              {
+                "owner": 7,
+                "token": 2
+              },
+              {
+                "owner": 8,
+                "token": 17
+              },
+              {
+                "owner": 9,
+                "token": 8
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 3
+              },
+              {
+                "owner": 9,
+                "token": 17
+              },
+              {
+                "owner": 314,
+                "token": 4
+              },
+              {
+                "owner": 99,
+                "token": 7
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 5
+              },
+              {
+                "owner": 42,
+                "token": 14
+              },
+              {
+                "owner": 0,
+                "token": 6
+              },
+              {
+                "owner": 0,
+                "token": 14
+              },
+              {
+                "owner": 99,
+                "token": 3
+              },
+              {
+                "owner": 1001,
+                "token": 6
+              },
+              {
+                "owner": 314,
+                "token": 16
+              },
+              {
+                "owner": 99,
+                "token": 17
+              },
+              {
+                "owner": 1001,
+                "token": 15
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 12
+              },
+              {
+                "owner": 42,
+                "token": 1
+              },
+              {
+                "owner": 42,
+                "token": 10
+              },
+              {
+                "owner": 8,
+                "token": 4
+              },
+              {
+                "owner": 0,
+                "token": 10
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 17
+              },
+              {
+                "owner": 1001,
+                "token": 14
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 11
+              },
+              {
+                "owner": 8,
+                "token": 11
+              },
+              {
+                "owner": 1001,
+                "token": 9
+              },
+              {
+                "owner": 9,
+                "token": 6
+              },
+              {
+                "owner": 314,
+                "token": 11
+              },
+              {
+                "owner": 42,
+                "token": 8
+              },
+              {
+                "owner": 314,
+                "token": 10
+              },
+              {
+                "owner": 8,
+                "token": 7
+              },
+              {
+                "owner": 314,
+                "token": 14
+              },
+              {
+                "owner": 99,
+                "token": 6
+              },
+              {
+                "owner": 314,
+                "token": 7
+              },
+              {
+                "owner": 42,
+                "token": 12
+              },
+              {
+                "owner": 0,
+                "token": 7
+              },
+              {
+                "owner": 9,
+                "token": 14
+              },
+              {
+                "owner": 0,
+                "token": 0
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 8
+              },
+              {
+                "owner": 7,
+                "token": 11
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 6
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 4
+              },
+              {
+                "owner": 42,
+                "token": 11
+              },
+              {
+                "owner": 1001,
+                "token": 11
+              },
+              {
+                "owner": 1001,
+                "token": 1
+              },
+              {
+                "owner": 1001,
+                "token": 2
+              },
+              {
+                "owner": 42,
+                "token": 3
+              },
+              {
+                "owner": 0,
+                "token": 2
+              },
+              {
+                "owner": 8,
+                "token": 15
+              },
+              {
+                "owner": 9007199254740991,
+                "token": 14
+              },
+              {
+                "owner": 0,
+                "token": 17
+              },
+              {
+                "owner": 9,
+                "token": 0
+              },
+              {
+                "owner": 9,
+                "token": 5
+              },
+              {
+                "owner": 9,
+                "token": 13
+              },
+              {
+                "owner": 8,
+                "token": 0
+              }
+            ]
+          }
+        },
+        "next_rng": "0x21ae7492b23c0182",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006c",
+            "result": 8
+          },
+          {
+            "bound": 161,
+            "threshold": "0x0000000000000079",
+            "rejected_words": [],
+            "accepted_word": "0x8e66c6d0b1141b6e",
+            "result": 107
+          },
+          {
+            "bound": 160,
+            "threshold": "0x0000000000000060",
+            "rejected_words": [],
+            "accepted_word": "0xe5d079cd452a036a",
+            "result": 138
+          },
+          {
+            "bound": 159,
+            "threshold": "0x0000000000000079",
+            "rejected_words": [],
+            "accepted_word": "0xecacc227e4d29de2",
+            "result": 130
+          },
+          {
+            "bound": 158,
+            "threshold": "0x0000000000000082",
+            "rejected_words": [],
+            "accepted_word": "0x2ee8ec079a573333",
+            "result": 125
+          },
+          {
+            "bound": 157,
+            "threshold": "0x000000000000000e",
+            "rejected_words": [],
+            "accepted_word": "0xad41da2e5b4e40b2",
+            "result": 34
+          },
+          {
+            "bound": 156,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x774e0ee4a63c9f2d",
+            "result": 125
+          },
+          {
+            "bound": 155,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x96ea430c5be136d1",
+            "result": 122
+          },
+          {
+            "bound": 154,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x0a9b18cee4da4a63",
+            "result": 19
+          },
+          {
+            "bound": 153,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x19b890d45b11ab7f",
+            "result": 2
+          },
+          {
+            "bound": 152,
+            "threshold": "0x0000000000000070",
+            "rejected_words": [],
+            "accepted_word": "0x0a6cc0f0c094f799",
+            "result": 73
+          },
+          {
+            "bound": 151,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x093ae5fd202c26b1",
+            "result": 72
+          },
+          {
+            "bound": 150,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa34a0a8e28f3a726",
+            "result": 82
+          },
+          {
+            "bound": 149,
+            "threshold": "0x0000000000000066",
+            "rejected_words": [],
+            "accepted_word": "0xd111ea42ea9f806f",
+            "result": 10
+          },
+          {
+            "bound": 148,
+            "threshold": "0x000000000000000c",
+            "rejected_words": [],
+            "accepted_word": "0x14c276fa242bfe6b",
+            "result": 147
+          },
+          {
+            "bound": 147,
+            "threshold": "0x0000000000000064",
+            "rejected_words": [],
+            "accepted_word": "0x71bf4bf416caae75",
+            "result": 82
+          },
+          {
+            "bound": 146,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0x906af91cb5d7890c",
+            "result": 46
+          },
+          {
+            "bound": 145,
+            "threshold": "0x000000000000006f",
+            "rejected_words": [],
+            "accepted_word": "0x5e113d67cf105235",
+            "result": 73
+          },
+          {
+            "bound": 144,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xdf53f77fcd367811",
+            "result": 17
+          },
+          {
+            "bound": 143,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe6ffe3006710420f",
+            "result": 139
+          },
+          {
+            "bound": 142,
+            "threshold": "0x000000000000000a",
+            "rejected_words": [],
+            "accepted_word": "0x8e36d9590b366486",
+            "result": 24
+          },
+          {
+            "bound": 141,
+            "threshold": "0x0000000000000019",
+            "rejected_words": [],
+            "accepted_word": "0xcb6da95d4502a12d",
+            "result": 11
+          },
+          {
+            "bound": 140,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa3f15c373a2daf48",
+            "result": 96
+          },
+          {
+            "bound": 139,
+            "threshold": "0x000000000000000d",
+            "rejected_words": [],
+            "accepted_word": "0x82e56fe307f69309",
+            "result": 59
+          },
+          {
+            "bound": 138,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x57f354444aad6c79",
+            "result": 103
+          },
+          {
+            "bound": 137,
+            "threshold": "0x000000000000003c",
+            "rejected_words": [],
+            "accepted_word": "0x85412d83ea1d2b57",
+            "result": 114
+          },
+          {
+            "bound": 136,
+            "threshold": "0x0000000000000078",
+            "rejected_words": [],
+            "accepted_word": "0x9c8a69d9e6f17423",
+            "result": 99
+          },
+          {
+            "bound": 135,
+            "threshold": "0x000000000000006a",
+            "rejected_words": [],
+            "accepted_word": "0xf8a9e92f88d079b4",
+            "result": 7
+          },
+          {
+            "bound": 134,
+            "threshold": "0x0000000000000054",
+            "rejected_words": [],
+            "accepted_word": "0x05624369b15d9c2e",
+            "result": 100
+          },
+          {
+            "bound": 133,
+            "threshold": "0x000000000000005d",
+            "rejected_words": [],
+            "accepted_word": "0x97659c7c338d6708",
+            "result": 131
+          },
+          {
+            "bound": 132,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x4552f56087c26528",
+            "result": 80
+          },
+          {
+            "bound": 131,
+            "threshold": "0x0000000000000041",
+            "rejected_words": [],
+            "accepted_word": "0xe07994d742bff315",
+            "result": 118
+          },
+          {
+            "bound": 130,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xc7696a2661b74ab4",
+            "result": 122
+          },
+          {
+            "bound": 129,
+            "threshold": "0x000000000000007f",
+            "rejected_words": [],
+            "accepted_word": "0xff03a762200844a2",
+            "result": 85
+          },
+          {
+            "bound": 128,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x8abbe1eccf6693eb",
+            "result": 107
+          },
+          {
+            "bound": 127,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0xfc9a29c0f30e05a2",
+            "result": 27
+          },
+          {
+            "bound": 126,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x33688e87e0c813a9",
+            "result": 111
+          },
+          {
+            "bound": 125,
+            "threshold": "0x0000000000000074",
+            "rejected_words": [],
+            "accepted_word": "0x8afa8cb90d9b988d",
+            "result": 9
+          },
+          {
+            "bound": 124,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x2f73cdf98b97c944",
+            "result": 0
+          },
+          {
+            "bound": 123,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x4c920f2e4793ea3f",
+            "result": 111
+          },
+          {
+            "bound": 122,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe51a3ca42e9fb3da",
+            "result": 86
+          },
+          {
+            "bound": 121,
+            "threshold": "0x000000000000005d",
+            "rejected_words": [],
+            "accepted_word": "0x315f532fdd168752",
+            "result": 70
+          },
+          {
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf1e87920ff7ee8c9",
+            "result": 105
+          },
+          {
+            "bound": 119,
+            "threshold": "0x0000000000000056",
+            "rejected_words": [],
+            "accepted_word": "0x3fe58323781d087d",
+            "result": 77
+          },
+          {
+            "bound": 118,
+            "threshold": "0x0000000000000040",
+            "rejected_words": [],
+            "accepted_word": "0x3fa2006bc08f6798",
+            "result": 56
+          },
+          {
+            "bound": 117,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe806bd2a5e85ecad",
+            "result": 31
+          },
+          {
+            "bound": 116,
+            "threshold": "0x0000000000000018",
+            "rejected_words": [],
+            "accepted_word": "0x14b661a9bd338ba7",
+            "result": 23
+          },
+          {
+            "bound": 115,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x2a2223a72bffca9b",
+            "result": 13
+          },
+          {
+            "bound": 114,
+            "threshold": "0x0000000000000070",
+            "rejected_words": [],
+            "accepted_word": "0x7e8425e1f5bd060a",
+            "result": 10
+          },
+          {
+            "bound": 113,
+            "threshold": "0x000000000000001e",
+            "rejected_words": [],
+            "accepted_word": "0x8534d4d9bfcd4524",
+            "result": 60
+          },
+          {
+            "bound": 112,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe5fccef88d5a82ad",
+            "result": 93
+          },
+          {
+            "bound": 111,
+            "threshold": "0x0000000000000031",
+            "rejected_words": [],
+            "accepted_word": "0x97417022d811c872",
+            "result": 96
+          },
+          {
+            "bound": 110,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x442ae9ee401533aa",
+            "result": 82
+          },
+          {
+            "bound": 109,
+            "threshold": "0x0000000000000042",
+            "rejected_words": [],
+            "accepted_word": "0x8844fb72045439d9",
+            "result": 100
+          },
+          {
+            "bound": 108,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x2ce83c71469a7421",
+            "result": 9
+          },
+          {
+            "bound": 107,
+            "threshold": "0x000000000000005c",
+            "rejected_words": [],
+            "accepted_word": "0x593139fd7ca4bd0e",
+            "result": 37
+          },
+          {
+            "bound": 106,
+            "threshold": "0x0000000000000044",
+            "rejected_words": [],
+            "accepted_word": "0x1ab9a26580857f34",
+            "result": 78
+          },
+          {
+            "bound": 105,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf30694ea4ac89368",
+            "result": 16
+          },
+          {
+            "bound": 104,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x1f0ce53cf0e27174",
+            "result": 20
+          },
+          {
+            "bound": 103,
+            "threshold": "0x0000000000000037",
+            "rejected_words": [],
+            "accepted_word": "0x9a538e483f4993bc",
+            "result": 43
+          },
+          {
+            "bound": 102,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x6599202bffdf073b",
+            "result": 57
+          },
+          {
+            "bound": 101,
+            "threshold": "0x000000000000004f",
+            "rejected_words": [],
+            "accepted_word": "0xa72a0c0ef3b547bc",
+            "result": 84
+          },
+          {
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x24b0a131bafb2a00",
+            "result": 56
+          },
+          {
+            "bound": 99,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x3b1106ebe2f1ec78",
+            "result": 45
+          },
+          {
+            "bound": 98,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0xa5ae09e386121e6f",
+            "result": 33
+          },
+          {
+            "bound": 97,
+            "threshold": "0x000000000000003d",
+            "rejected_words": [],
+            "accepted_word": "0xb899c00133dea960",
+            "result": 87
+          },
+          {
+            "bound": 96,
+            "threshold": "0x0000000000000040",
+            "rejected_words": [],
+            "accepted_word": "0xa34645c9d0e97056",
+            "result": 86
+          },
+          {
+            "bound": 95,
+            "threshold": "0x0000000000000024",
+            "rejected_words": [],
+            "accepted_word": "0x6d36871904df90c2",
+            "result": 83
+          },
+          {
+            "bound": 94,
+            "threshold": "0x0000000000000048",
+            "rejected_words": [],
+            "accepted_word": "0x9d6a9c8322517ab2",
+            "result": 44
+          },
+          {
+            "bound": 93,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xbf788e9df243fef2",
+            "result": 53
+          },
+          {
+            "bound": 92,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x64c69758034c2f6f",
+            "result": 67
+          },
+          {
+            "bound": 91,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa6bacc8c69cc02fd",
+            "result": 16
+          },
+          {
+            "bound": 90,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x418c35545e6d3bbb",
+            "result": 11
+          },
+          {
+            "bound": 89,
+            "threshold": "0x0000000000000043",
+            "rejected_words": [],
+            "accepted_word": "0xa8e11364c07e7b8b",
+            "result": 36
+          },
+          {
+            "bound": 88,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xfa7bf89669ef1615",
+            "result": 37
+          },
+          {
+            "bound": 87,
+            "threshold": "0x0000000000000052",
+            "rejected_words": [],
+            "accepted_word": "0xe614849cfa6092cc",
+            "result": 22
+          },
+          {
+            "bound": 86,
+            "threshold": "0x0000000000000054",
+            "rejected_words": [],
+            "accepted_word": "0x5104231fcf3a73ea",
+            "result": 56
+          },
+          {
+            "bound": 85,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xc8c82b78b6faf9f3",
+            "result": 42
+          },
+          {
+            "bound": 84,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x78ae62a217af1abb",
+            "result": 83
+          },
+          {
+            "bound": 83,
+            "threshold": "0x0000000000000024",
+            "rejected_words": [],
+            "accepted_word": "0x25a767a5866cf940",
+            "result": 23
+          },
+          {
+            "bound": 82,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x7543f9d1e8a15c6d",
+            "result": 29
+          },
+          {
+            "bound": 81,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0xeee87860fb5b7b61",
+            "result": 60
+          },
+          {
+            "bound": 80,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x178e03ab7653ae69",
+            "result": 9
+          },
+          {
+            "bound": 79,
+            "threshold": "0x0000000000000033",
+            "rejected_words": [],
+            "accepted_word": "0x50b7d88afcaf55cc",
+            "result": 2
+          },
+          {
+            "bound": 78,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x6f8bde5ac22590b6",
+            "result": 42
+          },
+          {
+            "bound": 77,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xcde3b9056d7a10b7",
+            "result": 7
+          },
+          {
+            "bound": 76,
+            "threshold": "0x0000000000000024",
+            "rejected_words": [],
+            "accepted_word": "0xd229ecdd4003cad4",
+            "result": 32
+          },
+          {
+            "bound": 75,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x69d4203a9d12864e",
+            "result": 44
+          },
+          {
+            "bound": 74,
+            "threshold": "0x000000000000000c",
+            "rejected_words": [],
+            "accepted_word": "0xe48e59164571b259",
+            "result": 33
+          },
+          {
+            "bound": 73,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0x8b192fae69feee7d",
+            "result": 51
+          },
+          {
+            "bound": 72,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xad8a15a3f6acb2ec",
+            "result": 4
+          },
+          {
+            "bound": 71,
+            "threshold": "0x000000000000000a",
+            "rejected_words": [],
+            "accepted_word": "0x4acf643157289100",
+            "result": 45
+          },
+          {
+            "bound": 70,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x576e04a7a74caa91",
+            "result": 31
+          },
+          {
+            "bound": 69,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0x36b7080a1c84b475",
+            "result": 19
+          },
+          {
+            "bound": 68,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0xac8b24ab542c2836",
+            "result": 26
+          },
+          {
+            "bound": 67,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0x0484d29279e75293",
+            "result": 48
+          },
+          {
+            "bound": 66,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x6071467e45cd2d15",
+            "result": 31
+          },
+          {
+            "bound": 65,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x6c5005b1c58670fc",
+            "result": 60
+          },
+          {
+            "bound": 64,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x119c2d7d87e3fd13",
+            "result": 19
+          },
+          {
+            "bound": 63,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe6dc139d069472e5",
+            "result": 28
+          },
+          {
+            "bound": 62,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xdd1b5eeaebf1d6c8",
+            "result": 30
+          },
+          {
+            "bound": 61,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa2ad5b5c68bb686d",
+            "result": 7
+          },
+          {
+            "bound": 60,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x369fbdb27c5cf730",
+            "result": 56
+          },
+          {
+            "bound": 59,
+            "threshold": "0x0000000000000005",
+            "rejected_words": [],
+            "accepted_word": "0xfd9953676a48829a",
+            "result": 39
+          },
+          {
+            "bound": 58,
+            "threshold": "0x0000000000000018",
+            "rejected_words": [],
+            "accepted_word": "0x89d79b28eb3cda6b",
+            "result": 47
+          },
+          {
+            "bound": 57,
+            "threshold": "0x0000000000000037",
+            "rejected_words": [],
+            "accepted_word": "0x3e9b0c815cc22ea5",
+            "result": 39
+          },
+          {
+            "bound": 56,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x04767cc74ada47f7",
+            "result": 7
+          },
+          {
+            "bound": 55,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x04664f49b888e955",
+            "result": 11
+          },
+          {
+            "bound": 54,
+            "threshold": "0x0000000000000034",
+            "rejected_words": [],
+            "accepted_word": "0xf20ba66810eead2a",
+            "result": 32
+          },
+          {
+            "bound": 53,
+            "threshold": "0x000000000000000f",
+            "rejected_words": [],
+            "accepted_word": "0x9c2fa4ef2a0459fa",
+            "result": 38
+          },
+          {
+            "bound": 52,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x4f17b6c3feb8d911",
+            "result": 13
+          },
+          {
+            "bound": 51,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xc4bb96234095e40c",
+            "result": 1
+          },
+          {
+            "bound": 50,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xb3fc7f9512cc07b3",
+            "result": 15
+          },
+          {
+            "bound": 49,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0x596dbdab339e52a8",
+            "result": 10
+          },
+          {
+            "bound": 48,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x08f3236f6bce5cd5",
+            "result": 37
+          },
+          {
+            "bound": 47,
+            "threshold": "0x0000000000000019",
+            "rejected_words": [],
+            "accepted_word": "0xe8cbd6f4abae105c",
+            "result": 42
+          },
+          {
+            "bound": 46,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x61c695a57d46fa89",
+            "result": 27
+          },
+          {
+            "bound": 45,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x8ec49589d465378d",
+            "result": 8
+          },
+          {
+            "bound": 44,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x1fb0c201c1417503",
+            "result": 27
+          },
+          {
+            "bound": 43,
+            "threshold": "0x0000000000000029",
+            "rejected_words": [],
+            "accepted_word": "0x3362f737bdc66dbb",
+            "result": 10
+          },
+          {
+            "bound": 42,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xfe9156cd2866b06f",
+            "result": 27
+          },
+          {
+            "bound": 41,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x80b691126b96ecb2",
+            "result": 36
+          },
+          {
+            "bound": 40,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xc355f4dc200a49e2",
+            "result": 10
+          },
+          {
+            "bound": 39,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x07f9cad48d8c9149",
+            "result": 20
+          },
+          {
+            "bound": 38,
+            "threshold": "0x0000000000000024",
+            "rejected_words": [],
+            "accepted_word": "0x30af007651e3db02",
+            "result": 2
+          },
+          {
+            "bound": 37,
+            "threshold": "0x000000000000000c",
+            "rejected_words": [],
+            "accepted_word": "0x1ef3227adea5d2c5",
+            "result": 27
+          },
+          {
+            "bound": 36,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x005f045011b6f7a7",
+            "result": 27
+          },
+          {
+            "bound": 35,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xc98c4276a6c49eb4",
+            "result": 20
+          },
+          {
+            "bound": 34,
+            "threshold": "0x0000000000000012",
+            "rejected_words": [],
+            "accepted_word": "0xdb49a2ba56f60bc6",
+            "result": 8
+          },
+          {
+            "bound": 33,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x26e808ddb38bed73",
+            "result": 29
+          },
+          {
+            "bound": 32,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x2e06d0b7407d8f4b",
+            "result": 11
+          },
+          {
+            "bound": 31,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa7bc88c58eb4f632",
+            "result": 3
+          },
+          {
+            "bound": 30,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xb91201cb9fa0621c",
+            "result": 12
+          },
+          {
+            "bound": 29,
+            "threshold": "0x0000000000000018",
+            "rejected_words": [],
+            "accepted_word": "0x16fd45813c84058e",
+            "result": 13
+          },
+          {
+            "bound": 28,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x1335e86536b062bd",
+            "result": 17
+          },
+          {
+            "bound": 27,
+            "threshold": "0x0000000000000019",
+            "rejected_words": [],
+            "accepted_word": "0x861661c67e98220a",
+            "result": 26
+          },
+          {
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x536261b9d030713b",
+            "result": 17
+          },
+          {
+            "bound": 25,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x0eaa266eb1f13a8c",
+            "result": 18
+          },
+          {
+            "bound": 24,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xc54325f6d962a9b0",
+            "result": 16
+          },
+          {
+            "bound": 23,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x8e491fa9b4578d1c",
+            "result": 18
+          },
+          {
+            "bound": 22,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x4bc2d75bd3e7f404",
+            "result": 8
+          },
+          {
+            "bound": 21,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf1d482c4fa396951",
+            "result": 12
+          },
+          {
+            "bound": 20,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf0439ea2398407f6",
+            "result": 14
+          },
+          {
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0x6e4d2c140c4c4dcb",
+            "result": 13
+          },
+          {
+            "bound": 18,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x12a32e359eb1a40c",
+            "result": 8
+          },
+          {
+            "bound": 17,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xeb9b5cfdca9eba67",
+            "result": 7
+          },
+          {
+            "bound": 16,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x9396f4bc413f6c69",
+            "result": 9
+          },
+          {
+            "bound": 15,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x28c846db8cd4dfd0",
+            "result": 7
+          },
+          {
+            "bound": 14,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0x9e828a05cf3e03a5",
+            "result": 5
+          },
+          {
+            "bound": 13,
+            "threshold": "0x0000000000000003",
+            "rejected_words": [],
+            "accepted_word": "0x708681e456155bf7",
+            "result": 12
+          },
+          {
+            "bound": 12,
+            "threshold": "0x0000000000000004",
+            "rejected_words": [],
+            "accepted_word": "0xffced055b346604f",
+            "result": 11
+          },
+          {
+            "bound": 11,
+            "threshold": "0x0000000000000005",
+            "rejected_words": [],
+            "accepted_word": "0x938e786acdce9b8a",
+            "result": 0
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0xde38bd65e1ed8cbf",
+            "result": 1
+          },
+          {
+            "bound": 9,
+            "threshold": "0x0000000000000007",
+            "rejected_words": [],
+            "accepted_word": "0xe9e9aaefe44993f3",
+            "result": 3
+          },
+          {
+            "bound": 8,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x74fe813b1a1d930f",
+            "result": 7
+          },
+          {
+            "bound": 7,
+            "threshold": "0x0000000000000002",
+            "rejected_words": [],
+            "accepted_word": "0xb901fca9272ea503",
+            "result": 6
+          },
+          {
+            "bound": 6,
+            "threshold": "0x0000000000000004",
+            "rejected_words": [],
+            "accepted_word": "0xcc44965acfd40865",
+            "result": 5
+          },
+          {
+            "bound": 5,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x585367b739437212",
+            "result": 3
+          },
+          {
+            "bound": 4,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x5e0b61b67776c115",
+            "result": 1
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xabf20df2063706b7",
+            "result": 0
+          },
+          {
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xe99849bdefc0d3d7",
+            "result": 1
+          }
+        ]
+      },
+      {
+        "label": "guardian-assignments-full9-input-order",
+        "seed": "0x29a03e5c9696abe0",
+        "fixture": "full9x18",
+        "alive_input_order": [
+          42,
+          0,
+          7,
+          99,
+          1001,
+          314,
+          8,
+          9,
+          9007199254740991
+        ],
+        "ticket": 9,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 296,
+            "recipient": null,
+            "guardians": [
+              2,
+              10,
+              10,
+              7,
+              7,
+              5,
+              3,
+              2,
+              3
+            ]
+          },
+          "shuffle": null
+        },
+        "next_rng": "0x57caff9b8f7f84b2",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000006d",
+            "result": 9
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x4f68407face44bed",
+            "result": 1
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0046409579114487",
+            "result": 9
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x52bccd1625d31d69",
+            "result": 9
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x400166d4b73b7652",
+            "result": 6
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x56d5bc96b748db32",
+            "result": 6
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x39e6f46d1fb79e70",
+            "result": 4
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x8b4ad6e1dcb0856a",
+            "result": 2
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0e53d0bcfcaf33d7",
+            "result": 1
+          },
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0xd84699a75e5b1ac8",
+            "result": 2
+          }
+        ]
+      },
+      {
+        "label": "target-owner-included",
+        "seed": "0x808110a8378ab12a",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 4,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 291,
+            "recipient": 42,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xbcf0041b361fa954",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000072",
+            "result": 4
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x7e443fdcd722be92",
+            "result": 0
+          }
+        ]
+      },
+      {
+        "label": "target-ally-included",
+        "seed": "0x7c86e468d2d19535",
+        "fixture": "mixed_dead_and_duplicate_tokens",
+        "alive_input_order": [
+          42,
+          0,
+          99
+        ],
+        "ticket": 4,
+        "action": {
+          "actor": 42,
+          "token": 0,
+          "outcome": {
+            "model": 291,
+            "recipient": 99,
+            "guardians": []
+          },
+          "shuffle": null
+        },
+        "next_rng": "0xb8f5d7dbd1668d5f",
+        "calls": [
+          {
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000090",
+            "result": 4
+          },
+          {
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xb88e7a7a9632076b",
+            "result": 2
+          }
+        ]
+      }
+    ],
+    "ownership": "Reference samples do not mutate fixtures,consume207,draw normalgifts,chargeMP or advance world/env/policyRNG. Caller-owned chanceRNG updates only;sample andstep are separate transactions and controllercheckpointing mustsavechanceRNG."
+  },
+  "counts": {
+    "actual_reference_cases": 5,
+    "local_vectors": 17,
+    "largest_post_consumption_manifest": 161
+  },
+  "limitations": [
+    "All model/target/guardian/permutation choices and SplitMix staging in the local section are explicit experimental rules. They are not official server/client selector golden vectors.",
+    "The public client supplies chosen outcomes/recipients/guardian arrays/itemrecords to receiver helpers;it doesnot reveal the authoritative selector. Random wording for295doesnot specify uniformpermutation,preserved recipient counts or identity policy.",
+    "The nine-player161copy manifest is one physical-copy permutation,not a hidden-world public event. Per-player repeated token0 values require(owner,token)identification. Do not expose fixture inventories,assignment arrays or sampled futurechoices to normalplayer policy.",
+    "Fake preservation/clearing andfresh token assignment occur at the existing Fate step,not in this samplerreference. Current compatible Dream restrictions anddead-source exclusion are localdomain constraints beyond broad renderer acceptance.",
+    "No oldFlash chooser,payload or schedule is transferred into these vectors. Include_fate normalpool configuration and the Fate decision to use a particular physical207remain separate from outcome sampling.",
+    "No source bundle is embedded. No applicationstartup,network,account,game connection,core/build or C++engine execution runs. Existingpins/reports remain unchanged."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_fate_sampler_oracle.cjs --client /path/main.dart.js --locale-ja /path/ja.json --locale-en /path/en.json [--check]"
+}

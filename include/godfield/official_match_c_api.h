@@ -164,6 +164,15 @@ int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_ma
 // No server selector is claimed. Only chance_rng changes on success; the match,
 // normal policy RNG and game RNG do not change. Errors preserve RNG/output.
 int gfo_match_sample_grant(const gfo_match* match, uint64_t* chance_rng, gfo_match_grant_action* out);
+// Privileged local Fate outcome/target/guardian/shuffle driver for one owned207.
+// Main owner only; confusion may remain. No game/policy RNG or state is changed.
+// order is caller-owned, capacity<=162; NULL is allowed only at capacity0.
+//295 uses the post207-consumption alive manifest. Success copies only count
+// records and points out.shuffle.order at caller storage (NULL for count0).
+// Non295/empty295 need no buffer. Short-4, errors and all failures preserve
+// chance_rng, the entire out header and every byte of order, including its tail.
+int gfo_match_sample_fate(const gfo_match* match, uint64_t token, uint64_t* chance_rng,
+                          gfo_match_item_source* order, size_t capacity, gfo_match_fate_action* out);
 // Explicit spectator:has_viewer0/viewer0. Otherwise has_viewer1 and an actual ID.
 // required includes NUL. NULL0 queries length. Short-4 changes no output bytes or
 // required length, and observation does not mutate any match state.

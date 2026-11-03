@@ -320,6 +320,30 @@ def _decode_grant(value):
     except InvalidMatchError as error: raise MatchError("invalid native grant shape", -3) from error
     return action
 
+def _decode_fate(value, storage, expected_token):
+    outcome = value.outcome; count = value.shuffle.count
+    pointer = c.cast(value.shuffle.order, c.c_void_p).value
+    if (value.has_shuffle > 1 or any(value.reserved) or value.token != expected_token
+        or not 287 <= outcome.model <= 296 or bool(value.has_shuffle) != (outcome.model == 295)
+        or count > len(storage) or (not value.has_shuffle and count)
+        or pointer != (c.addressof(storage) if count else None)
+        or outcome.has_recipient > 1 or any(outcome.reserved) or outcome.guardian_count > 9
+        or any(outcome.guardians[outcome.guardian_count:]) or (not outcome.has_recipient and outcome.recipient)
+        or bool(outcome.has_recipient) != (291 <= outcome.model <= 294)
+        or (outcome.model != 296 and outcome.guardian_count)):
+        raise MatchError("invalid native Fate descriptor", -3)
+    names = []
+    for guardian in outcome.guardians[:outcome.guardian_count]:
+        if not 1 <= guardian <= 10: raise MatchError("invalid native Fate guardian", -3)
+        names.append(_GUARDIAN_NAMES[guardian-1])
+    order = tuple(ItemSource(record.owner, record.token) for record in storage[:count])
+    if len(set(order)) != count: raise MatchError("duplicate native Fate source", -3)
+    result = FateAction(value.actor, value.token, PhenomenonAction(outcome.model,
+        outcome.recipient if outcome.has_recipient else None, tuple(names)), ItemShuffleAction(order) if value.has_shuffle else None)
+    try: _fate_action(result)
+    except InvalidMatchError as error: raise MatchError("invalid native Fate shape", -3) from error
+    return result
+
 class Match:
     """Owned mutable experimental match. Successful commands commit individually.
 
@@ -342,7 +366,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v43"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v44"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or lib.gfo_match_player_size() != c.sizeof(_Player)
@@ -423,6 +447,8 @@ class Match:
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_grant.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_DevilAction)]
         lib.gfo_match_sample_grant.restype = c.c_int
+        lib.gfo_match_sample_fate.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.POINTER(_ItemSource), c.c_size_t, c.POINTER(_FateAction)]
+        lib.gfo_match_sample_fate.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
         self.supported_models = tuple(card.id for card in self._data if lib.gfo_match_supported(card.id))
@@ -634,6 +660,17 @@ class Match:
         self._open(); rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64 - 1)); result = _DevilAction()
         _check(self._lib.gfo_match_sample_grant(self._handle, c.byref(rng), c.byref(result)))
         return _decode_grant(result), rng.value
+
+    def sample_fate(self, token, chance_rng):
+        """Return a supplied local Fate choice and new chance RNG; never commit a play.
+
+        The returned immutable manifest owns its references. This privileged
+        driver uses all alive inventories for295; server selectors are unknown.
+        """
+        self._open(); token = _integer(token, "fate token")
+        rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); storage = (_ItemSource * 162)(); result = _FateAction()
+        _check(self._lib.gfo_match_sample_fate(self._handle, token, c.byref(rng), storage, len(storage), c.byref(result)))
+        return _decode_fate(result, storage, token), rng.value
 
     def observe(self, viewer=None):
         self._open(); present = viewer is not None; id = 0 if viewer is None else _integer(viewer, "viewer")

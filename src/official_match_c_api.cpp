@@ -2,6 +2,7 @@
 #include "godfield/official_match.hpp"
 #include "official_state_bridge.hpp"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -191,6 +192,31 @@ gfo_match_grant_action encode_grant(const official::GrantAction& action) {
     out.removed_count=static_cast<uint8_t>(action.removed.size());
     for(std::size_t i=0;i<action.removed.size();++i){
         valid(action.removed[i]<=official::max_wire_integer && (!i || action.removed[i]!=action.removed[0]));out.removed[i]=action.removed[i];
+    }
+    return out;
+}
+gfo_match_fate_action encode_fate(const official::FateAction& action,std::array<gfo_match_item_source,162>& order) {
+    valid(action.actor<=official::max_wire_integer && action.token<=official::max_wire_integer
+        && action.outcome.model>=287 && action.outcome.model<=296
+        && action.shuffle.has_value()==(action.outcome.model==295));
+    const auto& outcome=action.outcome;const bool targeted=outcome.model>=291&&outcome.model<=294;
+    valid(outcome.recipient.has_value()==targeted && (outcome.model==296 || outcome.guardians.empty())
+        && outcome.guardians.size()<=official::player_capacity);
+    gfo_match_fate_action out{};out.actor=action.actor;out.token=action.token;out.outcome.model=outcome.model;
+    out.outcome.has_recipient=outcome.recipient.has_value();
+    if(outcome.recipient){valid(*outcome.recipient<=official::max_wire_integer);out.outcome.recipient=*outcome.recipient;}
+    out.outcome.guardian_count=static_cast<uint8_t>(outcome.guardians.size());
+    for(std::size_t i=0;i<outcome.guardians.size();++i){
+        const auto guardian=static_cast<unsigned>(outcome.guardians[i]);valid(guardian>=1&&guardian<=10);out.outcome.guardians[i]=static_cast<uint8_t>(guardian);
+    }
+    out.has_shuffle=action.shuffle.has_value();
+    if(action.shuffle){
+        valid(action.shuffle->order.size()<=order.size());out.shuffle.count=action.shuffle->order.size();
+        for(std::size_t i=0;i<out.shuffle.count;++i){const auto& source=action.shuffle->order[i];
+            valid(source.owner<=official::max_wire_integer&&source.token<=official::max_wire_integer);
+            for(std::size_t j=0;j<i;++j)valid(order[j].owner!=source.owner||order[j].token!=source.token);
+            order[i]={source.owner,source.token};
+        }
     }
     return out;
 }
@@ -433,6 +459,20 @@ int gfo_match_sample_grant(const gfo_match* match, uint64_t* chance_rng, gfo_mat
         auto rng=*chance_rng;const auto result=encode_grant(match->value.sample_grant(rng));
         *chance_rng=rng;*out=result;return 0;
     } catch(...) {return error();}
+}
+int gfo_match_sample_fate(const gfo_match* match,uint64_t token,uint64_t* chance_rng,
+                        gfo_match_item_source* order,size_t capacity,gfo_match_fate_action* out) {
+    if(!match || !chance_rng || !out)return -1;
+    if(capacity>official::player_capacity*official::visible_hand_capacity)return -2;
+    if(capacity&&!order)return -1;
+    try {
+        valid(token<=official::max_wire_integer);auto rng=*chance_rng;
+        const auto action=match->value.sample_fate(token,rng);std::array<gfo_match_item_source,162> staged;
+        auto encoded=encode_fate(action,staged);
+        if(encoded.shuffle.count>capacity)return -4;
+        if(encoded.shuffle.count){std::copy_n(staged.begin(),encoded.shuffle.count,order);encoded.shuffle.order=order;}
+        *out=encoded;*chance_rng=rng;return 0;
+    }catch(...){return error();}
 }
 int gfo_match_observe(const gfo_match* match, uint8_t has_viewer, uint64_t viewer, char* buffer, size_t capacity, size_t* required) {
     if (!match || !required || (!buffer && capacity)) return -1;

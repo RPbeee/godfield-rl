@@ -996,10 +996,14 @@ void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
     // ordinary owner and complete only the external decision/cutoff boundary.
     complete_decision(s,false);
 }
-void prepare_fate(const MatchSnapshot& s, const FateAction& action) {
-    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated && s.actor==action.actor && s.owner==action.actor,"fate needs the main owner");
-    const auto seat=index(s,action.actor); const auto& player=s.state.players[seat]; const auto* item=instance(player,action.token);
+std::size_t prepare_fate_source(const MatchSnapshot& s, PlayerId actor, ItemToken token) {
+    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated && s.actor==actor && s.owner==actor,"fate needs the main owner");
+    const auto seat=index(s,actor); const auto& player=s.state.players[seat]; const auto* item=instance(player,token);
     require(!player.dead && item && item->model==207 && !item->used && !item->fake_model,"fate requires one actual unused unmasked owned207");
+    return seat;
+}
+void prepare_fate(const MatchSnapshot& s, const FateAction& action) {
+    const auto seat=prepare_fate_source(s,action.actor,action.token);
     require((action.outcome.model==295)==action.shuffle.has_value(),"only295 requires a shuffle payload");
     auto after=s;
     if (after.state.players[seat].confusion_count>0) --after.state.players[seat].confusion_count;
@@ -1667,6 +1671,28 @@ bool Match::devil_legal(const DevilAction& action) const noexcept {
 MatchStep Match::devil_step(const DevilAction& action) {
     auto next=data_; execute_devil(next,action); auto output=result(next); data_=std::move(next); return output;
 }
+FateAction Match::sample_fate(ItemToken token, std::uint64_t& chance_rng) const {
+    (void)prepare_fate_source(data_,data_.owner,token);
+    auto rng=chance_rng;
+    FateAction selected{data_.owner,token,{static_cast<CardId>(287+bounded(rng,10)),{},{}},{}};
+    if (selected.outcome.model>=291 && selected.outcome.model<=294) {
+        std::array<PlayerId,player_capacity> alive; std::size_t count=0;
+        for (const auto& player:data_.state.players) if (!player.dead) alive[count++]=player.id;
+        selected.outcome.recipient=alive[bounded(rng,count)];
+    } else if (selected.outcome.model==296) {
+        for (const auto& player:data_.state.players) if (!player.dead)
+            selected.outcome.guardians.push_back(static_cast<Guardian>(1+bounded(rng,10)));
+    } else if (selected.outcome.model==295) {
+        selected.shuffle=ItemShuffleAction{};
+        auto& order=selected.shuffle->order;
+        for (const auto& player:data_.state.players) if (!player.dead) for (const auto& item:player.items)
+            if (player.id!=data_.owner || item.token!=token) order.push_back({player.id,item.token});
+        for (std::size_t count=order.size();count>1;--count) std::swap(order[count-1],order[bounded(rng,count)]);
+    }
+    prepare_fate(data_,selected);
+    chance_rng=rng;
+    return selected;
+}
 bool Match::fate_legal(const FateAction& action) const noexcept {
     try { prepare_fate(data_,action); return true; } catch (...) { return false; }
 }
@@ -1835,7 +1861,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v41\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v42\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1877,7 +1903,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
     out += "\",\"grant_rule\":\""; out += grant_rule;
     out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
-    out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule;
+    out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"gift_pool\":{\"include_fate\":"; out += data_.config.include_fate?"true":"false";
     out += ",\"models\":"+std::to_string(data_.config.include_fate?237:236)+",\"weight\":"+std::to_string(gift_weight())+'}';
     out += ",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
