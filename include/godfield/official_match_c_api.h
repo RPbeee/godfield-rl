@@ -29,6 +29,12 @@ typedef struct gfo_match_command {
     int32_t hp, mp, cp; // Allocation for exchange only; otherwise all0.
     uint8_t has_allocation, reserved_tail[3]; // Required for exchange, forbidden otherwise.
 } gfo_match_command;
+// Additive driver API1; existing Match ABI2/Command184 remain unchanged.
+typedef struct gfo_match_choice {
+    gfo_match_command command;
+    uint64_t fate_actor, fate_token;
+    uint8_t kind, reserved[7]; //0 Command,1 FateRequest; the inactive variant is entirely zero.
+} gfo_match_choice;
 typedef struct gfo_match_guardian_action {
     uint64_t source, target;
     uint16_t model;
@@ -70,6 +76,9 @@ typedef struct gfo_match_status {
 } gfo_match_status;
 
 int gfo_match_abi_version(void);
+int gfo_match_driver_api_version(void);
+const char* gfo_match_choice_rule(void);
+const char* gfo_match_driver_rule(void);
 const char* gfo_match_ruleset(void);
 const char* gfo_match_scope(void);
 int gfo_match_catalog_count(void);
@@ -82,6 +91,7 @@ int gfo_match_get_gift_weight(const gfo_match* match, uint16_t* out);
 size_t gfo_match_config_size(void);
 size_t gfo_match_player_size(void);
 size_t gfo_match_command_size(void);
+size_t gfo_match_choice_size(void);
 size_t gfo_match_status_size(void);
 size_t gfo_match_guardian_action_size(void);
 int gfo_match_guardian_supported(uint16_t model);
@@ -117,6 +127,20 @@ int gfo_match_load_scene(gfo_match* match, const gfo_state* state,
 int gfo_match_get_status(const gfo_match* match, gfo_match_status* out);
 int gfo_match_legal(const gfo_match* match, const gfo_match_command* command, uint8_t* out);
 int gfo_match_step(gfo_match* match, const gfo_match_command* command, gfo_match_status* out);
+// Visible-policy choice plus owned207 request at an ordinary main boundary.
+// FateRequest validates its source/token only, without selecting future effects.
+// Sampling and choice_step are separate transactions: commit a trial policy RNG
+// only after step success. No sampling changes the Match.
+int gfo_match_choice_legal(const gfo_match* match, const gfo_match_choice* choice, uint8_t* out);
+int gfo_match_sample_choice(const gfo_match* match, uint64_t* policy_rng, gfo_match_choice* out);
+int gfo_match_choice_step(gfo_match* match, const gfo_match_choice* choice,
+                          uint64_t* chance_rng, gfo_match_status* out);
+// Exactly one accepted decision: ordinary choice, confusion, or grant dispatch.
+// Match/status/both RNGs commit together. All caller output storage must be
+// valid and nonoverlapping; policy_rng==chance_rng is explicitly rejected(-2).
+// Equal seed values in distinct storage are valid. NULL required pointers are-1.
+int gfo_match_rollout_step(gfo_match* match, uint64_t* policy_rng,
+                           uint64_t* chance_rng, gfo_match_status* out);
 // Privileged externally resolved ordinary main command for a confused owner.
 // This step consumes a supplied command; sample_confusion is a separate local helper.
 // Uses the unchanged184-byte command.

@@ -19,6 +19,10 @@ static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initi
     && offsetof(gfo_match_config,local_guardian_payloads)==20 && offsetof(gfo_match_config,reserved_tail)==21);
 static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
     && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
+static_assert(std::is_standard_layout_v<gfo_match_choice> && sizeof(gfo_match_choice)==208
+    && offsetof(gfo_match_choice,command)==0 && offsetof(gfo_match_choice,fate_actor)==184
+    && offsetof(gfo_match_choice,fate_token)==192 && offsetof(gfo_match_choice,kind)==200
+    && offsetof(gfo_match_choice,reserved)==201);
 static_assert(std::is_standard_layout_v<gfo_match_guardian_action>
     && sizeof(gfo_match_guardian_action) == 24
     && offsetof(gfo_match_guardian_action, model) == 16
@@ -105,6 +109,14 @@ official::Command command(const gfo_match_command& c) {
         else valid(c.items[i] == 0);
     }
     return result;
+}
+official::PlayerChoice choice(const gfo_match_choice& input) {
+    valid(input.kind<=1 && zero(input.reserved));
+    if (!input.kind) { valid(!input.fate_actor && !input.fate_token); return command(input.command); }
+    const gfo_match_command inactive{};
+    valid(std::memcmp(&input.command,&inactive,sizeof inactive)==0
+        && input.fate_actor<=official::max_wire_integer && input.fate_token<=official::max_wire_integer);
+    return official::FateRequest{input.fate_actor,input.fate_token};
 }
 official::GuardianAction guardian_action(const gfo_match_guardian_action& input) {
     valid(zero(input.reserved) && input.has_target <= 1
@@ -231,6 +243,16 @@ gfo_match_guardian_payload_action encode_guardian_payload(const official::Guardi
     for(std::size_t i=0;i<action.models.size();++i){valid(action.models[i]>=1 && action.models[i]<=official::catalog_count);out.models[i]=action.models[i];}
     return out;
 }
+gfo_match_choice encode_choice(const official::PlayerChoice& selected) {
+    gfo_match_choice out{};
+    if (const auto* c=std::get_if<official::Command>(&selected)) out.command=encode(*c);
+    else {
+        const auto& request=std::get<official::FateRequest>(selected);
+        valid(request.actor<=official::max_wire_integer && request.token<=official::max_wire_integer);
+        out.kind=1;out.fate_actor=request.actor;out.fate_token=request.token;
+    }
+    return out;
+}
 gfo_match_status status(const official::Match& match) {
     const auto& s = match.snapshot();
     if (s.state.players.size() > 9 || s.winners.size() > 9 || s.rewards.size() != s.state.players.size()) throw std::logic_error("invalid native match output sizes");
@@ -248,6 +270,9 @@ gfo_match_status status(const official::Match& match) {
 }
 extern "C" {
 int gfo_match_abi_version(void) { return 2; }
+int gfo_match_driver_api_version(void) { return 1; }
+const char* gfo_match_choice_rule(void) { return official::choice_rule; }
+const char* gfo_match_driver_rule(void) { return official::driver_rule; }
 const char* gfo_match_ruleset(void) { return official::match_ruleset; }
 const char* gfo_match_scope(void) { return official::match_scope; }
 int gfo_match_catalog_count(void) { int n = 0; for (const auto& c : official::catalog()) n += official::match_supported(c.id); return n; }
@@ -266,6 +291,7 @@ int gfo_match_get_gift_weight(const gfo_match* match,uint16_t* out) {
 size_t gfo_match_config_size(void) { return sizeof(gfo_match_config); }
 size_t gfo_match_player_size(void) { return sizeof(gfo_match_player); }
 size_t gfo_match_command_size(void) { return sizeof(gfo_match_command); }
+size_t gfo_match_choice_size(void) { return sizeof(gfo_match_choice); }
 size_t gfo_match_status_size(void) { return sizeof(gfo_match_status); }
 size_t gfo_match_guardian_action_size(void) { return sizeof(gfo_match_guardian_action); }
 int gfo_match_guardian_supported(uint16_t model) { return official::match_guardian_supported(model); }
@@ -331,6 +357,31 @@ int gfo_match_step(gfo_match* match, const gfo_match_command* input, gfo_match_s
         const auto parsed = command(*input); auto next = match->value; next.step(parsed); const auto result = status(next);
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
+}
+int gfo_match_choice_legal(const gfo_match* match,const gfo_match_choice* input,uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    try { const auto parsed=choice(*input);const uint8_t result=match->value.choice_legal(parsed);*out=result;return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_sample_choice(const gfo_match* match,uint64_t* policy_rng,gfo_match_choice* out) {
+    if (!match || !policy_rng || !out) return -1;
+    try { auto trial=*policy_rng;const auto result=encode_choice(match->value.sample_choice(trial));
+        *out=result;*policy_rng=trial;return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_choice_step(gfo_match* match,const gfo_match_choice* input,uint64_t* chance_rng,gfo_match_status* out) {
+    if (!match || !input || !chance_rng || !out) return -1;
+    try { const auto parsed=choice(*input);auto next=match->value;auto trial=*chance_rng;
+        next.choice_step(parsed,trial);const auto result=status(next);
+        match->value=std::move(next);*out=result;*chance_rng=trial;return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_rollout_step(gfo_match* match,uint64_t* policy_rng,uint64_t* chance_rng,gfo_match_status* out) {
+    if (!match || !policy_rng || !chance_rng || !out) return -1;
+    try { valid(policy_rng!=chance_rng);auto next=match->value;auto policy=*policy_rng;auto chance=*chance_rng;
+        next.rollout_step(policy,chance);const auto result=status(next);
+        match->value=std::move(next);*out=result;*policy_rng=policy;*chance_rng=chance;return 0; }
+    catch(...) { return error(); }
 }
 int gfo_match_confusion_legal(const gfo_match* match, const gfo_match_command* input, uint8_t* out) {
     if (!match || !input || !out) return -1;

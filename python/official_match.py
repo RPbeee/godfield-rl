@@ -73,6 +73,13 @@ class Command:
     allocation: tuple[int, int, int] | None = None
 
 @dataclass(frozen=True)
+class FateRequest:
+    actor: int
+    token: int
+
+PlayerChoice = Command | FateRequest
+
+@dataclass(frozen=True)
 class GuardianAction:
     source: int
     model: int
@@ -139,6 +146,20 @@ class MatchStatus:
     @property
     def reward_by_player(self): return dict(zip(self.player_ids, self.rewards))
 
+@dataclass(frozen=True)
+class RolloutResult:
+    status: MatchStatus
+    policy_rng: int
+    chance_rng: int
+    steps: int
+
+class RolloutError(MatchError):
+    """A failed decision, with seeds/status after the last successful decision."""
+    def __init__(self, cause: MatchError, progress: RolloutResult):
+        super().__init__(f"chance rollout stopped after {progress.steps} successful steps: {cause}", cause.status)
+        self.cause = cause
+        self.progress = progress
+
 class _Config(c.Structure):
     _fields_ = [("max_decisions", c.c_uint32), ("initial_hand", c.c_uint8), ("hand_limit", c.c_uint8),
         ("external_grants", c.c_uint8), ("include_fate", c.c_uint8), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32),
@@ -149,6 +170,9 @@ class _Command(c.Structure):
     _fields_ = [("actor", c.c_uint64), ("target", c.c_uint64), ("kind", c.c_uint8), ("has_target", c.c_uint8),
         ("item_count", c.c_uint8), ("reserved", c.c_uint8 * 5), ("items", c.c_uint64 * 18),
         ("hp", c.c_int32), ("mp", c.c_int32), ("cp", c.c_int32), ("has_allocation", c.c_uint8), ("reserved_tail", c.c_uint8 * 3)]
+class _Choice(c.Structure):
+    _fields_ = [("command", _Command), ("fate_actor", c.c_uint64), ("fate_token", c.c_uint64),
+                ("kind", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _GuardianAction(c.Structure):
     _fields_ = [("source", c.c_uint64), ("target", c.c_uint64), ("model", c.c_uint16),
                 ("has_target", c.c_uint8), ("reserved", c.c_uint8 * 5)]
@@ -312,6 +336,24 @@ def _decode_command(value):
     if allocation is not None and any(amount < 0 or amount > 99 for amount in allocation): raise MatchError("invalid native resource allocation", -3)
     return Command(value.actor, KINDS[value.kind], tuple(value.items[:value.item_count]), value.target if value.has_target else None, allocation)
 
+def _choice(value):
+    result = _Choice()
+    if isinstance(value, Command): result.command = _command(value)
+    elif isinstance(value, FateRequest):
+        result.kind = 1; result.fate_actor = _integer(value.actor, "fate request actor"); result.fate_token = _integer(value.token, "fate request token")
+    else: raise InvalidMatchError("choice must be Command or FateRequest")
+    return result
+
+def _decode_choice(value):
+    try:
+        if value.kind == 0: result = _decode_command(value.command)
+        elif value.kind == 1: result = FateRequest(value.fate_actor, value.fate_token)
+        else: raise MatchError("unknown native choice kind", -3)
+        canonical = _choice(result)
+    except MatchError as error: raise MatchError("invalid native choice descriptor", -3) from error
+    if bytes(value) != bytes(canonical): raise MatchError("noncanonical native choice descriptor", -3)
+    return result
+
 def _decode_grant(value):
     if (value.model not in (0, 240, 241, 242, 243, 244) or value.has_resource > 1 or value.removed_count > 2
         or any(value.reserved) or any(value.removed[value.removed_count:])
@@ -373,20 +415,25 @@ class Match:
         self._handle = c.c_void_p()
         self._data = OfficialData(library); self._lib = lib = self._data._lib
         try:
-            for name in ("abi_version", "catalog_count", "gift_weight"):
+            for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size"):
+            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
+        self.driver_api_version = lib.gfo_match_driver_api_version()
+        self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
         if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v47"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21
             or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
+            or self.driver_api_version != 1 or lib.gfo_match_choice_size() != c.sizeof(_Choice)
+            or c.sizeof(_Choice) != 208 or _Choice.fate_actor.offset != 184 or _Choice.fate_token.offset != 192
+            or _Choice.kind.offset != 200 or _Choice.reserved.offset != 201
             or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)
             or lib.gfo_match_guardian_payload_action_size() != c.sizeof(_GuardianPayloadAction)
             or _GuardianPayloadAction.models.offset != 16 or _GuardianPayloadAction.guardian.offset != 52
@@ -421,6 +468,14 @@ class Match:
         lib.gfo_match_get_status.argtypes = [c.c_void_p, c.POINTER(_Status)]; lib.gfo_match_get_status.restype = c.c_int
         lib.gfo_match_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(c.c_uint8)]; lib.gfo_match_legal.restype = c.c_int
         lib.gfo_match_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_Status)]; lib.gfo_match_step.restype = c.c_int
+        lib.gfo_match_choice_legal.argtypes = [c.c_void_p, c.POINTER(_Choice), c.POINTER(c.c_uint8)]
+        lib.gfo_match_choice_legal.restype = c.c_int
+        lib.gfo_match_sample_choice.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Choice)]
+        lib.gfo_match_sample_choice.restype = c.c_int
+        lib.gfo_match_choice_step.argtypes = [c.c_void_p, c.POINTER(_Choice), c.POINTER(c.c_uint64), c.POINTER(_Status)]
+        lib.gfo_match_choice_step.restype = c.c_int
+        lib.gfo_match_rollout_step.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(c.c_uint64), c.POINTER(_Status)]
+        lib.gfo_match_rollout_step.restype = c.c_int
         lib.gfo_match_confusion_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(c.c_uint8)]
         lib.gfo_match_confusion_legal.restype = c.c_int
         lib.gfo_match_confusion_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_Status)]
@@ -671,6 +726,40 @@ class Match:
         _check(self._lib.gfo_match_sample_action(self._handle, c.byref(rng), c.byref(result)))
         return _decode_command(result), rng.value
 
+    def choice_legal(self, choice: PlayerChoice):
+        """Validate a Command or an owned207 request without selecting its outcome."""
+        self._open(); encoded = _choice(choice); result = c.c_uint8()
+        _check(self._lib.gfo_match_choice_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def sample_choice(self, policy_rng):
+        """Return (choice,new_policy) without a play or chance draw.
+
+        For separate choice_step, keep the old policy seed until that step succeeds.
+        rollout_step combines both operations and commits their streams together.
+        """
+        self._open(); rng = c.c_uint64(_integer(policy_rng, "policy_rng", 0, 2**64-1)); result = _Choice()
+        _check(self._lib.gfo_match_sample_choice(self._handle, c.byref(rng), c.byref(result)))
+        return _decode_choice(result), rng.value
+
+    def choice_step(self, choice: PlayerChoice, chance_rng):
+        """Apply one external choice atomically; return (status,new_chance)."""
+        self._open(); encoded = _choice(choice)
+        rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); result = _Status()
+        _check(self._lib.gfo_match_choice_step(self._handle, c.byref(encoded), c.byref(rng), c.byref(result)))
+        return _decode_status(result), rng.value
+
+    def rollout_step(self, policy_rng, chance_rng):
+        """Execute exactly one decision; commit Match and both streams together.
+
+        This local driver handles grant, confused main, ordinary player choices
+        including207, responses and purchases. It does not claim server selectors.
+        """
+        self._open(); policy = c.c_uint64(_integer(policy_rng, "policy_rng", 0, 2**64-1))
+        chance = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64-1)); result = _Status()
+        _check(self._lib.gfo_match_rollout_step(self._handle, c.byref(policy), c.byref(chance), c.byref(result)))
+        return _decode_status(result), policy.value, chance.value
+
     def sample_confusion(self, chance_rng):
         """Return a local visible-policy Command and new chance RNG for confusion.
 
@@ -733,6 +822,24 @@ class Match:
         while not self.done and (max_steps is None or steps < max_steps):
             command, policy_rng = self.sample_action(policy_rng); self.step(command); steps += 1
         return self.status, policy_rng
+
+    def chance_rollout(self, policy_rng=1, chance_rng=2, max_steps=None):
+        """Run a sequence of atomic decisions, returning immutable RolloutResult.
+
+        The sequence is not one transaction. RolloutError.progress keeps status,
+        both RNGs and the step count after the last successful decision, so a
+        failed decision can be retried after its cause is resolved. Its cause
+        and __cause__ preserve the original MatchError. No training is performed.
+        """
+        self._open(); policy_rng = _integer(policy_rng, "policy_rng", 0, 2**64-1)
+        chance_rng = _integer(chance_rng, "chance_rng", 0, 2**64-1)
+        if max_steps is not None: max_steps = _integer(max_steps, "max_steps", 0, 2**64-1)
+        progress = RolloutResult(self.status, policy_rng, chance_rng, 0)
+        while not progress.status.done and (max_steps is None or progress.steps < max_steps):
+            try: status, policy_rng, chance_rng = self.rollout_step(progress.policy_rng, progress.chance_rng)
+            except MatchError as error: raise RolloutError(error, progress) from error
+            progress = RolloutResult(status, policy_rng, chance_rng, progress.steps+1)
+        return progress
 
 if __name__ == "__main__":
     library = sys.argv[1] if len(sys.argv) > 1 else None

@@ -1728,6 +1728,55 @@ MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
 }
+bool Match::choice_legal(const PlayerChoice& choice) const noexcept {
+    try {
+        if (const auto* command=std::get_if<Command>(&choice)) { (void)prepare(data_,*command); return true; }
+        const auto& request=std::get<FateRequest>(choice);
+        const auto seat=prepare_fate_source(data_,request.actor,request.token);
+        require(data_.state.players[seat].confusion_count==0,"confused main owner cannot make a player choice");
+        return true;
+    } catch (...) { return false; }
+}
+PlayerChoice Match::sample_choice(std::uint64_t& policy_rng) const {
+    // Delegation preserves the exact old policy/RNG law outside ordinary main.
+    if (data_.phase!=MatchPhase::main) return sample_action(policy_rng);
+    require(!done() && data_.actor==data_.owner,"player choice needs the main owner");
+    const auto& own=data_.state.players[index(data_,data_.owner)];
+    if (own.confusion_count>0) unsupported("confused main selection belongs to the chance driver");
+    std::array<ItemToken,visible_hand_capacity> tokens; std::size_t count=0;
+    for (const auto& item:own.items) if (!item.used && !item.fake_model && face_model(item)==207) tokens[count++]=item.token;
+    if (!count) return sample_action(policy_rng);
+    auto rng=policy_rng;
+    const auto ticket=bounded(rng,count+1);
+    PlayerChoice choice=ticket?PlayerChoice{FateRequest{own.id,tokens[ticket-1]}}:PlayerChoice{sample_action(rng)};
+    require(choice_legal(choice),"sampled player choice is not legal");
+    policy_rng=rng; return choice;
+}
+void Match::apply_choice(const PlayerChoice& choice, std::uint64_t& chance_rng) {
+    if (const auto* command=std::get_if<Command>(&choice)) { execute(data_,*command); return; }
+    const auto& request=std::get<FateRequest>(choice);
+    const auto seat=prepare_fate_source(data_,request.actor,request.token);
+    require(data_.state.players[seat].confusion_count==0,"confused main owner cannot make a player choice");
+    const auto outcome=sample_fate(request.token,chance_rng);
+    execute_fate(data_,outcome);
+}
+MatchStep Match::choice_step(const PlayerChoice& choice, std::uint64_t& chance_rng) {
+    auto next=*this; auto chance=chance_rng;
+    next.apply_choice(choice,chance);
+    auto output=result(next.data_);
+    data_=std::move(next.data_); chance_rng=chance; return output;
+}
+MatchStep Match::rollout_step(std::uint64_t& policy_rng, std::uint64_t& chance_rng) {
+    require(&policy_rng!=&chance_rng,"policy and chance streams require distinct storage");
+    require(!done(),"cannot drive a finished match");
+    auto next=*this; auto policy=policy_rng; auto chance=chance_rng;
+    if (next.data_.phase==MatchPhase::grant) execute_grant(next.data_,next.sample_grant(chance));
+    else if (next.data_.phase==MatchPhase::main && next.data_.state.players[index(next.data_,next.data_.owner)].confusion_count>0)
+        execute(next.data_,next.sample_confusion(chance),true);
+    else next.apply_choice(next.sample_choice(policy),chance);
+    auto output=result(next.data_);
+    data_=std::move(next.data_); policy_rng=policy; chance_rng=chance; return output;
+}
 GrantAction Match::sample_grant(std::uint64_t& chance_rng) const {
     GrantAction selected{data_.pending_grant.value_or(0),0,{},{}};
     prepare_grant(data_,selected);

@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <variant>
 
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
@@ -41,6 +42,8 @@ inline constexpr const char* guardian_summon_rule = "experimental:201-and239-cur
 inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
 inline constexpr std::uint32_t match_snapshot_version = 47;
 inline constexpr const char* guardian_payload_auto_rule = "experimental:opt-in-local-guardian-payloads-default-false;existing-enemy-input-order-quarter-opportunity-after-owner-tick-before-deferred-gifts;only-successful-earth-moon-opportunities-use-shared-local120-26-selector;automatic-selection-and-body-use-game-rng-replayed-from-main-anchor;external-const-helper-keeps-caller-owned-chance-stream;no-additional-decision-source-items-ordinary-mp-fee-or-operation-gift;58-saves-launch-mp-and-drains-once-202-draws-one-sign-after-target;14-two-fresh-original-frames-with-death-then-counter-fifo-between-hits;fixed-launch-models-guardian-mp-sign-through-redirection-and-departure;stop-remaining-and-future-sources-on-main-owner-death-stop-remaining-on-source-or-target-death;self-nondamaging-body-immediate-with-shared-death-pump;launched-payload-log-only-no-future-rng-or-private-launch-values;external-payload-counter-unchanged-auto-counter-includes-both-kinds;other8-guardians-and-default-canonical285286-unchanged;uniform-base-geometric-extras-and-target-distribution-local-not-official-server-equivalence";
+inline constexpr const char* choice_rule = "experimental:player-choice-v1-command-or-fate-request-actor-token-only;no-outcome-recipient-guardian-assignment-or-shuffle-in-player-choice;normal-main-owner-count0-visible-unused-unmasked207;gift-flag-does-not-gate-already-owned207;inventory-order-per-copy-fate-envelopes-plus-one-normal-command-envelope;uniform-bounded-Nplus1-zero-delegates-old-command-policy-rest-select-one-token;no207-response-purchase-delegate-old-policy-with-no-extra-draw;ordinary-discard-and-trade207-roles-preserved;not-uniform-over-all-legal-actions-or-official-policy;grant-and-positive-confusion-main-refuse-with-policy-unchanged;pure-world-game-rng-and-chance-unchanged;request-preflight-does-not-probe-future-outcome-validity;sample-and-choice-step-separate-transactions";
+inline constexpr const char* driver_rule = "experimental:local-driver-api1-one-accepted-decision;grant-uses-chance-sample-grant-step;positive-confusion-main-uses-chance-existing-confusion-policy-no207;other-main-response-purchase-use-policy-player-choice;fate-request-resolved-only-by-chance-existing-fate-helper;ordinary-command-does-not-use-external-chance;game-rng-remains-owned-by-match;copy-world-and-trial-policy-and-chance-commit-only-after-full-step-and-result;failure-preserves-world-both-streams-and-outputs-no-reroll;distinct-policy-chance-storage-required-equal-values-allowed;no-new-phase-decision-fee-gift-or-observation-fields;save-match-snapshot-policy-chance-and-driver-api-policy-rule-for-resume;multi-step-rollout-is-sequence-of-transactions-not-one-transaction;existing-sample-action-confusion-fate-grant-and-random-rollout-unchanged;not-all-legal-actions-all-gift-devils-or-official-server-equivalence";
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 inline constexpr const char* guardian_payload_rule = "experimental:externally-selected-earth-moon-ordinary-model-columns;main-boundary-one-decision;alive-source-owns-explicit-guardian;all-models-in-guardian-category-domain-and-supported;actual-main-append;max18-models;earth120-moon26-standalone-bases;trade-danger-passive-response-only-bases-unsupported;mixed-domain-and-wide-unsupported;explicit-single-alive-target;14-two-fresh-hits-same-target;single-target-percent-and-darkcloud-no-reroll;no-fog-or-dream-reselection;no-source-inventory-retention-ordinary-mp-fee-or-operation-gift;58-launch-source-mp-times2-then-mp0-once;202-one-launch-sign;fixed-origin-guardian-and-launch-values-through-redirects;ordinary-response-counter-death-redraw-and-deferred-gifts;no-owner-tick-gf-or-auto-followup;resume-owner-or-next-alive;official-general-selector-unsupported-local-sampler-separate";
 inline constexpr const char* phenomenon_rule = "experimental:external-source-free-phenomena287-288-289-290-291-292-293-294-296;main-boundary-one-injection-decision;global5-unchanged-from-v34-plus289-alive-count-plus3-immediate-atomic-no-rng;targeted291-light50-292-dark30-at75-percent-293-hpplus50-cap99;explicit-single-alive-recipient291-to294;no-target-selector-wide-or-fog-reselection;targeted3-always-response-after-single-target-chance-and-darkcloud;environmental-frame-origin-source-absent-not-player0;190-consume-and-reserve-response-gift-then-cancel-without-return-recipient;source-directed-counters-not-created-without-source;187-self-mp-counter-and112-death-use-real-player-sources;ordinary-defense-filter-revival-death-redraw-and-deferred-gifts;targeted3-original-action-anchor-and-full-response-replay;no-owner-tick-gf-auto-source-items-mp-fee-or-operation-gift;resume-owner-or-next-alive-with-natural-before-cutoff;287-direct-fever-replacement-no-upgrade-or-heavenfall;288-idempotent-fog;290-direct-hp1-not-damage;294-sum-alive-cp-then-zero-all-before-recipient-cap99;296-exact-alive-count-explicit-guardian1-to10;guardian-changes-event-time-fog-filtered;public-model-recipient-only-no-assignment-array-or-cp-total;207-official-selector-unsupported-owned207-requires-fate-api;289-counts-require-dedicated-confusion-command-api;295-requires-dedicated-item-shuffle-api";
@@ -93,6 +96,13 @@ struct Command {
     std::optional<ResourceAllocation> allocation = std::nullopt;
     bool operator==(const Command&) const = default;
 };
+// A player's intention to use207. Its resolved outcome remains external chance.
+struct FateRequest {
+    PlayerId actor = 0;
+    ItemToken token = 0;
+    bool operator==(const FateRequest&) const = default;
+};
+using PlayerChoice = std::variant<Command,FateRequest>;
 // Privileged externally selected action, not a player command or automatic scheduler.
 struct GuardianAction {
     PlayerId source = 0;
@@ -399,6 +409,12 @@ public:
     [[nodiscard]] int gift_weight() const noexcept;
     [[nodiscard]] bool legal(const Command& command) const noexcept;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
+    [[nodiscard]] bool choice_legal(const PlayerChoice& choice) const noexcept;
+    [[nodiscard]] PlayerChoice sample_choice(std::uint64_t& policy_rng) const;
+    MatchStep choice_step(const PlayerChoice& choice, std::uint64_t& chance_rng);
+    // One accepted decision; world and both external streams commit together.
+    // Distinct RNG storage is required, even when their initial values coincide.
+    MatchStep rollout_step(std::uint64_t& policy_rng, std::uint64_t& chance_rng);
     // Privileged local chance policy. No match mutation; caller saves this RNG.
     [[nodiscard]] GrantAction sample_grant(std::uint64_t& chance_rng) const;
     [[nodiscard]] bool grant_legal(const GrantAction& action) const noexcept;
@@ -423,6 +439,7 @@ public:
     MatchStep step(const Command& command); // Errors leave all state, RNG and counters unchanged.
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
 private:
+    void apply_choice(const PlayerChoice& choice, std::uint64_t& chance_rng); // Only on a transaction copy.
     [[nodiscard]] Command sample_command(std::uint64_t& rng, bool allow_confused) const;
     MatchConfig config_;
     MatchSnapshot data_;

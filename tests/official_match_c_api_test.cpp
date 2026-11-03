@@ -2910,6 +2910,84 @@ int main() {
         &&observe(payload_auto_match,0,0).find("\"local_guardian_payloads\":true")!=std::string::npos
         &&observe(payload_auto_match,0,0).find("\"last_auto_guardian_payloads\":[]")!=std::string::npos,"reset retains local payload opt-in and clears its public history");
     gfo_match_destroy(payload_auto_match);
+    check(gfo_match_driver_api_version()==1&&gfo_match_choice_size()==208&&sizeof(gfo_match_choice)==208
+        &&offsetof(gfo_match_choice,fate_actor)==184&&offsetof(gfo_match_choice,fate_token)==192
+        &&offsetof(gfo_match_choice,kind)==200&&offsetof(gfo_match_choice,reserved)==201
+        &&std::string(gfo_match_choice_rule()).starts_with("experimental:")&&std::string(gfo_match_driver_rule()).starts_with("experimental:"),
+        "additive driver API1 advertises separate policy rules without changing Match ABI2");
+    gfo_match_config driver_cfg{};driver_cfg.max_decisions=64;driver_cfg.hand_limit=18;
+    driver_cfg.initial_hp=driver_cfg.initial_mp=driver_cfg.initial_cp=99;
+    gfo_match* driver_match=nullptr;gfo_match* driver_manual=nullptr;
+    check(gfo_match_create(&driver_cfg,players.data(),2,42,&driver_match)==0
+        &&gfo_match_create(&driver_cfg,players.data(),2,42,&driver_manual)==0,"create unchanged-default driver handles");
+    const auto load_driver=[&](gfo_match* into,bool fate,uint64_t update,bool max_confusion){
+        std::array<gfo_state_player,2> people{};people[1].id=7;
+        for(auto& person:people)person.hp=person.mp=person.cp=99;
+        people[0].item_count=fate?2:0;people[1].item_offset=people[0].item_count;
+        if(max_confusion)people[1].confusion_count=official::max_wire_integer;
+        std::array<gfo_state_item,2> cards{};cards[0].model=cards[1].model=207;cards[1].token=7;
+        gfo_state_meta meta{};meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,fate?cards.data():nullptr,fate?2:0,nullptr,0,&scene)==0
+            &&gfo_match_load_scene(into,scene,0,42,&result)==0,"initialize pure driver world without a future outcome");gfo_state_destroy(scene);
+    };
+    load_driver(driver_match,false,0,false);
+    const auto driver_before=observe(driver_match,0,0);const auto driver_before_status=status(driver_match);
+    for(uint64_t seed=0;seed<64;++seed){auto ordinary_rng=seed,choice_rng=seed;gfo_match_command ordinary{};gfo_match_choice chosen{};
+        check(gfo_match_sample_action(driver_match,&ordinary_rng,&ordinary)==0&&gfo_match_sample_choice(driver_match,&choice_rng,&chosen)==0
+            &&ordinary_rng==choice_rng&&!chosen.kind&&!chosen.fate_actor&&!chosen.fate_token&&equal(chosen.command,ordinary),
+            "no207 choice delegates to ordinary policy without an envelope draw");}
+    check(observe(driver_match,0,0)==driver_before&&equal(status(driver_match),driver_before_status),"sampling changes no world, decision or public history");
+    gfo_match_choice driver_canary;std::memset(&driver_canary,0xa5,sizeof driver_canary);const auto driver_canary_before=driver_canary;
+    uint64_t driver_policy=123,driver_chance=456;uint8_t driver_legal=177;
+    check(gfo_match_sample_choice(nullptr,&driver_policy,&driver_canary)==-1
+        &&gfo_match_sample_choice(driver_match,nullptr,&driver_canary)==-1
+        &&gfo_match_sample_choice(driver_match,&driver_policy,nullptr)==-1
+        &&driver_policy==123&&equal(driver_canary,driver_canary_before),"choice NULL failures preserve all208 output bytes and policy stream");
+    load_driver(driver_match,true,0,false);load_driver(driver_manual,true,0,false);
+    gfo_match_choice request{};request.kind=1;
+    driver_policy=0;
+    check(gfo_match_sample_choice(driver_match,&driver_policy,&driver_canary)==0&&equal(driver_canary,request)
+        &&driver_policy==11400714819323198485ULL
+        &&gfo_match_choice_legal(driver_match,&request,&driver_legal)==0&&driver_legal,"request actor0/token0 is an owned207 copy, with entirely zero inactive Command");
+    for(std::size_t byte=0;byte<sizeof(gfo_match_command);++byte){auto bad=request;
+        reinterpret_cast<unsigned char*>(&bad.command)[byte]=1;driver_legal=177;
+        check(gfo_match_choice_legal(driver_match,&bad,&driver_legal)==-2&&driver_legal==177,"every inactive Command byte is checked before request processing");}
+    for(unsigned error=0;error<11;++error){auto bad=request;
+        if(error<7)bad.reserved[error]=1;if(error==7)bad.kind=2;
+        if(error==8)bad.fate_actor=official::max_wire_integer+1;if(error==9)bad.fate_token=official::max_wire_integer+1;
+        if(error==10){bad={};bad.fate_token=1;}driver_legal=177;
+        check(gfo_match_choice_legal(driver_match,&bad,&driver_legal)==-2&&driver_legal==177,"variant tag, padding, safe IDs and inactive Fate fields are canonical");}
+    gfo_match_fate_action supplied{};uint64_t manual_chance=2;driver_chance=2;
+    check(gfo_match_sample_fate(driver_manual,0,&manual_chance,nullptr,0,&supplied)==0&&supplied.outcome.model==287
+        &&gfo_match_fate_step(driver_manual,&supplied,&result)==0,"separate supplied outcome is a reference for Request resolution");
+    const auto driver_expected=status(driver_manual);
+    check(gfo_match_choice_step(driver_match,&request,&driver_chance,&result)==0&&equal(result,driver_expected)&&driver_chance==manual_chance
+        &&observe(driver_match,0,0)==observe(driver_manual,0,0),"choice_step resolves Fate with chance only and matches explicit sample+fate transaction");
+    load_driver(driver_match,true,0,true);const auto driver_fail_before=observe(driver_match,0,0);const auto driver_fail_status=status(driver_match);result=driver_fail_status;
+    driver_policy=0;driver_chance=6;
+    check(gfo_match_choice_legal(driver_match,&request,&driver_legal)==0&&driver_legal
+        &&gfo_match_rollout_step(driver_match,&driver_policy,&driver_chance,&result)==-2
+        &&driver_policy==0&&driver_chance==6&&equal(result,driver_fail_status)&&observe(driver_match,0,0)==driver_fail_before,
+        "invalid sampled289 rolls back the request envelope, chance, Match and caller status without reroll");
+    driver_chance=6;
+    check(gfo_match_choice_step(driver_match,&request,&driver_chance,&result)==-2&&driver_chance==6
+        &&equal(result,driver_fail_status)&&observe(driver_match,0,0)==driver_fail_before,"separate choice_step also preserves the current world and chance on rejection");
+    uint64_t driver_alias=55;
+    check(gfo_match_rollout_step(driver_match,&driver_alias,&driver_alias,&result)==-2&&driver_alias==55
+        &&equal(result,driver_fail_status)&&observe(driver_match,0,0)==driver_fail_before,"identical RNG pointers are rejected before any selection");
+    check(gfo_match_rollout_step(nullptr,&driver_policy,&driver_chance,&result)==-1
+        &&gfo_match_rollout_step(driver_match,nullptr,&driver_chance,&result)==-1
+        &&gfo_match_rollout_step(driver_match,&driver_policy,nullptr,&result)==-1
+        &&gfo_match_rollout_step(driver_match,&driver_policy,&driver_chance,nullptr)==-1
+        &&equal(result,driver_fail_status)&&driver_policy==0&&driver_chance==6,"driver NULL checks preserve both streams and output");
+    load_driver(driver_match,false,official::max_wire_integer,false);const auto driver_late=observe(driver_match,0,0);const auto driver_late_status=status(driver_match);result=driver_late_status;
+    driver_policy=1;driver_chance=2;
+    check(gfo_match_rollout_step(driver_match,&driver_policy,&driver_chance,&result)==-2&&driver_policy==1&&driver_chance==2
+        &&equal(result,driver_late_status)&&observe(driver_match,0,0)==driver_late,"late update failure restores pending policy selection and both original streams");
+    load_driver(driver_match,false,0,false);driver_policy=driver_chance=0;
+    check(gfo_match_rollout_step(driver_match,&driver_policy,&driver_chance,&result)==0&&result.decisions==1
+        &&driver_policy!=0&&driver_chance==0,"equal RNG values in distinct storage are valid, ordinary command uses no external chance");
+    gfo_match_destroy(driver_match);gfo_match_destroy(driver_manual);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

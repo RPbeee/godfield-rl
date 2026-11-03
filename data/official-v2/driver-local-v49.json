@@ -1,0 +1,1952 @@
+{
+  "schema_version": 1,
+  "title": "Independent LOCAL player intent envelope and driver stage separation v49",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "primary_evidence": {
+    "new_primary_executions": 0,
+    "inherited_references": {
+      "fate": {
+        "path": "data/official-v2/fate-sampler-client-v44.json",
+        "sha256": "a9a9ff64258836e073b713f84b3954c59149ec0190d2182ceba501a9663ce207",
+        "bytes": 93246
+      },
+      "confusion": {
+        "path": "data/official-v2/confusion-sampler-client-v45.json",
+        "sha256": "0a794fd302c6b556c0f177d1098d0ed877c8d9457f3972b8db6dabeb5cf4c9ee",
+        "bytes": 38669
+      },
+      "grant": {
+        "path": "data/official-v2/grant-sampler-client-v42.json",
+        "sha256": "c8ea648daba7af3217fe798909277b40befbaae58322bb0a69a535aeb4062cfa",
+        "bytes": 31427
+      }
+    },
+    "boundary": "No newly discovered official distribution or server behavior. Published207 use and existing projection/receiver facts remain separate from every LOCAL candidate,randomness and execution policy here."
+  },
+  "local_reference": {
+    "official_client_selector": false,
+    "policy_metadata": {
+      "match_ruleset": "official-execution-subset-v47",
+      "match_snapshot_version": 47,
+      "match_observation_schema": "official-execution-view-v45",
+      "driver_api_version": 1,
+      "choice_rule": "experimental:player-choice-v1-command-or-fate-request-actor-token-only;no-outcome-recipient-guardian-assignment-or-shuffle-in-player-choice;normal-main-owner-count0-visible-unused-unmasked207;gift-flag-does-not-gate-already-owned207;inventory-order-per-copy-fate-envelopes-plus-one-normal-command-envelope;uniform-bounded-Nplus1-zero-delegates-old-command-policy-rest-select-one-token;no207-response-purchase-delegate-old-policy-with-no-extra-draw;ordinary-discard-and-trade207-roles-preserved;not-uniform-over-all-legal-actions-or-official-policy;grant-and-positive-confusion-main-refuse-with-policy-unchanged;pure-world-game-rng-and-chance-unchanged;request-preflight-does-not-probe-future-outcome-validity;sample-and-choice-step-separate-transactions",
+      "driver_rule": "experimental:local-driver-api1-one-accepted-decision;grant-uses-chance-sample-grant-step;positive-confusion-main-uses-chance-existing-confusion-policy-no207;other-main-response-purchase-use-policy-player-choice;fate-request-resolved-only-by-chance-existing-fate-helper;ordinary-command-does-not-use-external-chance;game-rng-remains-owned-by-match;copy-world-and-trial-policy-and-chance-commit-only-after-full-step-and-result;failure-preserves-world-both-streams-and-outputs-no-reroll;distinct-policy-chance-storage-required-equal-values-allowed;no-new-phase-decision-fee-gift-or-observation-fields;save-match-snapshot-policy-chance-and-driver-api-policy-rule-for-resume;multi-step-rollout-is-sequence-of-transactions-not-one-transaction;existing-sample-action-confusion-fate-grant-and-random-rollout-unchanged;not-all-legal-actions-all-gift-devils-or-official-server-equivalence"
+    },
+    "driver_api_version": 1,
+    "constants": {
+      "gamma": "0x9e3779b97f4a7c15",
+      "multiply1": "0xbf58476d1ce4e5b9",
+      "multiply2": "0x94d049bb133111eb"
+    },
+    "bounded_rule": "Unsigned SplitMix64;accept output>=2^64modn then outputmodn. N1/2/18 envelopes use bounds2/3/19 and thresholds0/1/17. A singleton Fate inventory still adds a two-way gate,not a forced Fate use.",
+    "choice_rule": "At unconfused main owner:in rawinventory order enumerate own actual unused unmasked207 copies;one bounded(N+1),0delegates to unchanged normal sampler andticketi>0 returns FateRequest{actor,token[i-1]}. N0/response/purchase delegate without an envelope draw. Grant/confused main reject sample_choice;dedicated driver routing handles those phases.",
+    "normal_boundary": "No normal Command sampler is reimplemented. Delegate vectors stop before that existing sampler consumes further policy entropy. Thus next_policy_rng means delegation boundary,not necessarily complete sample_choice next_rng.",
+    "fate_boundary": "Player intent has only actor/token. Separately labeled privileged chance examples perform the v44 model/recipient/guardian/source-qualified295 choices. They do not consume the selected207 or execute its effects. A legal intent may still fail on a later chance-domain or execution bound.",
+    "transaction_contract": "The controller trials both RNG values and nextMatch,then commits all only after successful step and output construction. Sampling and step alone remain separate transactions. Equal numeric RNG seeds are allowed;aliasing the same mutable RNG object is rejected before any effect. Failed attempts do not reroll or preserve only one of the two streams.",
+    "abi_contract": "New discriminated C choice descriptor208bytes,not nativevariant memory;existing184byteCommand and opcodes unchanged. Inactive branch and reserved fields must be canonicalzero. No resolved outcome/295manifest belongs in the player choice descriptor.",
+    "resume": "Match snapshot plus independent policy/chance uint64seeds and driver-policy API/version identify the local continuation. Match ruleset47/Snapshot47/publicobserve45 are unchanged by this orchestration-only API.",
+    "fixtures": {
+      "one_sparse_actor0": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 0,
+        "players": [
+          {
+            "id": 0,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 0,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 19,
+                "model": 235,
+                "used": true
+              },
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 5,
+                "model": 6,
+                "fake": 8
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "two_sparse_actor7": {
+        "owner": 7,
+        "actor": 7,
+        "phase": "main",
+        "confusion_count": 0,
+        "players": [
+          {
+            "id": 7,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 0,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 19,
+                "model": 235,
+                "used": true
+              },
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 5,
+                "model": 6,
+                "fake": 8
+              },
+              {
+                "token": 11,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "full18_unsorted_actor7": {
+        "owner": 7,
+        "actor": 7,
+        "phase": "main",
+        "confusion_count": 0,
+        "players": [
+          {
+            "id": 7,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 0,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              },
+              {
+                "token": 3,
+                "model": 207
+              },
+              {
+                "token": 1,
+                "model": 207
+              },
+              {
+                "token": 9,
+                "model": 207
+              },
+              {
+                "token": 7,
+                "model": 207
+              },
+              {
+                "token": 5,
+                "model": 207
+              },
+              {
+                "token": 11,
+                "model": 207
+              },
+              {
+                "token": 17,
+                "model": 207
+              },
+              {
+                "token": 13,
+                "model": 207
+              },
+              {
+                "token": 15,
+                "model": 207
+              },
+              {
+                "token": 23,
+                "model": 207
+              },
+              {
+                "token": 19,
+                "model": 207
+              },
+              {
+                "token": 21,
+                "model": 207
+              },
+              {
+                "token": 25,
+                "model": 207
+              },
+              {
+                "token": 27,
+                "model": 207
+              },
+              {
+                "token": 29,
+                "model": 207
+              },
+              {
+                "token": 31,
+                "model": 207
+              },
+              {
+                "token": 9007199254740991,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "none_actor0": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "main",
+        "confusion_count": 0,
+        "players": [
+          {
+            "id": 0,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 0,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 5,
+                "model": 6,
+                "fake": 8
+              },
+              {
+                "token": 19,
+                "model": 235,
+                "used": true
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "response_with207": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "response",
+        "confusion_count": 3,
+        "players": [
+          {
+            "id": 0,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 3,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "purchase_with207": {
+        "owner": 7,
+        "actor": 7,
+        "phase": "purchase",
+        "confusion_count": 3,
+        "players": [
+          {
+            "id": 7,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 3,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 11,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "grant_with207": {
+        "owner": 0,
+        "actor": 0,
+        "phase": "grant",
+        "confusion_count": 0,
+        "players": [
+          {
+            "id": 0,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 0,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      },
+      "confused_main_with207": {
+        "owner": 7,
+        "actor": 7,
+        "phase": "main",
+        "confusion_count": 1,
+        "players": [
+          {
+            "id": 7,
+            "team": 1,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "confusion_count": 1,
+            "dead": false,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "token": 11,
+                "model": 207
+              }
+            ]
+          },
+          {
+            "id": 0,
+            "team": 2,
+            "hp": 99,
+            "mp": 99,
+            "cp": 20,
+            "dead": false,
+            "items": [
+              {
+                "token": 0,
+                "model": 6
+              },
+              {
+                "token": 4,
+                "model": 208
+              }
+            ]
+          },
+          {
+            "id": 42,
+            "team": 2,
+            "hp": 0,
+            "mp": 0,
+            "cp": 0,
+            "dead": true,
+            "items": [
+              {
+                "token": 0,
+                "model": 207
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "envelope_vectors": [
+      {
+        "label": "one_sparse_actor0-seed0x0000000000000000",
+        "fixture": "one_sparse_actor0",
+        "seed": "0x0000000000000000",
+        "eligible_fate_tokens": [
+          0
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 0,
+          "token": 0
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "one_sparse_actor0-seed0x000000000000002a",
+        "fixture": "one_sparse_actor0",
+        "seed": "0x000000000000002a",
+        "eligible_fate_tokens": [
+          0
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 0,
+          "token": 0
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c3f",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xbdd732262feb6e95",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "one_sparse_actor0-seed0xffffffffffffffff",
+        "fixture": "one_sparse_actor0",
+        "seed": "0xffffffffffffffff",
+        "eligible_fate_tokens": [
+          0
+        ],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c14",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xe4d971771b652c20",
+            "result": 0
+          }
+        ],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "one_sparse_actor0-seed0x61c8864680b583eb",
+        "fixture": "one_sparse_actor0",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [
+          0
+        ],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x0000000000000000",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000000",
+            "result": 0
+          }
+        ],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "two_sparse_actor7-seed0x0000000000000000",
+        "fixture": "two_sparse_actor7",
+        "seed": "0x0000000000000000",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 0
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "two_sparse_actor7-seed0x000000000000002a",
+        "fixture": "two_sparse_actor7",
+        "seed": "0x000000000000002a",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 0
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c3f",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xbdd732262feb6e95",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "two_sparse_actor7-seed0xffffffffffffffff",
+        "fixture": "two_sparse_actor7",
+        "seed": "0xffffffffffffffff",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 11
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c14",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0xe4d971771b652c20",
+            "result": 2
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "two_sparse_actor7-seed0x61c8864680b583eb",
+        "fixture": "two_sparse_actor7",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 0
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [
+              "0x0000000000000000"
+            ],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-seed0x0000000000000000",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x0000000000000000",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 29
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 16
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-seed0x000000000000002a",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x000000000000002a",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 13
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c3f",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0xbdd732262feb6e95",
+            "result": 9
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-seed0xffffffffffffffff",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0xffffffffffffffff",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 17
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c14",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0xe4d971771b652c20",
+            "result": 8
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-seed0x61c8864680b583eb",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 29
+        },
+        "next_policy_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [
+              "0x0000000000000000"
+            ],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 16
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "two_sparse_actor7-exact-ticket0",
+        "first_word": "0x000000000000000f",
+        "fixture": "two_sparse_actor7",
+        "seed": "0xbeb721c511b0da6d",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x5cee9b7e90fb5682",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000000f",
+            "result": 0
+          }
+        ],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "two_sparse_actor7-exact-ticket1",
+        "first_word": "0x0000000000000010",
+        "fixture": "two_sparse_actor7",
+        "seed": "0xf5bce96b412c7155",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 0
+        },
+        "next_policy_rng": "0x93f46324c076ed6a",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000010",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "two_sparse_actor7-exact-ticket2",
+        "first_word": "0x0000000000000011",
+        "fixture": "two_sparse_actor7",
+        "seed": "0xe23005bc5c8e4d6c",
+        "eligible_fate_tokens": [
+          0,
+          11
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 11
+        },
+        "next_policy_rng": "0x80677f75dbd8c981",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 3,
+            "threshold": "0x0000000000000001",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000011",
+            "result": 2
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-exact-ticket0",
+        "first_word": "0x000000000000005f",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x57aa54264ca7366b",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0xf5e1cddfcbf1b280",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000005f",
+            "result": 0
+          }
+        ],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "full18_unsorted_actor7-exact-ticket1",
+        "first_word": "0x0000000000000060",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x2400c9e5fa9fa602",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 0
+        },
+        "next_policy_rng": "0xc238439f79ea2217",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000060",
+            "result": 1
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "full18_unsorted_actor7-exact-ticket18",
+        "first_word": "0x0000000000000071",
+        "fixture": "full18_unsorted_actor7",
+        "seed": "0x970ae342d6e8c180",
+        "eligible_fate_tokens": [
+          0,
+          3,
+          1,
+          9,
+          7,
+          5,
+          11,
+          17,
+          13,
+          15,
+          23,
+          19,
+          21,
+          25,
+          27,
+          29,
+          31,
+          9007199254740991
+        ],
+        "result": {
+          "kind": "fate-request",
+          "actor": 7,
+          "token": 9007199254740991
+        },
+        "next_policy_rng": "0x35425cfc56333d95",
+        "calls": [
+          {
+            "stage": "choice-envelope",
+            "bound": 19,
+            "threshold": "0x0000000000000011",
+            "rejected_words": [],
+            "accepted_word": "0x0000000000000071",
+            "result": 18
+          }
+        ],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "none_actor0-zero-envelope-draws",
+        "fixture": "none_actor0",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x61c8864680b583eb",
+        "calls": [],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "response_with207-zero-envelope-draws",
+        "fixture": "response_with207",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x61c8864680b583eb",
+        "calls": [],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "purchase_with207-zero-envelope-draws",
+        "fixture": "purchase_with207",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [],
+        "result": {
+          "kind": "delegate-normal-command"
+        },
+        "next_policy_rng": "0x61c8864680b583eb",
+        "calls": [],
+        "stop": "before-existing-normal-command-sampler"
+      },
+      {
+        "label": "grant_with207-zero-envelope-draws",
+        "fixture": "grant_with207",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [],
+        "result": {
+          "kind": "rejected-choice-entry"
+        },
+        "next_policy_rng": "0x61c8864680b583eb",
+        "calls": [],
+        "stop": "before-chance-or-execution"
+      },
+      {
+        "label": "confused_main_with207-zero-envelope-draws",
+        "fixture": "confused_main_with207",
+        "seed": "0x61c8864680b583eb",
+        "eligible_fate_tokens": [],
+        "result": {
+          "kind": "rejected-choice-entry"
+        },
+        "next_policy_rng": "0x61c8864680b583eb",
+        "calls": [],
+        "stop": "before-chance-or-execution"
+      }
+    ],
+    "fate_chance_vectors": [
+      {
+        "label": "selected-second207-then-outcome287",
+        "policy": {
+          "fixture": "two_sparse_actor7",
+          "seed": "0xffffffffffffffff",
+          "eligible_fate_tokens": [
+            0,
+            11
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 11
+          },
+          "next_policy_rng": "0x9e3779b97f4a7c14",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xe4d971771b652c20",
+              "result": 2
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0x57b4c1fc7ebefd60",
+          "action": {
+            "actor": 7,
+            "token": 11,
+            "outcome": {
+              "model": 287,
+              "recipient": null,
+              "guardians": []
+            },
+            "shuffle": null
+          },
+          "next_chance_rng": "0xf5ec3bb5fe097975",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x0000000000000064",
+              "result": 0
+            }
+          ]
+        },
+        "stop": "before-fate-step;no-source-consumption-or-world-mutation"
+      },
+      {
+        "label": "selected-second207-then-outcome289",
+        "policy": {
+          "fixture": "two_sparse_actor7",
+          "seed": "0xffffffffffffffff",
+          "eligible_fate_tokens": [
+            0,
+            11
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 11
+          },
+          "next_policy_rng": "0x9e3779b97f4a7c14",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xe4d971771b652c20",
+              "result": 2
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0x445dad76252c0cfd",
+          "action": {
+            "actor": 7,
+            "token": 11,
+            "outcome": {
+              "model": 289,
+              "recipient": null,
+              "guardians": []
+            },
+            "shuffle": null
+          },
+          "next_chance_rng": "0xe295272fa4768912",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x0000000000000066",
+              "result": 2
+            }
+          ]
+        },
+        "stop": "before-fate-step;no-source-consumption-or-world-mutation"
+      },
+      {
+        "label": "selected-second207-then-outcome291",
+        "policy": {
+          "fixture": "two_sparse_actor7",
+          "seed": "0xffffffffffffffff",
+          "eligible_fate_tokens": [
+            0,
+            11
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 11
+          },
+          "next_policy_rng": "0x9e3779b97f4a7c14",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xe4d971771b652c20",
+              "result": 2
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0xcd46863b18fc3046",
+          "action": {
+            "actor": 7,
+            "token": 11,
+            "outcome": {
+              "model": 291,
+              "recipient": 7,
+              "guardians": []
+            },
+            "shuffle": null
+          },
+          "next_chance_rng": "0x09b579ae17912870",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x0000000000000068",
+              "result": 4
+            },
+            {
+              "stage": "fate-recipient",
+              "bound": 2,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0xacfbd88754946c16",
+              "result": 0
+            }
+          ]
+        },
+        "stop": "before-fate-step;no-source-consumption-or-world-mutation"
+      },
+      {
+        "label": "selected-second207-then-outcome295",
+        "policy": {
+          "fixture": "two_sparse_actor7",
+          "seed": "0xffffffffffffffff",
+          "eligible_fate_tokens": [
+            0,
+            11
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 11
+          },
+          "next_policy_rng": "0x9e3779b97f4a7c14",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xe4d971771b652c20",
+              "result": 2
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0xa0cae6e9a463f84d",
+          "action": {
+            "actor": 7,
+            "token": 11,
+            "outcome": {
+              "model": 295,
+              "recipient": null,
+              "guardians": []
+            },
+            "shuffle": {
+              "order": [
+                {
+                  "owner": 7,
+                  "token": 19
+                },
+                {
+                  "owner": 0,
+                  "token": 0
+                },
+                {
+                  "owner": 7,
+                  "token": 0
+                },
+                {
+                  "owner": 7,
+                  "token": 5
+                },
+                {
+                  "owner": 0,
+                  "token": 4
+                }
+              ]
+            }
+          },
+          "next_chance_rng": "0xb7e0478920d864b6",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x000000000000006c",
+              "result": 8
+            },
+            {
+              "stage": "fate-shuffle-size5",
+              "bound": 5,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0x8e66c6d0b1141b6e",
+              "result": 4
+            },
+            {
+              "stage": "fate-shuffle-size4",
+              "bound": 4,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0xe5d079cd452a036a",
+              "result": 2
+            },
+            {
+              "stage": "fate-shuffle-size3",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xecacc227e4d29de2",
+              "result": 1
+            },
+            {
+              "stage": "fate-shuffle-size2",
+              "bound": 2,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0x2ee8ec079a573333",
+              "result": 1
+            }
+          ]
+        },
+        "stop": "before-fate-step;no-source-consumption-or-world-mutation"
+      },
+      {
+        "label": "selected-second207-then-outcome296",
+        "policy": {
+          "fixture": "two_sparse_actor7",
+          "seed": "0xffffffffffffffff",
+          "eligible_fate_tokens": [
+            0,
+            11
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 11
+          },
+          "next_policy_rng": "0x9e3779b97f4a7c14",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xe4d971771b652c20",
+              "result": 2
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0x29a03e5c9696abe0",
+          "action": {
+            "actor": 7,
+            "token": 11,
+            "outcome": {
+              "model": 296,
+              "recipient": null,
+              "guardians": [
+                2,
+                10
+              ]
+            },
+            "shuffle": null
+          },
+          "next_chance_rng": "0x0446ab891476201f",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x000000000000006d",
+              "result": 9
+            },
+            {
+              "stage": "fate-guardian",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x4f68407face44bed",
+              "result": 1
+            },
+            {
+              "stage": "fate-guardian",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x0046409579114487",
+              "result": 9
+            }
+          ]
+        },
+        "stop": "before-fate-step;no-source-consumption-or-world-mutation"
+      },
+      {
+        "label": "select-last-maxsafe207-then-full-manifest",
+        "policy": {
+          "fixture": "full18_unsorted_actor7",
+          "seed": "0x970ae342d6e8c180",
+          "eligible_fate_tokens": [
+            0,
+            3,
+            1,
+            9,
+            7,
+            5,
+            11,
+            17,
+            13,
+            15,
+            23,
+            19,
+            21,
+            25,
+            27,
+            29,
+            31,
+            9007199254740991
+          ],
+          "result": {
+            "kind": "fate-request",
+            "actor": 7,
+            "token": 9007199254740991
+          },
+          "next_policy_rng": "0x35425cfc56333d95",
+          "calls": [
+            {
+              "stage": "choice-envelope",
+              "bound": 19,
+              "threshold": "0x0000000000000011",
+              "rejected_words": [],
+              "accepted_word": "0x0000000000000071",
+              "result": 18
+            }
+          ],
+          "stop": "before-chance-or-execution"
+        },
+        "chance": {
+          "seed": "0xa0cae6e9a463f84d",
+          "action": {
+            "actor": 7,
+            "token": 9007199254740991,
+            "outcome": {
+              "model": 295,
+              "recipient": null,
+              "guardians": []
+            },
+            "shuffle": {
+              "order": [
+                {
+                  "owner": 7,
+                  "token": 17
+                },
+                {
+                  "owner": 7,
+                  "token": 3
+                },
+                {
+                  "owner": 7,
+                  "token": 7
+                },
+                {
+                  "owner": 7,
+                  "token": 21
+                },
+                {
+                  "owner": 0,
+                  "token": 4
+                },
+                {
+                  "owner": 7,
+                  "token": 15
+                },
+                {
+                  "owner": 7,
+                  "token": 1
+                },
+                {
+                  "owner": 7,
+                  "token": 11
+                },
+                {
+                  "owner": 7,
+                  "token": 23
+                },
+                {
+                  "owner": 7,
+                  "token": 5
+                },
+                {
+                  "owner": 0,
+                  "token": 0
+                },
+                {
+                  "owner": 7,
+                  "token": 29
+                },
+                {
+                  "owner": 7,
+                  "token": 31
+                },
+                {
+                  "owner": 7,
+                  "token": 19
+                },
+                {
+                  "owner": 7,
+                  "token": 25
+                },
+                {
+                  "owner": 7,
+                  "token": 9
+                },
+                {
+                  "owner": 7,
+                  "token": 0
+                },
+                {
+                  "owner": 7,
+                  "token": 27
+                },
+                {
+                  "owner": 7,
+                  "token": 13
+                }
+              ]
+            }
+          },
+          "next_chance_rng": "0x5ee8efae16eb2ddc",
+          "calls": [
+            {
+              "stage": "fate-outcome",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x000000000000006c",
+              "result": 8
+            },
+            {
+              "stage": "fate-shuffle-size19",
+              "bound": 19,
+              "threshold": "0x0000000000000011",
+              "rejected_words": [],
+              "accepted_word": "0x8e66c6d0b1141b6e",
+              "result": 8
+            },
+            {
+              "stage": "fate-shuffle-size18",
+              "bound": 18,
+              "threshold": "0x0000000000000010",
+              "rejected_words": [],
+              "accepted_word": "0xe5d079cd452a036a",
+              "result": 14
+            },
+            {
+              "stage": "fate-shuffle-size17",
+              "bound": 17,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xecacc227e4d29de2",
+              "result": 0
+            },
+            {
+              "stage": "fate-shuffle-size16",
+              "bound": 16,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0x2ee8ec079a573333",
+              "result": 3
+            },
+            {
+              "stage": "fate-shuffle-size15",
+              "bound": 15,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0xad41da2e5b4e40b2",
+              "result": 13
+            },
+            {
+              "stage": "fate-shuffle-size14",
+              "bound": 14,
+              "threshold": "0x0000000000000002",
+              "rejected_words": [],
+              "accepted_word": "0x774e0ee4a63c9f2d",
+              "result": 11
+            },
+            {
+              "stage": "fate-shuffle-size13",
+              "bound": 13,
+              "threshold": "0x0000000000000003",
+              "rejected_words": [],
+              "accepted_word": "0x96ea430c5be136d1",
+              "result": 0
+            },
+            {
+              "stage": "fate-shuffle-size12",
+              "bound": 12,
+              "threshold": "0x0000000000000004",
+              "rejected_words": [],
+              "accepted_word": "0x0a9b18cee4da4a63",
+              "result": 3
+            },
+            {
+              "stage": "fate-shuffle-size11",
+              "bound": 11,
+              "threshold": "0x0000000000000005",
+              "rejected_words": [],
+              "accepted_word": "0x19b890d45b11ab7f",
+              "result": 3
+            },
+            {
+              "stage": "fate-shuffle-size10",
+              "bound": 10,
+              "threshold": "0x0000000000000006",
+              "rejected_words": [],
+              "accepted_word": "0x0a6cc0f0c094f799",
+              "result": 5
+            },
+            {
+              "stage": "fate-shuffle-size9",
+              "bound": 9,
+              "threshold": "0x0000000000000007",
+              "rejected_words": [],
+              "accepted_word": "0x093ae5fd202c26b1",
+              "result": 3
+            },
+            {
+              "stage": "fate-shuffle-size8",
+              "bound": 8,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0xa34a0a8e28f3a726",
+              "result": 6
+            },
+            {
+              "stage": "fate-shuffle-size7",
+              "bound": 7,
+              "threshold": "0x0000000000000002",
+              "rejected_words": [],
+              "accepted_word": "0xd111ea42ea9f806f",
+              "result": 2
+            },
+            {
+              "stage": "fate-shuffle-size6",
+              "bound": 6,
+              "threshold": "0x0000000000000004",
+              "rejected_words": [],
+              "accepted_word": "0x14c276fa242bfe6b",
+              "result": 5
+            },
+            {
+              "stage": "fate-shuffle-size5",
+              "bound": 5,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0x71bf4bf416caae75",
+              "result": 3
+            },
+            {
+              "stage": "fate-shuffle-size4",
+              "bound": 4,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0x906af91cb5d7890c",
+              "result": 0
+            },
+            {
+              "stage": "fate-shuffle-size3",
+              "bound": 3,
+              "threshold": "0x0000000000000001",
+              "rejected_words": [],
+              "accepted_word": "0x5e113d67cf105235",
+              "result": 0
+            },
+            {
+              "stage": "fate-shuffle-size2",
+              "bound": 2,
+              "threshold": "0x0000000000000000",
+              "rejected_words": [],
+              "accepted_word": "0xdf53f77fcd367811",
+              "result": 1
+            }
+          ]
+        },
+        "stop": "before-fate-step;late-execution-token-failure-is-not-precluded"
+      }
+    ],
+    "driver_dispatch": [
+      {
+        "phase": "grant",
+        "owner_confused": false,
+        "route": "sample_grant(chance)->grant_step",
+        "policy": "unchanged",
+        "chance": "existing-v42-local-helper"
+      },
+      {
+        "phase": "main",
+        "owner_confused": true,
+        "route": "sample_confusion(chance)->confusion_step",
+        "policy": "unchanged",
+        "chance": "existing-v45-local-helper;207-generation-excluded"
+      },
+      {
+        "phase": "main",
+        "owner_confused": false,
+        "route": "sample_choice(policy);Command->step;FateRequest->sample_fate(chance)->fate_step",
+        "policy": "choice-envelope-and-optional-normal-delegate",
+        "chance": "only-FateRequest-branch"
+      },
+      {
+        "phase": "response-or-purchase",
+        "owner_confused": true,
+        "route": "sample_choice(policy)->old-normal-sampler->step",
+        "policy": "existing-normal-policy-with-zero-envelope-draws",
+        "chance": "unchanged"
+      }
+    ],
+    "alias_contract_example": {
+      "same_mutable_rng_object": true,
+      "error": true,
+      "match_unchanged": true,
+      "policy_rng_unchanged": true,
+      "chance_rng_unchanged": true,
+      "not_an_executed_engine_case": true
+    }
+  },
+  "counts": {
+    "new_primary_executions": 0,
+    "envelope_vectors": 23,
+    "fate_chance_stage_vectors": 6,
+    "dispatch_contract_rows": 4
+  },
+  "limitations": [
+    "The two-level policy gives FateRequest massN/(N+1) and normal branch1/(N+1),not uniform mass over all legal Commands. Own physical copy order is LOCAL policy ordering,not a published server selector.",
+    "All stage outputs,includingSplitMix rejection and Fate choice laws,are independent LOCAL reference data. The pin loader runs with app startup suppressed;no game/client/server selector or C++engine is executed.",
+    "A player-facing FateRequest doesnot preview a phenomenon,recipient,guardian assignment or item permutation. Only the privileged chance/controller section includes these future values. Do not expose that section or rawfixture inventories to player policy.",
+    "The full18 source uses a maxsafe token solely to test exact identity/ordering. Sampling may be valid while a later295fresh-token allocation fails;the driver must roll back Match and both trial streams together.",
+    "Aliases,all failure classes,phase/actor validation,counter/death/grant transitions,checkpoint replay and output encode atomicity belong to native/CAPI/Python tests. The alias row is a contract,not a fake executed test.",
+    "The ordinary sampler,positive-confusion chooser and grant chooser retain their existing implementations and distribution. No automatic Fate use is added to oldsample_action/sample_confusion or to Earth/Moon selectors.",
+    "No existing pins/reports,core,docs or build artifacts are modified."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_driver_oracle.cjs --client /path/main.dart.js [--check]"
+}

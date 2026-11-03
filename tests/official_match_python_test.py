@@ -8,8 +8,17 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, FateRequest, RolloutResult, RolloutError, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
+
+def choice_envelope_reference(seed, bound):
+    mask, gamma = 2**64-1, 0x9e3779b97f4a7c15
+    while True:
+        seed = (seed+gamma)&mask; value = seed
+        value = ((value^(value>>30))*0xbf58476d1ce4e5b9)&mask
+        value = ((value^(value>>27))*0x94d049bb133111eb)&mask
+        value ^= value>>31
+        if value >= 2**64 % bound: return value % bound, seed
 
 def grant_reference(seed, tokens, target=0):
     """Independent integer reference: SplitMix64 rejection, then ticket/FY law."""
@@ -4154,6 +4163,120 @@ class MatchTests(unittest.TestCase):
             statuses = {player["id"]: player["status"] for player in view["board"]["players"]}
             self.assertEqual(statuses[42]["hp"], 81 if guardian == "earth" else 99)
             self.assertEqual(statuses[23]["cp"], 10 if guardian == "moon" else 0)
+
+    def test_player_choice_descriptors_envelope_and_ordinary_sampler_parity(self):
+        game = self.match(); before, status = game.observe(0), game.status
+        self.assertEqual(game.driver_api_version, 1)
+        self.assertTrue(game.choice_rule.startswith("experimental:")); self.assertTrue(game.driver_rule.startswith("experimental:"))
+        for seed in (*range(64), 7046029254386353131, 2**64-1):
+            self.assertEqual(game.sample_choice(seed), game.sample_action(seed))
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        raw = {"players": [{"id": 0, "hp": 99, "mp": 99, "cp": 99,
+                            "items": [{"id": 0, "modelId": 207}, {"id": 7, "modelId": 207}]},
+                           {"id": 23, "hp": 99, "mp": 99, "cp": 99}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status; kinds = set()
+        for seed in (*range(64), 7046029254386353131):
+            branch, next_rng = choice_envelope_reference(seed, 3)
+            expected = (FateRequest(0, (0, 7)[branch-1]), next_rng) if branch else game.sample_action(next_rng)
+            choice, rng = game.sample_choice(seed)
+            self.assertEqual((choice, rng), expected); self.assertTrue(game.choice_legal(choice))
+            kinds.add(choice.token if isinstance(choice, FateRequest) else "command")
+        self.assertEqual(kinds, {0, 7, "command"})
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        self.assertTrue(game.choice_legal(FateRequest(0, 0)))
+        for choice in (FateRequest(23, 0), FateRequest(0, 99)): self.assertFalse(game.choice_legal(choice))
+
+    def test_rollout_step_matches_explicit_dispatch_in_all_live_phases(self):
+        basic = {"players": [{"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 207}]},
+                              {"id": 7, "hp": 99, "mp": 99, "cp": 99}]}
+        for phase in ("fate-main", "confused-main", "response", "purchase", "grant"):
+            raw = copy.deepcopy(basic); commands = []
+            if phase == "confused-main": raw["players"][0].update(confusionCount=2, items=[])
+            if phase in ("response", "purchase"):
+                raw["players"][0]["items"] = [{"id": 0, "modelId": 5}]
+                raw["players"][1]["items"] = [{"id": 1, "modelId": 6}]
+                commands = [Command(0, "buy", (0,), 7)]
+                if phase == "purchase": commands.append(Command(7, "defend"))
+            if phase == "grant":
+                raw.update(gf=0, tiebreakGF=0); raw["players"][0]["items"] = []
+                commands = [Command(0, "pray")]
+            manual = self.match(config=Config(initial_hand=0, external_grants=True))
+            driven = self.match(config=Config(initial_hand=0, external_grants=True))
+            for game in (manual, driven):
+                with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+                for command in commands: game.step(command)
+            policy, chance = 0, 2; old_decisions = manual.status.decisions
+            if phase == "grant":
+                self.assertEqual(manual.status.phase, "grant")
+                grant, next_chance = manual.sample_grant(chance)
+                expected_status, next_policy = manual.grant_step(grant), policy
+            elif phase == "confused-main":
+                command, next_chance = manual.sample_confusion(chance)
+                expected_status, next_policy = manual.confusion_step(command), policy
+            else:
+                choice, next_policy = manual.sample_choice(policy)
+                if phase == "fate-main": self.assertIsInstance(choice, FateRequest)
+                expected_status, next_chance = manual.choice_step(choice, chance)
+            self.assertEqual(driven.rollout_step(policy, chance), (expected_status, next_policy, next_chance))
+            self.assertEqual(driven.status.decisions, old_decisions+1)
+            self.assertEqual(driven.observe(), manual.observe())
+            self.assertEqual(driven.observe(0), manual.observe(0))
+
+    def test_choice_driver_atomic_failure_and_rollout_error_preserves_progress(self):
+        raw = {"players": [{"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 207}]},
+                           {"id": 7, "hp": 99, "mp": 99, "cp": 99, "confusionCount": 9007199254740991}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        self.assertTrue(game.choice_legal(FateRequest(0, 0)))
+        before, status = game.observe(0), game.status
+        # policy0 chooses the request; chance6 selects289, whose +3 is invalid.
+        with self.assertRaises(InvalidMatchError): game.rollout_step(0, 6)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        with self.assertRaises(RolloutError) as caught: game.chance_rollout(0, 6, max_steps=1)
+        error = caught.exception
+        self.assertEqual(error.progress, RolloutResult(status, 0, 6, 0))
+        self.assertIs(error.cause, error.__cause__); self.assertIsInstance(error.cause, InvalidMatchError)
+        late = {"gf": 9007199254740990, "players": [{"id": 0, "hp": 99}, {"id": 7, "hp": 99}]}
+        manual = self.match(config=Config(initial_hand=0))
+        for value in (game, manual):
+            with OfficialState(late, library=LIBRARY) as scene: value.load_scene(scene, 0, 42)
+        first_status, first_policy, first_chance = manual.rollout_step(1, 2)
+        self.assertEqual(manual.observe()["board"]["gf"], 9007199254740991)
+        with self.assertRaises(RolloutError) as caught: game.chance_rollout(1, 2, max_steps=2)
+        self.assertEqual(caught.exception.progress, RolloutResult(first_status, first_policy, first_chance, 1))
+        self.assertEqual((game.status, game.observe()), (manual.status, manual.observe()))
+        with self.assertRaises((AttributeError, TypeError)): caught.exception.progress.steps = 99
+
+    def test_chance_rollout_resume_bounds_and_strict_driver_inputs(self):
+        config = Config(initial_hand=0, max_decisions=32, include_fate=True, external_grants=True)
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [{"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 207}]},
+                                                       {"id": 7, "hp": 99, "mp": 99, "cp": 99}]}
+        one, split = self.match(config=config), self.match(config=config)
+        for value in (one, split):
+            with OfficialState(raw, library=LIBRARY) as scene: value.load_scene(scene, 0, 42)
+        initial, view = split.status, split.observe()
+        self.assertEqual(split.chance_rollout(0, 2, max_steps=0), RolloutResult(initial, 0, 2, 0))
+        self.assertEqual(split.observe(), view)
+        complete = one.chance_rollout(0, 2, max_steps=16)
+        first = split.chance_rollout(0, 2, max_steps=4)
+        second = split.chance_rollout(first.policy_rng, first.chance_rng, max_steps=12)
+        self.assertEqual((second.status, second.policy_rng, second.chance_rng, first.steps+second.steps),
+                         (complete.status, complete.policy_rng, complete.chance_rng, complete.steps))
+        self.assertEqual(split.observe(), one.observe())
+        for bad in (True, -1, 2**64, 1.0):
+            for call in (lambda: split.sample_choice(bad), lambda: split.choice_step(Command(0, "pray"), bad),
+                         lambda: split.rollout_step(bad, 2), lambda: split.rollout_step(1, bad),
+                         lambda: split.chance_rollout(bad, 2), lambda: split.chance_rollout(1, bad),
+                         lambda: split.chance_rollout(1, 2, max_steps=bad)):
+                with self.assertRaises(InvalidMatchError): call()
+        for choice in (None, {}, (0, 0), FateRequest(True, 0), FateRequest(0, True), FateRequest(0, 2**53)):
+            with self.assertRaises(InvalidMatchError): split.choice_legal(choice)
+            with self.assertRaises(InvalidMatchError): split.choice_step(choice, 2)
+        split.close()
+        for call in (lambda: split.choice_legal(FateRequest(0, 0)), lambda: split.sample_choice(0),
+                     lambda: split.choice_step(FateRequest(0, 0), 2), lambda: split.rollout_step(0, 2), lambda: split.chance_rollout()):
+            with self.assertRaises(InvalidMatchError): call()
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()
