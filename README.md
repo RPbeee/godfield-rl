@@ -241,8 +241,10 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 [状態oracleのmetadata](data/official-v1/state-vectors.manifest.json)にあるとおり、
 実関数と抽出分岐・描画stubを使った照合であり、全画面を操作したoracleではありません。
 [資源oracle](data/official-v1/resource-vectors.manifest.json)もローカル算術の照合で、配布・死亡・手番のサーバー順序を証明しません。
-公式対局traceは今回未取得で、公開clientから権威的serverの全実行器が得られたわけではありません。
+この節の検証時点では公式対局traceは未取得で、公開clientから権威的serverの全実行器が得られたわけではありません。
 対局シミュレーターとしての公式完全対応は未達です。
+
+2026-11-04には[公式サイトの実閲覧とCPU修行](docs/official-live-observations.md)を追加しました。JS・JA・ENと台帳296件は既存資料に一致し、初期資源・本人手札を2局面で観測しました。完了済みの対局遷移はまだ取得できていません。[最新の主要残件表](docs/official-spec-gap.md)には、178の終末補充、94＋232、Dream全候補、Earth/Moon一般処理を整理しています。現行の互換制限では、Dreamを持つ受取人への237種poolの通常授与時の偽装率は設計期待値32.1%で、教典の50%に未達です。今回の更新は出典・観測・差分の整理で、C++エンジンはv47のままです。
 
 ## 公式データによる限定対局実行器
 

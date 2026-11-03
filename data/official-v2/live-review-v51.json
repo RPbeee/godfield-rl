@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "review": "official-public-live-review-v51",
+  "observed_on_jst": "2026-11-04",
+  "retrieval_started_at_utc": "2026-11-03T20:39:09.645596+00:00",
+  "retrieval_completed_at_utc": "2026-11-03T20:39:10.510261+00:00",
+  "source_kind": "Ordinary public HTTPS GETs only. No authentication, match connection, backend game execution or browser interaction.",
+  "pin_policy": "This additional evidence record does not replace official-v1/official-v2 manifests, cards, client sources, generated C++, oracle inputs or existing hashes.",
+  "body_hash_policy": "bytes and sha256 describe the complete response body after HTTP gzip content decoding, before text or JSON normalization. HTTP content_length describes compressed transfer bytes and is not the body size. No raw HTML, full client code or locale source text is copied into this repository.",
+  "assets": [
+    {
+      "name": "index.html",
+      "url": "https://godfield.net/",
+      "started_at_utc": "2026-11-03T20:39:09.645596+00:00",
+      "completed_at_utc": "2026-11-03T20:39:10.228233+00:00",
+      "bytes": 2482,
+      "sha256": "7bf87cd7a47cbaa2bd7d15f7e2c90175b74ea20547f5132d4d7b4d0cb9c2eaeb",
+      "http": {
+        "method": "GET",
+        "status": 200,
+        "version": "HTTP/2",
+        "date": "Tue, 03 Nov 2026 20:39:10 GMT",
+        "etag": "\"91801639443ffde48f4b1dee5072985f9c1ac59f277946c77da1f17cf68350e5\"",
+        "last_modified": "Tue, 03 Nov 2026 14:34:06 GMT",
+        "content_type": "text/html; charset=utf-8",
+        "content_encoding": "gzip",
+        "content_length": 981,
+        "cache_control": "max-age=3600",
+        "vary": "x-fh-requested-host, accept-encoding"
+      },
+      "baseline": {
+        "kind": "Initial acquisition cache; not an official-v2 versioned HTML pin.",
+        "bytes": 2485,
+        "sha256": "fa085ea6481eb4e273dd28fe9eada8f0f2245af836872032dcff1cdc5427fef9",
+        "equal_body_bytes": false,
+        "prior_acquisition_time": null,
+        "prior_http_validators": null
+      }
+    },
+    {
+      "name": "main.dart.js",
+      "url": "https://godfield.net/main.dart.js",
+      "started_at_utc": "2026-11-03T20:39:09.645926+00:00",
+      "completed_at_utc": "2026-11-03T20:39:10.510261+00:00",
+      "bytes": 440420,
+      "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+      "http": {
+        "method": "GET",
+        "status": 200,
+        "version": "HTTP/2",
+        "date": "Tue, 03 Nov 2026 20:39:10 GMT",
+        "etag": "\"eee0fd31f9de4c2975db90e00685294056d09407308ba3e0249dbd40b3c47998\"",
+        "last_modified": "Tue, 03 Nov 2026 14:34:06 GMT",
+        "content_type": "text/javascript; charset=utf-8",
+        "content_encoding": "gzip",
+        "content_length": 132044,
+        "cache_control": "max-age=3600",
+        "vary": "x-fh-requested-host, accept-encoding"
+      },
+      "baseline": {
+        "record": "http-validators.json",
+        "entry": "client",
+        "bytes": 440420,
+        "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+        "etag": "\"eee0fd31f9de4c2975db90e00685294056d09407308ba3e0249dbd40b3c47998\"",
+        "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+        "equal_body_bytes": true,
+        "equal_sha256": true,
+        "equal_etag": true,
+        "equal_last_modified": false
+      }
+    },
+    {
+      "name": "ja.json",
+      "url": "https://godfield.net/i18n/ja.json",
+      "started_at_utc": "2026-11-03T20:39:09.648365+00:00",
+      "completed_at_utc": "2026-11-03T20:39:10.248996+00:00",
+      "bytes": 49240,
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "http": {
+        "method": "GET",
+        "status": 200,
+        "version": "HTTP/2",
+        "date": "Tue, 03 Nov 2026 20:39:10 GMT",
+        "etag": "\"603e2c27b9ce82df18db251881d9731c5409d4a179d5d8cf4ed8b00d10f9289b\"",
+        "last_modified": "Tue, 03 Nov 2026 14:34:06 GMT",
+        "content_type": "application/json",
+        "content_encoding": "gzip",
+        "content_length": 11217,
+        "cache_control": "max-age=3600",
+        "vary": "x-fh-requested-host, accept-encoding"
+      },
+      "baseline": {
+        "record": "http-validators.json",
+        "entry": "source",
+        "bytes": 49240,
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "etag": "\"603e2c27b9ce82df18db251881d9731c5409d4a179d5d8cf4ed8b00d10f9289b\"",
+        "last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+        "equal_body_bytes": true,
+        "equal_sha256": true,
+        "equal_etag": true,
+        "equal_last_modified": false
+      }
+    },
+    {
+      "name": "en.json",
+      "url": "https://godfield.net/i18n/en.json",
+      "started_at_utc": "2026-11-03T20:39:09.649106+00:00",
+      "completed_at_utc": "2026-11-03T20:39:10.245767+00:00",
+      "bytes": 46842,
+      "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+      "http": {
+        "method": "GET",
+        "status": 200,
+        "version": "HTTP/2",
+        "date": "Tue, 03 Nov 2026 20:39:10 GMT",
+        "etag": "\"e746e455791f17917274869ceb1e2d65fb4050187b5a496d8c195fde1ba33b27\"",
+        "last_modified": "Tue, 03 Nov 2026 14:34:06 GMT",
+        "content_type": "application/json",
+        "content_encoding": "gzip",
+        "content_length": 9670,
+        "cache_control": "max-age=3600",
+        "vary": "x-fh-requested-host, accept-encoding"
+      },
+      "baseline": {
+        "record": "confusion-client-v37.json",
+        "entry": "locales.en",
+        "bytes": 46842,
+        "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+        "equal_body_bytes": true,
+        "equal_sha256": true,
+        "previous_http_validators": "Not claimed by this record."
+      }
+    }
+  ],
+  "facts_comparison": {
+    "method": "Decode the current Japanese JSON; for every items row preserve all source keys and omissions, add id=array_index+1, and compare the complete ordered list to official-v2/cards.json. Also compare current JS/JA/EN bytes to the previously acquired bodies identified by the baseline fingerprints.",
+    "cards_record": "cards.json",
+    "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+    "ja_records": 296,
+    "en_records": 296,
+    "normalized_ja_equal_cards": true,
+    "changed_ja_item_records": 0,
+    "changed_ja_item_fields": 0,
+    "positive_gift_models": 237,
+    "total_gift_weight": 500,
+    "client_body_changes": 0,
+    "ja_body_changes": 0,
+    "en_body_changes": 0,
+    "public_client_rule_differences": 0,
+    "rule_difference_scope": "Zero observed differences in the pinned public client and localized facts because the three complete bodies are byte-identical. This does not verify official backend rules, server configuration, selectors, event fanout or external dependency behavior."
+  },
+  "http_validator_comparison": {
+    "client_and_ja_etags_equal": true,
+    "previous_client_and_ja_last_modified": "Sun, 01 Nov 2026 15:47:28 GMT",
+    "current_all_assets_last_modified": "Tue, 03 Nov 2026 14:34:06 GMT",
+    "interpretation": "Last-Modified advanced while complete client/JA bodies, SHA256 and ETags remain identical. A changed Last-Modified alone is not evidence of changed rules or catalog content."
+  },
+  "html_dependency_comparison": {
+    "baseline_kind": "Initial acquisition HTML cache identified by the index.html baseline fingerprint above, not a versioned official-v2 HTML pin. Its acquisition time and validators are not asserted.",
+    "changed_lines": 3,
+    "changes": [
+      {
+        "module": "firebase-app.js",
+        "previous_url": "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js",
+        "current_url": "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js"
+      },
+      {
+        "module": "firebase-auth.js",
+        "previous_url": "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js",
+        "current_url": "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js"
+      },
+      {
+        "module": "firebase-firestore.js",
+        "previous_url": "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js",
+        "current_url": "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js"
+      }
+    ],
+    "all_other_html_lines_equal": true,
+    "current_main_client_src": "/main.dart.js",
+    "current_other_script_src": "https://www.googletagmanager.com/gtag/js?id=G-XJY0VKPCXR",
+    "limits": "The HTML difference establishes imported Firebase version labels only. The referenced Firebase scripts were not fetched or executed in this review; no claim is made about their behavioral equivalence, deployment timing or game-server changes."
+  },
+  "recheck_contract": {
+    "network": "Fetch the four explicit asset URLs into a new cache without overwriting historical sources; record UTC time, response status, validators and decoded-body SHA256/length.",
+    "facts": "Japanese items must retain omitted keys, original ordering and id=index+1; compare against cards.json without rewriting it.",
+    "portable_evidence": "This record is self-contained metadata. No temporary path or retained local raw file is required to read its findings. Network recheck can establish present equality to the fingerprints; historical bytes cannot be recovered from a hash alone."
+  }
+}

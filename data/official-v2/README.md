@@ -224,3 +224,11 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+## v51：現行公開アセットの再取得
+
+別途[ブラウザでの教典・CPU修行の観測](../../docs/official-live-observations.md)と[機械可読記録](live-ui-observations-v51.json)を保存した。初期資源・本人手札の2例と選択previewまでであり、完了済み遷移goldenは0件。以下の取得記録とは証拠の範囲を分ける。
+
+[取得検証record](live-review-v51.json) は2026年11月4日05:39 JSTに、公式HTML・main.dart.js・日本語/英語JSONを公開GETで再取得した証跡である。全4件HTTP200。JS・JA・ENの本文SHA256とbyte列は既存証拠に完全一致し、JAの全296行も省略fieldを保持したまま `id=index+1` で `cards.json` と一致した。正重量237モデル・配布重み500、公開client/台帳で観測されたルール差は0。公式backendの抽選・進行まで照合した結果ではない。
+
+Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだった。HTMLだけは初期取得cache比でFirebase import3本が12.17.1から13.1.0へ変わっていた。この比較元は版付きv2のHTML pinではなく、外部Firebase本文の挙動も未検証である。recordにURL・取得UTC時刻・本文size/SHA・HTTP validators・比較範囲を保存し、rawソース全文・一時pathへの依存を含めていない。既存pins・生成物・ルール・保存oracleは更新していない。

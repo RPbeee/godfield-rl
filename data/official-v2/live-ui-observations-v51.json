@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "review": "official-live-ui-observations-v51",
+  "observed_on_jst": "2026-11-04",
+  "url": "https://godfield.net/",
+  "method": "Firefox native UI through computer use; rendered accessibility text and screenshots. No script injection or backend request replay.",
+  "companion_public_fetch": "live-review-v51.json",
+  "companion_fetch_is_browser_response_capture": false,
+  "scope": "Public Bible and two 2-player training sessions against the computer, with apocalypse set to none. Human multiplayer modes were not entered.",
+  "privacy": "Names are replaced by viewer/CPU roles. No user IDs, account credentials, session URLs, request bodies or full source text are stored.",
+  "bible_facts_observed": {
+    "disease_natural_worsening_percent_per_turn": 5,
+    "dream_disguise_percent_on_receipt": 50,
+    "devil_percent_on_receipt_after_apocalypse": 25,
+    "guardian_action_percent_after_enemy_turn": 25,
+    "guardian_departure_percent_on_damage": 10,
+    "earth_categories": ["trade", "weapons", "armor", "sundries"],
+    "moon_categories": ["miracles"]
+  },
+  "training_observations": [
+    {
+      "label": "cpu-first-sale-awaiting-response",
+      "players": 2,
+      "apocalypse": null,
+      "gf": 1,
+      "visible_resources": {
+        "viewer": {"hp": 40, "mp": 10, "cp": 20},
+        "cpu": {"hp": 40, "mp": 10, "cp": 20}
+      },
+      "viewer_visible_hand_cards": 9,
+      "cpu_hand_count": null,
+      "active_source": "cpu",
+      "active_target": "viewer",
+      "active_models": [4, 46],
+      "model_mapping": "Names and displayed facts map to archived cards.json: sell and spiritual-staff; IDs were not read from a game response.",
+      "commodity_display_price": 20,
+      "visible_response_label": "allow",
+      "completed_transition_observed": false,
+      "limitation": "Attempts to activate the empty response did not yield an observable resolved action during this inspection. Invoice, delivery, refill and next-owner results are unknown; no server rejection or cause is established."
+    },
+    {
+      "label": "viewer-first-weapon-selection",
+      "players": 2,
+      "apocalypse": null,
+      "gf": 1,
+      "visible_resources": {
+        "viewer": {"hp": 40, "mp": 10, "cp": 20},
+        "cpu": {"hp": 40, "mp": 10, "cp": 20}
+      },
+      "viewer_visible_hand_cards": 9,
+      "cpu_hand_count": null,
+      "selected_models": [20],
+      "model_mapping": "The plate-of-strike name and ATK5/DEF7/price3 map to archived cards.json; not a captured wire model ID.",
+      "visible_attack_preview": 5,
+      "preview_target": "cpu",
+      "completed_transition_observed": false,
+      "limitation": "Selection and preview were observed. An accepted attack, CPU defense, actual damage, consumption, refill and next GF were not observed. Prayer attempts with visible weapons do not establish a valid submitted prayer."
+    }
+  ],
+  "coverage": {
+    "initial_visible_resource_observations": 2,
+    "viewer_initial_hand_count_observations": 2,
+    "completed_authoritative_transition_goldens": 0,
+    "backend_event_trace_captured": false,
+    "official_rng_equivalence_tested": false,
+    "server_schedule_equivalence_tested": false
+  },
+  "interpretation": "These are finite UI observations, not universal server invariants or a runnable full-state replay fixture. They neither prove hidden CPU inventory nor authorize replacing missing transitions with local engine predictions."
+}
