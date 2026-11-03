@@ -19,6 +19,7 @@ struct gfo_state {
 namespace godfield::official::bridge {
 const SnapshotState& snapshot(const gfo_state& state) noexcept { return state.value; }
 bool has_active_attack(const gfo_state& state) noexcept { return state.active_attack.has_value(); }
+const std::optional<ActiveAttackState>& active_attack(const gfo_state& state) noexcept { return state.active_attack; }
 }
 static_assert(std::is_standard_layout_v<gfo_state_item> && sizeof(gfo_state_item) == 16);
 static_assert(offsetof(gfo_state_item, model) == 8 && offsetof(gfo_state_item, used) == 12);

@@ -8,7 +8,7 @@ add_library(godfield SHARED src/env.cpp src/c_api.cpp src/catalog.cpp src/miracl
   src/legacy_env.cpp src/legacy_c_api.cpp src/miracles_c_api.cpp src/elements_c_api.cpp src/chance_c_api.cpp src/reflection_c_api.cpp src/disease_c_api.cpp src/harms_c_api.cpp src/celestial_c_api.cpp src/offensive_miracles_c_api.cpp src/defensive_miracles_c_api.cpp src/attribute_change_c_api.cpp src/attribute_removal_c_api.cpp src/counter_c_api.cpp src/counter_extensions_c_api.cpp src/money_counter_c_api.cpp src/magic_reflection_c_api.cpp src/any_reflection_c_api.cpp src/mana_weapon_c_api.cpp src/magic_block_c_api.cpp src/additive_miracles_c_api.cpp src/doubling_miracles_c_api.cpp src/wide_miracles_c_api.cpp src/magic_free_c_api.cpp src/forgetting_c_api.cpp src/exchange_c_api.cpp src/revival_c_api.cpp src/item_removal_c_api.cpp src/hp_absorption_c_api.cpp src/self_damage_c_api.cpp src/pestle_mortar_c_api.cpp src/selling_c_api.cpp src/buying_c_api.cpp src/hp_gamble_c_api.cpp src/magic_bounce_c_api.cpp src/sundry_boost_c_api.cpp src/status_miracles_c_api.cpp src/dying_weapon_c_api.cpp)
 target_include_directories(godfield PUBLIC include)
 target_sources(godfield PRIVATE src/official_catalog.cpp src/official_rules.cpp src/official_c_api.cpp
-  src/official_state.cpp src/official_state_c_api.cpp src/official_match.cpp src/official_match_c_api.cpp)
+  src/official_state.cpp src/official_state_c_api.cpp src/official_display.cpp src/official_display_c_api.cpp src/official_match.cpp src/official_match_c_api.cpp)
 target_compile_options(godfield PRIVATE -Wall -Wextra -Wpedantic)
 if(GF_SANITIZE)
   target_compile_options(godfield PUBLIC -fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -57,6 +57,15 @@ add_executable(godfield_driver_bench src/official_driver_bench.cpp)
 target_link_libraries(godfield_driver_bench PRIVATE godfield Threads::Threads)
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(godfield_official_active_display_tests tests/official_active_display_test.cpp)
+  target_link_libraries(godfield_official_active_display_tests PRIVATE godfield)
+  add_test(NAME official_active_display COMMAND godfield_official_active_display_tests)
+  add_executable(godfield_official_active_display_vectors_tests tests/official_active_display_vectors_test.cpp)
+  target_link_libraries(godfield_official_active_display_vectors_tests PRIVATE godfield)
+  add_test(NAME official_active_display_vectors COMMAND godfield_official_active_display_vectors_tests ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/active-display-vectors-v50.tsv)
+  add_executable(godfield_official_display_api_tests tests/official_display_c_api_test.cpp)
+  target_link_libraries(godfield_official_display_api_tests PRIVATE godfield)
+  add_test(NAME official_display_c_api COMMAND godfield_official_display_api_tests)
   add_executable(godfield_official_driver_tests tests/official_driver_test.cpp)
   target_link_libraries(godfield_official_driver_tests PRIVATE godfield)
   add_test(NAME official_driver COMMAND godfield_official_driver_tests)
@@ -326,6 +335,8 @@ if(BUILD_TESTING)
     if(NOT GF_SANITIZE)
       add_test(NAME official_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_api_test.py $<TARGET_FILE:godfield>)
+      add_test(NAME official_display_python COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_display_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME official_state_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_state_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME official_match_python COMMAND ${Python3_EXECUTABLE}

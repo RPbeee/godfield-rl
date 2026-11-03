@@ -7,4 +7,5 @@
 namespace godfield::official::bridge {
 [[nodiscard]] const SnapshotState& snapshot(const gfo_state& state) noexcept;
 [[nodiscard]] bool has_active_attack(const gfo_state& state) noexcept;
+[[nodiscard]] const std::optional<ActiveAttackState>& active_attack(const gfo_state& state) noexcept;
 }
