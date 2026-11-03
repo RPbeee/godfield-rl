@@ -237,7 +237,7 @@ int main(int argc,char** argv){try{
     if(count>=10000)check(covered==146 && total.mana_plays>0 && total.repeat_plays>0 && total.random_hp_plays>0,"large payload sampler fixture omitted a base or special weapon/body");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:local-earth120-moon26-base-and-earth26-append-sampler;external-only-not-canonical-auto-or-official-selector;independent-chance-action-and-world-selected-counter-hashes-plus-full-restore-audit"
-             <<"\nguardian_payload_sampler_rule="<<guardian_payload_sampler_rule<<"\nguardian_payload_rule="<<guardian_payload_rule
+             <<"\nguardian_payload_sampler_rule="<<guardian_payload_sampler_rule << "\nguardian_payload_auto_rule=" << guardian_payload_auto_rule<<"\nguardian_payload_rule="<<guardian_payload_rule
              <<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmax_decisions=96\nmodels_covered="<<covered;
 #define OUTPUT(n) std::cout<<"\n" #n "="<<total.n
     OUTPUT(decisions);OUTPUT(responses);OUTPUT(purchase_commands);OUTPUT(grant_commands);OUTPUT(terminated);OUTPUT(truncated);OUTPUT(sampler_checks);OUTPUT(independence_checks);OUTPUT(invalid_sampler_checks);

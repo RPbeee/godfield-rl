@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v46"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v47"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v44\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v45\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -1890,7 +1890,7 @@ void targeted_phenomenon_source_counters_skip_but_self_mp_is_real(){
     auto state=scene({187,208,190},{});state.players[0].curses={Curse::darkcloud};state.players[0].mp=0;Match m;m.load_scene(state,7,5);m.phenomenon_step({292,0,{}});m.step(defend(0,{0}));check(m.snapshot().queue[0].is_counter&&!m.snapshot().queue[0].environmental&&m.snapshot().queue[0].source==0&&m.snapshot().queue[0].target==0&&m.snapshot().queue[0].origin==0&&m.snapshot().queue[0].amount==80&&m.snapshot().counter_created==1,"187 creates a genuine player0 self-counter from actual40 HP loss, not an inherited world source");check(m.observe({}).find("\"origin\":0,\"source\":0,\"target\":0")!=std::string::npos,"derived self-counter publicly identifies real player0");roundtrip(m);m.step(defend(0,{2}));check(m.snapshot().phase==MatchPhase::response&&!m.snapshot().queue[0].environmental&&m.snapshot().actor==0,"reflecting a genuine self-counter does not use environmental cancellation");roundtrip(m);m.step(defend(0));check(m.snapshot().state.players[0].mp==80&&m.snapshot().owner==7&&m.snapshot().state.gf==0&&!m.snapshot().last_tick,"self MP effect resolves after its own response and preserves the ordinary owner");roundtrip(m);
 }
 void targeted_phenomenon_owner_death_fifo_and_cutoff(){
-    SnapshotState state;state.gf=13;state.players={player(0,{112}),player(7),player(9)};for(auto& p:state.players){p.hp=99;p.curses={Curse::darkcloud};}state.players[0].hp=40;Match m;m.load_scene(state,0,7);m.phenomenon_step({292,0,{}});m.step(defend(0));check(m.snapshot().state.players[0].dead&&m.snapshot().queue[0].is_death&&!m.snapshot().queue[0].environmental&&m.snapshot().queue[0].source==0&&m.snapshot().death_created==2&&m.snapshot().actor==7,"world kill of the ordinary owner starts genuine posthumous player0 FIFO before returning to a survivor");roundtrip(m);m.step(defend(7));roundtrip(m);m.step(defend(9));check(m.snapshot().phase==MatchPhase::main&&m.snapshot().owner==7&&m.snapshot().state.gf==13&&m.snapshot().state.players[1].hp==69&&m.snapshot().state.players[2].hp==69&&!m.snapshot().last_tick,"all death responses finish without inventing a world origin or ordinary tick/GF advance");roundtrip(m);
+    SnapshotState state;state.gf=13;state.players={player(0,{199,112}),player(7),player(9)};for(auto& p:state.players){p.hp=99;p.curses={Curse::darkcloud};}state.players[0].hp=40;Match m;m.load_scene(state,0,7);m.phenomenon_step({292,0,{}});m.step(defend(0));check(m.snapshot().state.players[0].dead&&m.snapshot().queue[0].is_death&&!m.snapshot().queue[0].environmental&&m.snapshot().queue[0].source==0&&m.snapshot().death_created==2&&m.snapshot().actor==7,"world kill of the ordinary owner starts genuine posthumous player0 FIFO before returning to a survivor");roundtrip(m);m.step(defend(7));roundtrip(m);m.step(defend(9));check(m.snapshot().phase==MatchPhase::main&&m.snapshot().owner==7&&m.snapshot().state.gf==13&&m.snapshot().state.players[1].hp==69&&m.snapshot().state.players[2].hp==69&&!m.snapshot().last_tick,"all death responses finish without inventing a world origin or ordinary tick/GF advance");roundtrip(m);
     auto duel=fixture(scene({112},{}));duel.phenomenon_step({291,0,{}});duel.step(defend(0));check(duel.snapshot().terminated&&duel.snapshot().death_created==0&&duel.snapshot().last_phenomenon==PhenomenonAction{291,0,{}},"natural terminal precedes posthumous generation for a world kill");roundtrip(duel);
     MatchConfig cap;cap.max_decisions=1;auto original=scene();original.players[0].hp=5;Match cut(cap);cut.load_scene(original,7,31);cut.phenomenon_step({293,0,{}});check(cut.snapshot().truncated&&cut.snapshot().state.players[0].hp==5&&cut.snapshot().last_phenomenon==PhenomenonAction{293,0,{}},"targeted cutoff cancels the pending body, unlike immediate global setters");roundtrip(cut);
 }
@@ -2889,10 +2889,139 @@ void payload_sampler_independent_bigint_vectors(){
         const GuardianPayloadAction expected{42,Guardian::earth,{95},7};check(game.sample_guardian_payload(42,rng)==expected&&rng==0x0c1194b99c66d7b0ULL&&game.snapshot()==before,"independent BigInt guardian payload vectors match full column, source-relative target and nextRNG");}
 }
 
+Match automatic_payload_fixture(SnapshotState state,CardId model,bool singleton=true,std::optional<PlayerId> target={},Command initial=pray(0)){
+    MatchConfig config;config.local_guardian_payloads=true;config.max_decisions=128;
+    for(std::uint64_t seed=0;seed<30000;++seed){Match game(config);game.load_scene(state,0,seed);game.step(initial);
+        if(!game.snapshot().last_auto_guardian_payloads.empty()){const auto& action=game.snapshot().last_auto_guardian_payloads.front();if(action.models.front()==model&&(!singleton||action.models.size()==1)&&(!target||action.target==target))return game;}}
+    check(false,"automatic model seed witness exists");return Match(config);
+}
+void finish_automatic_payload(Match& game){
+    roundtrip(game);
+    while(!game.done()&&game.snapshot().phase!=MatchPhase::main){
+        if(game.snapshot().phase==MatchPhase::grant)game.grant_step({*game.snapshot().pending_grant,0,{},{}});
+        else if(game.snapshot().phase==MatchPhase::purchase)game.step({*game.snapshot().actor,CommandKind::decline,{},{}});
+        else game.step(defend(*game.snapshot().actor));
+        roundtrip(game);
+    }
+}
+void automatic_payload_opt_in_and_unchanged_external_helper(){
+    MatchConfig config;config.local_guardian_payloads=true;
+    auto state=scene();state.players[1].guardian=Guardian::moon;state.players[1].mp=0;
+    Match a(config),b;a.load_scene(state,0,2);b.load_scene(state,0,2);
+    std::uint64_t ar=42,br=42;const auto original=a.snapshot();
+    check(a.sample_guardian_payload(7,ar)==b.sample_guardian_payload(7,br)&&ar==br&&a.snapshot()==original,"opt-in auto mode leaves external const helper's action/chance/purity unchanged");
+    a.step(pray(0));b.step(pray(0));
+    check(a.snapshot().last_auto_guardian_payloads.size()==1&&a.snapshot().last_auto_guardians.empty()&&!a.snapshot().last_guardian_payload
+        &&a.snapshot().guardian_payload_actions==0&&a.snapshot().auto_guardian_actions==1&&a.snapshot().decisions==1,"automatic launch has a separate public log and no external activation decision or counter");
+    check(b.snapshot().last_auto_guardian_payloads.empty()&&b.snapshot().last_auto_guardians==std::vector<GuardianAction>{{7,286,0}},"default continues canonical Moon286 after the same successful opportunity");
+    check(a.observe({}).find(guardian_payload_auto_rule)!=std::string::npos&&a.observe({}).find("\"local_guardian_payloads\":true")!=std::string::npos
+        &&a.observe({}).find("launch_mp")==std::string::npos&&a.observe({}).find("automatic_payload")==std::string::npos,"public metadata explains local mode without publishing private launch anchors");
+    finish_automatic_payload(a);finish_automatic_payload(b);
+    const std::array<PlayerSetup,2> players{{{0,Team::solo,"a"},{7,Team::solo,"b"}}};a.reset(players,2);check(a.snapshot().config.local_guardian_payloads,"reset retains the opt-in setting");
+}
+void automatic_payload_all_bases_and_other_guardians_parity(){
+    MatchConfig yes;yes.local_guardian_payloads=true;yes.max_decisions=64;auto no=yes;no.local_guardian_payloads=false;
+    for(unsigned g=1;g<=8;++g)for(std::uint64_t seed=0;seed<16;++seed){auto state=scene({118,178},{208});state.players[1].guardian=static_cast<Guardian>(g);for(auto& p:state.players)p.hp=99;
+        Match a(yes),b(no);a.load_scene(state,0,seed);b.load_scene(state,0,seed);a.step(pray(0));b.step(pray(0));finish_automatic_payload(a);finish_automatic_payload(b);
+        auto expected=b.snapshot();expected.config.local_guardian_payloads=true;check(a.snapshot()==expected,"enabling local mode with only other eight guardians preserves every private field except config");}
+    for(auto guardian:{Guardian::earth,Guardian::moon}){std::set<CardId> covered;auto state=scene({118,178},{208});state.players[1].guardian=guardian;for(auto& p:state.players){p.hp=99;p.mp=0;}
+        const auto count=guardian==Guardian::earth?120u:26u;
+        for(std::uint64_t seed=0;seed<20000&&covered.size()<count;++seed){Match m(yes);m.load_scene(state,0,seed);m.step(pray(0));if(m.snapshot().last_auto_guardian_payloads.empty())continue;
+            const auto id=m.snapshot().last_auto_guardian_payloads.front().models.front();if(covered.insert(id).second){check(match_guardian_payload_supported(guardian,id),"auto base is in supported domain");finish_automatic_payload(m);check(!m.snapshot().guardian_payload_actions,"all automatic bases keep external count zero");}}
+        check(covered.size()==count,"every Earth120/Moon26 base reaches and completes automatic scheduling at MP0");}
+}
+void automatic_payload_mana_repeat_and_counter_fifo(){
+    auto state=scene({190},{});state.players[1].guardian=Guardian::earth;state.players[1].mp=17;for(auto& p:state.players)p.hp=99;
+    auto mana=automatic_payload_fixture(state,58);const auto launch=mana.snapshot();
+    check(launch.batch->automatic_payload->launch_mp==17&&launch.state.players[1].mp==0&&launch.queue[0].power==34&&launch.gifts[0]==1,"auto58 saves prelaunch MP once before drain and leaves prayer gift deferred");
+    mana.step(defend(0,{0}));check(mana.snapshot().queue[0].source==0&&mana.snapshot().queue[0].target==7&&mana.snapshot().queue[0].power==34,"reflection retains original auto58 launch power");finish_automatic_payload(mana);
+    state=scene({184},{});state.players[1].guardian=Guardian::earth;for(auto& p:state.players)p.hp=99;
+    auto twice=automatic_payload_fixture(state,14);twice.step(defend(0,{0}));
+    check(twice.snapshot().queue[0].is_counter&&twice.snapshot().batch->automatic_payload->cursor==1&&twice.snapshot().guardian_opportunities==1,"first auto14 hit reserves counter FIFO before second original hit");roundtrip(twice);
+    twice.step(defend(7));check(!twice.snapshot().queue[0].is_counter&&twice.snapshot().queue[0].models==std::vector<CardId>{14}
+        &&twice.snapshot().queue[0].source==7&&twice.snapshot().queue[0].target==0&&twice.snapshot().queue[0].redirects.empty()
+        &&twice.snapshot().batch->automatic_payload->cursor==2,"second auto14 hit is fresh and follows counter resolution");finish_automatic_payload(twice);
+}
+void automatic_payload_death_cancels_hits_and_future_sources(){
+    SnapshotState state;state.players={player(0,{199,112}),player(7),player(9)};for(auto& p:state.players){p.hp=99;p.curses={Curse::darkcloud};}state.players[0].hp=1;state.players[1].guardian=Guardian::earth;state.players[2].guardian=Guardian::moon;
+    auto game=automatic_payload_fixture(state,14,true,0,play(0,{0},0));if(game.snapshot().actor==0){game.step(defend(0));
+        check(game.snapshot().state.players[0].dead&&game.snapshot().queue[0].is_death&&game.snapshot().guardian_opportunities==1,"owner death pumps112 before later automatic opportunities");finish_automatic_payload(game);
+        check(game.snapshot().guardian_opportunities==1&&game.snapshot().owner==7&&game.snapshot().state.gf==1,"owner death cancels second14 and future sources after death FIFO");}
+    else {check(false,"death fixture14 targets ordinary owner");}
+    auto source=scene({190},{});source.players[1].guardian=Guardian::earth;source.players[1].hp=1;source.players[0].hp=99;
+    auto reflected=automatic_payload_fixture(source,14);reflected.step(defend(0,{0}));reflected.step(defend(7));
+    check(reflected.done()&&reflected.snapshot().state.players[1].dead&&reflected.snapshot().auto_guardian_actions==1,"source death on first reflected hit suppresses second original hit");roundtrip(reflected);
+}
+void automatic_payload_multiple_immediate_summons_and_tick_history(){
+    SnapshotState state;for(unsigned i=0;i<9;++i){auto p=player(i?100+i:0);p.hp=99;p.mp=0;if(i)p.guardian=Guardian::moon;state.players.push_back(p);}
+    MatchConfig config;config.local_guardian_payloads=true;bool multiple=false;
+    for(std::uint64_t seed=0;seed<10000&&!multiple;++seed){Match game(config);game.load_scene(state,0,seed);game.step(pray(0));if(game.snapshot().guardian_summons>game.snapshot().decisions){multiple=true;check(game.snapshot().guardian_summons>=2,"multiple self239 summons can share a single main decision");finish_automatic_payload(game);}}
+    check(multiple,"seed witnesses multiple immediate summon bodies beyond old one-per-decision bound");
+    auto cold=scene();cold.players[0].curses={Curse::cold};cold.players[1].guardian=Guardian::moon;bool history=false;
+    for(std::uint64_t seed=0;seed<3000&&!history;++seed){Match m(config);m.load_scene(cold,0,seed);m.step(pray(0));if(m.snapshot().last_auto_guardian_payloads.empty())continue;finish_automatic_payload(m);
+        if(m.snapshot().last_tick&&m.snapshot().state.players[0].hp!=m.snapshot().last_tick->hp_after){history=true;roundtrip(m);}}
+    check(history,"tick history is immutable even when opt-in payload later changes owner HP");
+}
+void automatic_payload_removal_after_trade_and_danger(){
+    MatchConfig config;config.local_guardian_payloads=true;config.max_decisions=64;
+    for(unsigned kind=0;kind<3;++kind){bool witnessed=false;for(std::uint64_t seed=0;seed<10000&&!witnessed;++seed){auto state=kind==0?scene({4,6},{6,6,6,6}):kind==1?scene({5},{6,6,6,6}):scene({94},{6,6,6,6});
+            for(auto& p:state.players)p.hp=p.mp=p.cp=99;state.players[1].guardian=Guardian::earth;Match m(config);m.load_scene(state,0,seed);
+            if(kind==0)m.step({0,CommandKind::sell,{0,1},7});else if(kind==1)m.step({0,CommandKind::buy,{0},7});else m.step(play(0,{0},7));
+            finish_automatic_payload(m);if(m.snapshot().last_removal&&(kind==0?m.snapshot().last_sale.has_value():kind==1?m.snapshot().last_purchase.has_value():m.snapshot().last_danger.has_value())){witnessed=true;roundtrip(m);}}
+        check(witnessed,"automatic removal can coexist with a resolved ordinary sale/purchase/danger event");}
+}
+void automatic_payload_snapshot_forgery_and_failure_atomicity(){
+    auto state=scene({118},{});state.players[1].guardian=Guardian::earth;for(auto& p:state.players)p.hp=99;auto game=automatic_payload_fixture(state,14);const auto original=game.snapshot();
+    for(unsigned error=0;error<16;++error){auto bad=original;
+        if(error==0)bad.config.local_guardian_payloads=false;if(error==1)bad.batch->automatic_payload.reset();if(error==2)++bad.batch->automatic_payload->launch_mp;
+        if(error==3)++bad.batch->automatic_payload->random_hp_delta;if(error==4)bad.batch->automatic_payload->cursor=0;if(error==5)bad.batch->automatic_payload->cursor=3;
+        if(error==6)bad.batch->automatic_payload->action.models={6};if(error==7)bad.batch->automatic_payload->action.source=0;if(error==8)bad.batch->automatic_payload->action.target=7;
+        if(error==9)bad.last_auto_guardian_payloads.clear();if(error==10)bad.last_auto_guardian_payloads.push_back(bad.last_auto_guardian_payloads.front());
+        if(error==11)bad.last_auto_guardian_payloads[0].guardian=Guardian::moon;if(error==12)++bad.rng;if(error==13)++bad.auto_guardian_actions;
+        if(error==14)bad.last_auto_guardians.push_back({7,285,0});if(error==15)bad.batch->guardian_stage_started=false;
+        bool rejected=false;try{game.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&game.snapshot()==original,"forged automatic launch/log/RNG/counter/history fails full replay atomically");}
+    auto exhausted=state;exhausted.update_count=max_wire_integer;MatchConfig config;config.local_guardian_payloads=true;Match late(config);late.load_scene(exhausted,0,2);const auto before=late.snapshot();bool failed=false;
+    try{late.step(pray(0));}catch(const MatchError&){failed=true;}check(failed&&late.snapshot()==before,"late main update exhaustion rolls back opt-in chance and entire launch state");
+    config.max_decisions=1;Match capped(config);capped.load_scene(state,0,2);capped.step(pray(0));check(capped.done()&&capped.snapshot().truncated&&!capped.snapshot().batch,"cutoff clears pending automatic payload together with original batch");roundtrip(capped);
+    state.tiebreak_gf=0;config.max_decisions=64;config.external_grants=true;Match grants(config);grants.load_scene(state,0,2);grants.step(pray(0));finish_automatic_payload(grants);check(grants.snapshot().grant_resolutions>0&&grants.snapshot().grant_proof,"external reserved grants retain replay of preceding opt-in automatic work");
+}
+
+void automatic_payload_independent_bigint_stage_vectors(){
+    MatchConfig config;config.local_guardian_payloads=true;
+    const auto make=[&](Guardian guardian,std::int64_t mp=0){SnapshotState s;s.gf=17;s.players={player(7,{},Team::two),player(guardian==Guardian::moon?0:42,{},Team::one)};
+        for(auto& p:s.players){p.hp=99;p.mp=0;}s.players[1].guardian=guardian;s.players[1].mp=mp;
+        for(unsigned i=0;i<18;++i)s.players[0].items.push_back({i,235,{},true});return s;};
+    {Match m(config);m.load_scene(make(Guardian::earth),7,0x126);m.step(pray(7));
+        check(m.snapshot().rng==0x78dde6e5fd29f17aULL&&m.snapshot().last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{42,Guardian::earth,{14},7}}
+            &&m.snapshot().queue[0].power==3&&m.snapshot().batch->automatic_payload->cursor==1,"independent BigInt quarter/base/coin/target stages match auto14 first frame");finish_automatic_payload(m);}
+    for(std::int64_t mp:{0,17,99}){Match m(config);m.load_scene(make(Guardian::earth,mp),7,0x26d);m.step(pray(7));
+        check(m.snapshot().rng==0x78dde6e5fd29f2c1ULL&&m.snapshot().last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{42,Guardian::earth,{58},7}}
+            &&m.snapshot().queue[0].power==2*mp&&m.snapshot().state.players[1].mp==0&&m.snapshot().batch->automatic_payload->launch_mp==mp,"independent BigInt auto58 choice ignores MP but launch saves and drains exact resource");finish_automatic_payload(m);}
+    for(const auto v:{std::array<std::uint64_t,4>{0x44d,0x78dde6e5fd29f4a1ULL,99,0},std::array<std::uint64_t,4>{0x2ec,0x1715609f7c746f55ULL,89,1},std::array<std::uint64_t,4>{0x61d4,0x1715609f7c74ce3dULL,89,1}}){Match m(config);m.load_scene(make(Guardian::earth),7,v[0]);m.step(pray(7));
+        check(m.snapshot().rng==v[1]&&m.snapshot().last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{42,Guardian::earth,{202},42}}
+            &&m.snapshot().state.players[1].hp==static_cast<std::int64_t>(v[2])&&m.snapshot().guardian_departure_rolls==v[3]
+            &&m.snapshot().guardian_departures==(v[0]==0x61d4?1u:0u),"independent BigInt auto202 sign and conditional departure stream match without a gift draw");roundtrip(m);}
+    {auto state=make(Guardian::earth);state.players[1].hp=1;Match m(config);m.load_scene(state,7,0x2ec);m.step(pray(7));check(m.done()&&m.snapshot().terminated&&m.snapshot().state.players[1].dead&&m.snapshot().state.gf==17&&!m.snapshot().batch,"last enemy's immediate negative202 ends naturally before gifts/GF/next owner");roundtrip(m);}
+    {Match m(config);m.load_scene(make(Guardian::moon),7,12);m.step(pray(7));check(m.snapshot().rng==0xdaa66d2c7ddf744bULL&&m.snapshot().last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{0,Guardian::moon,{235},0}}
+        &&m.snapshot().state.players[1].mp==0&&m.snapshot().state.gf==18&&m.snapshot().decisions==1,"independent BigInt Moon singleton uses opportunity/base/target only and no MC fee");roundtrip(m);}
+    {auto state=make(Guardian::earth);state.players.push_back(player(0,{},Team::one));state.players.back().hp=99;state.players.back().mp=0;state.players.back().guardian=Guardian::moon;Match m(config);m.load_scene(state,7,0x55a41);m.step(pray(7));
+        check(m.snapshot().rng==0xf1bbcdcbfa593ae9ULL&&m.snapshot().guardian_summons==2&&m.snapshot().decisions==1&&m.snapshot().guardian_opportunities==2
+            &&m.snapshot().last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{42,Guardian::earth,{201},42},{0,Guardian::moon,{239},0}}
+            &&m.snapshot().state.players[1].guardian==static_cast<Guardian>(2)&&m.snapshot().state.players[2].guardian==static_cast<Guardian>(5),"independent BigInt two-source self summon vectors preserve selected original guardian and eight exact draws");roundtrip(m);}
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),208> tests{{
+    const std::array<void(*)(),216> tests{{
+        automatic_payload_independent_bigint_stage_vectors,
+        automatic_payload_opt_in_and_unchanged_external_helper,
+        automatic_payload_all_bases_and_other_guardians_parity,
+        automatic_payload_mana_repeat_and_counter_fifo,
+        automatic_payload_death_cancels_hits_and_future_sources,
+        automatic_payload_multiple_immediate_summons_and_tick_history,
+        automatic_payload_removal_after_trade_and_danger,
+        automatic_payload_snapshot_forgery_and_failure_atomicity,
         scope_reset_and_local_contract,
         weapon_frames_colors_owner_and_fixed_rewards,
         recovery_retention_capacity_and_atomicity,

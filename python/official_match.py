@@ -55,6 +55,7 @@ class Config:
     initial_cp: int = 20
     external_grants: bool = False
     include_fate: bool = False
+    local_guardian_payloads: bool = False
 
 @dataclass(frozen=True)
 class PlayerSetup:
@@ -139,7 +140,8 @@ class MatchStatus:
 
 class _Config(c.Structure):
     _fields_ = [("max_decisions", c.c_uint32), ("initial_hand", c.c_uint8), ("hand_limit", c.c_uint8),
-        ("external_grants", c.c_uint8), ("include_fate", c.c_uint8), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32), ("reserved_tail", c.c_uint8 * 4)]
+        ("external_grants", c.c_uint8), ("include_fate", c.c_uint8), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32),
+        ("local_guardian_payloads", c.c_uint8), ("reserved_tail", c.c_uint8 * 3)]
 class _Player(c.Structure):
     _fields_ = [("id", c.c_uint64), ("name", c.c_char_p), ("name_size", c.c_size_t), ("team", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _Command(c.Structure):
@@ -175,7 +177,8 @@ def _config(value):
     if not isinstance(value, Config): raise InvalidMatchError("config must be Config")
     if type(value.external_grants) is not bool: raise InvalidMatchError("external_grants must be bool")
     if type(value.include_fate) is not bool: raise InvalidMatchError("include_fate must be bool")
-    result = _Config(external_grants=value.external_grants, include_fate=value.include_fate, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
+    if type(value.local_guardian_payloads) is not bool: raise InvalidMatchError("local_guardian_payloads must be bool")
+    result = _Config(external_grants=value.external_grants, include_fate=value.include_fate, local_guardian_payloads=value.local_guardian_payloads, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
         initial_hand=_integer(value.initial_hand, "initial_hand", 0, 255), hand_limit=_integer(value.hand_limit, "hand_limit", 0, 255))
     for name in ("initial_hp", "initial_mp", "initial_cp"):
         setattr(result, name, _integer(getattr(value, name), name, -(2**31), 2**31 - 1))
@@ -377,9 +380,10 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v46"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v47"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
+            or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21
             or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
             or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)

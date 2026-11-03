@@ -14,7 +14,8 @@ typedef struct gfo_match_config {
     uint32_t max_decisions;
     uint8_t initial_hand, hand_limit, external_grants, include_fate; // Both flags strictly0/1, default0.
     int32_t initial_hp, initial_mp, initial_cp;
-    uint8_t reserved_tail[4];
+    uint8_t local_guardian_payloads; // Strictly0/1, default0: local automatic Earth/Moon payloads.
+    uint8_t reserved_tail[3];
 } gfo_match_config;
 typedef struct gfo_match_player {
     uint64_t id;

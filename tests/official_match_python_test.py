@@ -98,7 +98,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v46"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v47"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -106,7 +106,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v44")
+        self.assertEqual(own["schema"], "official-execution-view-v45")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -302,7 +302,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v44")
+        self.assertEqual(event["schema"], "official-execution-view-v45")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -4091,6 +4091,69 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((game.observe(17), game.status), (before, status))
         game.close()
         with self.assertRaises(InvalidMatchError): game.sample_guardian_payload(17, 0)
+
+    def test_local_guardian_payload_config_is_strict_default_false_and_reset_stable(self):
+        for bad in (0, 1, None, "true", [], {}):
+            with self.assertRaises(InvalidMatchError): self.match(config=Config(local_guardian_payloads=bad))
+        default = self.match(config=Config(initial_hand=0))
+        explicit = self.match(config=Config(initial_hand=0, local_guardian_payloads=False))
+        raw = {"gf": 7, "players": [{"id": 0, "hp": 99, "mp": 0, "cp": 0, "curses": ["cold"]},
+                                    {"id": 7, "hp": 99, "mp": 0, "cp": 0, "guardian": "moon"}]}
+        for game in (default, explicit):
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        self.assertEqual(default.observe(), explicit.observe())
+        for command in (Command(0, "pray"), Command(0, "defend")):
+            self.assertEqual(default.step(command), explicit.step(command))
+            self.assertEqual(default.observe(), explicit.observe())
+            self.assertFalse(default.observe()["local_guardian_payloads"])
+            self.assertEqual(default.observe()["last_auto_guardian_payloads"], [])
+        self.assertEqual(default.observe()["last_auto_guardians"][0]["model"], 286)
+        enabled = self.match(config=Config(initial_hand=0, local_guardian_payloads=True))
+        self.assertTrue(enabled.observe()["local_guardian_payloads"])
+        enabled.reset(123)
+        self.assertTrue(enabled.observe()["local_guardian_payloads"])
+        self.assertEqual(enabled.observe()["last_auto_guardian_payloads"], [])
+        self.assertIn("experimental:", enabled.observe()["guardian_payload_auto_rule"])
+
+    def test_local_guardian_auto_payload_uses_game_rng_once_without_source_cost_or_gift(self):
+        cards = {card["id"]: card for card in json.loads((Path(__file__).resolve().parents[1]/"data/official-v2/cards.json").read_text())}
+        contract = json.loads((Path(__file__).resolve().parents[1]/"data/official-v2/guardian-payload-client-v33.json").read_text())["local_adapter_contract"]
+        bases = {guardian: contract[guardian+"_base_ids"] for guardian in ("earth", "moon")}
+        raw = {"gf": 7, "players": [
+            {"id": 0, "team": 2, "hp": 99, "mp": 0, "cp": 0, "items": [{"id": i, "modelId": 235, "used": True} for i in range(18)]},
+            {"id": 17, "team": 1, "hp": 99, "mp": 0, "cp": 0, "guardian": "earth"},
+            {"id": 23, "team": 1, "hp": 99, "mp": 0, "cp": 0}, {"id": 42, "team": 2, "hp": 99, "mp": 0, "cp": 0}]}
+        game = self.match(config=Config(initial_hand=0, local_guardian_payloads=True))
+        for guardian in ("earth", "moon"):
+            raw["players"][1]["guardian"] = guardian
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 2)
+            # Seed2's first bounded100 is10: opportunity succeeds. The full
+            # owner prayer owes no gift, so the following payload uses this RNG.
+            expected, after, draws = guardian_payload_reference((2+0x9e3779b97f4a7c15) % 2**64, 17, raw, cards, bases)
+            self.assertEqual(expected.models, (32, 9, 31) if guardian == "earth" else (236,))
+            before_hand = game.observe(0)["board"]["hand"]
+            _, external_rng = game.sample_guardian_payload(17, 123)
+            self.assertEqual(game.sample_guardian_payload(17, 123)[1], external_rng)
+            game.step(Command(0, "pray")); view = game.observe()
+            event = {"source": 17, "guardian": guardian, "models": list(expected.models), "target": expected.target}
+            self.assertEqual(view["last_auto_guardian_payloads"], [event])
+            self.assertIsNone(view["last_guardian_payload"])
+            self.assertEqual(view["last_auto_guardians"], [])
+            self.assertEqual((game.status.decisions, game.status.owner, game.actor, view["board"]["gf"]), (1, 0, expected.target, 7))
+            self.assertEqual((view["pending"]["models"], view["pending"]["source"], view["pending"]["guardian"]), (list(expected.models), 17, guardian))
+            self.assertEqual(game.observe(17)["board"]["hand"], [])
+            self.assertEqual(view["board"]["players"][1]["status"]["mp"], 0)
+            before, status = game.observe(), game.status
+            with self.assertRaises(InvalidMatchError): game.step(Command(999, "defend"))
+            self.assertEqual((game.observe(), game.status), (before, status))
+            game.step(Command(expected.target, "defend")); view = game.observe()
+            self.assertEqual((game.status.decisions, game.status.owner, game.actor, view["board"]["gf"]), (2, 17, 17, 8))
+            self.assertEqual(game.observe(0)["board"]["hand"], before_hand)
+            self.assertEqual(game.observe(17)["board"]["hand"], [])
+            self.assertEqual(view["last_auto_guardian_payloads"], [event])
+            statuses = {player["id"]: player["status"] for player in view["board"]["players"]}
+            self.assertEqual(statuses[42]["hp"], 81 if guardian == "earth" else 99)
+            self.assertEqual(statuses[23]["cp"], 10 if guardian == "moon" else 0)
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

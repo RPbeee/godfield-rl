@@ -1,0 +1,1989 @@
+{
+  "schema_version": 1,
+  "title": "Independent LOCAL automatic Earth/Moon payload random-stage reference v47",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "primary_evidence": {
+    "new_primary_receiver_executions": 0,
+    "inherited": {
+      "path": "data/official-v2/guardian-payload-sampler-client-v46.json",
+      "sha256": "9213e59fb379d621a3a442428119b00ca2c23ddc162eed0e01f0b909bdce35bb",
+      "bytes": 95565
+    },
+    "earth_moon_category_notes": {
+      "ja": {
+        "url": "https://godfield.net/i18n/ja.json",
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "earth_note": "地球神は取引、武器、防具、雑貨を使う。",
+        "moon_note": "月神は奇跡を使う。"
+      },
+      "en": {
+        "url": "https://godfield.net/i18n/en.json",
+        "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+        "earth_note": "Earth God uses trade, weapons, armor, and sundries.",
+        "moon_note": "Moon God uses miracles."
+      }
+    },
+    "base_domains": {
+      "earth": 120,
+      "moon": 26
+    },
+    "boundary": "The v46 source append-domain observations and its narrow LOCAL selector are inherited unchanged. This adds no official automatic selector,MP policy,target law or timing evidence. The published25percent opportunity wording doesnot establish draw staging or an Earth/Moon server algorithm."
+  },
+  "local_reference": {
+    "official_client_selector": false,
+    "constants": {
+      "gamma": "0x9e3779b97f4a7c15",
+      "multiply1": "0xbf58476d1ce4e5b9",
+      "multiply2": "0x94d049bb133111eb"
+    },
+    "bounded_rule": "Unsigned SplitMix64;accept output>=2^64modn then outputmodn. All words/states use exact hexadecimal uint64.",
+    "opportunity_rule": "A normal owner7 pray with no disease makes no game draw before the first guardian stage. Alive enemy source order is input roster order. One bounded100<25 opportunity per present source. On success immediately call the v46 uniform120/26 column selector using the SAME game stream;do not consume the old285/286 singleton move draw.",
+    "payload_rule": "One uniform ID-ascending bounded120 Earth or bounded26 Moon;infer guardian from the supplied live source. Do not use giftRate/MP/cost/inventory/capacity filtering. At each prefix shorter than18 regenerate ID-ascending supported same-domain candidates using main append. Empty candidates consume no coin. Otherwise bounded2:0stop,1continue then one boundedNcandidates append;duplicates permitted. At18 do not draw a stop coin. The finite narrow domain reduces to the validated per-base candidate rows. Completed ordinary attack_power(models)>0 OR targets_enemy_by_default(base) chooses alive source-side enemies;otherwise alive source-side allies including self. Input roster order;solo source has no other allies. Always one bounded target draw even for singleton. Percentage base is still explicitly targeted in this external adapter.",
+    "launch_rule": "After selection,202 draws one bounded2 sign;58 captures sourceMP and drains it to0 once,without another draw.14 records two fresh frames from the same immutable selected column;the reference stops at its first response. Percentage activation is a later draw and is not performed here.",
+    "continued_bodies": "Only immediate self201/239 draw one bounded10+1 guardian code;only self202 clipsHP99 by its signed10 and makes the existing local10percent departure draw after positive actual loss;only self235 clipsHP+10. No death is possible in these HP99 fixtures. Any other body,foreign target or response stops this reference before execution.",
+    "ownership": "These are game-stream stage examples,not calls to the const external chance helper and not a complete Match executor. One ordinary decision can contain two self summon bodies. Main owner/gift debt/decision counters are not recreated;no source inventory/token/fee/retention is added.",
+    "fixtures": {
+      "earth": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      "moon": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      "earth_moon": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      "two_moons": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      "earth_mp17": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 17,
+            "guardian": "earth"
+          }
+        ]
+      },
+      "earth_mp99": {
+        "owner": 7,
+        "owner_command": "pray",
+        "owner_has_disease": false,
+        "players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 99,
+            "guardian": "earth"
+          }
+        ]
+      }
+    },
+    "vectors": [
+      {
+        "label": "earth-quarter-miss",
+        "seed": "0x0000000000000000",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 35,
+            "result": "quarter-miss"
+          }
+        ],
+        "next_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 35
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "moon-quarter-miss",
+        "seed": "0x0000000000000000",
+        "fixture": "moon",
+        "records": [
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 35,
+            "result": "quarter-miss"
+          }
+        ],
+        "next_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 35
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      {
+        "label": "earth-quarter24-accepted",
+        "seed": "0xf1fa8c75f7c0cdec",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 24,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                42
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 1,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x6ad8735bf4eabe40",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000007c",
+            "result": 24
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xc0a1a9fef0b8c66c",
+            "result": 36
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x2b40075c28c51c5a",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x1c6dc8f952d86edf",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth-quarter25-rejected",
+        "seed": "0xb52c7e8ac59bb02d",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 25,
+            "result": "quarter-miss"
+          }
+        ],
+        "next_rng": "0x5363f84444e62c42",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x000000000000007d",
+            "result": 25
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "quarter-bound100-rejects-first-zero",
+        "seed": "0x61c8864680b583eb",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 35,
+            "result": "quarter-miss"
+          }
+        ],
+        "next_rng": "0x9e3779b97f4a7c15",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [
+              "0x0000000000000000"
+            ],
+            "accepted_word": "0xe220a8397b1dcdaf",
+            "result": 35
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth14-two-fresh-frames-one-launch",
+        "seed": "0x0000000000000126",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 11,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                14
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 2,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f17a",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x7be98ccf039a0d67",
+            "result": 11
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x03e77338f7f648d0",
+            "result": 8
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xaf2d6ff9e2653532",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa1dc97b11b7f44bc",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth14-compound-two-fresh-frames",
+        "seed": "0x0000000000000191",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 20,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                14,
+                51,
+                56
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 2,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0xf1bbcdcbfa53e239",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa6b78848d88d860c",
+            "result": 20
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x997061670fd25d50",
+            "result": 8
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xe939e494b3155de7",
+            "result": 1
+          },
+          {
+            "stage": "42:extra1",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x7d78937b1d5a9d2a",
+            "result": 10
+          },
+          {
+            "stage": "42:continue2",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x3a4cae6bd42258a9",
+            "result": 1
+          },
+          {
+            "stage": "42:extra2",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x6f2e371b2d1b708d",
+            "result": 11
+          },
+          {
+            "stage": "42:continue3",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa18a83fb64255c8c",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xc0186467ea2c2c1f",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth58-compound-sourceMP17-launch",
+        "seed": "0x00000000000005e3",
+        "fixture": "earth_mp17",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 16,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                58,
+                83,
+                12
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 1,
+            "launch_mp": 17,
+            "launch_power": 41,
+            "source_mp_after_launch": 0,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0xf1bbcdcbfa53e68b",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x342c2d386ff24f48",
+            "result": 16
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x32636e8a5acd026c",
+            "result": 52
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xc9379590c89618bd",
+            "result": 1
+          },
+          {
+            "stage": "42:extra1",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x829cef4116032b5b",
+            "result": 17
+          },
+          {
+            "stage": "42:continue2",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x241b6bb2dcf8c4c3",
+            "result": 1
+          },
+          {
+            "stage": "42:extra2",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x12290cd3d307f5ab",
+            "result": 1
+          },
+          {
+            "stage": "42:continue3",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xeec7cd4aeabcf27c",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x7812d25a91c57b3a",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth58-zero-sourceMP-at-launch",
+        "seed": "0x000000000000026d",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 6,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                58
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 1,
+            "launch_mp": 0,
+            "launch_power": 0,
+            "source_mp_after_launch": 0,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f2c1",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x987b0409fee58f3e",
+            "result": 6
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xae2a670a24ad4f8c",
+            "result": 52
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x643d0253f3916396",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa1336b434500ad43",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth58-sourceMP17-same-selector",
+        "seed": "0x000000000000026d",
+        "fixture": "earth_mp17",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 6,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                58
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 1,
+            "launch_mp": 17,
+            "launch_power": 34,
+            "source_mp_after_launch": 0,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f2c1",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x987b0409fee58f3e",
+            "result": 6
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xae2a670a24ad4f8c",
+            "result": 52
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x643d0253f3916396",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa1336b434500ad43",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth58-sourceMP99-same-selector",
+        "seed": "0x000000000000026d",
+        "fixture": "earth_mp99",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 6,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                58
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 1,
+            "launch_mp": 99,
+            "launch_power": 198,
+            "source_mp_after_launch": 0,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f2c1",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x987b0409fee58f3e",
+            "result": 6
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xae2a670a24ad4f8c",
+            "result": 52
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x643d0253f3916396",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa1336b434500ad43",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth202-positive-self-cap99",
+        "seed": "0x000000000000044d",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 2,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                202
+              ],
+              "target": 42,
+              "target_candidates": [
+                42
+              ]
+            },
+            "repeat_frames": 1,
+            "random_hp_delta": 10,
+            "hp_change": 0,
+            "result": "small-self202-body-finished"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f4a1",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x33d0b6215f393f12",
+            "result": 2
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xa99fb1881b524bed",
+            "result": 117
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa68af31885a77045",
+            "result": 0
+          },
+          {
+            "stage": "42:202-sign",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa401b060b080024c",
+            "result": 0
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth202-negative-self-no-departure",
+        "seed": "0x00000000000002ec",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 21,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                202
+              ],
+              "target": 42,
+              "target_candidates": [
+                42
+              ]
+            },
+            "repeat_frames": 1,
+            "random_hp_delta": -10,
+            "hp_change": -10,
+            "departure_ticket": 57,
+            "departed": false,
+            "result": "small-self202-body-finished"
+          }
+        ],
+        "next_rng": "0x1715609f7c746f55",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x5fe30b66e915a4c1",
+            "result": 21
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x8a8b41b8bcdea515",
+            "result": 117
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xc2eab77fce37cf59",
+            "result": 0
+          },
+          {
+            "stage": "42:202-sign",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x7a6e7b185bae7743",
+            "result": 1
+          },
+          {
+            "stage": "42:self202-departure",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x2dc63515767d3725",
+            "result": 57
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 89,
+            "mp": 0,
+            "guardian": "earth"
+          }
+        ]
+      },
+      {
+        "label": "earth202-negative-self-departure",
+        "seed": "0x00000000000061d4",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 22,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                202
+              ],
+              "target": 42,
+              "target_candidates": [
+                42
+              ]
+            },
+            "repeat_frames": 1,
+            "random_hp_delta": -10,
+            "hp_change": -10,
+            "departure_ticket": 9,
+            "departed": true,
+            "result": "small-self202-body-finished"
+          }
+        ],
+        "next_rng": "0x1715609f7c74ce3d",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x5bbee9ac6af13b0a",
+            "result": 22
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xd9af6c2b43a2d115",
+            "result": 117
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x09a600e198ebfb10",
+            "result": 0
+          },
+          {
+            "stage": "42:202-sign",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xdaac353268a623a9",
+            "result": 1
+          },
+          {
+            "stage": "42:self202-departure",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x013f2be519fea955",
+            "result": 9
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 89,
+            "mp": 0,
+            "guardian": null
+          }
+        ]
+      },
+      {
+        "label": "moon235-self-zeroMP-cap99",
+        "seed": "0x000000000000000c",
+        "fixture": "moon",
+        "records": [
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 23,
+            "action": {
+              "source": 0,
+              "guardian": "moon",
+              "models": [
+                235
+              ],
+              "target": 0,
+              "target_candidates": [
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "hp_change": 0,
+            "result": "small-self235-body-finished"
+          }
+        ],
+        "next_rng": "0xdaa66d2c7ddf744b",
+        "calls": [
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x943ff9fc99de8f03",
+            "result": 23
+          },
+          {
+            "stage": "0:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf080aa269da8a457",
+            "result": 21
+          },
+          {
+            "stage": "0:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x3c17d7d72f7f76ee",
+            "result": 0
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      {
+        "label": "earth201-self-type-draw",
+        "seed": "0x0000000000000105",
+        "fixture": "earth",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 6,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                201
+              ],
+              "target": 42,
+              "target_candidates": [
+                42
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 3,
+            "result": "small-self-summon-body-finished"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f159",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x18c55f6e6338e7c2",
+            "result": 6
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x9012e1239c988404",
+            "result": 116
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x9a7bab15769fd31b",
+            "result": 0
+          },
+          {
+            "stage": "42:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x212df1aab7ba64e0",
+            "result": 2
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "jupiter"
+          }
+        ]
+      },
+      {
+        "label": "moon239-self-type-draw",
+        "seed": "0x0000000000000040",
+        "fixture": "moon",
+        "records": [
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 11,
+            "action": {
+              "source": 0,
+              "guardian": "moon",
+              "models": [
+                239
+              ],
+              "target": 0,
+              "target_candidates": [
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 5,
+            "result": "small-self-summon-body-finished"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f094",
+        "calls": [
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xd6967248fbe68cc3",
+            "result": 11
+          },
+          {
+            "stage": "0:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x27b0f6e26c58cf1d",
+            "result": 25
+          },
+          {
+            "stage": "0:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x46b10a701991a626",
+            "result": 0
+          },
+          {
+            "stage": "0:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0xc196fd1bdca0bf5a",
+            "result": 4
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "uranus"
+          }
+        ]
+      },
+      {
+        "label": "two-immediate-self-summons-earth201-moon239",
+        "seed": "0x0000000000055a41",
+        "fixture": "earth_moon",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 8,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                201
+              ],
+              "target": 42,
+              "target_candidates": [
+                42,
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 2,
+            "result": "small-self-summon-body-finished"
+          },
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 19,
+            "action": {
+              "source": 0,
+              "guardian": "moon",
+              "models": [
+                239
+              ],
+              "target": 0,
+              "target_candidates": [
+                42,
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 5,
+            "result": "small-self-summon-body-finished"
+          }
+        ],
+        "next_rng": "0xf1bbcdcbfa593ae9",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xd062c95609809c70",
+            "result": 8
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xf7000eec4746a29c",
+            "result": 116
+          },
+          {
+            "stage": "42:target",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x20a799fffa01b188",
+            "result": 0
+          },
+          {
+            "stage": "42:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x9825a5ad2378554f",
+            "result": 1
+          },
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xcb7fb9d1279a8d6f",
+            "result": 19
+          },
+          {
+            "stage": "0:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x3ee5770523f3d0d9",
+            "result": 25
+          },
+          {
+            "stage": "0:target",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x09d75e1d6ed1e391",
+            "result": 1
+          },
+          {
+            "stage": "0:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0x34b6712179e23a54",
+            "result": 4
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "mercury"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "uranus"
+          }
+        ]
+      },
+      {
+        "label": "two-immediate-self-summons-moon239-twice",
+        "seed": "0x0000000000006a99",
+        "fixture": "two_moons",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "moon",
+            "opportunity_ticket": 4,
+            "action": {
+              "source": 42,
+              "guardian": "moon",
+              "models": [
+                239
+              ],
+              "target": 42,
+              "target_candidates": [
+                42,
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 1,
+            "result": "small-self-summon-body-finished"
+          },
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 19,
+            "action": {
+              "source": 0,
+              "guardian": "moon",
+              "models": [
+                239
+              ],
+              "target": 0,
+              "target_candidates": [
+                42,
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "summoned_guardian_code": 7,
+            "result": "small-self-summon-body-finished"
+          }
+        ],
+        "next_rng": "0xf1bbcdcbfa544b41",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x6bf4c3ae61808a4c",
+            "result": 4
+          },
+          {
+            "stage": "42:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x453a2755ca7d9c47",
+            "result": 25
+          },
+          {
+            "stage": "42:target",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x7a9a4ec86fe47690",
+            "result": 0
+          },
+          {
+            "stage": "42:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0xdef1c1e85b390a04",
+            "result": 0
+          },
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x7f9546faa92dc2c3",
+            "result": 19
+          },
+          {
+            "stage": "0:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x2c7cc03db4e9e7c1",
+            "result": 25
+          },
+          {
+            "stage": "0:target",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x47b02142b85ea07f",
+            "result": 1
+          },
+          {
+            "stage": "0:self-summon-type",
+            "bound": 10,
+            "threshold": "0x0000000000000006",
+            "rejected_words": [],
+            "accepted_word": "0xb47e26922cd22c76",
+            "result": 6
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "mars"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "neptune"
+          }
+        ]
+      },
+      {
+        "label": "first-source-miss-second-moon235-self",
+        "seed": "0x0000000000000161",
+        "fixture": "earth_moon",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 59,
+            "result": "quarter-miss"
+          },
+          {
+            "source": 0,
+            "guardian": "moon",
+            "opportunity_ticket": 4,
+            "action": {
+              "source": 0,
+              "guardian": "moon",
+              "models": [
+                235
+              ],
+              "target": 0,
+              "target_candidates": [
+                42,
+                0
+              ]
+            },
+            "repeat_frames": 1,
+            "hp_change": 0,
+            "result": "small-self235-body-finished"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f1b5",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0xee31096823382137",
+            "result": 59
+          },
+          {
+            "stage": "0:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x15a4db04a0f79974",
+            "result": 4
+          },
+          {
+            "stage": "0:base",
+            "bound": 26,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x9c20aeac9d8a7d47",
+            "result": 21
+          },
+          {
+            "stage": "0:target",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0x9d5dd8c2d9208e85",
+            "result": 1
+          }
+        ],
+        "stop": "all-opportunities-finished-before-gifts",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      },
+      {
+        "label": "first-response-doesnot-preselect-next-source",
+        "seed": "0x0000000000000126",
+        "fixture": "earth_moon",
+        "records": [
+          {
+            "source": 42,
+            "guardian": "earth",
+            "opportunity_ticket": 11,
+            "action": {
+              "source": 42,
+              "guardian": "earth",
+              "models": [
+                14
+              ],
+              "target": 7,
+              "target_candidates": [
+                7
+              ]
+            },
+            "repeat_frames": 2,
+            "result": "first-response-not-executed"
+          }
+        ],
+        "next_rng": "0x78dde6e5fd29f17a",
+        "calls": [
+          {
+            "stage": "42:opportunity",
+            "bound": 100,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x7be98ccf039a0d67",
+            "result": 11
+          },
+          {
+            "stage": "42:base",
+            "bound": 120,
+            "threshold": "0x0000000000000010",
+            "rejected_words": [],
+            "accepted_word": "0x03e77338f7f648d0",
+            "result": 8
+          },
+          {
+            "stage": "42:continue1",
+            "bound": 2,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xaf2d6ff9e2653532",
+            "result": 0
+          },
+          {
+            "stage": "42:target",
+            "bound": 1,
+            "threshold": "0x0000000000000000",
+            "rejected_words": [],
+            "accepted_word": "0xa1dc97b11b7f44bc",
+            "result": 0
+          }
+        ],
+        "stop": "first-response-not-executed",
+        "post_reference_players": [
+          {
+            "id": 7,
+            "team": 2,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": null
+          },
+          {
+            "id": 42,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "earth"
+          },
+          {
+            "id": 0,
+            "team": 1,
+            "dead": false,
+            "hp": 99,
+            "mp": 0,
+            "guardian": "moon"
+          }
+        ]
+      }
+    ]
+  },
+  "counts": {
+    "local_stage_vectors": 21,
+    "new_primary_receiver_executions": 0,
+    "largest_column": 3,
+    "multi_source_summon_vectors": 2
+  },
+  "limitations": [
+    "This report is a small independent LOCAL random-stage reference,not an official guardian scheduler golden oracle. Uniform base/extra/target laws and same-stream draw ordering are explicit engine policy.",
+    "Old default canonical Earth285/Moon286 automatic behavior is unchanged when the new opt-in is false. The two first-eight guardian distributions and their existing behavior are outside this reference.",
+    "No owner tick,disease,body damage,response,reflection,bounce,counter,posthumous112,revival208,Fog projection,grant phase,gift delivery,GFadvance,natural end,cutoff,proof replay or transaction machinery is emulated. A next_rng here is only the named stopping boundary,not necessarily the final RNG after a whole Match step.",
+    "The two-source summon examples intentionally choose self for both sources. Earlier summoning therefore cannot change the still-unprocessed next source. Each source is visited once even if its own type changes. These fixtures demonstrate multiple local summons per decision,not server behavior.",
+    "The HP99 self202 examples include only the pre-existing local direct-loss guardian departure draw;they cannot die or trigger208/112. Other body or prefix side effects are deliberately not synthesized.",
+    "A first-response record contains no sampled future guardian payload. Next sources must wait for the real response/counter/death work and use the resulting live state. This reference is privileged fixture data,not a public observation.",
+    "No network/account/Dart startup or C++engine/build runs. No existing source,report,pin,docs or core implementation is changed."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_guardian_payload_auto_oracle.cjs --client /path/main.dart.js [--check]"
+}

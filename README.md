@@ -22,7 +22,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 [限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v2/README.md)を参照してください。
-限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadと限定ローカル選出、global現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。混乱289と外部指定主動作に加え、既存ローカル方策を使う混乱用サンプラーも扱います。公式の自動選択分布は未確認です。所有する207と外部指定結果を通常手番として解決するFate専用入口と、全10種の結果を生成するローカルchance helperも扱います。悪魔5種は外部指定の直接効果として扱います。終末GFの閾値と「ささげる」は限定した通常操作として扱います。opt-inでは予約補充をphase4の外部chanceで進められ、公開率に従うローカル `sample_grant` も使えます。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadと限定ローカル選出・任意設定の自動発動、global現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。混乱289と外部指定主動作に加え、既存ローカル方策を使う混乱用サンプラーも扱います。公式の自動選択分布は未確認です。所有する207と外部指定結果を通常手番として解決するFate専用入口と、全10種の結果を生成するローカルchance helperも扱います。悪魔5種は外部指定の直接効果として扱います。終末GFの閾値と「ささげる」は限定した通常操作として扱います。opt-inでは予約補充をphase4の外部chanceで進められ、公開率に従うローカル `sample_grant` も使えます。
 237種の通常配布は任意設定で扱います。全固有効果、一般effect queue、公式Dream全候補分布・実体不適合入力、取引server挙動の未確定部分、Earth/Moonの公式一般神器/奇跡選出・207の公式現象分布・混乱の公式自動選択分布・全補充経路の悪魔出現/再授与連鎖等の完全な終末処理には未対応です。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v46` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v47` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -248,7 +248,7 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
 既定236モデル/重み499（`include_fate=True` で237/500）を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
 奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種・閃光付与/反撃/解除7種・暗雲・除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redrawと互換クラス限定mask・201/239召喚とcanonical42自動行動/離脱、2〜9人とチームを扱います。
-rulesetは `official-execution-subset-v46`、scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence` です。
+rulesetは `official-execution-subset-v47`、scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence` です。
 207のunused/unmasked特例を除く対象外のモデル・互換クラス外または不正なfake・病気4種/Fog/Dream/閃光/暗雲以外の災い・不正な守護神identity・不正な混乱count・負/unsafeな終末閾値を持つ局面は、黙って通常品へ置換せず拒否します。
 read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
 
@@ -422,7 +422,7 @@ raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していま
 これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
 
 以下は過去の **v1・132モデル/重み308** のRelease計測（seed42、1 worker）です。
-現行v46の性能やchecksumを示すものではありません。
+現行v47の性能やchecksumを示すものではありません。
 
 | 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -460,7 +460,7 @@ Python Match10ケースも通過。公式assetsの再取得hashと296モデルfa
 9人10,000試合が2.46832秒（1,154,300意思決定/秒）で、上表の全決定的fieldを維持しました。
 合法手sampler・実行・終了snapshot検証を含みます。Release/SAN各1,000試合の時間以外の全集計も一致しました。
 勝数・反射/消去の集計は[契約文書のv3記録](docs/official-execution-subset.md#v3の過去の検証と集計)へ記載しています。
-これらのv1〜v8結果は現行v46の236モデルの速度・checksumではありません。
+これらのv1〜v8結果は現行v47の236モデルの速度・checksumではありません。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過しました（各 `-j4` 同時実行）。Python Matchは11ケースです。
 その後、0MPの追加Aura+FREE pairを生成する専用native局面を追加し、Release/SAN各1件も通過しました（0.26/0.57秒）。coreの追加変更はありません。
@@ -2585,4 +2585,79 @@ with OfficialState(raw) as scene, Match(config=Config(initial_hand=0)) as game:
     print(game.status.phase, game.status.owner, board["gf"],
           board["players"][0]["status"]["mp"], board["players"][0]["status"]["hp"])
     # main 7 17 0 50
+```
+
+
+## v47：任意設定でEarth/Moonの限定選出を自動発動へ接続
+
+`official-execution-subset-v47` は `MatchConfig.local_guardian_payloads`（既定false）を追加する。trueの場合、通常主動作後の既存の自動守護神処理で、Earth/Moonの25%機会が成功した時だけv46の限定選出器を使う。敵sourceの入力席順、owner病気tick後・予約補充前、他8守護神のcanonical処理は従来どおり。falseのEarth285/Moon286と既存callerの挙動を保つ。**公式のEarth/Moon全処理・選出分布を再現したという意味ではない。**
+
+| 項目 | v47の契約 |
+| --- | --- |
+| 選出対象 | 地球120基底・月26基底、追加候補・上限18・対象はv46と共通。地球の一様基底＋継続coin、月単品はローカル規約 |
+| 有効な機会 | 普通ownerの生存敵sourceだけ。25%の判定成功後に選出し、失敗時に基底・追加・対象を引かない。owner自身・味方・死者を追加しない |
+| 乱数 | 自動の機会・列・対象・bodyはMatchのgame RNGを使い、主動作のanchorと応答journalから再生する。外部const helperは引き続きcaller-owned chance RNGを使う |
+| 手番と資源 | 仮想列は実手札を生成・消費せず、通常MC使用料・追加operation gift・内部decisionを加えない。元の主動作と各response/grantは従来のdecisionを使う |
+| 58 / 202 | 選出後、58はsource launch MPを保存して1回だけMP0へ。202は対象選出後に符号を1回抽選。選出条件にはMP・手札・空枠を使わない |
+| 14 | 同じ初期対象へ2つのfresh frame。death→counter FIFOを挟み、保存した列・guardian・MP・符号から作る。1発目の属性filter/反射/redirectを2発目へ継承しない |
+| 死亡と離脱 | owner死亡は残hitと将来sourceを中止、source/target死亡は残hitを中止。GP離脱は既に選ばれた列を書き換えない。即時自己効果で自然終局したら補充/GF/次ownerへ進めない |
+| ログと計数 | `auto_guardian_actions` はcanonicalとpayloadの合計。`guardian_payload_actions` と `last_guardian_payload` は外部入口専用のまま。公開 `last_auto_guardian_payloads` は起動済みのsource/guardian/models/targetだけ |
+
+元の主動作batchとそのmodels/targets/cursorを置き換えず、private `automatic_payload` に未完了hitとlaunch値を保持する。pending responseと予約補充のproofは、主動作開始時のgame RNG・全応答・grant順序を再生し、選出済み列、cursor、MP、符号、ログまで全snapshot一致を要求する。公開viewに将来のsource列、seed、launch MP、符号、cursor、pending FIFOを追加しない。Fogのguardian変更は従来のevent-time viewer maskを使う。
+
+複数の201/239自己召喚や202自己減少が内部decisionを増やさず起こり得るため、snapshotの召喚・GP離脱回数の安全上限を複数sourceに対応させた。普通SELL/BUY/Danger後の自動205/206除去で、元の取引/危険物eventと除去eventが同じ手番の公開要約に共存する場合も検証する。`last_removal` は最後に解決した除去の要約であり、body総数の台帳ではない。
+
+Snapshot47は旧1〜46を拒否する。公開viewは `official-execution-view-v45`、Match ABI2、phase0〜4、Config24/Command184/Status248/Payload64 byteは維持する。C Configの旧reserved byte20をstrict0/1の `local_guardian_payloads` に割り当て、byte21〜23は0を要求する。Python `Config(local_guardian_payloads=True)` はbool以外を拒否し、reset後も設定を保持する。旧37profile・pins・保存report・過去計測・学習器を含めない構成は維持する。
+
+静的 `guardian_payload_auto_rule` は次のheader定数に一致する。v46 helperの静的ruleも「既定canonical維持・任意設定の自動処理とは別入口」と明確化し、外部helperの選出列やchance消費自体は変えない。
+
+```text
+experimental:opt-in-local-guardian-payloads-default-false;existing-enemy-input-order-quarter-opportunity-after-owner-tick-before-deferred-gifts;only-successful-earth-moon-opportunities-use-shared-local120-26-selector;automatic-selection-and-body-use-game-rng-replayed-from-main-anchor;external-const-helper-keeps-caller-owned-chance-stream;no-additional-decision-source-items-ordinary-mp-fee-or-operation-gift;58-saves-launch-mp-and-drains-once-202-draws-one-sign-after-target;14-two-fresh-original-frames-with-death-then-counter-fifo-between-hits;fixed-launch-models-guardian-mp-sign-through-redirection-and-departure;stop-remaining-and-future-sources-on-main-owner-death-stop-remaining-on-source-or-target-death;self-nondamaging-body-immediate-with-shared-death-pump;launched-payload-log-only-no-future-rng-or-private-launch-values;external-payload-counter-unchanged-auto-counter-includes-both-kinds;other8-guardians-and-default-canonical285286-unchanged;uniform-base-geometric-extras-and-target-distribution-local-not-official-server-equivalence
+```
+
+### v47の検証と残件
+
+[独立LOCAL stage reference](scripts/official_guardian_payload_auto_oracle.cjs) / [保存report](data/official-v2/guardian-payload-auto-local-v47.json) はBigIntの21例を収録する。四分の一機会の境界・zero word rejection、単品と複合14/58、MP0/17/99、202の符号と条件付きGP離脱、月のsingleton、地球201＋月239の同一decision自己召喚を含む。reportは56,877 bytes、SHA256 `4400ef264fb7e30f55e42682711dd1fe41d67a3243a05fb806aa4eba3512eb7b`。v46の一次append証拠を固定hashで継承し、今回新しく公式selectorやreceiverを発見・実行したとは主張しない。referenceは記載した抽選stageで止まり、対局全体・response/counter/gift/GFを模倣しない。
+
+Release CTest **146/146（68.70秒）**、ASan/UBSan CTest **106/106（136.50秒）** が通過した。native216関数・Python144メソッドを重複なしで登録し、C API/Python focused2件も初回で通過した。新native8群は全146基底の自動到達/完了、他8守護神のflag正規化全snapshot同値、外部const helper不変、58の反射後も保存MP威力を維持、14のcounter FIFOとfresh次hit、owner/source死亡による打切り、複数即時召喚、tick履歴、SELL/BUY/Dangerと除去の共存、private launch/log/乱数の偽造16種拒否、late update失敗rollback、cutoff、外部補充proofを検査する。独立BigInt stageからは14、MP0/17/99の58、202の正負/GP離脱、月235、同一decisionの201＋239をnative実行と照合し、即時自己減少による自然終局も検査した。
+
+C/PythonはConfig byte20・予約byte21〜23・strict bool/reset保持、default/explicitfalseのcanonicalMoon同値、MP0からのEarth複合列とMoon、非owner対象、0追加decision/MP fee/source消費なし、公開ログ、応答失敗atomicを検査した。READMEの通常祈り→月235自己回復例は実行し、`main 0 18 50` が一致した。suite時間は速度比較や公式適合数ではない。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/Fate pool/Fate sampler/confusion sampler/guardian payload sampler/新auto payloadの各2人数、計34組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外のfieldが一致した。Release/SAN小行列18組もchecksumを含む非時間fieldが一致した。独立familyは最大2系統を並行実行し、時間を速度比較へ使わない。
+
+新flagを有効にしない既存16familyのgameplay fieldはv46と同値で、通常/canonical/payloadはchecksumも維持した。その他はSnapshot.version47に依存するchecksumを旧版比較から除き、外部chance/action、pool/reference、Fate manifestのversion非依存checksumを比較した。worker間・Release/SAN間では全checksumを比較する。ログ出力への静的auto rule追加後は、全17benchmarkのruntime metadataがheaderと1回だけ一致し、出力変更前後のgameplay field/checksumが同値なことを確認した。benchmark focused16件もRelease/SANで再通過した（3.08秒/22.56秒）。
+
+新 `godfield_guardian_payload_auto_bench`（CTest `official_guardian_payload_auto_benchmark 600 9 42 2`）は通常prayからmain/endまでを進め、true2clonesの同command/policy RNG/全snapshot、各checkpoint restore、全sceneのfalse対照、20%の他8守護神のみのflag正規化全snapshot同値を検査する。MP0/1/99、team/Fog/Dream/confusion、owner病気tick、208/112・反応品・usedMC、外部補充を含む。原主動作batchを保ったprivate auto context、source消費/一般MP fee/余計なgiftなし、confusion非減少、owner/GFの1回継続も検査する。base種数は新payloadの基底unionであり、起動がないsceneも分母へ含む。新旧world/選択counterの部分hashとは別に、restoreはprivate proof全体を比較する。
+
+| 自動payload・seed42 | scenes | 基底種数 | Earth / Moon | 複合列 / 追加数 | launch checksum | default対照checksum | world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- | --- |
+| 2人 | 100,000 | 146 | 10041 / 10018 | 3623 / 7254 | 2417696602088359053 | 9594325949124055296 | 7593984257819276415 |
+| 9人 | 10,000 | 146 | 6664 / 3910 | 2360 / 4729 | 6253263127398765636 | 13508072783508571530 | 16205755181632469720 |
+
+9人600sceneでは3577decisions、payload631（Earth396/Moon235）＋canonical363、compound145列/314追加、重複列15・setter列27を含む。pending517、MP0 Moon pending49・MP不足Moon pending110、58/14/202は4/2/1、counter368・death bow2・revival63・redraw286・summon15も検査した。falseの全600sceneではcanonical Earth/Moon fallback646、他8のみのtrue/false同値120sceneを確認した。launch/default/world checksumは `17428102963242652128` / `14858246853641918064` / `6685247023367793678` でRelease/SAN一致。このfixture統計を公式の発動分布やserver実測と呼ばない。
+
+地球の通常防具/取引/passive/207や一般wrapper、月の一般合成、公式の重み・継続率・対象選択は未対応または未確認のままである。25%機会や発動順序も実験規約であり、この設定はローカル対局を通して限定payloadを使えるようにするもの。Dream全分布・実体不適合入力、全補充経路の悪魔置換・再授与連鎖、権威的server scheduleとの一致も引き続き残件である。
+
+### Pythonで通常手番から月神を自動発動する例
+
+このseedはMoon235の自己回復を選ぶ。ownerの18枚は使用済み奇跡なので祈りが可能で、満杯のため祈り補充の乱数を消費しない。自動発動の列はsourceの手札に依存しない。
+
+```python
+from official_state import OfficialState
+from official_match import Match, Config, Command
+
+raw = {"gf": 17, "players": [
+    {"id": 7, "team": 2, "hp": 99, "mp": 0, "cp": 20,
+     "items": [{"id": i, "modelId": 235, "used": True} for i in range(18)]},
+    {"id": 0, "team": 1, "hp": 40, "mp": 0, "cp": 20, "guardian": "moon", "items": []},
+]}
+with OfficialState(raw) as scene, Match(config=Config(initial_hand=0, local_guardian_payloads=True)) as game:
+    game.load_scene(scene, owner=7, seed=12)
+    game.step(Command(7, "pray"))
+    view = game.observe()
+    print(view["last_auto_guardian_payloads"])
+    # [{'source': 0, 'guardian': 'moon', 'models': [235], 'target': 0}]
+    print(game.status.phase, game.status.owner, view["board"]["gf"],
+          view["board"]["players"][1]["status"]["hp"])
+    # main 0 18 50
 ```

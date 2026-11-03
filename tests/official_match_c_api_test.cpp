@@ -53,11 +53,12 @@ int main() {
         &&offsetof(gfo_match_devil_action,resource)==26&&offsetof(gfo_match_devil_action,has_resource)==27
         &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29
         &&offsetof(gfo_match_config,external_grants)==6&&offsetof(gfo_match_config,include_fate)==7
+        &&offsetof(gfo_match_config,local_guardian_payloads)==20&&offsetof(gfo_match_config,reserved_tail)==21
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v46"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v46 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v47"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v47 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +291,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v44\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v45\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2540,10 +2541,10 @@ int main() {
     for(uint16_t model=240;model<=244;++model)check(gfo_match_grant_supported(model),"all five supplied devils can resolve a grant");
     auto grant_cfg=cfg;grant_cfg.initial_hand=0;grant_cfg.hand_limit=18;grant_cfg.max_decisions=32;grant_cfg.external_grants=1;
     for(unsigned bad_byte=0;bad_byte<6;++bad_byte){auto bad=grant_cfg;
-        if(bad_byte==0)bad.external_grants=2;if(bad_byte==1)bad.include_fate=2;if(bad_byte>=2)bad.reserved_tail[bad_byte-2]=1;
+        if(bad_byte==0)bad.external_grants=2;if(bad_byte==1)bad.include_fate=2;if(bad_byte==2)bad.local_guardian_payloads=2;if(bad_byte>=3)bad.reserved_tail[bad_byte-3]=1;
         auto* sentinel_match=reinterpret_cast<gfo_match*>(uintptr_t{1});
         check(gfo_match_create(&bad,players.data(),2,0,&sentinel_match)==-2&&sentinel_match==reinterpret_cast<gfo_match*>(uintptr_t{1}),
-            "new known config byte is boolean and both boolean bytes and the tail remain strict");
+            "three config flags are strict booleans and all remaining tail bytes stay reserved");
     }
     gfo_match* grant_match=nullptr;check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"external grants opt-in create");
     const auto load_grant_scene=[&](uint64_t update){
@@ -2863,6 +2864,43 @@ int main() {
     check(gfo_match_guardian_payload_step(payload_sample_match,&payload_sample_out,&result)==-2&&equal(result,payload_sample_late_status)
         &&observe(payload_sample_match,0,0)==payload_sample_late,"separate payload application failure rolls back the entire current main state");
     gfo_match_destroy(payload_sample_match);
+    auto payload_auto_cfg=payload_sample_cfg;payload_auto_cfg.local_guardian_payloads=1;
+    gfo_match* payload_auto_match=nullptr;
+    check(gfo_match_create(&payload_auto_cfg,players.data(),2,2,&payload_auto_match)==0,"local automatic payload config crosses the unchanged24-byte ABI");
+    std::array<gfo_state_player,4> payload_auto_people{};
+    const std::array<uint64_t,4> payload_auto_ids{{0,17,23,42}};
+    for(std::size_t i=0;i<4;++i){payload_auto_people[i].id=payload_auto_ids[i];payload_auto_people[i].hp=99;
+        payload_auto_people[i].team=(i==1||i==2)?1:2;payload_auto_people[i].item_offset=i?18:0;}
+    std::array<gfo_state_item,18> payload_auto_items{};
+    for(std::size_t i=0;i<18;++i){payload_auto_items[i].token=i;payload_auto_items[i].model=235;payload_auto_items[i].used=1;}
+    payload_auto_people[0].item_count=18;
+    for(bool moon:{false,true}){
+        payload_auto_people[1].guardian=moon?10:9;gfo_state_meta meta{};meta.gf=7;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,payload_auto_people.data(),4,payload_auto_items.data(),18,nullptr,0,&scene)==0
+            &&gfo_match_load_scene(payload_auto_match,scene,0,2,&result)==0,"full owner prayer has no gift draw before zero-MP nonowner payload");gfo_state_destroy(scene);
+        gfo_match_command prayer{};prayer.kind=3;
+        check(gfo_match_step(payload_auto_match,&prayer,&result)==0&&result.phase==1&&result.owner==0&&result.actor==(moon?23:42)&&result.decisions==1,
+            "automatic payload stays in the original action without its own decision");
+        const auto event=std::string("\"last_auto_guardian_payloads\":[{\"source\":17,\"guardian\":\"")+(moon?"moon":"earth")
+            +"\",\"models\":"+(moon?"[236]":"[32,9,31]")+",\"target\":"+(moon?"23":"42")+"}]";
+        auto view=observe(payload_auto_match,0,0);
+        check(view.find(event)!=std::string::npos&&view.find("\"local_guardian_payloads\":true")!=std::string::npos
+            &&view.find("\"last_auto_guardians\":[]")!=std::string::npos&&view.find("\"last_guardian_payload\":null")!=std::string::npos,
+            "seed2 game RNG selects independent Earth or Moon columns and publishes only launched local payloads");
+        const auto pending_status=result;auto bad=gfo_match_command{};bad.kind=1;bad.actor=999;
+        check(gfo_match_step(payload_auto_match,&bad,&result)==-2&&equal(result,pending_status)&&observe(payload_auto_match,0,0)==view,
+            "invalid response leaves auto payload, original owner and public log untouched");
+        gfo_match_command pass{};pass.kind=1;pass.actor=moon?23:42;
+        check(gfo_match_step(payload_auto_match,&pass,&result)==0&&result.phase==0&&result.owner==17&&result.actor==17&&result.decisions==2,
+            "automatic response resumes ordinary next owner without a second activation charge");
+        view=observe(payload_auto_match,0,0);
+        check(view.find(event)!=std::string::npos&&view.find("\"gf\":8")!=std::string::npos
+            &&(moon||view.find("\"hp\":81,")!=std::string::npos),"completed payload log and single GF advance survive opaque bridge replay");
+    }
+    check(gfo_match_reset(payload_auto_match,players.data(),2,2,&result)==0
+        &&observe(payload_auto_match,0,0).find("\"local_guardian_payloads\":true")!=std::string::npos
+        &&observe(payload_auto_match,0,0).find("\"last_auto_guardian_payloads\":[]")!=std::string::npos,"reset retains local payload opt-in and clears its public history");
+    gfo_match_destroy(payload_auto_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);
