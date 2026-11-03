@@ -78,6 +78,48 @@ struct SnapshotView {
     bool operator==(const SnapshotView&) const = default;
 };
 
+// Received public display frame. Separate from board state and executable Match
+// effects: IDs here are models, never inventory tokens or a future effect queue.
+struct ActiveAttackState {
+    PlayerId player_id = 0, target_player_id = 0;
+    Guardian guardian = Guardian::none;
+    std::vector<CardId> models;
+    std::int64_t atk = 0, hit_rate = 0, mp = 0, cp = 0;
+    CardId buying_model = 0;
+    bool reversed = false;
+    bool operator==(const ActiveAttackState&) const = default;
+};
+struct ActiveAttackCardView {
+    CardId model = 0;
+    std::optional<std::int64_t> atk, hit_rate, mp, cp;
+    bool from_mp = false;
+    std::optional<Curse> curse;
+    bool operator==(const ActiveAttackCardView&) const = default;
+};
+struct ActiveAttackView {
+    PlayerId source = 0;
+    Guardian guardian = Guardian::none;
+    std::vector<CardId> models;
+    std::vector<ActiveAttackCardView> cards; // Visible special-card values, without hidden override-presence bits.
+    bool reversed = false;
+    std::vector<CardId> summary_models; // Client removes one leading207 only for a compound column.
+    bool prayer = false, is_attack = false;
+    std::optional<std::int64_t> power, hit_rate; // Present only for an actually drawn attack summary.
+    std::optional<Category> incoming_category;
+    Attribute incoming_element;
+    std::optional<PlayerId> target; // Fresh caller displays a target only when wire ID>0.
+    std::optional<CardId> buying_model; // Requires both a displayed target and a positive commodity ID.
+    bool operator==(const ActiveAttackView&) const = default;
+};
+
+void validate_active_attack(const ActiveAttackState& attack);
+// Only the head is inspected; no18-model hand bound is imposed on public frames.
+// Ending suppresses the display before roster lookup. Otherwise the source and
+// any positive target ID must exist, as required by the fresh client caller.
+// This is not actor/timing authorization or a pending Match import.
+[[nodiscard]] std::optional<ActiveAttackView> project_active_attack(const SnapshotState& board, std::span<const ActiveAttackState> attacks);
+[[nodiscard]] std::string active_attack_json(const std::optional<ActiveAttackView>& view);
+
 void validate_state(const SnapshotState& state);
 [[nodiscard]] const PlayerState* find_player(const SnapshotState& state, PlayerId id) noexcept;
 [[nodiscard]] std::optional<PlayerId> resolve_viewer(const SnapshotState& state, std::string_view user_id);

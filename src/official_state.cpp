@@ -82,6 +82,84 @@ template<class T> void number(std::string& out, T v) {
 }
 void boolean(std::string& out, bool value) { out += value ? "true" : "false"; }
 }
+void validate_active_attack(const ActiveAttackState& attack) {
+    if (attack.player_id>max_wire_integer || attack.target_player_id>max_wire_integer
+        || static_cast<unsigned>(attack.guardian)>10 || (attack.buying_model && !find_card(attack.buying_model)))
+        throw std::invalid_argument("invalid received active attack identity/model");
+    integer(attack.atk); integer(attack.hit_rate); integer(attack.mp); integer(attack.cp);
+    for (auto id:attack.models) if (!find_card(id)) throw std::invalid_argument("invalid received active attack model");
+}
+std::optional<ActiveAttackView> project_active_attack(const SnapshotState& board, std::span<const ActiveAttackState> attacks) {
+    if (attacks.empty()) return std::nullopt;
+    const auto& frame=attacks.front(); validate_active_attack(frame);
+    if (board.is_over) return std::nullopt;
+    (void)player(board,frame.player_id);
+    if (frame.target_player_id>0) (void)player(board,frame.target_player_id);
+    ActiveAttackView view; view.source=frame.player_id; view.guardian=frame.guardian; view.models=frame.models;
+    view.reversed=frame.reversed; view.summary_models=frame.models;
+    view.cards.reserve(frame.models.size());
+    for (auto id:frame.models) {
+        const auto& card=*find_card(id); ActiveAttackCardView displayed; displayed.model=id;
+        switch(card.ability) {
+        case Ability::atk_by2x_mp: displayed.atk=frame.atk; displayed.from_mp=true; break;
+        case Ability::attack_dyingly: displayed.atk=frame.atk>0?frame.atk:card.atk; displayed.hit_rate=frame.atk>0?frame.hit_rate:card.hit_rate; break;
+        case Ability::counter_atk: case Ability::counter2x_atk: if(frame.atk!=0)displayed.atk=frame.atk; break;
+        case Ability::counter_boost2x_mp: if(frame.mp!=0)displayed.mp=frame.mp; break;
+        case Ability::counter_take_cp: if(frame.cp!=0)displayed.cp=frame.cp; break;
+        case Ability::counter_curse: displayed.curse=card.curse; break;
+        default: break;
+        }
+        view.cards.push_back(std::move(displayed));
+    }
+    view.prayer=frame.models.empty();
+    if (frame.target_player_id>0) {
+        view.target=frame.target_player_id;
+        if (frame.buying_model) view.buying_model=frame.buying_model;
+    }
+    if (view.prayer) return view;
+    if (view.summary_models.size()>=2 && find_card(view.summary_models.front())->ability==Ability::call_phenomenon)
+        view.summary_models.erase(view.summary_models.begin());
+    const auto& base=*find_card(view.summary_models.front());
+    view.is_attack=base.atk>0 || base.category==Category::weapons || frame.atk>0;
+    view.incoming_category=base.ability==Ability::category_weapons?Category::weapons:base.category;
+    view.incoming_element=attack_element(view.summary_models);
+    if (view.is_attack) {
+        // The browser treats a nonpositive dynamic base as "no override".
+        view.power=attack_power(view.summary_models,std::max<std::int64_t>(0,frame.atk));
+        view.hit_rate=frame.hit_rate>0?frame.hit_rate:base.hit_rate;
+    }
+    return view;
+}
+std::string active_attack_json(const std::optional<ActiveAttackView>& view) {
+    std::string out="{\"schema\":\"official-active-attack-view-v1\",\"attack\":";
+    if (!view) return out+"null}";
+    const auto& v=*view;
+    const auto models=[&](const std::vector<CardId>& ids){out+='[';for(std::size_t i=0;i<ids.size();++i){if(i)out+=',';number(out,ids[i]);}out+=']';};
+    const auto element=[&](Attribute value){if(value)quoted(out,element_name(*value));else out+="null";};
+    out+="{\"source\":";number(out,v.source);out+=",\"guardian\":";
+    if(v.guardian==Guardian::none)out+="null";else quoted(out,guardian_name(v.guardian));
+    out+=",\"models\":";models(v.models);
+    out+=",\"cards\":[";
+    const auto optional_number=[&](std::optional<std::int64_t> value){if(value)number(out,*value);else out+="null";};
+    for(std::size_t i=0;i<v.cards.size();++i){if(i)out+=',';const auto& c=v.cards[i];out+="{\"model\":";number(out,c.model);
+        out+=",\"atk\":";optional_number(c.atk);out+=",\"from_mp\":";boolean(out,c.from_mp);
+        out+=",\"hit_rate\":";optional_number(c.hit_rate);out+=",\"mp\":";optional_number(c.mp);out+=",\"cp\":";optional_number(c.cp);
+        out+=",\"curse\":";if(c.curse)quoted(out,curse_name(*c.curse));else out+="null";out+='}';}
+    out+="]";
+    out+=",\"reversed\":";boolean(out,v.reversed);
+    out+=",\"target\":";if(v.target)number(out,*v.target);else out+="null";
+    out+=",\"buying_model\":";if(v.buying_model)number(out,*v.buying_model);else out+="null";
+    out+=",\"summary\":{\"models\":";models(v.summary_models);
+    out+=",\"prayer\":";boolean(out,v.prayer);out+=",\"is_attack\":";boolean(out,v.is_attack);
+    out+=",\"element\":";element(v.is_attack?v.incoming_element:Attribute{});
+    out+=",\"power\":";if(v.power)number(out,*v.power);else out+="null";
+    out+=",\"hit_rate\":";if(v.hit_rate)number(out,*v.hit_rate);else out+="null";
+    out+="},\"response\":";
+    if(!v.incoming_category)out+="null";
+    else {out+="{\"incoming_category\":";quoted(out,category_name(*v.incoming_category));out+=",\"incoming_element\":";element(v.incoming_element);
+        out+=",\"incoming_is_attack\":";boolean(out,v.is_attack);out+='}';}
+    out+="}}";return out;
+}
 void validate_state(const SnapshotState& state) {
     if (state.players.size() > player_capacity || state.update_count > max_wire_integer) throw std::invalid_argument("invalid snapshot size/version counter");
     integer(state.gf); if (state.tiebreak_gf) integer(*state.tiebreak_gf);

@@ -190,6 +190,7 @@ IDはその配列位置+1で、legacy IDとは別です。台帳のgiftRate・�
 追加の [official_state_c_api.h](include/godfield/official_state_c_api.h) の `gfo_state_*` と
 [Python `OfficialState`](python/official_state.py)は、
 入力フレームを読み取り、状態欄・自己手札・使用済み奇跡のviewを作ります。
+先頭の攻撃表示は独立した `active_attack()` で読み取れます（末尾のv48節）。
 C APIは型付き配列を検査して所有コピーを作り、PythonはdictまたはJSON文字列をimportします。
 Pythonの `raw_snapshot` は未知フィールド・attacks・events等も含めてdeepcopyした元JSONを返し、
 viewを取得しても元の入力を変更しません。rawには非公開値が含まれ得るため、方策の観測にはviewを使います。
@@ -261,9 +262,15 @@ read-onlyな `OfficialState` が表示できる局面を、全てこの実行器
 
 プレイヤーsourceを持つ反射は元のpower/category/abilityとownerを保ち、現在のsource/targetだけを交換します。sourceなし現象の190は返却先なしとして取り消す別の実験規約です。
 属性消去は反射後も無属性を維持し、原発奇跡の再課金・新sourceへの取得は行いません。
-各応答者が使った品の補充は連鎖後へ遅延し、Snapshot version41の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39/40は拒否します。
+各応答者が使った品の補充は連鎖後へ遅延し、現行Snapshot version47の全action journalで消費・保持・MP・補充と抽選/反撃来歴を検証します。旧version1〜46は拒否します。
 普通防具→反射は現行clientの追加条件で不受理で、反射前に許すのは連続した属性消去だけです。
 自己反射にもresponseを作るのは明示的な実験規約です。公開viewに未来RNG・消費token来歴は出しません。
+
+現行設定は `external_grants` / `include_fate` / `local_guardian_payloads`（全て既定false）です。phase4の補充と正の混乱countを持つmainは専用chance driverが必要で、既存 `sample_action` / `random_rollout` は自動接続しません。207も専用Fate入口を使い、通常samplerが207使用を生成するわけではありません。現在の入力と制限は[限定実行器の契約](docs/official-execution-subset.md)・末尾の版別追記を参照してください。
+
+### 実装経緯と過去の規約
+
+以下は各版で追加した処理の経緯です。版名付きの件数・拒否条件・rule文字列は当時の記録で、現行の自己BUY・満杯SELL・Fate等の利用可否とは区別してください。
 
 v5は跳ね返し8種21/34/114/125/137/151/164/234を追加します。以前の防御者を新sourceにし、元payloadを保ちます。
 対象は**実験規約**として全aliveから入力seat順で一様抽選し、自己・味方・旧sourceも含めます。候補1人でも1draw、反射は0draw。自己対象もresponseを続けます。
@@ -361,7 +368,7 @@ v21は購入5を加え216モデル/重み477（trade3/98武器/74防具/16雑貨
 YESはbuyer CP減→seller名目全額CP加算cap99→buyerに新token unused商品を配送→既存復活/死亡/gift等。NOは元slot/tokenへ返し、未完了cutoffでも返却してgift取消、配送/返却自体のRNGは0です。満杯buyerへのYESは-5/NOは可。商品MCはcast/学習でなく、商品giftも無し。`last_purchase={origin,buyer,seller,model,price,bought,reason}` のreasonはbought/declined/empty/insufficient-cp/cutoff、emptyはmodel0/price0、商品未選定cutoffはnull。見積中は完了event無し、次main受理/reset/loadでclear・失敗保持・他完了eventsと排他です。
 usedMC除外・YES/NOとbuy/setBought/canNotBuy表示は公開clientの根拠ですが、抽選/不足CP終了・自己対象拒否・escrow同一性・cutoff/返却scheduleはserver未確認の実験規約です。原slot/token・RNG・候補数・非選定手札は公開せず、完全BUY対応とは呼びません。
 
-v21〜25時点の公開 `buy_rule` は `experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-accept-unsupported`。`bought` はreasonがboughtかどうかから派生するbooleanで、独立した履歴flagではない。特権 `PurchaseOffer` はoriginal item（token/model/used=false）と原slotを保持するが、公開purchaseにはこれらを追加しない。承認/拒否も新しい意思決定として既存cutoff規約に従う。
+v21〜25時点のv21当時の公開 `buy_rule` は `experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-accept-unsupported`。`bought` はreasonがboughtかどうかから派生するbooleanで、独立した履歴flagではない。特権 `PurchaseOffer` はoriginal item（token/model/used=false）と原slotを保持するが、公開purchaseにはこれらを追加しない。承認/拒否も新しい意思決定として既存cutoff規約に従う。
 
 購入決定をjournalへ一件加えるため、BUY actionだけ既存の保守的response/journal boundへ+1する。非BUYの最大3,725を変えず、全体の保守的な上界へさらに+1を見込めば3,726となる。実際のBUYは単一target・190の物理反射だけなので、これより小さい。購入承認でも商品配送後のgift予約を `min(gift, hand_limit−new_items_count)` に正規化し、実物evictionを行わない。
 
@@ -410,12 +417,12 @@ v26時点では自己BUY・通常gift full-clamp・94+Wide等のgapを残し、D
 
 公開 `sell_rule` は `experimental:one-unused-commodity;explicit-alive-target;zero-mp-fee;one-operation-gift;foreign-response-and-reflection;buyer-debit-before-current-source-credit;fresh-token-delivery-before-death;full-recipient-uniform-existing-item-overflow`。
 
-公開 `buy_rule` は `experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-recipient-uniform-existing-item-overflow`。
+v21当時の公開 `buy_rule` は `experimental:foreign-only;one-operation-gift;uniform-unused-commodity;empty-no-draw;cp-only-affordability;buyer-accept-or-decline;escrow-return-on-decline-or-cutoff;fresh-token-delivery;full-recipient-uniform-existing-item-overflow`。
 
 公開 `fog_rule` は `experimental:launch-once-for-explicit-enemy-play-buy-sell;uniform-alive-enemies-in-input-order;one-draw-including-singleton;self-and-allies-unchanged;chance-wide-danger-excluded-except-sale-commodity;redirects-no-reselection;sampler-sell-all-alive-without-capacity-peek`。
 
 意思決定の打切りは自然終局と分け、報酬0です。不正・未対応入力で状態/RNG/出力を一部更新しません。
-raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していません。
+C/Pythonの `load_scene` は同一libraryの `OfficialState` から安定した盤面をdeepcopyして初期化します。非空attacksを持つpending server frameは受け付けず、対局checkpointのimport/restoreやeventからの手順再生は提供しません。
 
 `python3 python/official_match.py` はローカル実行例です。C++ベンチマークは
 `./build/godfield_official_bench GAMES PLAYERS SEED WORKERS`、省略時は `10000 2 42 1`。
@@ -2661,3 +2668,73 @@ with OfficialState(raw) as scene, Match(config=Config(initial_hand=0, local_guar
           view["board"]["players"][1]["status"]["hp"])
     # main 0 18 50
 ```
+
+
+## v48：公開スナップショットの先頭攻撃を別APIで投影
+
+v48はread-only表示APIの追加世代である。`ActiveAttackState` / `ActiveAttackView` と `project_active_attack(board, attacks)` / `active_attack_json`、Cの `gfo_state_with_active_attack` / `gfo_state_active_attack_json`、Python `OfficialState.active_attack()` を追加した。**対局rulesetはv47、Match Snapshot47・view-v45、既存boardの `official-fresh-view-v1`、catalog/state ABI1・Match ABI2を維持する。** 既存 `view()` の内容や対局の抽選・効果は変えない。新JSONは独立した `official-active-attack-view-v1`、Cの新frame構造体は72byteである。
+
+Pythonはraw `attacks` を全体保存しながら先頭だけをstrictにデコードする。Cは既存boardをowned cloneし、先頭frameを別のoptionalとして保持する（NULLでclear）。`SnapshotState` 自体へserver queueを追加せず、既存board-only APIを保つ。`active_attack()` は攻撃オブジェクトまたはNone、C/native JSONは `{schema,attack}` を返す。raw snapshotやraw widgetの引数を公開viewへそのまま転記しない。
+
+| 表示項目 | 確認したクライアントの規則 |
+| --- | --- |
+| active | 受信列の先頭だけを使い、後続攻撃・eventsを公開しない。isOverではactive表示を返さず、source/targetのlookupにも進まない |
+| source / target | source0も実player0なら通常ID。非終局でsourceがrosterに無い場合は失敗。targetはwire ID>0の時だけ表示し、そのIDも存在が必要。実player0があってもtarget0は表示対象なし |
+| guardian / 向き / 商品 | frameのguardian・reversedを保持する。buying_modelは正のtargetと正のモデルIDの両方がある時だけ返す |
+| models / summary | 元のカード列は全て保持。空列だけをprayerとし、長さ2以上で先頭が207ならsummary用の列から1個だけ外す。[207]や[207,207,6]を再帰的に展開しない |
+| 攻撃判定 | summary先頭の正ATK、先頭category=weapons、または受信の動的ATK>0。追加カードの合計威力が正というだけでは攻撃summaryにしない |
+| summaryの数値 | 攻撃時だけpower/hit_rate/elementを返す。正の動的ATKを基底override、正の動的hitRateをrate overrideとし、それ以外は台帳値を使う。非攻撃の潜在合成威力は公開しない |
+| response | summary列が非空なら、先頭のcategoryWeaponsをweaponsへ読み替えた分類、合成属性、攻撃判定を返す。guardianの絵だけから分類を決めない |
+| 列の長さ | activeカード列には自己手札の18枠制限を流用しない。19モデルの実表示を確認した。任意の長さがserverで合法との主張ではない |
+
+`cards` は特別カードで実際に表示される値だけを持つ。58は受信ATKとfrom_mp、112は最終のcard ATK/rate、181/184は非0の受信ATK、187は非0のMP、188は非0のCP、counterCurseはカードのcurseを返す。一般カードには未描画のwire数値を付けない。58や184の受信値を再び×2したり、盤面MPから再計算したりしない。
+
+112は動的ATK>0の時だけ受信ATK/rateをcard表示へ使い、それ以外は台帳1/25を表示する。raw0/0とraw1/25の同じ表示は同じviewへ正規化し、隠れたoverride有無を追加しない。summaryのrate判定は別なので、動的ATK0/rate75ではcardは1/25、summaryは1/75になる。負のwire値も、描画される分岐と無視される分岐を別々に検証する。
+
+unknown source/positive targetは、実fresh callerのroster lookupが例外となるためnative/C queryでも拒否する。下位 `fu` に人工的なnull sourceを渡すと描画できることと、full freshの受理を混同しない。typed adapterは既知fieldのexact型・JS-safe整数・既知model/enumを検査するため、ブラウザdecoderの不正型coercionや終局時に描画されない不正モデルまで受け入れる契約ではない。checked int64合成のoverflowも拒否し、JSの安全域外の丸めまで一致とは主張しない。
+
+この表示は現在のactor・手番・server受理・未来の命中/乱数・与damageを認定しない。response辞書は既存 `ResponseContext` へ渡せるが、選択照会と送信権限は別である。Pythonの非空attacks付きsceneは従来どおりMatchへimport不可で、Cも新しくattachされたactiveを `load_scene` へ渡した場合はunsupported(-5)で全出力・Matchを保持する。表示frameを実行checkpointへ読み替えない。
+
+### v48の一次照合と検証
+
+[実クライアントoracle](scripts/official_active_attack_oracle.cjs)、[保存report](data/official-v2/active-attack-client-v48.json)、[native用TSV](data/official-v2/active-attack-vectors-v48.tsv) はp6/tn decode、fu、iI/gf2 summary、iP cardラベル分岐、fq/aT fresh callerとroster lookupを実行する。400 frame例（296単体＋順序付き16＋動的26＋override36＋card境界26）、fresh46例（expected lookup error22）、decoder10例、人工null source2例を区別した。nativeは443行（expected error22を含む）で公開JSONが全て一致した。
+
+card/summaryの数値・分岐を実行する一方、text formatterはnumeric/symbolic sink、DOM・board widget・rating・network・command activationはscaffoldingである。画面全体やlocaleの字形・過去イベントの再現とは数えない。新reportは828,308bytes、SHA256 `6820f68a525bc409ae0e132ab1d6e65b79596168a356af32656e49745fbe3bdf`、TSVは218,259bytes、SHA256 `01ae0033e11e223a51bd4425f1376a810cc918ccc5a0fc94d44460eb82edfe30`。clientはv2固定hash `5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd`、cardsは `8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a`。旧pins・report・版別の計測は保存する。
+
+Release CTest **148/148（41.72秒）**、ASan/UBSan CTest **108/108（135.31秒）** が通過した。新native8群、実client由来443vectors、State Python12メソッドとC API境界を検査し、既存Match native216/Python144群も維持する。Release focused8件も初回で通過した（20.22秒）。新unitは207の1回だけの除去、58/112/各counterの最終card表示、負wire、112同ラベルのview同値、categoryWeapons、positive override、source/target照会順、ending/先頭のみ/19列、未描画値とboardの非干渉、strict入力とchecked overflowを検査する。
+
+Cは72byte layout、旧ABI幅、deep copy/NULL clear、short/NULL/canary/全出力保持、物理extent上限を検査する。Pythonは先頭だけのexact型検査とraw tail保持、未知endpoint時のquery失敗、ending時のlookup抑止、旧view不変を検査する。C/Pythonのpending scene import拒否も回帰検査した。README例を実行し、`36 fire` / `True` / `official-fresh-view-v1` が一致した。一次照合は固定clientの表示分岐に対するものであり、suite数や時間をserver適合数・速度比較へ置き換えない。
+
+既存17familyの2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、計34組で時間・速度・worker数以外の全fieldが一致した。Release/SAN小行列18組も全checksumを含む非時間fieldが一致した。さらにv47保存行列の全104recordに対し、全gameplay fieldと全checksumが同値だった。旧行列の一部に無かった静的 `guardian_payload_auto_rule` の出力有無だけは、v47最終のmetadata整備を踏まえ旧版比較時に正規化した。現worker間・Release/SAN間ではmetadataの有無も含めて比較している。
+
+| 既存対局・seed42 | 2人100,000局/scene checksum | 9人10,000局/scene checksum |
+| --- | --- | --- |
+| 通常対局 | `13564747736715185154` | `17158162465123773162` |
+| 外部guardian payload sampler | `6134552781244886811` | `14743928072819055564` |
+| 任意設定のauto payload | `7593984257819276415` | `16205755181632469720` |
+
+この比較は読み取り機能を足した際の既存実装への非干渉を確認するもの。公式のselector・死亡順・補充scheduleとの同値性は証明しない。独立familyは最大2系統を並行実行し、計測時間を版間の速度比較へ使わない。
+
+併せて現行overviewの配布236/499＋任意237/500、Fate/現象/悪魔/終末、自己BUY・満杯SELL、load_scene、Snapshot47、sampler/rolloutの範囲をsourceへ同期した。版名付きの旧規約・旧hashは当時の履歴として残す。未投影のincremental history/rating/animation、公式server schedule、Dreamの互換外、94+Wide、一般Earth/Moon選出や全補充悪魔chain等は引き続き残件である。
+
+### Pythonで公開攻撃を読み、防御の追加可否を照会する例
+
+```python
+from official_state import OfficialState, ResponseContext
+
+raw = {"players": [{"id": 0}, {"id": 7, "items": [{"id": 0, "modelId": 190}]}],
+       "attacks": [{"playerId": 0, "itemModelIds": [58, 66], "atk": 34,
+                    "mp": 99, "cp": 88, "targetPlayerId": 7},
+                   {"itemModelIds": [999], "atk": "opaque"}]}
+with OfficialState(raw) as state:
+    attack = state.active_attack()
+    print(attack["summary"]["power"], attack["summary"]["element"])
+    # 36 fire
+    context = ResponseContext(**attack["response"])
+    print(state.can_append_hand([], 0, player_id=7, response=context))
+    # True
+    print(state.view(player_id=7)["schema"])
+    # official-fresh-view-v1
+```
+
+後続attackはopaqueなraw証拠として保存し、先頭のviewへ混ぜない。未描画のraw MP99/CP88もviewへ出ない。この照会結果はplayer7が現在コマンドを送れるという認定ではない。

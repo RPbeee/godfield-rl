@@ -32,12 +32,23 @@ typedef struct gfo_state_response {
     int8_t incoming_element; // -1 absent;0..5 official Element.
     uint8_t incoming_is_attack, reserved[4];
 } gfo_state_response;
+// Separate public attack DTO; never a Match pending-action checkpoint.
+// Models are catalog IDs, not physical tokens. IDs0 are actual wire defaults.
+typedef struct gfo_state_active_attack {
+    const uint16_t* models;
+    size_t model_count;
+    uint64_t player_id, target_player_id;
+    int64_t atk, hit_rate, mp, cp;
+    uint16_t buying_model; //0 absent, otherwise1..296.
+    uint8_t guardian, reversed, reserved[4]; // guardian0..10; reversed strictly0/1.
+} gfo_state_active_attack;
 
 int gfo_state_abi_version(void);
 size_t gfo_state_item_size(void);
 size_t gfo_state_player_size(void);
 size_t gfo_state_meta_size(void);
 size_t gfo_state_response_size(void);
+size_t gfo_state_active_attack_size(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short output buffer.
 // Inputs must be valid caller storage, UTF-8 strings and canonical zero padding.
 // Every error leaves ALL outputs unchanged. Item/curse slices must partition
@@ -48,6 +59,17 @@ int gfo_state_create(const gfo_state_meta* meta,
                      const gfo_state_item* items, size_t item_count,
                      const uint8_t* curses, size_t curse_count, gfo_state** out);
 void gfo_state_destroy(gfo_state* state); // NULL allowed; live handles only.
+// Owns an independent copy of the board and attack. NULL attack clears it.
+// Existing fresh-view and Match scene loading remain board-only; attaching an
+// attack does not reconstruct actor, pending work, events or server timing.
+int gfo_state_with_active_attack(const gfo_state* board,
+                                  const gfo_state_active_attack* attack, gfo_state** out);
+// Separate official-active-attack-view-v1 JSON; same byte-query/short-buffer
+// rules as view_json below. An unattached attack is encoded as attack:null.
+// In a nonending board, source and positive target must exist in the roster;
+// lookup failure is-2. Input validation/attachment alone does not imply this.
+int gfo_state_active_attack_json(const gfo_state* state,
+                                char* buffer, size_t capacity, size_t* required);
 // found0/player_id0 means no match. Duplicate user IDs follow the client first match.
 int gfo_state_resolve_viewer(const gfo_state* state, const char* user_id, size_t size,
                             uint8_t* found, uint64_t* player_id);

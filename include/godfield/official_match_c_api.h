@@ -111,16 +111,18 @@ int gfo_match_reset(gfo_match* match, const gfo_match_player* players,
 // Input must be a live immutable state from this same library. An independent
 // deep copy is validated against the Match scope before committing. Existing
 // config is retained; RNG/counters/pending work are initialized, not imported.
+// A state with an attached active attack is rejected as unsupported (-5).
 int gfo_match_load_scene(gfo_match* match, const gfo_state* state,
                          uint64_t owner, uint64_t seed, gfo_match_status* out);
 int gfo_match_get_status(const gfo_match* match, gfo_match_status* out);
 int gfo_match_legal(const gfo_match* match, const gfo_match_command* command, uint8_t* out);
 int gfo_match_step(gfo_match* match, const gfo_match_command* command, gfo_match_status* out);
 // Privileged externally resolved ordinary main command for a confused owner.
-// No automatic selector is provided. Uses the unchanged184-byte command.
+// This step consumes a supplied command; sample_confusion is a separate local helper.
+// Uses the unchanged184-byte command.
 int gfo_match_confusion_legal(const gfo_match* match, const gfo_match_command* command, uint8_t* out);
 int gfo_match_confusion_step(gfo_match* match, const gfo_match_command* command, gfo_match_status* out);
-// Externally selected guardian action; no autonomous scheduling or summoning.
+// Explicit canonical action entry, separate from automatic scheduling/summoning.
 // Source must own the matching guardian. Absent target requires canonical0.
 int gfo_match_guardian_legal(const gfo_match* match, const gfo_match_guardian_action* action, uint8_t* out);
 int gfo_match_guardian_step(gfo_match* match, const gfo_match_guardian_action* action, gfo_match_status* out);

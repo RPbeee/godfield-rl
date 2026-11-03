@@ -1968,6 +1968,15 @@ int main() {
         scene_name[0]='X';
         check(gfo_match_load_scene(guardian_match,scene,0,model,&result)==0&&result.phase==0&&result.actor==0
             &&result.owner==0&&result.decisions==0&&result.player_count==3,"quiescent scene initializes counters and preserves arbitrary IDs");
+        if(model==245){
+            const auto initial_board=observe(guardian_match);gfo_state_active_attack active{};const uint16_t public_model=6;
+            active.models=&public_model;active.model_count=1;active.player_id=7;gfo_state* pending=nullptr;
+            check(gfo_state_with_active_attack(scene,&active,&pending)==0,"attach a public frame independently of board-only scene");
+            gfo_match_status unchanged;std::memset(&unchanged,0x6b,sizeof(unchanged));const auto sentinel=unchanged;
+            check(gfo_match_load_scene(guardian_match,pending,0,model,&unchanged)==-5&&equal(unchanged,sentinel)
+                &&observe(guardian_match)==initial_board,"C scene import refuses a pending public attack without mutating Match or outputs");
+            gfo_state_destroy(pending);
+        }
         gfo_state_destroy(scene);
         const auto before_guardian=observe(guardian_match);
         check(before_guardian.find("scene-copy")!=std::string::npos&&before_guardian.find("\"last_guardian\":null")!=std::string::npos,

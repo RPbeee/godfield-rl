@@ -12,9 +12,13 @@
 #include <vector>
 
 namespace official = godfield::official;
-struct gfo_state { official::SnapshotState value; };
+struct gfo_state {
+    official::SnapshotState value;
+    std::optional<official::ActiveAttackState> active_attack;
+};
 namespace godfield::official::bridge {
 const SnapshotState& snapshot(const gfo_state& state) noexcept { return state.value; }
+bool has_active_attack(const gfo_state& state) noexcept { return state.active_attack.has_value(); }
 }
 static_assert(std::is_standard_layout_v<gfo_state_item> && sizeof(gfo_state_item) == 16);
 static_assert(offsetof(gfo_state_item, model) == 8 && offsetof(gfo_state_item, used) == 12);
@@ -22,6 +26,13 @@ static_assert(std::is_standard_layout_v<gfo_state_meta> && sizeof(gfo_state_meta
 static_assert(offsetof(gfo_state_meta, has_tiebreak) == 24);
 static_assert(std::is_standard_layout_v<gfo_state_response> && sizeof(gfo_state_response) == 8);
 static_assert(offsetof(gfo_state_response, incoming_element) == 2);
+static_assert(std::is_standard_layout_v<gfo_state_active_attack> && sizeof(gfo_state_active_attack) == 72
+    && offsetof(gfo_state_active_attack,model_count)==8 && offsetof(gfo_state_active_attack,player_id)==16
+    && offsetof(gfo_state_active_attack,target_player_id)==24 && offsetof(gfo_state_active_attack,atk)==32
+    && offsetof(gfo_state_active_attack,hit_rate)==40 && offsetof(gfo_state_active_attack,mp)==48
+    && offsetof(gfo_state_active_attack,cp)==56 && offsetof(gfo_state_active_attack,buying_model)==64
+    && offsetof(gfo_state_active_attack,guardian)==66 && offsetof(gfo_state_active_attack,reversed)==67
+    && offsetof(gfo_state_active_attack,reserved)==68);
 
 namespace {
 template<std::size_t N> bool zero(const uint8_t (&bytes)[N]) { return std::all_of(std::begin(bytes), std::end(bytes), [](auto v) { return v == 0; }); }
@@ -60,6 +71,20 @@ std::span<const official::ItemToken> selected(const uint64_t* tokens, std::size_
     for (std::size_t i = 0; i < count; ++i) valid(tokens[i] <= official::max_wire_integer);
     return {tokens, count};
 }
+official::ActiveAttackState active_attack(const gfo_state_active_attack& wire) {
+    valid(zero(wire.reserved) && wire.guardian<=10 && wire.reversed<=1);
+    official::ActiveAttackState result;
+    valid(wire.model_count<=result.models.max_size()
+        && wire.model_count<=static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max())/sizeof(uint16_t));
+    result.player_id=wire.player_id; result.target_player_id=wire.target_player_id;
+    result.guardian=static_cast<official::Guardian>(wire.guardian);
+    result.atk=wire.atk; result.hit_rate=wire.hit_rate; result.mp=wire.mp; result.cp=wire.cp;
+    result.buying_model=wire.buying_model; result.reversed=wire.reversed!=0;
+    result.models.reserve(wire.model_count);
+    for (std::size_t i=0;i<wire.model_count;++i) result.models.push_back(wire.models[i]);
+    official::validate_active_attack(result);
+    return result;
+}
 }
 extern "C" {
 int gfo_state_abi_version(void) { return 1; }
@@ -67,6 +92,7 @@ size_t gfo_state_item_size(void) { return sizeof(gfo_state_item); }
 size_t gfo_state_player_size(void) { return sizeof(gfo_state_player); }
 size_t gfo_state_meta_size(void) { return sizeof(gfo_state_meta); }
 size_t gfo_state_response_size(void) { return sizeof(gfo_state_response); }
+size_t gfo_state_active_attack_size(void) { return sizeof(gfo_state_active_attack); }
 int gfo_state_create(const gfo_state_meta* meta, const gfo_state_player* players, size_t player_count,
                      const gfo_state_item* items, size_t item_count, const uint8_t* curses, size_t curse_count, gfo_state** out) {
     if (!meta || !out || (!players && player_count) || (!items && item_count) || (!curses && curse_count)) return -1;
@@ -107,6 +133,26 @@ int gfo_state_create(const gfo_state_meta* meta, const gfo_state_player* players
     } catch (const std::invalid_argument&) { return -2; } catch (...) { return -3; }
 }
 void gfo_state_destroy(gfo_state* state) { delete state; }
+int gfo_state_with_active_attack(const gfo_state* board,const gfo_state_active_attack* attack,gfo_state** out) {
+    if (!board || !out || (attack && !attack->models && attack->model_count)) return -1;
+    try {
+        auto decoded=attack?std::optional{active_attack(*attack)}:std::nullopt;
+        auto owned=std::make_unique<gfo_state>(); owned->value=board->value; owned->active_attack=std::move(decoded);
+        *out=owned.release(); return 0;
+    } catch (const std::invalid_argument&) { return -2; } catch (...) { return -3; }
+}
+int gfo_state_active_attack_json(const gfo_state* state,char* buffer,std::size_t capacity,std::size_t* required) {
+    if (!state || !required || (!buffer && capacity)) return -1;
+    try {
+        const auto attacks=state->active_attack?std::span<const official::ActiveAttackState>{&*state->active_attack,1}
+            :std::span<const official::ActiveAttackState>{};
+        const auto result=official::active_attack_json(official::project_active_attack(state->value,attacks));
+        const auto size=result.size()+1;
+        if (!buffer && !capacity) { *required=size; return 0; }
+        if (capacity<size) return -4;
+        std::memcpy(buffer,result.c_str(),size); *required=size; return 0;
+    } catch (const std::invalid_argument&) { return -2; } catch (...) { return -3; }
+}
 int gfo_state_resolve_viewer(const gfo_state* state, const char* user_id, size_t size, uint8_t* found, uint64_t* player_id) {
     if (!state || !found || !player_id || (!user_id && size)) return -1;
     try {

@@ -131,4 +131,77 @@ class OfficialStateTests(unittest.TestCase):
         for response in ({}, ResponseContext(incoming_element="neutral"), ResponseContext(incoming_is_attack=1)):
             with self.subTest(response=response), self.assertRaises(ValueError): state.can_append_hand([], 0, player_id=0, response=response)
 
+    def test_active_attack_is_separate_owned_public_head_projection(self):
+        raw = fixture()
+        raw["attacks"] = [{"playerId": 0, "guardian": "earth", "itemModelIds": [6], "atk": 7,
+            "hitRate": 75, "mp": -3, "cp": 4, "targetPlayerId": 900, "buyingItemModelId": 235, "reversed": True,
+            "unknown": {"kept": True}}, {"playerId": False, "itemModelIds": "opaque-tail", "atk": 0.5}]
+        saved = copy.deepcopy(raw); state = self.state(raw)
+        raw["attacks"][0]["itemModelIds"][0] = 235
+        projection = state.active_attack()
+        self.assertEqual({key: projection[key] for key in ("source", "guardian", "models", "target", "buying_model", "reversed")},
+                         {"source": 0, "guardian": "earth", "models": [6],
+                          "target": 900, "buying_model": 235, "reversed": True})
+        self.assertEqual(projection["summary"], {"models": [6], "prayer": False, "is_attack": True, "element": None, "power": 7, "hit_rate": 75})
+        self.assertEqual(projection["response"], {"incoming_category": "weapons", "incoming_element": None, "incoming_is_attack": True})
+        self.assertNotIn("unknown", projection)
+        for key in ("atk", "hit_rate", "mp", "cp"): self.assertNotIn(key, projection)
+        unused_changed = copy.deepcopy(saved)
+        unused_changed["attacks"][0].update(mp=12345, cp=-9876)
+        self.assertEqual(self.state(unused_changed).active_attack(), projection)
+        self.assertEqual(state.raw_snapshot, saved)
+        projection["models"].clear()
+        self.assertEqual(state.active_attack()["models"], [6])
+        board_only = copy.deepcopy(saved); board_only.pop("attacks")
+        self.assertEqual(state.view(player_id=0), self.state(board_only).view(player_id=0))
+        self.assertTrue(state.can_append_hand([0], 8, player_id=0))
+        state.close()
+        with self.assertRaises(ValueError): state.active_attack()
+
+    def test_active_attack_defaults_summary_and_over_suppression(self):
+        self.assertIsNone(self.state({"players": []}).active_attack())
+        self.assertIsNone(self.state({"players": [], "attacks": []}).active_attack())
+        prayer = self.state({"players": [{"id": 0}], "attacks": [{}]}).active_attack()
+        self.assertEqual((prayer["source"], prayer["guardian"], prayer["target"], prayer["buying_model"]), (0, None, None, None))
+        self.assertEqual(prayer["summary"], {"models": [], "prayer": True, "is_attack": False, "element": None, "power": None, "hit_rate": None})
+        self.assertIsNone(prayer["response"])
+        for models, category in (([207, 6], "weapons"), ([264], "weapons"), ([286], "weapons"), ([223], "miracles")):
+            raw = {"players": [{"id": 0}], "attacks": [{"itemModelIds": models, "buyingItemModelId": 235}]}
+            attack = self.state(raw).active_attack()
+            self.assertEqual(attack["models"], models)
+            self.assertEqual(attack["summary"]["models"], models[1:] if models[0] == 207 else models)
+            self.assertEqual(attack["response"]["incoming_category"], category)
+            self.assertIsNone(attack["buying_model"])
+            if models == [223]:
+                self.assertIsNone(attack["summary"]["element"])
+                self.assertEqual(attack["response"], {"incoming_category": "miracles", "incoming_element": "darkness", "incoming_is_attack": False})
+            raw["isOver"] = True
+            self.assertIsNone(self.state(raw).active_attack())
+        long_frame = self.state({"players": [{"id": 0}], "attacks": [{"itemModelIds": [6] * 19}]})
+        self.assertEqual(long_frame.active_attack()["summary"]["models"], [6] * 19)
+        for endpoint in ({"playerId": 999}, {"targetPlayerId": 999}):
+            raw = {"players": [{"id": 0}], "attacks": [endpoint]}
+            state = self.state(raw)
+            self.assertEqual(state.view(spectator=True)["players"][0]["id"], 0)
+            with self.assertRaises(ValueError): state.active_attack()
+            raw["isOver"] = True
+            self.assertIsNone(self.state(raw).active_attack())
+
+    def test_active_attack_strict_first_frame_and_opaque_tail(self):
+        mutations = [lambda a: a.update(playerId=True), lambda a: a.update(playerId=-1),
+            lambda a: a.update(targetPlayerId=MAX_WIRE_INTEGER+1), lambda a: a.update(atk=1.0),
+            lambda a: a.update(hitRate=False), lambda a: a.update(mp=MAX_WIRE_INTEGER+1), lambda a: a.update(cp=None),
+            lambda a: a.update(guardian="unknown"), lambda a: a.update(guardian=9), lambda a: a.update(reversed=1),
+            lambda a: a.update(itemModelIds={}), lambda a: a.update(itemModelIds=[0]), lambda a: a.update(itemModelIds=[297]),
+            lambda a: a.update(itemModelIds=[True]), lambda a: a.update(buyingItemModelId=None), lambda a: a.update(buyingItemModelId=297)]
+        for mutate in mutations:
+            raw = {"attacks": [{}]}; mutate(raw["attacks"][0])
+            with self.subTest(raw=raw), self.assertRaises(ValueError): self.state(raw)
+        # Invalid known fields after the head are evidence, not another projected frame.
+        raw = {"players": [{"id": MAX_WIRE_INTEGER}], "attacks": [{"playerId": MAX_WIRE_INTEGER, "atk": -MAX_WIRE_INTEGER, "hitRate": MAX_WIRE_INTEGER,
+                            "mp": -MAX_WIRE_INTEGER, "cp": MAX_WIRE_INTEGER}, {"itemModelIds": [0], "guardian": "unknown"}]}
+        state = self.state(raw)
+        self.assertEqual(state.active_attack()["source"], MAX_WIRE_INTEGER)
+        self.assertEqual(state.raw_snapshot, raw)
+
 if __name__ == "__main__": unittest.main()

@@ -304,6 +304,7 @@ int gfo_match_load_scene(gfo_match* match, const gfo_state* state, uint64_t owne
     if (!match || !state || !out) return -1;
     try {
         valid(owner <= official::max_wire_integer);
+        if (official::bridge::has_active_attack(*state)) throw official::MatchError{official::MatchErrorCode::unsupported,"pending server attacks cannot initialize a quiescent scene"};
         const auto& input = official::bridge::snapshot(*state);
         // The read-only state API intentionally permits larger foreign hands.
         // Reject them before copying into a bounded execution scene.

@@ -3,7 +3,8 @@
 NOT authoritative official-server equivalence. No account/network access,
 checkpoint replay or learning implementation is provided. load_scene is an
 explicit privileged initializer from an immutable OfficialState, not a replay of
-server attacks/events. Ordinary Earth/Moon payloads must be supplied externally.
+server attacks/events. Earth/Moon payloads have explicit external entry points
+and opt-in local automatic selection; the default keeps canonical285/286.
 Artifact generation uses the native advertised configured gift pool.
 """
 from __future__ import annotations

@@ -2,6 +2,8 @@
 
 対象は公式 [main.dart.js](https://godfield.net/main.dart.js) のSHA-256 `764a50524e4b6b3f510415da7128abd8ad99dcb87b45b8572d98ddd96889cabd`。2026-11-01取得の [ja.json](https://godfield.net/i18n/ja.json) / [en.json](https://godfield.net/i18n/en.json) と合わせて調査した。取得物の全ハッシュは[一次調査](official-current-rules.md)を参照する。以下の行番号はこの固定JSに限る。
 
+前半の行番号と出典は初回v1調査の固定記録である。v48の先頭攻撃APIは別世代v2の固定clientで追加照合した（末尾のv48節を参照）。
+
 ここでいうviewは、既存のイベント記憶や過去に見た値を補完せず、新規に状態を構成したときの表示・閲覧可能情報である。サーバーのゲーム遷移や乱数生成の再現ではない。wireに存在する値が、そのまま本人へ表示されるとは限らない。
 
 ## wireの形と本人の特定
@@ -153,14 +155,14 @@ instance選択のappend可否は、真のモデルではなく表示モデルと
 
 ### 未投影の項目と範囲
 
-現在の `SnapshotState` / `SnapshotView` には、raw attacks、events、rating、ratingGain、ゲームモードが無い。したがって以下は本実装の外である。
+`SnapshotState` / `SnapshotView` は引き続きboard-onlyの型であり、raw attacks、events、rating、ratingGain、ゲームモードを含まない。v48で別型・別queryの先頭攻撃投影を追加した（末尾参照）。それ以外の以下は本実装の外である。
 
-- 攻撃の表示欄・先頭攻撃や商品・現在の応答者・購入承認phase。
+- 攻撃画面全体のlayout・アニメーション、現在の応答者や購入承認phaseのserver上の認定。
 - 終局duelのratingパネルによる本名・ratingの公開。
 - 通知、ログ、霧中の一時アニメーション、過去に覚えた資源値。
 - 終局判定、病気tick、補充、反撃順、抽選、夢の実効果、守護神・終末の遷移。
 
-`is_over` は真モデルtooltip等のfresh表示条件として使うが、このboolだけからゲームモード依存のrating公開を補わない。active attackについて前節に記したsource契約も、現段階の投影に実装済みであるという意味ではない。
+`is_over` は真モデルtooltip等のfresh表示条件として使うが、このboolだけからゲームモード依存のrating公開を補わない。先頭攻撃と表示商品はv48の独立APIで扱うが、受信攻撃から対局phase・合法actor・未確定のhit結果を推定しない。
 
 ### 表示上の18枠
 
@@ -169,3 +171,51 @@ instance選択のappend可否は、真のモデルではなく表示モデルと
 今回のtyped `ItemInstance` は有効modelIdを必要とし、placeholderのmodel0を表さない。このような実instanceだけを19個freshな自己手札へ入れると、公式クライアントは19個目で空placeholderを見つけられず例外になる。よって18個以下をクライアント表示互換の投影範囲として制限する根拠はあるが、これを **未使用物理手札のサーバー容量18** と言い換えてはならない。使用済み奇跡もこの18個の描画対象に含まれる。他者の使用済み奇跡小アイコンの一覧 `j8` には、同じ18枠のチェックはない。
 
 実装の `visible_hand_capacity=18` は、viewer本人の `project_view` / `can_append_hand` / `selection_ready` に適用する。19個以上なら描画互換の範囲外として拒否する。raw stateの他者itemsへ一律18個のサーバー容量制約を課すものではなく、観戦者の投影や他者の公開used_modelsはこの自己手札境界と分ける。
+
+
+## v48：公開スナップショットの先頭攻撃を別APIで投影
+
+v48はread-only表示APIの追加世代である。`ActiveAttackState` / `ActiveAttackView` と `project_active_attack(board, attacks)` / `active_attack_json`、Cの `gfo_state_with_active_attack` / `gfo_state_active_attack_json`、Python `OfficialState.active_attack()` を追加した。**対局rulesetはv47、Match Snapshot47・view-v45、既存boardの `official-fresh-view-v1`、catalog/state ABI1・Match ABI2を維持する。** 既存 `view()` の内容や対局の抽選・効果は変えない。新JSONは独立した `official-active-attack-view-v1`、Cの新frame構造体は72byteである。
+
+Pythonはraw `attacks` を全体保存しながら先頭だけをstrictにデコードする。Cは既存boardをowned cloneし、先頭frameを別のoptionalとして保持する（NULLでclear）。`SnapshotState` 自体へserver queueを追加せず、既存board-only APIを保つ。`active_attack()` は攻撃オブジェクトまたはNone、C/native JSONは `{schema,attack}` を返す。raw snapshotやraw widgetの引数を公開viewへそのまま転記しない。
+
+| 表示項目 | 確認したクライアントの規則 |
+| --- | --- |
+| active | 受信列の先頭だけを使い、後続攻撃・eventsを公開しない。isOverではactive表示を返さず、source/targetのlookupにも進まない |
+| source / target | source0も実player0なら通常ID。非終局でsourceがrosterに無い場合は失敗。targetはwire ID>0の時だけ表示し、そのIDも存在が必要。実player0があってもtarget0は表示対象なし |
+| guardian / 向き / 商品 | frameのguardian・reversedを保持する。buying_modelは正のtargetと正のモデルIDの両方がある時だけ返す |
+| models / summary | 元のカード列は全て保持。空列だけをprayerとし、長さ2以上で先頭が207ならsummary用の列から1個だけ外す。[207]や[207,207,6]を再帰的に展開しない |
+| 攻撃判定 | summary先頭の正ATK、先頭category=weapons、または受信の動的ATK>0。追加カードの合計威力が正というだけでは攻撃summaryにしない |
+| summaryの数値 | 攻撃時だけpower/hit_rate/elementを返す。正の動的ATKを基底override、正の動的hitRateをrate overrideとし、それ以外は台帳値を使う。非攻撃の潜在合成威力は公開しない |
+| response | summary列が非空なら、先頭のcategoryWeaponsをweaponsへ読み替えた分類、合成属性、攻撃判定を返す。guardianの絵だけから分類を決めない |
+| 列の長さ | activeカード列には自己手札の18枠制限を流用しない。19モデルの実表示を確認した。任意の長さがserverで合法との主張ではない |
+
+`cards` は特別カードで実際に表示される値だけを持つ。58は受信ATKとfrom_mp、112は最終のcard ATK/rate、181/184は非0の受信ATK、187は非0のMP、188は非0のCP、counterCurseはカードのcurseを返す。一般カードには未描画のwire数値を付けない。58や184の受信値を再び×2したり、盤面MPから再計算したりしない。
+
+112は動的ATK>0の時だけ受信ATK/rateをcard表示へ使い、それ以外は台帳1/25を表示する。raw0/0とraw1/25の同じ表示は同じviewへ正規化し、隠れたoverride有無を追加しない。summaryのrate判定は別なので、動的ATK0/rate75ではcardは1/25、summaryは1/75になる。負のwire値も、描画される分岐と無視される分岐を別々に検証する。
+
+unknown source/positive targetは、実fresh callerのroster lookupが例外となるためnative/C queryでも拒否する。下位 `fu` に人工的なnull sourceを渡すと描画できることと、full freshの受理を混同しない。typed adapterは既知fieldのexact型・JS-safe整数・既知model/enumを検査するため、ブラウザdecoderの不正型coercionや終局時に描画されない不正モデルまで受け入れる契約ではない。checked int64合成のoverflowも拒否し、JSの安全域外の丸めまで一致とは主張しない。
+
+この表示は現在のactor・手番・server受理・未来の命中/乱数・与damageを認定しない。response辞書は既存 `ResponseContext` へ渡せるが、選択照会と送信権限は別である。Pythonの非空attacks付きsceneは従来どおりMatchへimport不可で、Cも新しくattachされたactiveを `load_scene` へ渡した場合はunsupported(-5)で全出力・Matchを保持する。表示frameを実行checkpointへ読み替えない。
+
+### v48の一次照合と検証
+
+[実クライアントoracle](../scripts/official_active_attack_oracle.cjs)、[保存report](../data/official-v2/active-attack-client-v48.json)、[native用TSV](../data/official-v2/active-attack-vectors-v48.tsv) はp6/tn decode、fu、iI/gf2 summary、iP cardラベル分岐、fq/aT fresh callerとroster lookupを実行する。400 frame例（296単体＋順序付き16＋動的26＋override36＋card境界26）、fresh46例（expected lookup error22）、decoder10例、人工null source2例を区別した。nativeは443行（expected error22を含む）で公開JSONが全て一致した。
+
+card/summaryの数値・分岐を実行する一方、text formatterはnumeric/symbolic sink、DOM・board widget・rating・network・command activationはscaffoldingである。画面全体やlocaleの字形・過去イベントの再現とは数えない。新reportは828,308bytes、SHA256 `6820f68a525bc409ae0e132ab1d6e65b79596168a356af32656e49745fbe3bdf`、TSVは218,259bytes、SHA256 `01ae0033e11e223a51bd4425f1376a810cc918ccc5a0fc94d44460eb82edfe30`。clientはv2固定hash `5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd`、cardsは `8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a`。旧pins・report・版別の計測は保存する。
+
+Release CTest **148/148（41.72秒）**、ASan/UBSan CTest **108/108（135.31秒）** が通過した。新native8群、実client由来443vectors、State Python12メソッドとC API境界を検査し、既存Match native216/Python144群も維持する。Release focused8件も初回で通過した（20.22秒）。新unitは207の1回だけの除去、58/112/各counterの最終card表示、負wire、112同ラベルのview同値、categoryWeapons、positive override、source/target照会順、ending/先頭のみ/19列、未描画値とboardの非干渉、strict入力とchecked overflowを検査する。
+
+Cは72byte layout、旧ABI幅、deep copy/NULL clear、short/NULL/canary/全出力保持、物理extent上限を検査する。Pythonは先頭だけのexact型検査とraw tail保持、未知endpoint時のquery失敗、ending時のlookup抑止、旧view不変を検査する。C/Pythonのpending scene import拒否も回帰検査した。README例を実行し、`36 fire` / `True` / `official-fresh-view-v1` が一致した。一次照合は固定clientの表示分岐に対するものであり、suite数や時間をserver適合数・速度比較へ置き換えない。
+
+既存17familyの2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、計34組で時間・速度・worker数以外の全fieldが一致した。Release/SAN小行列18組も全checksumを含む非時間fieldが一致した。さらにv47保存行列の全104recordに対し、全gameplay fieldと全checksumが同値だった。旧行列の一部に無かった静的 `guardian_payload_auto_rule` の出力有無だけは、v47最終のmetadata整備を踏まえ旧版比較時に正規化した。現worker間・Release/SAN間ではmetadataの有無も含めて比較している。
+
+| 既存対局・seed42 | 2人100,000局/scene checksum | 9人10,000局/scene checksum |
+| --- | --- | --- |
+| 通常対局 | `13564747736715185154` | `17158162465123773162` |
+| 外部guardian payload sampler | `6134552781244886811` | `14743928072819055564` |
+| 任意設定のauto payload | `7593984257819276415` | `16205755181632469720` |
+
+この比較は読み取り機能を足した際の既存実装への非干渉を確認するもの。公式のselector・死亡順・補充scheduleとの同値性は証明しない。独立familyは最大2系統を並行実行し、計測時間を版間の速度比較へ使わない。
+
+併せて現行overviewの配布236/499＋任意237/500、Fate/現象/悪魔/終末、自己BUY・満杯SELL、load_scene、Snapshot47、sampler/rolloutの範囲をsourceへ同期した。版名付きの旧規約・旧hashは当時の履歴として残す。未投影のincremental history/rating/animation、公式server schedule、Dreamの互換外、94+Wide、一般Earth/Moon選出や全補充悪魔chain等は引き続き残件である。

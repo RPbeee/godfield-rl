@@ -4,7 +4,8 @@ NOT an Env: no reset/step, server transitions, RNG or match connection. Known wi
 fields use exact JSON types and JS-safe integers; malformed values are rejected
 rather than silently coerced like the browser decoder. Missing optional fields
 use its documented defaults. Extra keys/attacks/events/ratings are deep-copied in
-raw_snapshot, never replayed, inferred as timing context or included in the view.
+raw_snapshot, never replayed or inferred as timing context. The first attack is
+strictly decoded into a separate active_attack() projection; fresh view is unchanged.
 raw_snapshot is privileged input evidence: never expose it to an agent as a view.
 
 Physical item modelId0 is an empty UI slot, not an imported inventory instance.
@@ -44,6 +45,11 @@ class _Meta(c.Structure):
 class _Response(c.Structure):
     _fields_ = [("flash", c.c_uint8), ("incoming_category", c.c_uint8), ("incoming_element", c.c_int8),
                 ("incoming_is_attack", c.c_uint8), ("reserved", c.c_uint8 * 4)]
+class _ActiveAttack(c.Structure):
+    _fields_ = [("models", c.POINTER(c.c_uint16)), ("model_count", c.c_size_t),
+                ("player_id", c.c_uint64), ("target_player_id", c.c_uint64),
+                ("atk", c.c_int64), ("hit_rate", c.c_int64), ("mp", c.c_int64), ("cp", c.c_int64),
+                ("buying_model", c.c_uint16), ("guardian", c.c_uint8), ("reversed", c.c_uint8), ("reserved", c.c_uint8 * 4)]
 
 @dataclass(frozen=True)
 class ResponseContext:
@@ -143,6 +149,24 @@ def _enum(value, values, label, optional=False):
         raise ValueError(f"{label}: unknown name")
     return values.index(value)
 
+def _active_attack(raw, model_count):
+    attacks = _list(raw.get("attacks", []), "attacks")
+    if not attacks: return None, None
+    source = _object(attacks[0], "attacks[0]")
+    models = [_integer(model, "attack.itemModelIds entry", 1, model_count)
+              for model in _list(source.get("itemModelIds", []), "attack.itemModelIds")]
+    storage = (c.c_uint16 * len(models))(*models)
+    attack = _ActiveAttack(models=storage if models else None, model_count=len(models),
+        player_id=_integer(source.get("playerId", 0), "attack.playerId", 0),
+        target_player_id=_integer(source.get("targetPlayerId", 0), "attack.targetPlayerId", 0),
+        atk=_integer(source.get("atk", 0), "attack.atk"),
+        hit_rate=_integer(source.get("hitRate", 0), "attack.hitRate"),
+        mp=_integer(source.get("mp", 0), "attack.mp"), cp=_integer(source.get("cp", 0), "attack.cp"),
+        buying_model=_integer(source.get("buyingItemModelId", 0), "attack.buyingItemModelId", 0, model_count),
+        guardian=_enum(source.get("guardian"), GUARDIANS, "attack.guardian", optional=True),
+        reversed=_boolean(source.get("reversed", False), "attack.reversed"))
+    return attack, storage
+
 def _normalize(raw, model_count):
     players = _list(raw.get("players", []), "players")
     if len(players) > 9:
@@ -216,27 +240,44 @@ class OfficialState:
         self._data = OfficialData(library)
         self._lib = lib = self._data._lib
         try:
-            for name in ("abi_version", "item_size", "player_size", "meta_size", "response_size"):
+            for name in ("abi_version", "item_size", "player_size", "meta_size", "response_size", "active_attack_size"):
                 fn = getattr(lib, "gfo_state_" + name); fn.argtypes = []; fn.restype = c.c_int if name == "abi_version" else c.c_size_t
         except AttributeError as error:
             raise RuntimeError("library does not support official state extension") from error
         if (lib.gfo_state_abi_version() != 1 or lib.gfo_state_item_size() != c.sizeof(_Item)
             or lib.gfo_state_player_size() != c.sizeof(_Player) or lib.gfo_state_meta_size() != c.sizeof(_Meta)
-            or lib.gfo_state_response_size() != c.sizeof(_Response)):
+            or lib.gfo_state_response_size() != c.sizeof(_Response)
+            or lib.gfo_state_active_attack_size() != c.sizeof(_ActiveAttack)
+            or c.sizeof(_ActiveAttack) != 72 or _ActiveAttack.player_id.offset != 16
+            or _ActiveAttack.atk.offset != 32 or _ActiveAttack.buying_model.offset != 64
+            or _ActiveAttack.guardian.offset != 66 or _ActiveAttack.reversed.offset != 67 or _ActiveAttack.reserved.offset != 68):
             raise RuntimeError("unsupported official state ABI")
         lib.gfo_state_create.argtypes = [c.POINTER(_Meta), c.POINTER(_Player), c.c_size_t, c.POINTER(_Item), c.c_size_t, c.POINTER(c.c_uint8), c.c_size_t, c.POINTER(c.c_void_p)]
         lib.gfo_state_create.restype = c.c_int
         lib.gfo_state_destroy.argtypes = [c.c_void_p]; lib.gfo_state_destroy.restype = None
         lib.gfo_state_view_json.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_state_view_json.restype = c.c_int
+        lib.gfo_state_with_active_attack.argtypes = [c.c_void_p, c.POINTER(_ActiveAttack), c.POINTER(c.c_void_p)]
+        lib.gfo_state_with_active_attack.restype = c.c_int
+        lib.gfo_state_active_attack_json.argtypes = [c.c_void_p, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
+        lib.gfo_state_active_attack_json.restype = c.c_int
         lib.gfo_state_can_append.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.c_size_t, c.c_uint64, c.POINTER(_Response), c.POINTER(c.c_uint8)]
         lib.gfo_state_can_append.restype = c.c_int
         lib.gfo_state_selection_ready.argtypes = [c.c_void_p, c.c_uint64, c.POINTER(c.c_uint64), c.c_size_t, c.POINTER(_Response), c.POINTER(c.c_uint8)]
         lib.gfo_state_selection_ready.restype = c.c_int
         raw = _load(snapshot)
         meta, players, items, curses, users = _normalize(raw, len(self._data))
+        attack, attack_storage = _active_attack(raw, len(self._data))
         pa = (_Player * len(players))(*players); ia = (_Item * len(items))(*items); ca = (c.c_uint8 * len(curses))(*curses)
         self._check(lib.gfo_state_create(c.byref(meta), pa, len(pa), ia, len(ia), ca, len(ca), c.byref(self._handle)))
+        if attack is not None:
+            attached = c.c_void_p()
+            try:
+                self._check(lib.gfo_state_with_active_attack(self._handle, c.byref(attack), c.byref(attached)))
+            except Exception:
+                self.close()
+                raise
+            lib.gfo_state_destroy(self._handle); self._handle = attached
         self._raw = raw; self._users = users; self._ids = {p.id for p in players}
 
     @classmethod
@@ -295,6 +336,21 @@ class OfficialState:
         buffer = c.create_string_buffer(size.value)
         self._check(self._lib.gfo_state_view_json(self._handle, present, viewer, buffer, len(buffer), c.byref(size)))
         return json.loads(buffer.raw[:-1].decode("utf-8"))
+
+    def active_attack(self):
+        """Return the public head attack projection, separately from fresh view.
+
+        This read-only DTO does not infer actor, resolve effects or resume a Match.
+        Raw attack tails and extra fields remain opaque in raw_snapshot.
+        """
+        self._open(); size = c.c_size_t()
+        self._check(self._lib.gfo_state_active_attack_json(self._handle, None, 0, c.byref(size)))
+        buffer = c.create_string_buffer(size.value)
+        self._check(self._lib.gfo_state_active_attack_json(self._handle, buffer, len(buffer), c.byref(size)))
+        result = json.loads(buffer.raw[:-1].decode("utf-8"))
+        if result.get("schema") != "official-active-attack-view-v1" or "attack" not in result:
+            raise RuntimeError("unsupported official active attack JSON schema")
+        return result["attack"]
 
     @staticmethod
     def _selected(tokens):

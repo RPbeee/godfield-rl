@@ -2240,7 +2240,7 @@ class MatchTests(unittest.TestCase):
         unsupported = copy.deepcopy(base); unsupported["players"][0]["items"] = [{"id": 0, "modelId": 1}]; bad_scenes.append(unsupported)
         oversized = copy.deepcopy(base); oversized["players"][1]["items"] = [{"id": i, "modelId": 6} for i in range(19)]; bad_scenes.append(oversized)
         tied = copy.deepcopy(base); tied["tiebreakGF"] = -1; bad_scenes.append(tied)
-        active = copy.deepcopy(base); active["attacks"] = [{"sourcePlayerId": 0}]; bad_scenes.append(active)
+        active = copy.deepcopy(base); active["attacks"] = [{"playerId": 0, "itemModelIds": [6], "targetPlayerId": 7}]; bad_scenes.append(active)
         for raw_scene in bad_scenes:
             with OfficialState(raw_scene, library=LIBRARY) as invalid_scene:
                 with self.assertRaises(MatchError): game.load_scene(invalid_scene, 0)
