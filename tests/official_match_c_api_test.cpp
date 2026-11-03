@@ -52,12 +52,12 @@ int main() {
         &&offsetof(gfo_match_devil_action,removed)==8&&offsetof(gfo_match_devil_action,model)==24
         &&offsetof(gfo_match_devil_action,resource)==26&&offsetof(gfo_match_devil_action,has_resource)==27
         &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29
-        &&offsetof(gfo_match_config,external_grants)==6&&offsetof(gfo_match_config,reserved)==7
+        &&offsetof(gfo_match_config,external_grants)==6&&offsetof(gfo_match_config,include_fate)==7
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v42"
-        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v42 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v43"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v43 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v40\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v41\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2539,11 +2539,11 @@ int main() {
     check(gfo_match_grant_supported(0)&&!gfo_match_grant_supported(1)&&!gfo_match_grant_supported(207),"grant normal0 is an environment outcome, not a model in the gift pool");
     for(uint16_t model=240;model<=244;++model)check(gfo_match_grant_supported(model),"all five supplied devils can resolve a grant");
     auto grant_cfg=cfg;grant_cfg.initial_hand=0;grant_cfg.hand_limit=18;grant_cfg.max_decisions=32;grant_cfg.external_grants=1;
-    for(unsigned bad_byte=0;bad_byte<3;++bad_byte){auto bad=grant_cfg;
-        if(bad_byte==0)bad.external_grants=2;if(bad_byte==1)bad.reserved[0]=1;if(bad_byte==2)bad.reserved_tail[3]=1;
+    for(unsigned bad_byte=0;bad_byte<6;++bad_byte){auto bad=grant_cfg;
+        if(bad_byte==0)bad.external_grants=2;if(bad_byte==1)bad.include_fate=2;if(bad_byte>=2)bad.reserved_tail[bad_byte-2]=1;
         auto* sentinel_match=reinterpret_cast<gfo_match*>(uintptr_t{1});
         check(gfo_match_create(&bad,players.data(),2,0,&sentinel_match)==-2&&sentinel_match==reinterpret_cast<gfo_match*>(uintptr_t{1}),
-            "new known config byte is boolean and the remaining byte and tail stay reserved");
+            "new known config byte is boolean and both boolean bytes and the tail remain strict");
     }
     gfo_match* grant_match=nullptr;check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"external grants opt-in create");
     const auto load_grant_scene=[&](uint64_t update){
@@ -2645,6 +2645,45 @@ int main() {
     chance_rng=123;chance_out=old_chance_out;
     check(gfo_match_sample_grant(grant_match,&chance_rng,&chance_out)==-2&&chance_rng==123&&equal(chance_out,old_chance_out),"completed chance helper refuses new draws atomically");
     gfo_match_destroy(grant_match);
+    auto fate_pool_cfg=grant_cfg;fate_pool_cfg.external_grants=0;fate_pool_cfg.include_fate=1;fate_pool_cfg.initial_hand=1;
+    gfo_match* fate_pool_match=nullptr;check(gfo_match_create(&fate_pool_cfg,players.data(),2,1464,&fate_pool_match)==0,"opt-in configured500pool create");
+    uint8_t pool_allowed=0xa5;uint16_t pool_weight=0xbabe;
+    check(gfo_match_gift_supported(nullptr,207,&pool_allowed)==-1&&pool_allowed==0xa5
+        &&gfo_match_gift_supported(fate_pool_match,207,nullptr)==-1
+        &&gfo_match_get_gift_weight(nullptr,&pool_weight)==-1&&pool_weight==0xbabe
+        &&gfo_match_get_gift_weight(fate_pool_match,nullptr)==-1,"configured pool query NULL guards preserve outputs");
+    check(gfo_match_get_gift_weight(fate_pool_match,&pool_weight)==0&&pool_weight==500
+        &&gfo_match_gift_supported(fate_pool_match,207,&pool_allowed)==0&&pool_allowed==1
+        &&!gfo_match_supported(207)&&gfo_match_catalog_count()==236&&gfo_match_gift_weight()==499,
+        "current500 gift descriptor differs from frozen236 ordinary Command capability and global499");
+    std::size_t configured_models=0,configured_weight=0;
+    for(const auto& card:official::catalog()){
+        pool_allowed=0xa5;check(gfo_match_gift_supported(fate_pool_match,card.id,&pool_allowed)==0&&bool(pool_allowed)==(card.gift_rate>0),
+            "all current237 positive-gift catalog entries match the native configured pool");
+        if(pool_allowed){++configured_models;configured_weight+=card.gift_rate;}
+    }
+    check(configured_models==237&&configured_weight==500,"complete canonical positive-gift mass is500");
+    for(uint16_t absent:{uint16_t{0},uint16_t{297},std::numeric_limits<uint16_t>::max()})
+        check(gfo_match_gift_supported(fate_pool_match,absent,&pool_allowed)==0&&!pool_allowed,"unknown IDs have no configured gift membership");
+    const auto earned_fate_view=observe(fate_pool_match,1,0);const auto earned_fate_status=status(fate_pool_match);
+    check(earned_fate_view.find("\"gift_pool\":{\"include_fate\":true,\"models\":237,\"weight\":500}")!=std::string::npos
+        &&earned_fate_view.find("\"token\":0,\"face\":207,\"reference\":207,\"disguised\":false,\"used\":false")!=std::string::npos,
+        "known seed1464 draws one unused unmasked207 from500-ticket reset");
+    gfo_match_command forbidden_fate_play{};forbidden_fate_play.item_count=1;forbidden_fate_play.has_target=1;result=earned_fate_status;
+    check(gfo_match_legal(fate_pool_match,&forbidden_fate_play,&legal)==0&&!legal
+        &&gfo_match_step(fate_pool_match,&forbidden_fate_play,&result)==-5&&equal(result,earned_fate_status)
+        &&observe(fate_pool_match,1,0)==earned_fate_view,"a naturally gifted207 still cannot dispatch as an ordinary Command");
+    gfo_match_fate_action gifted_fate{};gifted_fate.outcome.model=290;
+    check(gfo_match_fate_legal(fate_pool_match,&gifted_fate,&legal)==0&&legal&&gfo_match_fate_step(fate_pool_match,&gifted_fate,&result)==0
+        &&result.owner==77&&!has_token(fate_pool_match,0,0),"a gifted207 uses the existing atomic FateAction API");
+    check(gfo_match_reset(fate_pool_match,players.data(),2,1464,&result)==0
+        &&gfo_match_get_gift_weight(fate_pool_match,&pool_weight)==0&&pool_weight==500
+        &&observe(fate_pool_match,1,0)==earned_fate_view,"reset retains include_fate and reproduces the current pool exactly");
+    gfo_match_destroy(fate_pool_match);fate_pool_cfg.include_fate=0;
+    check(gfo_match_create(&fate_pool_cfg,players.data(),2,1464,&fate_pool_match)==0
+        &&gfo_match_get_gift_weight(fate_pool_match,&pool_weight)==0&&pool_weight==499
+        &&gfo_match_gift_supported(fate_pool_match,207,&pool_allowed)==0&&!pool_allowed,
+        "explicitfalse retains the original pool descriptors");gfo_match_destroy(fate_pool_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

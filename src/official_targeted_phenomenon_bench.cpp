@@ -47,7 +47,7 @@ void phenomenon_hash(std::uint64_t& hash, const PhenomenonAction& action) {
 // checked empty. All remaining snapshot fields, including privileged history,
 // participate in this hash; it is not a player observation.
 std::uint64_t state_hash(const MatchSnapshot& s) {
-    check(s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && !s.purchase && !s.last_item_shuffle && !s.last_fate && !s.last_fate_event && !s.fate_actions && !s.last_devil && !s.last_devil_event && !s.devil_actions && !s.config.external_grants && !s.pending_grant && !s.grant_proof && !s.last_grant && !s.grant_resolutions && !s.grant_artifacts && !s.grant_devils,
+    check(s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && !s.purchase && !s.last_item_shuffle && !s.last_fate && !s.last_fate_event && !s.fate_actions && !s.last_devil && !s.last_devil_event && !s.devil_actions && !s.config.external_grants && !s.config.include_fate && !s.pending_grant && !s.grant_proof && !s.last_grant && !s.grant_resolutions && !s.grant_artifacts && !s.grant_devils,
           "hash boundary has pending work");
     std::uint64_t hash = 14695981039346656037ULL;
 #define FIELD(name) mix(hash, static_cast<std::uint64_t>(s.name))
@@ -322,7 +322,7 @@ int main(int argc, char** argv) { try {
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset
         <<"\nscope=experimental:external-targeted-source-free-phenomena291-292-293;explicit-scene-recipients;190-cancels;source-directed-counters-skipped;not-server-selector"
-        <<"\nphenomenon_rule="<<phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\ngrant_sampler_rule=" << grant_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players
+        <<"\nphenomenon_rule="<<phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\ngrant_sampler_rule=" << grant_sampler_rule << "\nfate_pool_rule=" << fate_pool_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players
         <<"\nseed="<<seed<<"\nworkers="<<workers<<"\nmodels_covered="<<covered;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(responses); OUTPUT(terminated); OUTPUT(truncated); OUTPUT(initial_world_responses);

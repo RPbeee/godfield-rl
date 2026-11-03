@@ -14,7 +14,7 @@
 namespace official = godfield::official;
 struct gfo_match { official::Match value; explicit gfo_match(official::MatchConfig c) : value(c) {} };
 static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8
-    && offsetof(gfo_match_config,external_grants)==6 && offsetof(gfo_match_config,reserved)==7);
+    && offsetof(gfo_match_config,external_grants)==6 && offsetof(gfo_match_config,include_fate)==7);
 static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
     && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
 static_assert(std::is_standard_layout_v<gfo_match_guardian_action>
@@ -79,8 +79,8 @@ std::string text(const char* data, std::size_t size) {
 }
 official::MatchConfig config(const gfo_match_config* c) {
     if (!c) return {};
-    valid(c->external_grants<=1 && zero(c->reserved) && zero(c->reserved_tail));
-    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp, c->external_grants!=0};
+    valid(c->external_grants<=1 && c->include_fate<=1 && zero(c->reserved_tail));
+    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp, c->external_grants!=0,c->include_fate!=0};
 }
 std::vector<official::PlayerSetup> setup(const gfo_match_player* players, std::size_t count) {
     valid(count <= official::player_capacity);
@@ -216,6 +216,16 @@ const char* gfo_match_scope(void) { return official::match_scope; }
 int gfo_match_catalog_count(void) { int n = 0; for (const auto& c : official::catalog()) n += official::match_supported(c.id); return n; }
 int gfo_match_gift_weight(void) { return official::match_gift_weight(); }
 int gfo_match_supported(uint16_t model) { return official::match_supported(model); }
+int gfo_match_gift_supported(const gfo_match* match,uint16_t model,uint8_t* out) {
+    if(!match || !out)return -1;
+    try {const uint8_t result=match->value.gift_supported(model);*out=result;return 0;}
+    catch(...){return error();}
+}
+int gfo_match_get_gift_weight(const gfo_match* match,uint16_t* out) {
+    if(!match || !out)return -1;
+    try {const auto result=match->value.gift_weight();valid(result>=0 && result<=std::numeric_limits<uint16_t>::max());*out=static_cast<uint16_t>(result);return 0;}
+    catch(...){return error();}
+}
 size_t gfo_match_config_size(void) { return sizeof(gfo_match_config); }
 size_t gfo_match_player_size(void) { return sizeof(gfo_match_player); }
 size_t gfo_match_command_size(void) { return sizeof(gfo_match_command); }

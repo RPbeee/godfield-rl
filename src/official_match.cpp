@@ -125,20 +125,30 @@ void finish(MatchSnapshot& s, const Outcome& result) {
     if (!s.winners.empty()) for (std::size_t i = 0; i < s.rewards.size(); ++i)
         s.rewards[i] = std::find(s.winners.begin(), s.winners.end(), s.state.players[i].id) != s.winners.end() ? 1. : -1.;
 }
-const std::array<CardId, 499>& gift_tickets() {
-    static const auto pool = [] {
-        std::array<CardId, 499> values{};
-        std::size_t n = 0, models = 0;
-        for (const auto& c : catalog()) if (match_supported(c.id)) {
-            ++models;
-            for (int i = 0; i < c.gift_rate; ++i) {
-                if (n >= values.size()) throw std::logic_error("scoped pool weight changed");
-                values[n++] = c.id;
-            }
+bool gift_model_supported(CardId id, bool include_fate) {
+    const auto* card=find_card(id);
+    return card && card->gift_rate>0 && (match_supported(id) || (include_fate && match_fate_supported(id)));
+}
+template<std::size_t Tickets, std::size_t Models>
+std::array<CardId,Tickets> make_gift_tickets(bool include_fate) {
+    std::array<CardId,Tickets> values{};
+    std::size_t n=0,models=0;
+    for (const auto& card:catalog()) if (gift_model_supported(card.id,include_fate)) {
+        ++models;
+        for (int i=0; i<card.gift_rate; ++i) {
+            if (n>=values.size()) throw std::logic_error("scoped pool weight changed");
+            values[n++]=card.id;
         }
-        if (n != values.size() || models != 236) throw std::logic_error("scoped catalog changed");
-        return values;
-    }();
+    }
+    if (n!=values.size() || models!=Models) throw std::logic_error("scoped catalog changed");
+    return values;
+}
+std::span<const CardId> gift_tickets(bool include_fate) {
+    if (include_fate) {
+        static const auto pool=make_gift_tickets<500,237>(true);
+        return pool;
+    }
+    static const auto pool=make_gift_tickets<499,236>(false);
     return pool;
 }
 const std::vector<CardId>& dream_faces(CardId actual) {
@@ -159,7 +169,8 @@ void gift(MatchSnapshot& s, std::size_t seat) {
     auto& p = s.state.players[seat];
     require(p.items.size() < s.config.hand_limit, "gift has no reserved display slot");
     require(s.next_token <= max_wire_integer, "scoped item token exhausted");
-    const auto id = gift_tickets()[bounded(s.rng, gift_tickets().size())];
+    const auto tickets=gift_tickets(s.config.include_fate);
+    const auto id = tickets[bounded(s.rng,tickets.size())];
     std::optional<CardId> face;
     if (has_curse(p, Curse::dream)) {
         const auto& choices = dream_faces(id);
@@ -1608,6 +1619,13 @@ void Match::load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed) 
     validate_snapshot(s); data_ = std::move(s);
 }
 void Match::restore(const MatchSnapshot& snapshot) { validate_snapshot(snapshot); auto s = snapshot; data_ = std::move(s); config_ = data_.config; }
+bool Match::gift_supported(CardId model) const noexcept { return gift_model_supported(model,data_.config.include_fate); }
+std::vector<CardId> Match::gift_catalog() const {
+    std::vector<CardId> models;
+    for (const auto& card:catalog()) if (gift_supported(card.id)) models.push_back(card.id);
+    return models;
+}
+int Match::gift_weight() const noexcept { return data_.config.include_fate?500:499; }
 bool Match::legal(const Command& command) const noexcept { try { (void)prepare(data_, command); return true; } catch (...) { return false; } }
 MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
@@ -1817,7 +1835,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v40\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v41\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1858,8 +1876,11 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"devil_rule\":\""; out += devil_rule;
     out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
     out += "\",\"grant_rule\":\""; out += grant_rule;
-    out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule; out += "\",\"phase\":\""; out += phase;
-    out += "\",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
+    out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
+    out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"gift_pool\":{\"include_fate\":"; out += data_.config.include_fate?"true":"false";
+    out += ",\"models\":"+std::to_string(data_.config.include_fate?237:236)+",\"weight\":"+std::to_string(gift_weight())+'}';
+    out += ",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
     out += ",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

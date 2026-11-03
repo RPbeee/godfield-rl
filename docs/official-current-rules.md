@@ -1578,3 +1578,53 @@ Release CTest **141/141（20.97秒）**、ASan/UBSan CTest **101/101（47.07秒�
 | 9人 | 10,000 | 32,203 / 10,729 | 701 / 704 / 695 | `4731159512000537428` | `16856585937920654990` | `4831156122709328760` |
 
 9人600sceneでは4,602decisions、2,592grant解決（normal1903/devil689）、death280予約/214開始、revival164、redraw191、cutoff probe7を含む。243はused13・fake37・207は8copyを選び、244のHP/MP/CP指定は38/43/41回（上限資源の指定61回）。chance/action/world checksumはそれぞれ `10419100228575040986` / `14144487001133331999` / `91435489873529096` でRelease/SAN一致。fixtureの終了・死亡・cutoffにより観測したsample数はscene数と異なり、これを公式serverの対局分布や同値性の検証として扱わない。
+
+
+## v43：運命のひもを含む237種・重み500の任意配布
+
+`official-execution-subset-v43` は `Config.include_fate=False` を追加し、有効時に公式台帳のpositive giftRate全237モデル・合計500を通常配布対象とする。既定236/499は維持する。207「運命のひも」はID順の500ticket中467の1枠で、sundriesが18→19になり、trade3/weapons107/armor78/miracles30は同じ。抽選枠のID順・SplitMix64・Dreamと補充scheduleはローカル実験規約であり、台帳のmassへの対応を公式server全体の同値性と呼ばない。
+
+Snapshot43は旧1〜42を拒否し、公開viewは `official-execution-view-v41`。C Config24byteのbyte6はexternal_grants、byte7はinclude_fateという独立したstrict0/1のflagで、従来の最後のreserved1byteを使う。tail4byteのzero要求、Command184/Status248/GrantAction32byte、Match ABI2とphase0〜4は維持する。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。旧37profile、台帳pins、過去のreport/測定値、学習器なしの範囲は保つ。
+
+### 配布経路と207の役割
+
+共通gift入口でpoolを切り替え、reset初期配布、pray、ささげる等の予約補充、208の救済補充、178の即時redraw、外部grantのnormal0すべてに適用する。取引商品の直接配送は選出poolを使わず、既存のcopy配送である。external_grantsとの4通りのflag組合せを独立に扱う。悪魔の置換をreset/redraw/取引へ広げる変更ではない。
+
+207はunused/unmaskedの新tokenとして授ける。互換Dream signatureで207に一致する他modelは全296中0件なので、207を引いた場合はmask coin/face drawを追加しない。既存のeligible146モデル・重み321・順序付きpair992は変わらず、singletonが90→91になる。これは互換クラス限定のローカルDream規約であり、公式の全fake分布を再現したという意味ではない。
+
+授かった207は既存 `fate_step` で、所有tokenと外部指定の287〜296の結果を渡して使用できる。消費、通常手番のtick/auto/補充/GF、混乱減算とprivate proofは既存実装を使う。通常Commandの207 play、通常samplerによるFate生成、Earth/Moonの207 payloadは許さない。普通samplerは既存のdiscard/trade等だけを提案する。超常現象の選出率・対象、296の守護神配列、295の入替列、自動混乱選択は残件である。現象の率が未記載であることを0%と解釈したり、旧Flashのuniform10・旧効果を現行の根拠にしない。
+
+### 現在の配布poolを照会する
+
+| API | 通常Command対象 | 実設定のgift対象・重み |
+| --- | --- | --- |
+| C++ | global match_supported/match_catalog/match_gift_weightは従来236/499 | Match.gift_supported / gift_catalog / gift_weight |
+| C ABI | global gfo_match_supported/catalog_count/gift_weightは従来236/499 | gfo_match_gift_supported / gfo_match_get_gift_weight。statusと別out、NULLは出力不変 |
+| Python | supported_modelsは従来236 | gift_models / gift_weightはnative handleの実設定を反映 |
+
+公開 `gift_pool` は `{include_fate, models, weight}` という静的な設定の要約だけで、実配布model、未来ticket、tokenやRNGは出さない。normal0のpublic last_grantにも207のactual modelを追加しない。native restore後のconfigに従ってpoolを選び、drawに依存する完了journalもそのconfigで再現する。defaultfalseでも従来のscene-owned207は受理できるので、pool flagを過去の全配布履歴の証明とは扱わない。
+
+公開 `fate_pool_rule` は次のheader定数に一致する。既存fate/grant/devil ruleのpool表記も、既定236/499と任意237/500を区別する現在の契約へ更新する。
+
+```text
+experimental:opt-in-include-fate-default-false;default236-models-weight499-unchanged;enabled-all237-positive-giftrate-models-weight500-in-catalog-id-order;207-one-ticket-at467-unused-and-unmasked;shared-gift-entry-for-reset-immediate178-redraw-reserved-revival-and-external-normal0;no207-compatible-dream-candidates-no-mask-coin-or-face-draw;existing-non207-compatible-dream-policy-unchanged;normal-command-capability-and-global236-weight499-descriptors-unchanged;current-match-gift-supported-catalog-weight-queries;public-static-gift-pool-flag-count-weight-only;owned207-use-requires-existing-explicit-fate-api;no-normal207-play-or-player-sampler-generation-no-earth-moon207-payload;no-phenomenon-resource-target-or-shuffle-selector-added;no-reset-redraw-or-trade-devil-coverage-added;pool-frequencies-not-official-server-rng-or-schedule-equivalence
+```
+
+### v43の検証
+
+[配布pool一次調査とローカルreference](../scripts/official_fate_pool_oracle.cjs) / [保存report](../data/official-v2/fate-pool-client-v43.json) は、実Reference16件（207等の1/500対照と現象10種の率labelなし）、全237positive ID・重み500・category件数を固定する。ID順237ranges・独立BigIntの境界5件・Dream signature比較は**別区分のローカルreference**で、公式chooserのgoldenとは呼ばない。207のticket466/467/468周辺を、同seedの旧499版とも比較する。reportは42,845 bytes、SHA256 `149ca93115e05835cd08e80c3ec78c384b0c7dddf3fa340fadd4fc3e35f3c66a`、rootの `--check` はbyte一致した。
+
+Release CTest **142/142（28.40秒）**、ASan/UBSan CTest **102/102（54.98秒）** が全て通過した。native193関数とPython133メソッドは各1回・重複なしで登録し、C API/Pythonのfocused2件も通過した。新native5群では全500ticketの厳密model/giftRate一致、current-queryとglobal能力の分離、6配布経路の207、Dream追加drawなし、通常role/payloadの境界、授かった207の既存Fate使用とpending/完了proof、modeに依存するdrawの再生、defaultfalseの互換、通常操作/受理済みgrantの遅いtoken枯渇rollbackを検査する。Earth payload不許可はsourceが実際にEarthを持つsceneでも検査し、guardian不一致だけによる拒否と混同しない。
+
+新Python4件とC群では全237 ID・合計500、C Configの両flag/offset/tail4byte、NULL出力canary、全配布経路のunused/unmasked207、既存Fate使用/normal sampler除外、defaultfalseの再現性を確認した。READMEの初期207例を実行し、`237 500 236`、hand token0/face207/未使用非偽装、`main 1 1 {'actor': 0, 'model': 207, 'phenomenon': 288}` が一致した。suite時間を速度比較へ使わず、配布massの検証数を公式serverの抽選や全状態遷移の検証数へ読み替えない。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/新Fate poolの各2人数、計26組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外の全fieldが一致した。Release/SAN小行列14組もchecksumを含む非時間fieldが一致した。新flagを使わない既存12familyのgameplay fieldはv42と同値で、通常/canonical/payloadはchecksumも維持した。その他の旧版比較だけはSnapshot.version43を含むchecksumを除き、worker間・Release/SAN間ではchecksumも比較した。
+
+新 `godfield_fate_pool_bench`（CTest `official_fate_pool_benchmark 600 9 42 2`）はreset/pray/1または3copy sacrifice/178redraw/208救済/外部normal0の6経路を回す。到達した207の所有者がmain ownerなら、結果288を明示した既存Fateを一度使い、その後の補充まで完了する。通常rich matrixとは別に、6経路のclean fixtureについて独立500ticket/Dream参照から207到達seedを探し、6つの実sceneでreceipt・RNG・tokenを厳密比較する。検索中にengineを反復するものではない。10000scene以上では全237model出現と授かった207の明示使用が実際に起きたことを検査する。
+
+| 任意237pool・seed42 | scenes | 出現model種数 | 新token発行 / 観測copy | 観測207 / 明示Fate使用 | primitive checksum | world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2人 | 100,000 | 237 | 451,885 / 451,885 | 901 / 435 | `5426914609901215439` | `9144771191245312904` |
+| 9人 | 10,000 | 237 | 155,942 / 155,942 | 320 / 47 | `17957368678633913634` | `999832884538341161` |
+
+9人600sceneでは1559decisions、9364新token・9364観測copy、16個の207、明示Fate1回、redraw100、revival132を含む。独立参照の補助probeは6経路、91copyを照合し、207は6経路すべてで到達、reference checksum `10292494696839945612` が一致した。world＋選択counterのchecksumは `10861144430966346463`、全private proofは各checkpointのrestore完全一致で別に検査する。新token数・観測copy数・独立probeの集計は別であり、これらを公式serverの出現分布や超常現象selectorの検証として扱わない。

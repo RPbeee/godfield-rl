@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v42
+# 現行公式データによる限定実行器 v43
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v42` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v43` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -19,7 +19,7 @@ v1は132モデル/重み308、v2は物理反射6種と属性消去189を加え�
 
 ## 対象モデルと拒否する機能
 
-[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` がv42の配布対象を定義する。通常配布対象は236モデル、正のgiftRateの合計499。207はFate専用のunused/unmasked scene特例で、通常配布へは含めない。category別はtrade3/weapons107/armor78/sundries18/miracles30。通常の公式全配布プール237モデル/重み500とは異なり、対象内で正規化する。公式の配布分布とは呼ばない。
+[official_match.hpp](../include/godfield/official_match.hpp) の `match_supported` / `match_catalog` が既定の236種配布対象を定義する。既定配布対象は236モデル、giftRateの合計499。`include_fate=true` では207も含む全positive-giftRate237モデル/重み500を使う。category別のsundriesが18→19となり、trade3/weapons107/armor78/miracles30は同じ。207の効果解決は既存のFate専用入口を使い、通常Commandのcapabilityへは含めない。台帳の配布massへの対応と、serverの乱数・Dream・補充scheduleの同値性は区別する。
 
 v1の基礎集合は、正のgiftRate、命中率0、categoryがweapons/armor/sundries/miracles、abilityがnone/boostHP/boostMP/boostCPのいずれかという条件である。固定済みの現行台帳に対するこの基礎条件が132モデル/重み308を作り、v2はさらに後述7モデルを加える。属性は省略属性を含む全7種類を扱う。確率攻撃は後述v6の21種とv9の吸収98とv10の閃光224に限り、未対応能力を持つカードの一部roleだけを黙って通常品として使う処理はしない。正確な対象可否は名前の推測ではなく公式モデルIDで照会する。将来別版の台帳へ同じ条件を適用するだけで、自動的に互換範囲を広げる契約ではない。
 
@@ -758,7 +758,7 @@ raw snapshotには他人の手札や将来のローカル乱数状態がある�
 
 [official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI2と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。raw scene/checkpointのimport・restoreはこのC/Python公開APIへ追加していない。
 
-v41の `observe` はschema `official-execution-view-v40` を使い、Match C ABIは2とする。rulesetはv41、配布scopeは236モデルとし、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload/global現象5種/sourceなし現象3種/typed磁気嵐295/混乱289と外部指定主動作/外部結果付き207/外部指定悪魔5種/終末閾値とささげる/opt-in補充chance phase4を扱う。top-levelに `overflow_rule` / `death_rule` / `fog_rule` / `disease_item_rule` / `disease_rule` / `buy_rule` / `sell_rule` / `removal_event_rule` / `exchange_rule` / `danger_rule` / `revival_rule` / `random_hp_rule` / `wide_attack_rule` / `mana_weapon_rule` / `repeat_attack_rule` / `removal_rule` / `darkcloud_rule` / `flash_rule` / `damage_effect_rule` / `resource_counter_rule` / `counter_rule` / `chance_rule`（前述の実験規約）と `bounce_target_rule="experimental:uniform-all-alive-in-input-order;includes-self-and-teammates"` を明示する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、前述の実行済launch要約 `last_danger`、解決済み除去要約 `last_removal`、解決済み売却要約 `last_sale`、公開購入見積 `purchase` と完了要約 `last_purchase`（両取引eventのoptional overflow_modelは失ったモデルIDだけ）、元の待機effectモデル/威力、`pending.reflections` に反射件数、`pending.bounces` に跳ね返し件数、`pending.hit_rate` に命中率（通常攻撃は0）、`pending.environmental` にsourceなしの現象か（その場合origin/sourceはnull）、`pending.counter` に現在payloadがcounterか、`pending.death` に112の死亡時payloadか、`pending.forced_hit` に暗雲による無抽選必中だったかを返す。counter181の75は開始後の表示で、初期全敵chance攻撃とは区別する。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴token・action batchの将来roster/cursor/anchor/journal・counter FIFOは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
+v41の `observe` はschema `official-execution-view-v41` を使い、Match C ABIは2とする。rulesetはv41、配布scopeは236モデルとし、201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload/global現象5種/sourceなし現象3種/typed磁気嵐295/混乱289と外部指定主動作/外部結果付き207/外部指定悪魔5種/終末閾値とささげる/opt-in補充chance phase4を扱う。top-levelに `overflow_rule` / `death_rule` / `fog_rule` / `disease_item_rule` / `disease_rule` / `buy_rule` / `sell_rule` / `removal_event_rule` / `exchange_rule` / `danger_rule` / `revival_rule` / `random_hp_rule` / `wide_attack_rule` / `mana_weapon_rule` / `repeat_attack_rule` / `removal_rule` / `darkcloud_rule` / `flash_rule` / `damage_effect_rule` / `resource_counter_rule` / `counter_rule` / `chance_rule`（前述の実験規約）と `bounce_target_rule="experimental:uniform-all-alive-in-input-order;includes-self-and-teammates"` を明示する。実験matchのphase/owner/actor・終局フラグ・意思決定数、fresh board view、前述の実行済launch要約 `last_danger`、解決済み除去要約 `last_removal`、解決済み売却要約 `last_sale`、公開購入見積 `purchase` と完了要約 `last_purchase`（両取引eventのoptional overflow_modelは失ったモデルIDだけ）、元の待機effectモデル/威力、`pending.reflections` に反射件数、`pending.bounces` に跳ね返し件数、`pending.hit_rate` に命中率（通常攻撃は0）、`pending.environmental` にsourceなしの現象か（その場合origin/sourceはnull）、`pending.counter` に現在payloadがcounterか、`pending.death` に112の死亡時payloadか、`pending.forced_hit` に暗雲による無抽選必中だったかを返す。counter181の75は開始後の表示で、初期全敵chance攻撃とは区別する。属性消去の回数は返さず、現在属性 `element=null` に反映する。次の配布・乱数・他者未使用手札・補充予定の内訳・来歴token・action batchの将来roster/cursor/anchor/journal・counter FIFOは観測へ出さない。対応モデルの照会やローカルランダム実行をできるようにしても、公式オンライン対局へ接続したりコマンドを送ったりする機能ではない。
 
 実行例は `python3 python/official_match.py`。ライブラリパスを別に指定する場合は同スクリプトの引数へ渡す。これは初期化してローカルに進める例であり、公式対局traceの取得ではない。
 
@@ -2466,3 +2466,53 @@ Release CTest **141/141（20.97秒）**、ASan/UBSan CTest **101/101（47.07秒�
 | 9人 | 10,000 | 32,203 / 10,729 | 701 / 704 / 695 | `4731159512000537428` | `16856585937920654990` | `4831156122709328760` |
 
 9人600sceneでは4,602decisions、2,592grant解決（normal1903/devil689）、death280予約/214開始、revival164、redraw191、cutoff probe7を含む。243はused13・fake37・207は8copyを選び、244のHP/MP/CP指定は38/43/41回（上限資源の指定61回）。chance/action/world checksumはそれぞれ `10419100228575040986` / `14144487001133331999` / `91435489873529096` でRelease/SAN一致。fixtureの終了・死亡・cutoffにより観測したsample数はscene数と異なり、これを公式serverの対局分布や同値性の検証として扱わない。
+
+
+## v43：運命のひもを含む237種・重み500の任意配布
+
+`official-execution-subset-v43` は `Config.include_fate=False` を追加し、有効時に公式台帳のpositive giftRate全237モデル・合計500を通常配布対象とする。既定236/499は維持する。207「運命のひも」はID順の500ticket中467の1枠で、sundriesが18→19になり、trade3/weapons107/armor78/miracles30は同じ。抽選枠のID順・SplitMix64・Dreamと補充scheduleはローカル実験規約であり、台帳のmassへの対応を公式server全体の同値性と呼ばない。
+
+Snapshot43は旧1〜42を拒否し、公開viewは `official-execution-view-v41`。C Config24byteのbyte6はexternal_grants、byte7はinclude_fateという独立したstrict0/1のflagで、従来の最後のreserved1byteを使う。tail4byteのzero要求、Command184/Status248/GrantAction32byte、Match ABI2とphase0〜4は維持する。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。旧37profile、台帳pins、過去のreport/測定値、学習器なしの範囲は保つ。
+
+### 配布経路と207の役割
+
+共通gift入口でpoolを切り替え、reset初期配布、pray、ささげる等の予約補充、208の救済補充、178の即時redraw、外部grantのnormal0すべてに適用する。取引商品の直接配送は選出poolを使わず、既存のcopy配送である。external_grantsとの4通りのflag組合せを独立に扱う。悪魔の置換をreset/redraw/取引へ広げる変更ではない。
+
+207はunused/unmaskedの新tokenとして授ける。互換Dream signatureで207に一致する他modelは全296中0件なので、207を引いた場合はmask coin/face drawを追加しない。既存のeligible146モデル・重み321・順序付きpair992は変わらず、singletonが90→91になる。これは互換クラス限定のローカルDream規約であり、公式の全fake分布を再現したという意味ではない。
+
+授かった207は既存 `fate_step` で、所有tokenと外部指定の287〜296の結果を渡して使用できる。消費、通常手番のtick/auto/補充/GF、混乱減算とprivate proofは既存実装を使う。通常Commandの207 play、通常samplerによるFate生成、Earth/Moonの207 payloadは許さない。普通samplerは既存のdiscard/trade等だけを提案する。超常現象の選出率・対象、296の守護神配列、295の入替列、自動混乱選択は残件である。現象の率が未記載であることを0%と解釈したり、旧Flashのuniform10・旧効果を現行の根拠にしない。
+
+### 現在の配布poolを照会する
+
+| API | 通常Command対象 | 実設定のgift対象・重み |
+| --- | --- | --- |
+| C++ | global match_supported/match_catalog/match_gift_weightは従来236/499 | Match.gift_supported / gift_catalog / gift_weight |
+| C ABI | global gfo_match_supported/catalog_count/gift_weightは従来236/499 | gfo_match_gift_supported / gfo_match_get_gift_weight。statusと別out、NULLは出力不変 |
+| Python | supported_modelsは従来236 | gift_models / gift_weightはnative handleの実設定を反映 |
+
+公開 `gift_pool` は `{include_fate, models, weight}` という静的な設定の要約だけで、実配布model、未来ticket、tokenやRNGは出さない。normal0のpublic last_grantにも207のactual modelを追加しない。native restore後のconfigに従ってpoolを選び、drawに依存する完了journalもそのconfigで再現する。defaultfalseでも従来のscene-owned207は受理できるので、pool flagを過去の全配布履歴の証明とは扱わない。
+
+公開 `fate_pool_rule` は次のheader定数に一致する。既存fate/grant/devil ruleのpool表記も、既定236/499と任意237/500を区別する現在の契約へ更新する。
+
+```text
+experimental:opt-in-include-fate-default-false;default236-models-weight499-unchanged;enabled-all237-positive-giftrate-models-weight500-in-catalog-id-order;207-one-ticket-at467-unused-and-unmasked;shared-gift-entry-for-reset-immediate178-redraw-reserved-revival-and-external-normal0;no207-compatible-dream-candidates-no-mask-coin-or-face-draw;existing-non207-compatible-dream-policy-unchanged;normal-command-capability-and-global236-weight499-descriptors-unchanged;current-match-gift-supported-catalog-weight-queries;public-static-gift-pool-flag-count-weight-only;owned207-use-requires-existing-explicit-fate-api;no-normal207-play-or-player-sampler-generation-no-earth-moon207-payload;no-phenomenon-resource-target-or-shuffle-selector-added;no-reset-redraw-or-trade-devil-coverage-added;pool-frequencies-not-official-server-rng-or-schedule-equivalence
+```
+
+### v43の検証
+
+[配布pool一次調査とローカルreference](../scripts/official_fate_pool_oracle.cjs) / [保存report](../data/official-v2/fate-pool-client-v43.json) は、実Reference16件（207等の1/500対照と現象10種の率labelなし）、全237positive ID・重み500・category件数を固定する。ID順237ranges・独立BigIntの境界5件・Dream signature比較は**別区分のローカルreference**で、公式chooserのgoldenとは呼ばない。207のticket466/467/468周辺を、同seedの旧499版とも比較する。reportは42,845 bytes、SHA256 `149ca93115e05835cd08e80c3ec78c384b0c7dddf3fa340fadd4fc3e35f3c66a`、rootの `--check` はbyte一致した。
+
+Release CTest **142/142（28.40秒）**、ASan/UBSan CTest **102/102（54.98秒）** が全て通過した。native193関数とPython133メソッドは各1回・重複なしで登録し、C API/Pythonのfocused2件も通過した。新native5群では全500ticketの厳密model/giftRate一致、current-queryとglobal能力の分離、6配布経路の207、Dream追加drawなし、通常role/payloadの境界、授かった207の既存Fate使用とpending/完了proof、modeに依存するdrawの再生、defaultfalseの互換、通常操作/受理済みgrantの遅いtoken枯渇rollbackを検査する。Earth payload不許可はsourceが実際にEarthを持つsceneでも検査し、guardian不一致だけによる拒否と混同しない。
+
+新Python4件とC群では全237 ID・合計500、C Configの両flag/offset/tail4byte、NULL出力canary、全配布経路のunused/unmasked207、既存Fate使用/normal sampler除外、defaultfalseの再現性を確認した。READMEの初期207例を実行し、`237 500 236`、hand token0/face207/未使用非偽装、`main 1 1 {'actor': 0, 'model': 207, 'phenomenon': 288}` が一致した。suite時間を速度比較へ使わず、配布massの検証数を公式serverの抽選や全状態遷移の検証数へ読み替えない。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/grant sampler/新Fate poolの各2人数、計26組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外の全fieldが一致した。Release/SAN小行列14組もchecksumを含む非時間fieldが一致した。新flagを使わない既存12familyのgameplay fieldはv42と同値で、通常/canonical/payloadはchecksumも維持した。その他の旧版比較だけはSnapshot.version43を含むchecksumを除き、worker間・Release/SAN間ではchecksumも比較した。
+
+新 `godfield_fate_pool_bench`（CTest `official_fate_pool_benchmark 600 9 42 2`）はreset/pray/1または3copy sacrifice/178redraw/208救済/外部normal0の6経路を回す。到達した207の所有者がmain ownerなら、結果288を明示した既存Fateを一度使い、その後の補充まで完了する。通常rich matrixとは別に、6経路のclean fixtureについて独立500ticket/Dream参照から207到達seedを探し、6つの実sceneでreceipt・RNG・tokenを厳密比較する。検索中にengineを反復するものではない。10000scene以上では全237model出現と授かった207の明示使用が実際に起きたことを検査する。
+
+| 任意237pool・seed42 | scenes | 出現model種数 | 新token発行 / 観測copy | 観測207 / 明示Fate使用 | primitive checksum | world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2人 | 100,000 | 237 | 451,885 / 451,885 | 901 / 435 | `5426914609901215439` | `9144771191245312904` |
+| 9人 | 10,000 | 237 | 155,942 / 155,942 | 320 / 47 | `17957368678633913634` | `999832884538341161` |
+
+9人600sceneでは1559decisions、9364新token・9364観測copy、16個の207、明示Fate1回、redraw100、revival132を含む。独立参照の補助probeは6経路、91copyを照合し、207は6経路すべてで到達、reference checksum `10292494696839945612` が一致した。world＋選択counterのchecksumは `10861144430966346463`、全private proofは各checkpointのrestore完全一致で別に検査する。新token数・観測copy数・独立probeの集計は別であり、これらを公式serverの出現分布や超常現象selectorの検証として扱わない。

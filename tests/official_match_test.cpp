@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v42"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v43"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v40\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v41\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2497,10 +2497,69 @@ void grant_sampler_independent_bigint_reference_vectors(){
     }
 }
 
+Match fate_pool_fixture(SnapshotState state,std::uint64_t seed,bool external=false,std::uint32_t maximum=128){MatchConfig cfg;cfg.initial_hand=0;cfg.include_fate=true;cfg.external_grants=external;cfg.max_decisions=maximum;Match game(cfg);game.load_scene(std::move(state),0,seed);return game;}
+void fate_pool_catalog_queries_and_exact_500_ticket_mass(){
+    Match base;MatchConfig cfg;cfg.include_fate=true;cfg.initial_hand=0;Match full(cfg);const auto before=full.snapshot();const auto models=full.gift_catalog();
+    check(base.gift_catalog()==match_catalog()&&base.gift_weight()==499&&models.size()==237&&full.gift_weight()==500,"current gift catalog distinguishes opt-in237/500 from global and default236/499 capabilities");
+    std::vector<CardId> expected;std::array<unsigned,8> categories{};std::array<unsigned,catalog_count+1> observed{};unsigned weight=0;
+    for(const auto& card:catalog())if(card.gift_rate>0){expected.push_back(card.id);weight+=card.gift_rate;++categories[static_cast<unsigned>(card.category)];}
+    check(models==expected&&weight==500&&categories==std::array<unsigned,8>{3,107,78,19,30,0,0,0},"all and only positive-rate catalog models are gifted in canonical ID order");
+    for(CardId id=0;id<=600;++id)check(full.gift_supported(id)==(std::find(models.begin(),models.end(),id)!=models.end())&&base.gift_supported(id)==match_supported(id),"per-match gift predicate is total and independent of ordinary-command capability");
+    check(full.snapshot()==before&&!match_supported(207)&&match_fate_supported(207)&&!match_guardian_payload_supported(Guardian::earth,207),"pool queries are pure and do not make207 an ordinary command or guardian payload");
+    auto state=scene({},{});unsigned ticket=0;
+    for(const auto& card:catalog())for(int n=0;n<card.gift_rate;++n){const auto seed=grant_seed_for_word(1000+ticket);auto game=fate_pool_fixture(state,seed);game.step(pray(0));const auto& item=game.snapshot().state.players[0].items[0];
+        check(item.model==card.id&&!item.used&&!item.fake_model&&item.token==0&&game.snapshot().rng==seed+0x9e3779b97f4a7c15ULL,"every full-pool ticket maps to the positive catalog weight with exactly one bounded500 draw");++observed[item.model];++ticket;
+    }
+    check(ticket==500&&observed[207]==1,"String of Fate occupies exactly one of500 tickets");for(const auto& card:catalog())check(observed[card.id]==static_cast<unsigned>(card.gift_rate),"per-model exhaustive ticket multiplicity equals the catalog giftRate");
+    check(full.observe({}).find("\"gift_pool\":{\"include_fate\":true,\"models\":237,\"weight\":500}")!=std::string::npos&&base.observe({}).find("\"gift_pool\":{\"include_fate\":false,\"models\":236,\"weight\":499}")!=std::string::npos,"public pool descriptor reveals configuration counts, not the next artifact");
+}
+void fate_pool_207_reachable_through_each_gift_entry(){
+    const auto seed=grant_seed_for_word(1467);MatchConfig cfg;cfg.include_fate=true;cfg.initial_hand=1;Match reset(cfg);const std::array<PlayerSetup,2> players{{{0,Team::solo,"a"},{7,Team::solo,"b"}}};reset.reset(players,seed);
+    check(reset.snapshot().state.players[0].items[0].model==207&&!reset.snapshot().state.players[0].items[0].used&&!reset.snapshot().state.players[0].items[0].fake_model,"reset can gift an unused unmasked207");roundtrip(reset);
+    auto prayer=fate_pool_fixture(scene({},{}),seed);prayer.step(pray(0));check(prayer.snapshot().state.players[0].items[0].model==207,"prayer replacement uses the full pool");roundtrip(prayer);
+    auto sacrifice_state=scene({199},{});sacrifice_state.tiebreak_gf=0;auto sacrifice=fate_pool_fixture(sacrifice_state,seed);sacrifice.step({0,CommandKind::sacrifice,{0},{}});check(sacrifice.snapshot().state.players[0].items[0].model==207,"sacrifice reserves a full-pool replacement");roundtrip(sacrifice);
+    auto grant=fate_pool_fixture(sacrifice_state,seed,true);grant.step({0,CommandKind::sacrifice,{0},{}});const auto pending=grant.snapshot();std::uint64_t chance=0;const auto ordinary=grant.sample_grant(chance);check(ordinary.model==0&&grant.snapshot()==pending,"external chance normal sentinel still delays the actual pool draw until step");grant.grant_step(ordinary);
+    check(grant.snapshot().state.players[0].items[0].model==207&&grant.snapshot().last_grant->model==0,"external normal0 can gift207 without publishing its actual model in the grant notice");roundtrip(grant);
+    auto revive_state=scene({208},{});revive_state.players[0].hp=1;auto revive=fate_pool_fixture(revive_state,seed);revive.devil_step({0,240,{},{}});
+    check(revive.snapshot().revivals==1&&revive.snapshot().state.players[0].items[0].model==207&&revive.snapshot().owner==0,"208's deferred rescue gift uses the same pool and resumes the surviving owner");roundtrip(revive);
+    auto redraw=fate_pool_fixture(scene({6},{178,235}),seed);redraw.step(play(0,{0},7));redraw.step(defend(7,{0}));const auto& items=redraw.snapshot().state.players[1].items;
+    check(redraw.snapshot().redraws==1&&!items.empty()&&items.front().model==207&&!items.front().fake_model&&!items.front().used,"178's immediate redraw can gift207 under Dream without a mask");roundtrip(redraw);
+}
+void fate_pool_dream_singleton_and_ordinary_role_boundaries(){
+    for(const auto& card:catalog())check(!match_dream_compatible(207,card.id)&&!match_dream_compatible(card.id,207),"207 is a singleton outside the existing compatible Dream transformation domain");
+    auto state=scene({},{});state.players[0].curses={Curse::dream};const auto seed=grant_seed_for_word(1467);auto game=fate_pool_fixture(state,seed);game.step(pray(0));
+    check(game.snapshot().state.players[0].items[0].model==207&&game.snapshot().rng==seed+0x9e3779b97f4a7c15ULL&&!game.snapshot().dream_rolls&&!game.snapshot().dream_masks,"a207 gift under Dream consumes no mask coin or disguise selection draw");roundtrip(game);
+    auto owned=scene({207},{});owned.players[0].guardian=Guardian::earth;auto mode=fate_pool_fixture(owned,7);reject(mode,play(0,{0},0));check(!mode.guardian_payload_legal({0,Guardian::earth,{207},7}),"full gift pool does not widen normal207 or Earth payload legality");
+    bool discarded=false;for(std::uint64_t seed2=0;seed2<128;++seed2){auto policy=seed2;const auto command=mode.sample_action(policy);check(command.kind!=CommandKind::play&&mode.legal(command),"ordinary policy still declines to invent a Fate outcome");discarded|=command.kind==CommandKind::discard;}
+    check(discarded,"gifted special207 retains the existing inert discard role");
+}
+void fate_pool_owned_use_and_pending_proof_replay(){
+    const auto seed=grant_seed_for_word(1467);auto state=scene({208},{});state.players[0].hp=1;state.tiebreak_gf=0;auto game=fate_pool_fixture(state,seed,true);
+    game.devil_step({0,240,{},{}});check(game.snapshot().phase==MatchPhase::grant,"rescue waits for explicit normal grant under combined flags");game.grant_step({0,0,{},{}});const auto token=game.snapshot().state.players[0].items[0].token;
+    check(game.snapshot().owner==0&&game.snapshot().state.players[0].items[0].model==207,"full pool delivers a usable physical207 into a live owner's turn");
+    game.fate_step({0,token,{288,{},{}},{}});check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().last_fate&&game.snapshot().last_fate->action.token==token&&game.snapshot().fate_actions==1
+        &&game.snapshot().state.players[0].items.empty(),"gifted207 uses the existing ownedFate API and preserves its launch identity at the next gift pause");roundtrip(game);
+    const auto pause=game.snapshot();auto forged=pause;forged.config.include_fate=false;bool rejected=false;try{game.restore(forged);}catch(const MatchError&){rejected=true;}
+    // This launch has not drawn its replacement yet, so switching the pool may
+    // still describe a valid scene. Only a draw-dependent completed journal can
+    // establish the configured choice law.
+    if(!rejected)game.restore(pause);
+    game.grant_step({0,0,{},{}});roundtrip(game);const auto done=game.snapshot();forged=done;forged.config.include_fate=false;rejected=false;try{game.restore(forged);}catch(const MatchError&){rejected=true;}
+    check(rejected&&game.snapshot()==done,"completed grant/fate proof cannot replay its full-pool draw with the old499-ticket law");
+    check(game.snapshot().owner==7&&game.snapshot().state.gf==1&&game.snapshot().fate_actions==1,"owned207 use retains the ordinary one-turn schedule");
+}
+void fate_pool_default_parity_and_late_failure_transactions(){
+    auto state=scene({},{});state.players[0].curses={Curse::dream};MatchConfig cfg;cfg.initial_hand=0;Match base(cfg);cfg.include_fate=false;Match explicit_false(cfg);base.load_scene(state,0,42);explicit_false.load_scene(state,0,42);base.step(pray(0));explicit_false.step(pray(0));check(base.snapshot()==explicit_false.snapshot(),"false mode preserves complete baseline gameplay and RNG");
+    for(unsigned stage=0;stage<2;++stage){auto input=scene({199},{});input.tiebreak_gf=0;input.players[0].items[0].token=max_wire_integer;auto game=fate_pool_fixture(input,grant_seed_for_word(1467),stage==1);const auto initial=game.snapshot();bool failed=false;
+        if(stage==0){try{game.step({0,CommandKind::sacrifice,{max_wire_integer},{}});}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==initial,"late full-pool token exhaustion rolls back the whole ordinary operation");}
+        else{game.step({0,CommandKind::sacrifice,{max_wire_integer},{}});const auto pause=game.snapshot();try{game.grant_step({0,0,{},{}});}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==pause,"late full-pool normal grant failure rolls back to the accepted pending operation");roundtrip(game);}
+    }
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),188> tests{{
+    const std::array<void(*)(),193> tests{{
         scope_reset_and_local_contract,
         weapon_frames_colors_owner_and_fixed_rewards,
         recovery_retention_capacity_and_atomicity,
@@ -2689,6 +2748,11 @@ int main(){
         grant_sampler_phase_refusal_and_separate_stream_transactions,
         grant_sampler_resume_with_controller_checkpoint,
         grant_sampler_independent_bigint_reference_vectors,
+        fate_pool_catalog_queries_and_exact_500_ticket_mass,
+        fate_pool_207_reachable_through_each_gift_entry,
+        fate_pool_dream_singleton_and_ordinary_role_boundaries,
+        fate_pool_owned_use_and_pending_proof_replay,
+        fate_pool_default_parity_and_late_failure_transactions,
     }};
     for(auto test:tests)test();
 

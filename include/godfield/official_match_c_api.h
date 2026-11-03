@@ -12,7 +12,7 @@ extern "C" {
 typedef struct gfo_match gfo_match;
 typedef struct gfo_match_config {
     uint32_t max_decisions;
-    uint8_t initial_hand, hand_limit, external_grants, reserved[1]; // external_grants strictly0/1, default0.
+    uint8_t initial_hand, hand_limit, external_grants, include_fate; // Both flags strictly0/1, default0.
     int32_t initial_hp, initial_mp, initial_cp;
     uint8_t reserved_tail[4];
 } gfo_match_config;
@@ -74,6 +74,10 @@ const char* gfo_match_scope(void);
 int gfo_match_catalog_count(void);
 int gfo_match_gift_weight(void);
 int gfo_match_supported(uint16_t model);
+// Actual configured artifact pool; ordinary Command capability/global499 above
+// remain unchanged. include_fate adds207 only to this pool (237models/weight500).
+int gfo_match_gift_supported(const gfo_match* match, uint16_t model, uint8_t* out);
+int gfo_match_get_gift_weight(const gfo_match* match, uint16_t* out);
 size_t gfo_match_config_size(void);
 size_t gfo_match_player_size(void);
 size_t gfo_match_command_size(void);

@@ -4,7 +4,7 @@ NOT authoritative official-server equivalence. No account/network access,
 checkpoint replay or learning implementation is provided. load_scene is an
 explicit privileged initializer from an immutable OfficialState, not a replay of
 server attacks/events. Ordinary Earth/Moon payloads must be supplied externally.
-All model generation is restricted to the native advertised supported pool.
+Artifact generation uses the native advertised configured gift pool.
 """
 from __future__ import annotations
 import ctypes as c
@@ -54,6 +54,7 @@ class Config:
     initial_mp: int = 10
     initial_cp: int = 20
     external_grants: bool = False
+    include_fate: bool = False
 
 @dataclass(frozen=True)
 class PlayerSetup:
@@ -138,7 +139,7 @@ class MatchStatus:
 
 class _Config(c.Structure):
     _fields_ = [("max_decisions", c.c_uint32), ("initial_hand", c.c_uint8), ("hand_limit", c.c_uint8),
-        ("external_grants", c.c_uint8), ("reserved", c.c_uint8 * 1), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32), ("reserved_tail", c.c_uint8 * 4)]
+        ("external_grants", c.c_uint8), ("include_fate", c.c_uint8), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32), ("reserved_tail", c.c_uint8 * 4)]
 class _Player(c.Structure):
     _fields_ = [("id", c.c_uint64), ("name", c.c_char_p), ("name_size", c.c_size_t), ("team", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _Command(c.Structure):
@@ -173,7 +174,8 @@ class _Status(c.Structure):
 def _config(value):
     if not isinstance(value, Config): raise InvalidMatchError("config must be Config")
     if type(value.external_grants) is not bool: raise InvalidMatchError("external_grants must be bool")
-    result = _Config(external_grants=value.external_grants, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
+    if type(value.include_fate) is not bool: raise InvalidMatchError("include_fate must be bool")
+    result = _Config(external_grants=value.external_grants, include_fate=value.include_fate, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
         initial_hand=_integer(value.initial_hand, "initial_hand", 0, 255), hand_limit=_integer(value.hand_limit, "hand_limit", 0, 255))
     for name in ("initial_hp", "initial_mp", "initial_cp"):
         setattr(result, name, _integer(getattr(value, name), name, -(2**31), 2**31 - 1))
@@ -324,6 +326,8 @@ class Match:
     Observe(None) is spectator; observe(player_id) includes that player's own hand.
     sample_action(rng) returns (Command, new_rng), changing neither game state nor
     the caller's integer. Rewards always follow status.player_ids, not actor.
+    supported_models describes ordinary Command capability; gift_models and
+    gift_weight describe the configured artifact distribution.
     Do not operate the same handle concurrently from several threads.
     """
     def __init__(self, players=None, seed=42, config=Config(), library: str | Path | None = None):
@@ -338,9 +342,9 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v42"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v43"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
-            or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.reserved.offset != 7
+            or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
             or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)
@@ -363,6 +367,10 @@ class Match:
             or lib.gfo_match_grant_action_size() != c.sizeof(_DevilAction)):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
+        lib.gfo_match_gift_supported.argtypes = [c.c_void_p, c.c_uint16, c.POINTER(c.c_uint8)]
+        lib.gfo_match_gift_supported.restype = c.c_int
+        lib.gfo_match_get_gift_weight.argtypes = [c.c_void_p, c.POINTER(c.c_uint16)]
+        lib.gfo_match_get_gift_weight.restype = c.c_int
         lib.gfo_match_create.argtypes = [c.POINTER(_Config), c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(c.c_void_p)]
         lib.gfo_match_create.restype = c.c_int
         lib.gfo_match_destroy.argtypes = [c.c_void_p]; lib.gfo_match_destroy.restype = None
@@ -427,9 +435,9 @@ class Match:
         self.supported_fate_models = tuple(card.id for card in self._data if lib.gfo_match_fate_supported(card.id))
         self.supported_devil_models = tuple(card.id for card in self._data if lib.gfo_match_devil_supported(card.id))
         self.supported_grant_models = tuple(model for model in (0, *(card.id for card in self._data)) if lib.gfo_match_grant_supported(model))
-        self.gift_weight = lib.gfo_match_gift_weight()
+        base_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
-            or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
+            or base_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
             raise MatchError("inconsistent match catalog descriptor")
         if self.supported_guardian_models != tuple(range(245, 287)):
             raise MatchError("inconsistent guardian action descriptor")
@@ -438,6 +446,18 @@ class Match:
         seed = _integer(seed, "seed", 0, 2**64 - 1)
         _check(lib.gfo_match_create(c.byref(config_record), setups, len(setups), seed, c.byref(self._handle)))
         self._players = copied; self.config = config
+        gift_models = []
+        for card in self._data:
+            allowed = c.c_uint8()
+            _check(lib.gfo_match_gift_supported(self._handle, card.id, c.byref(allowed)))
+            if allowed.value > 1: raise MatchError("invalid configured gift membership", -3)
+            if allowed.value: gift_models.append(card.id)
+        current_weight = c.c_uint16()
+        _check(lib.gfo_match_get_gift_weight(self._handle, c.byref(current_weight)))
+        self.gift_models = tuple(gift_models); self.gift_weight = current_weight.value
+        expected_models = tuple(sorted((*self.supported_models, 207))) if config.include_fate else self.supported_models
+        if self.gift_models != expected_models or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.gift_models):
+            raise MatchError("inconsistent configured gift pool", -3)
 
     @property
     def closed(self): return not bool(self._handle.value)
