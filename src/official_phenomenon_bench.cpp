@@ -47,7 +47,7 @@ void phenomenon_hash(std::uint64_t& hash, const PhenomenonAction& action) {
 // checked empty. All remaining snapshot fields, including privileged history,
 // participate in this hash; it is not a player observation.
 std::uint64_t state_hash(const MatchSnapshot& s) {
-    check(s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && !s.purchase && !s.last_item_shuffle && !s.last_fate && !s.last_fate_event && !s.fate_actions && !s.last_devil && !s.last_devil_event && !s.devil_actions,
+    check(s.queue.empty() && !s.batch && s.counters.empty() && s.deaths.empty() && !s.purchase && !s.last_item_shuffle && !s.last_fate && !s.last_fate_event && !s.fate_actions && !s.last_devil && !s.last_devil_event && !s.devil_actions && !s.config.external_grants && !s.pending_grant && !s.grant_proof && !s.last_grant && !s.grant_resolutions && !s.grant_artifacts && !s.grant_devils,
           "hash boundary has pending work");
     std::uint64_t hash = 14695981039346656037ULL;
 #define FIELD(name) mix(hash, static_cast<std::uint64_t>(s.name))
@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=experimental:external5-global-primitives-then-ordinary-prayer-tick-guardian-replay;not-phenomenon-selector"
                   << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
-                  << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\nguardian_rule=" << guardian_rule;
+                  << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\nguardian_rule=" << guardian_rule;
 #define OUTPUT(key, value) std::cout << "\n" key "=" << (value)
         OUTPUT("scenes", total.scenes); OUTPUT("players", players); OUTPUT("seed", seed); OUTPUT("workers", workers);
         OUTPUT("models_covered", covered_models); OUTPUT("decisions", total.decisions); OUTPUT("responses", total.responses);

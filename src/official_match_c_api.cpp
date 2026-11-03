@@ -13,7 +13,8 @@
 
 namespace official = godfield::official;
 struct gfo_match { official::Match value; explicit gfo_match(official::MatchConfig c) : value(c) {} };
-static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8);
+static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8
+    && offsetof(gfo_match_config,external_grants)==6 && offsetof(gfo_match_config,reserved)==7);
 static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
     && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
 static_assert(std::is_standard_layout_v<gfo_match_guardian_action>
@@ -78,8 +79,8 @@ std::string text(const char* data, std::size_t size) {
 }
 official::MatchConfig config(const gfo_match_config* c) {
     if (!c) return {};
-    valid(zero(c->reserved) && zero(c->reserved_tail));
-    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp};
+    valid(c->external_grants<=1 && zero(c->reserved) && zero(c->reserved_tail));
+    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp, c->external_grants!=0};
 }
 std::vector<official::PlayerSetup> setup(const gfo_match_player* players, std::size_t count) {
     valid(count <= official::player_capacity);
@@ -222,6 +223,8 @@ size_t gfo_match_fate_action_size(void) { return sizeof(gfo_match_fate_action); 
 int gfo_match_fate_supported(uint16_t model) { return official::match_fate_supported(model); }
 size_t gfo_match_devil_action_size(void) { return sizeof(gfo_match_devil_action); }
 int gfo_match_devil_supported(uint16_t model) { return official::match_devil_supported(model); }
+size_t gfo_match_grant_action_size(void) { return sizeof(gfo_match_grant_action); }
+int gfo_match_grant_supported(uint16_t model) { return official::match_grant_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -380,6 +383,17 @@ int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* 
 int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* input, gfo_match_status* out) {
     if(!match || !input || !out) return -1;
     try { const auto parsed=devil_action(*input); auto next=match->value; next.devil_step(parsed); const auto result=status(next);
+        match->value=std::move(next); *out=result; return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_grant_legal(const gfo_match* match, const gfo_match_grant_action* input, uint8_t* out) {
+    if(!match || !input || !out) return -1;
+    try { const auto parsed=devil_action(*input); const uint8_t result=match->value.grant_legal(parsed); *out=result; return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* input, gfo_match_status* out) {
+    if(!match || !input || !out) return -1;
+    try { const auto parsed=devil_action(*input); auto next=match->value; next.grant_step(parsed); const auto result=status(next);
         match->value=std::move(next); *out=result; return 0; }
     catch(...) { return error(); }
 }

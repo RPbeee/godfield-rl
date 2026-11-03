@@ -51,11 +51,13 @@ int main() {
         &&gfo_match_devil_action_size()==32&&sizeof(gfo_match_devil_action)==32
         &&offsetof(gfo_match_devil_action,removed)==8&&offsetof(gfo_match_devil_action,model)==24
         &&offsetof(gfo_match_devil_action,resource)==26&&offsetof(gfo_match_devil_action,has_resource)==27
-        &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29, "ABI sizes");
+        &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29
+        &&offsetof(gfo_match_config,external_grants)==6&&offsetof(gfo_match_config,reserved)==7
+        &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v40"
-        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;not-official-server-equivalence", "explicit v40 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v41"
+        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v41 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -288,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v38\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v39\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2534,6 +2536,71 @@ int main() {
     check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&legal&&gfo_match_step(sacrifice_match,&sacrifice,&result)==-2
         &&equal(result,late_sacrifice_status)&&observe(sacrifice_match,0,0)==late_sacrifice,"late sacrifice failure restores used state, copies, gifts and caller output");
     gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
+    check(gfo_match_grant_supported(0)&&!gfo_match_grant_supported(1)&&!gfo_match_grant_supported(207),"grant normal0 is an environment outcome, not a model in the gift pool");
+    for(uint16_t model=240;model<=244;++model)check(gfo_match_grant_supported(model),"all five supplied devils can resolve a grant");
+    auto grant_cfg=cfg;grant_cfg.initial_hand=0;grant_cfg.hand_limit=18;grant_cfg.max_decisions=32;grant_cfg.external_grants=1;
+    for(unsigned bad_byte=0;bad_byte<3;++bad_byte){auto bad=grant_cfg;
+        if(bad_byte==0)bad.external_grants=2;if(bad_byte==1)bad.reserved[0]=1;if(bad_byte==2)bad.reserved_tail[3]=1;
+        auto* sentinel_match=reinterpret_cast<gfo_match*>(uintptr_t{1});
+        check(gfo_match_create(&bad,players.data(),2,0,&sentinel_match)==-2&&sentinel_match==reinterpret_cast<gfo_match*>(uintptr_t{1}),
+            "new known config byte is boolean and the remaining byte and tail stay reserved");
+    }
+    gfo_match* grant_match=nullptr;check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"external grants opt-in create");
+    const auto load_grant_scene=[&](uint64_t update){
+        std::array<gfo_state_player,2> people{};people[0].id=0;people[1].id=7;
+        for(auto& person:people){person.hp=40;person.mp=10;person.cp=20;}
+        people[0].item_count=2;people[1].item_offset=2;
+        std::array<gfo_state_item,2> items{};items[0].model=152;items[1].token=1;items[1].model=235;items[1].used=1;
+        gfo_state_meta meta{};meta.gf=0;meta.has_tiebreak=1;meta.tiebreak_gf=0;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),nullptr,0,&scene)==0,"typed grant recipient ID0 scene");
+        check(gfo_match_load_scene(grant_match,scene,0,0,&result)==0,"load grant scene");gfo_state_destroy(scene);
+    };
+    load_grant_scene(0);gfo_match_command grant_offer{};grant_offer.kind=9;grant_offer.item_count=1;
+    check(gfo_match_step(grant_match,&grant_offer,&result)==0&&result.phase==4&&!result.has_actor&&result.owner==0&&result.decisions==1,
+        "reserved artifact pauses in phase4 without a policy actor");
+    const auto grant_before=observe(grant_match,0,0);const auto grant_status=status(grant_match);gfo_match_grant_action grant{};
+    check(grant_before.find("\"pending_grant\":{\"target\":0}")!=std::string::npos&&has_token(grant_match,0,1)&&!has_token(grant_match,0,0),
+        "grant exposes only pending recipient after original item consumption");
+    uint64_t grant_rng=123;gfo_match_command no_policy{};no_policy.kind=77;const auto old_no_policy=no_policy;
+    check(gfo_match_sample_action(grant_match,&grant_rng,&no_policy)==-5&&grant_rng==123&&equal(no_policy,old_no_policy),
+        "grant waiting refuses normal sampler without changing RNG or output");
+    auto no_command=grant_offer;no_command.kind=3;no_command.item_count=0;
+    check(gfo_match_legal(grant_match,&no_command,&legal)==0&&!legal,"normal commands cannot resolve environment phase4");
+    for(unsigned error=0;error<10;++error){auto bad=grant;
+        if(error==0)bad.reserved[0]=1;if(error==1)bad.reserved[2]=1;if(error==2)bad.has_resource=2;
+        if(error==3)bad.has_resource=1;if(error==4)bad.resource=1;if(error==5)bad.removed_count=1;
+        if(error==6)bad.removed[1]=1;if(error==7)bad.target=official::max_wire_integer+1;
+        if(error==8)bad.model=244;if(error==9){bad.model=243;bad.removed_count=3;}
+        result=grant_status;uint8_t marker=0xa5;
+        check(gfo_match_grant_legal(grant_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_grant_step(grant_match,&bad,&result)==-2&&equal(result,grant_status)
+            &&observe(grant_match,0,0)==grant_before,"grant wire errors preserve the pending continuation and caller outputs");
+    }
+    result=grant_status;uint8_t grant_marker=0xa5;
+    check(gfo_match_grant_legal(nullptr,&grant,&grant_marker)==-1&&gfo_match_grant_legal(grant_match,nullptr,&grant_marker)==-1
+        &&gfo_match_grant_legal(grant_match,&grant,nullptr)==-1&&grant_marker==0xa5
+        &&gfo_match_grant_step(nullptr,&grant,&result)==-1&&gfo_match_grant_step(grant_match,nullptr,&result)==-1
+        &&gfo_match_grant_step(grant_match,&grant,nullptr)==-1&&equal(result,grant_status),"grant NULL guards are atomic");
+    auto wrong_recipient=grant;wrong_recipient.target=7;
+    check(gfo_match_grant_legal(grant_match,&wrong_recipient,&legal)==0&&!legal
+        &&gfo_match_grant_step(grant_match,&wrong_recipient,&result)==-2&&equal(result,grant_status),"only the current live recipient can receive a supplied grant");
+    check(gfo_match_grant_legal(grant_match,&grant,&legal)==0&&legal&&gfo_match_grant_step(grant_match,&grant,&result)==0
+        &&result.phase==0&&result.owner==7&&result.actor==7&&result.decisions==2&&hand_size(grant_match,0)==2&&has_token(grant_match,0,2)
+        &&observe(grant_match,0,0).find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos,
+        "ordinary grant fills one debt, keeps its model private and advances the original turn once");
+    load_grant_scene(official::max_wire_integer-1);check(gfo_match_step(grant_match,&grant_offer,&result)==0&&result.phase==4,"main action may reach the last update count while waiting for a grant");
+    const auto late_grant=observe(grant_match,0,0);const auto late_grant_status=status(grant_match);result=late_grant_status;
+    check(gfo_match_grant_legal(grant_match,&grant,&legal)==0&&legal&&gfo_match_grant_step(grant_match,&grant,&result)==-2
+        &&equal(result,late_grant_status)&&observe(grant_match,0,0)==late_grant&&!has_token(grant_match,0,0),
+        "late grant failure rolls back to pending state rather than undoing the accepted original command");
+    gfo_match_destroy(grant_match);grant_cfg.max_decisions=3;
+    check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"bounded supplied devil retry create");
+    load_grant_scene(0);check(gfo_match_step(grant_match,&grant_offer,&result)==0,"start bounded devil retry");
+    grant.model=244;grant.has_resource=1;
+    check(gfo_match_grant_step(grant_match,&grant,&result)==0&&result.phase==4&&result.decisions==2&&hand_size(grant_match,0)==1
+        &&gfo_match_grant_step(grant_match,&grant,&result)==0&&result.phase==2&&result.truncated&&result.decisions==3&&hand_size(grant_match,0)==1
+        &&observe(grant_match,0,0).find("\"pending_grant\":null")!=std::string::npos,"each explicit devil retry costs a decision and cutoff cancels the outstanding slot");
+    gfo_match_destroy(grant_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

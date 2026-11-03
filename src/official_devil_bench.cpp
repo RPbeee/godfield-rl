@@ -289,7 +289,7 @@ int main(int argc,char** argv) { try {
           && total.death_hits<=total.death_rolls && total.terminated+total.truncated<=count,"devil benchmark accounting failed");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:external-five-devils-with-explicit-target-resource-and-copies;not-apocalypse-gift-selector-or-cascade;world-selected-counter-hashes-plus-full-restore-audit"
-             <<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers
+             <<"\ndevil_rule="<<devil_rule<<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers
              <<"\nmodels_covered="<<models_covered<<"\nresources_covered="<<resources_covered<<"\nremoval_sizes_covered="<<removal_sizes_covered;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(responses); OUTPUT(purchase_commands); OUTPUT(terminated); OUTPUT(truncated); OUTPUT(devil_actions);

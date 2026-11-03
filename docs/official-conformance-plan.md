@@ -136,7 +136,7 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 
 反射は現在source/targetを交換し元のpayloadとownerを保ち、消去後の無属性を維持する。
 原発奇跡を再課金・新sourceへ取得させず、応答者ごとの消費と補充予定をledgerへ記録する。
-Snapshot version40は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
+Snapshot version41は全action journalの特権的token/抽選/反撃来歴を検査し、旧version1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/18/19/20/21/22/23/24/25/26/27/28/29/30/31/32/33/34/35/36/37/38/39/40を拒否する。公開observeへtoken・乱数anchor・未来RNGを出さない。
 自己反射もresponseを継続するのは明示したローカル規約であり、clientの自己target表示だけからserver規則を確定しない。
 
 v3の魔法遮断8種は現行の回復奇跡HP235/CP236も止め、武器遮断233は無属性武器にmatchingする。
@@ -214,7 +214,7 @@ v18は全Release CTest129件/17.79秒・ASan/UBSan89件/46.30秒が通過した�
 全効果の一般キュー、互換クラス外Dream・取引server挙動・Earth/Moonの一般神器/奇跡選出・207/残る現象・悪魔・終末と、
 公式の消費/補充/死亡/進行の実対局照合は引き続き未完了である。
 限定対局が動くことを、公式サーバー全体との同等性の証明として扱わない。
-v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデル、v9の194モデル、v10の201モデル、v11の204モデル、v12の206モデル、v13の208モデル、v14の209モデル、v15の210モデル、v16の211モデル、v17の213モデルとv18の214モデルの計測・checksumは過去の証拠として保持し、現行v40の236モデルの検証とは分ける。
+v1の132モデル、v2の139モデル、v3の148モデル、v4の156モデル、v5の164モデル、v6の185モデル、v7の187モデル、v8の189モデル、v9の194モデル、v10の201モデル、v11の204モデル、v12の206モデル、v13の208モデル、v14の209モデル、v15の210モデル、v16の211モデル、v17の213モデルとv18の214モデルの計測・checksumは過去の証拠として保持し、現行v41の236モデルの検証とは分ける。
 
 
 ## v19：直近除去結果の公開と検査
@@ -1320,3 +1320,61 @@ v40の最終検証はRelease **139/139件**（既存138件24.85秒＋新bench1�
 | 9人 | 10,000 | 6,000 / 4,000 | 21,918 / 11,918 | 65,866 / 18 | 2,000 | `9579152132219804691` | `14910632246140220679` |
 
 sacrifice smoke600sceneはdiscard360/sacrifice240、1,302decisions/702responses、3,917選択copy（used718/fake160/207は340）、最大18個、混乱減算400回、threshold17→18到達120回を含む。isolated66sceneで275 replacement giftsを厳密検査し、18usedMC scene21回のうち8回を実際にささげた。通常後続ではdeath64予約/49開始、counter10予約/10開始、revival14、redraw91、自動guardian796を含み、world checksum `5513048592033815892` がRelease/SANで一致した。cloneによるsampler比較600回で342回のoperation kind差替えを観測し、候補順・選択token/target・policy RNGが一致した。全sceneで悪魔の自動出現/新しいselector RNGは追加しておらず、実配布のserver同値性・25%悪魔・連鎖を示す統計ではない。
+
+
+## v41：opt-inの外部chanceと予約補充phase
+
+`official-execution-subset-v41` は `Config.external_grants=False` を既定値にし、有効化した場合だけ、終末active中の予約giftを外部chance入力で進める。Snapshot41は旧1〜40を拒否し、公開viewは `official-execution-view-v39`。Match ABI2のConfig24/Command184/Status248/Devil・GrantAction32byteは維持する。既存phase0〜3はそのまま、opt-in時だけphase4 `grant` を追加する。C Configのbyte6をstrict0/1のexternal_grants flagへ割り当て、残るreservedは0を要求する。幅が同じでもphase4を認識する必要があるため、clientは正確なrulesetを確認する。旧37profile、official-v2 pins、各版の実測・v10/v16訂正履歴を保存し、学習器を追加しない。
+
+### 分布を作らずに補充を止める
+
+公開scopeは `experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。通常配布236モデル/重み499とspecial207は変更しない。flag=false、または終末がinactiveなら従来の予約gift処理を使い、出現判定の追加drawやdecisionを作らない。flag=trueかつactiveの場合はadvanceの予約gift pumpだけをchooserの直前で止め、`actor=None`、`pending_grant={target}` を公開する。人数別の残債務・次のrecipient・候補やRNGは公開しない。これは特権driver用のchance nodeで、playerの通常手選択ではない。
+
+reset、178の即時redraw、売買商品の直接配送はこのphaseへ入れない。売買等の操作によって予約されたgiftは、通常のpumpへ達した時点で対象となる。JAの25%という説明とappearance metadataを参照できても、それを自動chooserへ置き換えない。悪魔種/resource/copyの分布、207の配布、公式の全gift経路を実装したとは呼ばない。
+
+### GrantActionとretry債務
+
+新しい `GrantAction` は既存DevilActionと同じ32byte型を使い、phase4のtargetを明示する。model0は通常補充の要求で、artifact ID0を配る意味ではない。既存236モデル/重み499のdrawと既存Dream maskを使って1copyを授け、元のgift債務を1だけ減らす。実際の通常modelやtokenをpublic last_grantへ追加しない。
+
+model240〜244はv39と同じ明示devil payloadで、HP直接被害/244資源/243除去tokenを使う。出現判定・悪魔種・資源・除去copyのselector RNGは無い。実devil cardを所有・配布・再採番せず、生存したrecipientの元gift債務は保持してretryする。208救済による追加giftは元債務と別に予約し、243の消失には新しい補償giftを付けない。死者の債務、自然終局/cutoffで残った全債務は取り消す。
+
+各accepted grant_stepは1decisionとupdateを消費する。資源が上限の妖精を何度指定してもmax_decisionsで有限となり、内部ループを黙って通常品へ差し替える必要がない。normal0のartifactやdevil bodyはcutoff判定前に適用し、残work/giftは既存の優先規約で取り消す。例外・不正入力ではchoice受理前のworld/RNG/decision/eventを保持する。
+
+### death/FIFO・元の手番・可視性
+
+devil bodyは共有のlocal10% guardian departure、208、112と後続response/counter FIFOを使う。必要な応答を先に解決してから、入力順で最小のlive positive gift seatへ戻る。tickやauto guardian stageを再実行せず、元の通常actionのGF/次ownerは全gift債務を解決した後だけ進める。Fate/Devil等から始まった場合も元のnormal/external scheduleとsource identityを保つ。
+
+phase4では通常commandと通常samplerを拒否し、policy RNGを変えない。`grant_legal` / `grant_step` は特権入力で、243のtoken選択等をplayer viewだけから行うAPIとは呼ばない。responseとpurchaseは既存APIで進める。
+
+公開 `last_grant` は `{target, devil:nullまたは240〜244, removed_models}` の実行済み要約だけで、通常model、token、resource、未来chooserや残債務を出さない。通常補充の受取人本人の手札表示まで隠す意味ではない。243のactual model reveal等のfanoutはv39と同じローカル規約、boardのFogは既存規約に従う。
+
+### 非再帰proofと未対応部分
+
+private grant_proofは元ActionBatchの非再帰anchorとjournalを持ち、ActionBatch.grantsのGrantResolution.responses_before位置でchoiceを挿入して、応答・gift・死亡・再試行を同executorから全snapshot比較する。完了後も証拠を保持し、Fate/Devilの既存record identityを別actionへ付け替えない。grant_resolutions/artifacts/devilsの累計は独立して全anchorへprefixを保存する。各choiceをdecisionへ課すため、body/revival等の既存decision由来の上限を、無課金の自動連鎖のように緩めない。
+
+この更新は外部chance driverへ制御を渡す基盤である。25%の自動出現、5悪魔の分布・資源/copy選択、全経路のgift置換、207/Earth/Moon一般selector、公式Dream全分布・実体不適合入力等は残る。既存表示・説明を、未取得の権威的server schedulerへ読み替えない。
+
+公開 `grant_rule` はheaderと同じ次の文字列である。
+
+```text
+experimental:opt-in-external-grants-default-false;reserved-gift-pump-only-while-apocalypse-active;reset-immediate-redraw-and-trade-unchanged;phase4-grant-actor-absent-pending-recipient-only;explicit-model0-normal-existing236-weight499-draw-or240-to244-devil-payload;no-appearance-resource-or-copy-selector-rng;ordinary-grant-fills-one-debt-with-existing-compatible-dream-mask;devil-retains-original-slot-for-retry-no-physical-devil-token;208-adds-separate-debt-243-adds-no-replacement;dead-debts-cancelled;shared-direct-devil-body-local-guardian-departure-and-death-response-counter-fifo;resume-lowest-live-input-seat-with-positive-debt;one-accepted-grant-is-one-decision-and-update-for-finite-max-decisions-cutoff;no-repeat-owner-tick-auto-or-confusion-debit-original-gf-advance-only-after-drain;natural-before-cutoff-body-before-work-cancel;source-fate-devil-records-preserved;private-nonrecursive-full-original-action-response-prefix-grant-journal-through-completion;public-pending-target-last-grant-target-devil-or-null-removed-models-only;normal-model-token-resource-remaining-count-and-future-choices-private;normal-commands-and-sampler-refuse-grant-phase-with-policy-rng-unchanged;failed-resolution-rolls-back-to-current-pending-state;25percent-and7-5-3-5-5-ui-rates-not-an-engine-selector;server-distribution-retry-and-order-unverified
+```
+
+### v41の検証
+
+最終検証はRelease CTest **140/140 passed（25.65秒）**、ASan/UBSan CTest **100/100 passed（54.29秒）**。native183関数とPython126メソッドは重複なく登録され、READMEのささげる→244→normal0の例も記載どおり実行した。これらはローカル契約の検証であり、公式server chooserの検証数ではない。
+
+新native8群は、通常補充と元手番完了、既定flag=false/閾値前/resetの互換、243とretry/decision cutoff、208の追加債務とhistorical tick/112の応答交錯、Fate/Devil/守護神/sourceなし現象の起動元保持、不正shapeと遅いupdate/token/GF失敗のatomic性、順序付きproof改ざんと次actionの累計prefix、Dreamの非漏洩と即時redraw/売買配送の例外を扱う。`hand_limit=1` でも外部Earthの合法2モデル列を扱い、物理手札の上限と外部payload列の長さを混同しない回帰ケースを含む。
+
+一次資料の再現は[official_grant_oracle.cjs](../scripts/official_grant_oracle.cjs) と[grant-client-v41.json](../data/official-v2/grant-client-v41.json)。`--check` は保存reportとbyte一致し、42ケースの内訳はReference表示20、予約slotへのgift/useDevilItem列12、snapshot decoder probe6、gift event decoder probe4。reportは42,014 bytes、SHA256は `69cdc991cbf06fe36991db69672103d87d6e416716f1b6d833cacc602b3b7143`（現fileから再計算）。実Referenceは5悪魔の出現率を7%/5%/3%/5%/5%と表示し、その合計25%はJA/ENの説明と整合する。実受信queue・既存placeholderへの配送/置換とdecoderを実行し、DOM/演出等のsinkはstubを使う。これらはserverによる悪魔出現・資源/copy選択・債務retryや死亡時の補充scheduleの証明ではない。通常配布のReference分母500も、実行器の236モデル/重み499へ読み替えない。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/grantの各2人数、計22組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで照合し、worker数・時間・速度以外の全fieldが一致した。Release/SANの小行列12組も同じ非時間fieldが一致した。既存10familyはflag=falseのままv40のgameplay fieldを維持し、通常/canonical/payloadはchecksumも維持した。その他はSnapshot.version41をhashに含むため、そのchecksumだけを旧版比較から除いた。worker間・Release/SAN間ではchecksumも比較した。
+
+新grant benchは5起動元（sacrifice/pray/attack/所有207/standalone devil）を一度起動し、外部driverの明示choice、全応答、残債務を完了する。97scene毎に上限MPへの244を繰り返してmax_decisions96だけで打ち切り、他はnormal0を定期指定する。244の資源を悪魔種の周期から独立させ、600scene以上でHP/MP/CPの全3資源が選ばれたことを検査する。driverのこの修正後も対象CTestはRelease1/1（0.47秒）・SAN1/1（1.74秒）で通過した。worldと選択counterのhashは全private proof hashではなく、全snapshot restoreの完全一致を各境界で別に検査する。
+
+| 外部補充・seed42 | scenes | decisions / responses | normal / devil解決 | 予算cutoff | primitive checksum | 後続world checksum |
+| --- | ---: | ---: | ---: | ---: | --- | --- |
+| 2人 | 100,000 | 545,191 / 54,477 | 160,346 / 230,368 | 1,031 | `12928503358174816886` | `6425240640703154995` |
+| 9人 | 10,000 | 107,590 / 26,804 | 34,569 / 36,217 | 104 | `16124954102603085708` | `8795386664659394638` |
+
+9人600sceneのRelease/SAN一致は6,533decisions、4,271grant解決（normal2,040/devil2,231）、death574予約/460開始、revival169、redraw190、cutoff7を含む。244のHP/MP/CP指定はそれぞれ120/777/116回で、checksumは `13373311760285701770`。全grant境界で通常policy拒否とRNG不変、対象順、元のtick/auto/GF進行、proofの応答prefix順序、public noticeの形を検査した。これらの回数は明示driverのfixture分布であり、公式の出現率やserver対局統計ではない。

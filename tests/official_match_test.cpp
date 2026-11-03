@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v40"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v41"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v38\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v39\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2294,6 +2294,95 @@ void sacrifice_exhaustion_rollback_and_launch_threshold_replay(){
     check(pending,"seed sweep covers a sacrifice paused during automatic guardian follow-up");
 }
 
+Match grant_fixture(SnapshotState state,std::uint64_t seed=7,std::uint32_t max_decisions=128,PlayerId owner=0){MatchConfig config;config.external_grants=true;config.max_decisions=max_decisions;Match match(config);match.load_scene(std::move(state),owner,seed);return match;}
+void grant_phase_normal_draw_and_original_turn_completion(){
+    auto state=scene({199},{});state.tiebreak_gf=0;auto game=grant_fixture(state);auto reference=fixture(state);reference.load_scene(state,0,7);reference.step({0,CommandKind::sacrifice,{0},{}});
+    game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();check(pending.phase==MatchPhase::grant&&!pending.actor&&pending.pending_grant==0&&pending.gifts[0]==1
+        &&pending.state.players[0].items.empty()&&pending.rng==7&&pending.next_token==1&&pending.decisions==1&&pending.grant_proof,"ordinary action pauses before any grant chooser draw with no player actor");roundtrip(game);
+    check(game.observe({}).find("\"phase\":\"grant\"")!=std::string::npos&&game.observe({}).find("\"pending_grant\":{\"target\":0}")!=std::string::npos,"pending chance view exposes only its current real recipient0");
+    auto policy=19ULL;bool failed=false;try{(void)game.sample_action(policy);}catch(const MatchError& e){failed=e.code==MatchErrorCode::unsupported;}check(failed&&policy==19&&game.snapshot()==pending,"player sampler cannot choose a grant or mutate policy RNG");reject(game,pray(0));
+    game.grant_step({0,0,{},{}});auto expected=reference.snapshot().state;expected.update_count=game.snapshot().state.update_count;
+    check(game.snapshot().state==expected&&game.snapshot().rng==reference.snapshot().rng&&game.snapshot().next_token==reference.snapshot().next_token
+        &&game.snapshot().owner==7&&game.snapshot().decisions==2&&game.snapshot().grant_resolutions==1&&game.snapshot().grant_artifacts==1&&game.snapshot().grant_devils==0,"explicit ordinary outcome uses the unchanged chooser then advances the original turn once");roundtrip(game);
+    check(game.snapshot().grant_proof->grants.size()==1&&game.observe({}).find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos,"completed proof persists while ordinary actual model is absent from notice");
+}
+void grant_disabled_prethreshold_and_initial_distribution_parity(){
+    auto state=scene({},{});state.tiebreak_gf=1;MatchConfig cfg;cfg.external_grants=true;Match external(cfg),plain;external.load_scene(state,0,11);plain.load_scene(state,0,11);external.step(pray(0));plain.step(pray(0));
+    check(external.snapshot().state==plain.snapshot().state&&external.snapshot().rng==plain.snapshot().rng&&external.snapshot().phase==MatchPhase::main
+        &&external.snapshot().grant_resolutions==0&&!external.snapshot().grant_proof&&external.snapshot().state.gf==1,"opt-in below threshold does not consume an extra draw or pause before the GF boundary");roundtrip(external);
+    external.step(pray(7));check(external.snapshot().phase==MatchPhase::grant&&external.snapshot().pending_grant==7,"next owner starts reserved grant control after threshold is reached");roundtrip(external);
+    Match a(cfg),b;check(a.snapshot().state==b.snapshot().state&&a.snapshot().rng==b.snapshot().rng&&!a.snapshot().state.tiebreak_gf,"initial reset grants are deliberately outside reserved apocalypse mode");
+    auto active=scene({},{});active.tiebreak_gf=0;plain.load_scene(active,0,7);plain.step(pray(0));check(plain.snapshot().phase==MatchPhase::main&&!plain.snapshot().grant_proof,"disabled active scene keeps the old closed grant path");
+    for(CardId id=0;id<=300;++id)check(match_grant_supported(id)==(id==0||(id>=240&&id<=244)),"grant choices are local normal sentinel0 or one of five supplied devils");
+}
+void grant_retry_trickster_and_decision_cutoff_finite(){
+    auto state=scene({199,235,207,208,112},{});state.players[0].items[1].used=true;state.tiebreak_gf=0;auto game=grant_fixture(state);game.step({0,CommandKind::sacrifice,{0},{}});
+    game.grant_step({0,244,Resource::cp,{}});check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().gifts[0]==1&&game.snapshot().state.players[0].cp==30&&game.snapshot().next_token==5
+        &&game.snapshot().grant_devils==1&&game.snapshot().devil_actions==0&&game.snapshot().state.gf==0,"fairy preserves the original reserved slot without a physical devil token or standalone activation");roundtrip(game);
+    game.grant_step({0,243,{}, {1,2}});check(game.snapshot().gifts[0]==1&&game.snapshot().state.players[0].items.size()==2&&game.snapshot().last_grant->removed_models==std::vector<CardId>{235,207}
+        &&game.snapshot().revivals==0&&game.snapshot().death_created==0,"trickster removes supplied physical copies without creating replacement debts or passive effects");roundtrip(game);
+    game.grant_step({0,0,{},{}});check(game.snapshot().state.players[0].items.size()==3&&game.snapshot().grant_artifacts==1&&game.snapshot().grant_devils==2&&game.snapshot().owner==7,"only a normal grant closes the original slot after devil retries");roundtrip(game);
+    auto capstate=scene({199},{});capstate.tiebreak_gf=0;auto cap=grant_fixture(capstate,7,5);cap.step({0,CommandKind::sacrifice,{0},{}});for(unsigned i=0;i<4;++i){cap.grant_step({0,244,Resource::hp,{}});roundtrip(cap);}
+    check(cap.snapshot().truncated&&cap.snapshot().decisions==5&&cap.snapshot().grant_devils==4&&cap.snapshot().grant_artifacts==0&&!cap.snapshot().pending_grant
+        &&cap.snapshot().state.players[0].items.empty()&&cap.snapshot().next_token==1&&cap.snapshot().rng==7,"an arbitrarily repeating fairy sequence reaches the explicit decision cutoff without forced ordinary draw");
+}
+void grant_revival_debt_historical_tick_and_posthumous_interleave(){
+    auto state=scene({199,208,112},{});state.tiebreak_gf=0;state.players[0].hp=5;state.players[0].curses={Curse::cold};auto game=grant_fixture(state);game.step({0,CommandKind::sacrifice,{0},{}});
+    check(game.snapshot().last_tick&&game.snapshot().last_tick->hp_after==4,"original owner tick precedes the first reserved gift");game.grant_step({0,240,{},{}});
+    check(game.snapshot().state.players[0].hp==10&&game.snapshot().last_tick->hp_after==4&&game.snapshot().gifts[0]==2&&game.snapshot().revivals==1&&game.snapshot().phase==MatchPhase::grant,"revival adds a separate debt while original tick remains historical rather than being repeated");roundtrip(game);
+    game.grant_step({0,0,{},{}});roundtrip(game);game.grant_step({0,0,{},{}});check(game.snapshot().state.players[0].items.size()==3&&game.snapshot().next_token==5&&game.snapshot().state.gf==1&&game.snapshot().owner==7,"original plus revival debts finish before a single owner/GF advance");roundtrip(game);
+    auto lethal=scene({199,112},{190});lethal.players.push_back(player(9));lethal.tiebreak_gf=0;lethal.players[0].hp=5;lethal.players[0].curses={Curse::cold};lethal.players[1].hp=lethal.players[2].hp=99;lethal.players[1].curses=lethal.players[2].curses={Curse::darkcloud};auto death=grant_fixture(lethal);
+    death.step({0,CommandKind::sacrifice,{0},{}});death.grant_step({0,240,{},{}});check(death.snapshot().phase==MatchPhase::response&&death.snapshot().queue[0].is_death
+        &&death.snapshot().queue[0].source==0&&!death.snapshot().queue[0].environmental&&death.snapshot().gifts[0]==0,"dead recipient loses all debts and real player0's112 response precedes another gift");roundtrip(death);
+    death.step(defend(7,{0}));roundtrip(death);death.step(defend(9));check(death.snapshot().phase==MatchPhase::grant&&!death.snapshot().actor&&death.snapshot().pending_grant==7,"after death FIFO, surviving reflector receives its reserved replacement before owner advance");roundtrip(death);
+    death.grant_step({7,0,{},{}});check(death.snapshot().owner==7&&death.snapshot().state.gf==1&&death.snapshot().grant_proof->grants[1].responses_before==2
+        &&death.snapshot().grant_proof->responses.size()==2&&death.snapshot().grant_resolutions==2,"ordered response prefixes preserve grant-death-response-grant interleaving");roundtrip(death);
+}
+void grant_fate_devil_guardian_and_world_original_sources(){
+    auto state=scene({207},{});state.tiebreak_gf=0;auto fate=grant_fixture(state);fate.fate_step({0,0,{290,{},{}},{}});check(fate.snapshot().phase==MatchPhase::grant&&fate.snapshot().last_fate,"owned Fate keeps its original identity when its operation gift pauses");
+    fate.grant_step({0,244,Resource::hp,{}});fate.grant_step({0,0,{},{}});check(fate.snapshot().last_fate&&fate.snapshot().fate_actions==1&&fate.snapshot().devil_actions==0&&fate.snapshot().state.players[0].hp==11
+        &&fate.snapshot().last_phenomenon->model==290&&fate.snapshot().owner==7&&fate.snapshot().state.gf==1,"grant replay covers changed global postcondition and original ordinary Fate schedule");roundtrip(fate);
+    auto rescued=scene({208},{});rescued.tiebreak_gf=0;rescued.players[0].hp=5;auto devil=grant_fixture(rescued,7,128,7);devil.devil_step({0,240,{},{}});devil.grant_step({0,244,Resource::mp,{}});devil.grant_step({0,0,{},{}});
+    check(devil.snapshot().last_devil&&devil.snapshot().last_devil_event->model==240&&devil.snapshot().devil_actions==1&&devil.snapshot().grant_devils==1&&devil.snapshot().owner==7&&devil.snapshot().state.gf==0,"nested grant devil does not overwrite standalone devil proof or external schedule");roundtrip(devil);
+    for(unsigned source=0;source<3;++source){auto s=scene({208},{});s.tiebreak_gf=0;s.players[0].hp=1;s.players[0].curses={Curse::darkcloud};s.players[1].guardian=source==2?Guardian::earth:Guardian::mars;auto m=grant_fixture(s,7,128,7);
+        if(source==0)m.phenomenon_step({291,0,{}});else if(source==1)m.guardian_step({7,249,0});else m.guardian_payload_step({7,Guardian::earth,{6},0});
+        check(m.snapshot().phase==MatchPhase::response,"external source produces a body response before revival grant");m.step(defend(0));check(m.snapshot().phase==MatchPhase::grant,"world/guardian/payload source resumes at reserved gift phase");roundtrip(m);m.grant_step({0,0,{},{}});
+        check(m.snapshot().owner==7&&m.snapshot().state.gf==0&&m.snapshot().grant_resolutions==1,"external source keeps no GF/ordinary tick after its grant");roundtrip(m);
+    }
+    MatchConfig narrow_cfg;narrow_cfg.hand_limit=1;narrow_cfg.initial_hand=0;narrow_cfg.external_grants=true;Match narrow(narrow_cfg);
+    auto narrow_state=scene({},{120});narrow_state.tiebreak_gf=0;narrow_state.players[0].guardian=Guardian::earth;narrow.load_scene(narrow_state,0,7);
+    narrow.guardian_payload_step({0,Guardian::earth,{6,12},7});narrow.step(defend(7,{0}));
+    check(narrow.snapshot().phase==MatchPhase::grant&&narrow.snapshot().grant_proof->models.size()==2,"external payload columns can exceed the physical hand limit without enlarging inventory");roundtrip(narrow);
+    narrow.grant_step({7,0,{},{}});check(narrow.snapshot().owner==0&&narrow.snapshot().state.players[1].items.size()==1,"narrow-hand external payload preserves its original grant completion schedule");roundtrip(narrow);
+
+}
+void grant_shape_and_pending_state_atomic_rollback(){
+    auto state=scene({199,235,207},{});state.players[0].items[1].used=true;state.tiebreak_gf=0;auto game=grant_fixture(state);check(!game.grant_legal({0,0,{},{}}),"ordinary main is not a grant chance point");game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();
+    for(auto action:std::vector<GrantAction>{{7,0,{},{}},{0,207,{},{}},{0,0,Resource::hp,{}},{0,0,{}, {1}},{0,244,{},{}},{0,244,static_cast<Resource>(255),{}},{0,243,{}, {1}},{0,243,{}, {1,1}},{0,243,{}, {1,99}}}){
+        check(!game.grant_legal(action),"only canonical choices for the current recipient are accepted");bool failed=false;try{game.grant_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==pending,"bad grant resolution preserves the existing paused action rather than rewinding its launch");}
+    for(unsigned limit=0;limit<3;++limit){auto s=scene({199},{});s.tiebreak_gf=0;if(limit==0)s.update_count=max_wire_integer-1;if(limit==1)s.players[0].items[0].token=max_wire_integer;if(limit==2)s.gf=max_wire_integer;auto m=grant_fixture(s);m.step({0,CommandKind::sacrifice,{s.players[0].items[0].token},{}});const auto pause=m.snapshot();bool failed=false;try{m.grant_step({0,0,{},{}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==pause&&m.snapshot().state.players[0].items.empty(),"late update/token/GF error restores pending state, not the already accepted sacrifice");roundtrip(m);}
+}
+void grant_full_ordered_proof_tamper_and_next_action_prefix(){
+    auto state=scene({199},{});state.tiebreak_gf=0;auto m=grant_fixture(state);m.step({0,CommandKind::sacrifice,{0},{}});m.grant_step({0,244,Resource::cp,{}});m.grant_step({0,244,Resource::mp,{}});const auto exact=m.snapshot();
+    for(unsigned error=0;error<16;++error){auto bad=exact;if(error==0)bad.pending_grant=7;if(error==1)bad.actor=0;if(error==2)bad.config.external_grants=false;if(error==3)bad.grant_proof.reset();if(error==4)bad.last_grant->model=0;if(error==5)bad.grant_proof->grants.pop_back();if(error==6)bad.grant_proof->grants[0].responses_before=1;if(error==7)bad.grant_proof->grants[0].action.target=7;if(error==8)bad.grant_proof->attack.kind=CommandKind::discard;if(error==9)bad.grant_proof->initial_state.tiebreak_gf.reset();if(error==10)++bad.grant_proof->initial_state.players[0].cp;if(error==11)bad.grant_artifacts=1;if(error==12)++bad.next_token;if(error==13)++bad.rng;if(error==14)++bad.gifts[0];if(error==15)bad.grant_proof->fate_action=FateAction{0,0,{290,{},{}},{}};
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"grant proof rejects changed stage, source, actor, choice order, counters and hidden continuation");}
+    m.grant_step({0,0,{},{}});roundtrip(m);check(m.snapshot().grant_proof&&m.snapshot().phase==MatchPhase::main&&m.snapshot().grant_resolutions==3,"completed original action retains its grant journal");
+    auto bad=m.snapshot();bad.last_grant->model=207;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed,"ordinary model cannot be smuggled into the private/public grant notice");
+    m.step(pray(7));check(m.snapshot().phase==MatchPhase::grant&&m.snapshot().grant_proof->grant_resolutions==3&&m.snapshot().grant_proof->grants.empty()&&!m.snapshot().last_grant,"next original action resets completed journal and carries only cumulative grant prefix");roundtrip(m);m.grant_step({7,0,{},{}});roundtrip(m);
+}
+void grant_dream_privacy_and_immediate_delivery_exceptions(){
+    bool masked=false;for(std::uint64_t seed=0;seed<128&&!masked;++seed){auto s=scene({},{});s.tiebreak_gf=0;s.players[0].curses={Curse::dream};auto m=grant_fixture(s,seed);m.step(pray(0));m.grant_step({0,0,{},{}});masked=m.snapshot().state.players[0].items[0].fake_model.has_value();
+        if(masked){check(m.observe(0).find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos,"grant notice does not reveal a Dream owner's actual ordinary model");roundtrip(m);}}
+    check(masked,"seed sweep exercises ordinary compatible Dream masking after external grant choice");
+    auto s=scene({6},{178,235});s.players[1].items[1].used=true;s.tiebreak_gf=0;auto redraw=grant_fixture(s);redraw.step(play(0,{0},7));redraw.step(defend(7,{0}));
+    check(redraw.snapshot().phase==MatchPhase::grant&&redraw.snapshot().pending_grant==0&&redraw.snapshot().redraws==1&&redraw.snapshot().state.players[1].items.size()==1
+        &&redraw.snapshot().state.players[1].items[0].token==2&&!redraw.snapshot().state.players[1].items[0].used&&redraw.snapshot().grant_resolutions==0,"178 redraw still grants immediately before the original body's reserved gift stage");roundtrip(redraw);
+    redraw.grant_step({0,0,{},{}});redraw.grant_step({7,0,{},{}});roundtrip(redraw);
+    auto trade_state=scene({4,6},{235});trade_state.tiebreak_gf=0;trade_state.players[1].items[0].used=true;trade_state.players[1].cp=99;auto trade=grant_fixture(trade_state);trade.step({0,CommandKind::sell,{0,1},7});trade.step(defend(7));
+    check(trade.snapshot().phase==MatchPhase::grant&&trade.snapshot().pending_grant==0&&trade.snapshot().last_sale&&trade.snapshot().state.players[1].items.back().model==6
+        &&trade.snapshot().gifts[0]==1&&trade.snapshot().gifts[1]==0&&trade.snapshot().grant_resolutions==0,"trade delivery remains immediate and only reserved replacements enter grant control");roundtrip(trade);trade.grant_step({0,0,{},{}});roundtrip(trade);
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -2471,6 +2560,15 @@ int main(){
     sacrifice_confusion_one_debit_and_sampler_parity();
     sacrifice_tick_death_revival_and_natural_completion();
     sacrifice_exhaustion_rollback_and_launch_threshold_replay();
+    grant_phase_normal_draw_and_original_turn_completion();
+    grant_disabled_prethreshold_and_initial_distribution_parity();
+    grant_retry_trickster_and_decision_cutoff_finite();
+    grant_revival_debt_historical_tick_and_posthumous_interleave();
+    grant_fate_devil_guardian_and_world_original_sources();
+    grant_shape_and_pending_state_atomic_rollback();
+    grant_full_ordered_proof_tamper_and_next_action_prefix();
+    grant_dream_privacy_and_immediate_delivery_exceptions();
+
 
 
 

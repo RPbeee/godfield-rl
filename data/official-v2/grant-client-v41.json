@@ -1,0 +1,1719 @@
+{
+  "schema_version": 1,
+  "scope": "actual-reference-rates-and-serial-reserved-slot-widget-replacement;not-authoritative-grant-policy",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "locales": {
+    "ja": {
+      "url": "https://godfield.net/i18n/ja.json",
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "devils_note": "終末の時以降、神器を授かるたびに25%の確率で悪魔が現れる。"
+    },
+    "en": {
+      "url": "https://godfield.net/i18n/en.json",
+      "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+      "devils_note": "After the Apocalypse, a devil appears by 25% each time an artifact given."
+    }
+  },
+  "devil_metadata": [
+    {
+      "id": 240,
+      "imageName": "small-devil",
+      "category": "devils",
+      "ability": "dealDamage",
+      "abilityValue": 10,
+      "appearanceRate": 7,
+      "name": "小悪魔"
+    },
+    {
+      "id": 241,
+      "imageName": "medium-devil",
+      "category": "devils",
+      "ability": "dealDamage",
+      "abilityValue": 20,
+      "appearanceRate": 5,
+      "name": "中悪魔"
+    },
+    {
+      "id": 242,
+      "imageName": "large-devil",
+      "category": "devils",
+      "ability": "dealDamage",
+      "abilityValue": 30,
+      "appearanceRate": 3,
+      "name": "大悪魔"
+    },
+    {
+      "id": 243,
+      "imageName": "trickster",
+      "category": "devils",
+      "ability": "removeSomething",
+      "appearanceRate": 5,
+      "name": "イタズラマン"
+    },
+    {
+      "id": 244,
+      "imageName": "charity-fairy",
+      "category": "devils",
+      "ability": "boostSomething",
+      "abilityValue": 10,
+      "appearanceRate": 5,
+      "name": "めぐみの妖精"
+    }
+  ],
+  "helper_sha256": {
+    "reference_rate": "ce54283575fdb542b00c45e536bbe455cec25ea635d3d5f58b3f213d96e2bf85",
+    "serial_event_queue": "5739166d0efdee9ee322c025e1bbcccebdbb4da5dff8c3c5613ce703cee3597e",
+    "gift_use_receiver": "bb10a5fcf8da050f938556e95a46c261aa0e478334db1ced3f24487983d6dd01",
+    "placeholder_delivery": "e795e52ba508bb9f44f115ab97b73e87e0bfc65c59947f8e3ca9aaf96b091272",
+    "wire_instance_projection": "1f7d1754d63db97a0fd1aabec6ca63ccafa571e22ee5fefea3e60fb8efe48c0a",
+    "selection_cleanup": "c4a6e59e8a35816e56ac40baa34b34df85e3b751138286193cfc95fa89cfa03e",
+    "snapshot_decoder": "c72c7033d581b639966dc6786f76160380d1f3163219cabb64b2483006ab4e33",
+    "event_decoder": "a2c4ea34e8c271c7d687d5d5d347cb03d077bcf48ed7c8764aef4dba61d41ded"
+  },
+  "methods": [
+    "io.jh actual Reference rate formatter (card/text nodes stubbed)",
+    "ks.dT/la actual serial event queue including buffered reentrant batch",
+    "ks.k complete gift/useDevilItem branches",
+    "aC.dZ/hm actual existing-placeholder delivery and supplied physical ID/model assignment",
+    "fH.ed actual devil cleanup/replacement placeholder",
+    "tn/to actual snapshot/event decoders"
+  ],
+  "counts": {
+    "reference_rate_labels": 20,
+    "grant_widget_sequences": 12,
+    "snapshot_field_probes": 6,
+    "gift_field_probes": 4,
+    "total": 42
+  },
+  "reference_cases": [
+    {
+      "locale": "ja",
+      "model": 240,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 7,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "出現率: 7%"
+    },
+    {
+      "locale": "ja",
+      "model": 241,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "出現率: 5%"
+    },
+    {
+      "locale": "ja",
+      "model": 242,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 3,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "出現率: 3%"
+    },
+    {
+      "locale": "ja",
+      "model": 243,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "出現率: 5%"
+    },
+    {
+      "locale": "ja",
+      "model": 244,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "出現率: 5%"
+    },
+    {
+      "locale": "ja",
+      "model": 6,
+      "category": "weapons",
+      "metadata": {
+        "gift_rate": 3,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "授かり率: 3/500"
+    },
+    {
+      "locale": "ja",
+      "model": 207,
+      "category": "sundries",
+      "metadata": {
+        "gift_rate": 1,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "授かり率: 1/500"
+    },
+    {
+      "locale": "ja",
+      "model": 245,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 6
+      },
+      "rendered_label": "行動率: 30%"
+    },
+    {
+      "locale": "ja",
+      "model": 249,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 2
+      },
+      "rendered_label": "行動率: 10%"
+    },
+    {
+      "locale": "ja",
+      "model": 285,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": null
+    },
+    {
+      "locale": "en",
+      "model": 240,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 7,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Appearance: 7%"
+    },
+    {
+      "locale": "en",
+      "model": 241,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Appearance: 5%"
+    },
+    {
+      "locale": "en",
+      "model": 242,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 3,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Appearance: 3%"
+    },
+    {
+      "locale": "en",
+      "model": 243,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Appearance: 5%"
+    },
+    {
+      "locale": "en",
+      "model": 244,
+      "category": "devils",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 5,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Appearance: 5%"
+    },
+    {
+      "locale": "en",
+      "model": 6,
+      "category": "weapons",
+      "metadata": {
+        "gift_rate": 3,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Gift Rate: 3/500"
+    },
+    {
+      "locale": "en",
+      "model": 207,
+      "category": "sundries",
+      "metadata": {
+        "gift_rate": 1,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": "Gift Rate: 1/500"
+    },
+    {
+      "locale": "en",
+      "model": 245,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 6
+      },
+      "rendered_label": "Action: 30%"
+    },
+    {
+      "locale": "en",
+      "model": 249,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 2
+      },
+      "rendered_label": "Action: 10%"
+    },
+    {
+      "locale": "en",
+      "model": 285,
+      "category": "guardians",
+      "metadata": {
+        "gift_rate": 0,
+        "appearance_rate": 0,
+        "guardian_attack_rate": 0
+      },
+      "rendered_label": null
+    }
+  ],
+  "grant_sequences": [
+    {
+      "label": "two-devils-then-ordinary-one-reserved-slot",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 244
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 244
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 103,
+              "modelId": 6
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 103,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 240
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-boost-something"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 244
+          },
+          {
+            "kind": "removed-widget",
+            "token": 102,
+            "model": 244
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "last-empty-devil-suppresses-normal-sort",
+      "viewer": "self",
+      "initial_slots": [
+        null,
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 100,
+              "modelId": 6
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 8
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 100,
+              "model": 6,
+              "empty": false,
+              "used": false
+            },
+            {
+              "token": 102,
+              "model": 8,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 2,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 240
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "devil-use-prefix-without-supplied-next-gift",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 0,
+              "model": 0,
+              "empty": true,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 1,
+        "sorts": 0,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 240
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "gift-devil-only-does-not-auto-use",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 101,
+              "model": 240,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 0,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "ordinary-only",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 6
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 101,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "separate-server-batches-control-boundary",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          }
+        ],
+        [
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 6
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 101,
+              "model": 240,
+              "empty": false,
+              "used": false
+            }
+          ],
+          [
+            {
+              "token": 102,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 2,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "activate-controls"
+          },
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 240
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "retained-and-ordinary-widgets-keep-their-slots",
+      "viewer": "self",
+      "initial_slots": [
+        {
+          "id": 80,
+          "modelId": 235,
+          "used": true
+        },
+        null,
+        {
+          "id": 81,
+          "modelId": 6
+        }
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 241
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 241
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 8
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 80,
+              "model": 235,
+              "empty": false,
+              "used": true
+            },
+            {
+              "token": 102,
+              "model": 8,
+              "empty": false,
+              "used": false
+            },
+            {
+              "token": 81,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 3,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-2"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 241
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 241
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "no-empty-widget-is-not-an-additive-gift",
+      "viewer": "self",
+      "initial_slots": [
+        {
+          "id": 80,
+          "modelId": 6
+        }
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 8
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": true,
+        "snapshots": [
+          [
+            {
+              "token": 80,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 0,
+        "control_activations": 0,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "wire-model0-is-not-local-normal-selector",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 0
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": true,
+        "snapshots": [
+          [
+            {
+              "token": 101,
+              "model": 0,
+              "empty": true,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 1,
+        "sorts": 0,
+        "control_activations": 0,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "reentrant-server-batch-is-queued-not-interleaved",
+      "viewer": "self",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": [
+        {
+          "action": "gift",
+          "playerId": 42,
+          "item": {
+            "id": 102,
+            "modelId": 6
+          }
+        }
+      ],
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 102,
+              "model": 6,
+              "empty": false,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 0,
+        "sorts": 1,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "removed-widget",
+            "token": 101,
+            "model": 240
+          },
+          {
+            "kind": "placeholder-open"
+          },
+          {
+            "kind": "placeholder-close"
+          },
+          {
+            "kind": "sort"
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "other-viewer-does-not-receive-private-gift-widgets",
+      "viewer": "foreign",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 6
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 0,
+              "model": 0,
+              "empty": true,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 1,
+        "sorts": 0,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    },
+    {
+      "label": "other-viewer-does-not-receive-private-gift-widgets",
+      "viewer": "spectator",
+      "initial_slots": [
+        null
+      ],
+      "event_batches": [
+        [
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 42,
+            "item": {
+              "id": 101,
+              "modelId": 240
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 42,
+            "item": {
+              "id": 102,
+              "modelId": 6
+            }
+          }
+        ]
+      ],
+      "reentrant_appended_events": null,
+      "result": {
+        "error": false,
+        "snapshots": [
+          [
+            {
+              "token": 0,
+              "model": 0,
+              "empty": true,
+              "used": false
+            }
+          ]
+        ],
+        "hand_count": 1,
+        "empty_count": 1,
+        "sorts": 0,
+        "control_activations": 1,
+        "remaining_event_queue": 0,
+        "log": [
+          {
+            "kind": "disable-controls"
+          },
+          {
+            "kind": "sound",
+            "sound": "devil-to-deal-damage-1"
+          },
+          {
+            "kind": "devil-pane",
+            "side": 1,
+            "player": 42
+          },
+          {
+            "kind": "devil-art",
+            "model": 240
+          },
+          {
+            "kind": "activate-controls"
+          }
+        ]
+      }
+    }
+  ],
+  "snapshot_cases": [
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    },
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10,
+        "gifts": 9
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    },
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10,
+        "pendingGrants": 9
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    },
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10,
+        "grantDebt": 9,
+        "grantCursor": 2
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    },
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10,
+        "devilInProgress": true
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    },
+    {
+      "input": {
+        "players": [
+          {
+            "id": 42,
+            "userId": "recipient",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "id": 101,
+                "modelId": 240
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreakGF": 50,
+        "attackTurnPlayerId": 42,
+        "updateCount": 10,
+        "grantChain": [
+          240,
+          244,
+          6
+        ]
+      },
+      "decoded": {
+        "player_items": [
+          {
+            "id": 42,
+            "items": [
+              {
+                "token": 101,
+                "model": 240,
+                "fake": 0,
+                "used": false
+              }
+            ]
+          }
+        ],
+        "gf": 50,
+        "tiebreak_gf": 50,
+        "attack_turn_player": 42,
+        "attack": null,
+        "is_over": false,
+        "event_count": 0,
+        "update_count": 10
+      },
+      "note": "The named extra keys are adversarial probes,not documented official wire fields. The client decoder does not project them."
+    }
+  ],
+  "event_cases": [
+    {
+      "input": {
+        "action": "gift",
+        "playerId": 42,
+        "item": {
+          "id": 101,
+          "modelId": 240
+        }
+      },
+      "decoded": {
+        "action": "gift",
+        "player_id": 42,
+        "item": {
+          "token": 101,
+          "model": 240,
+          "fake": 0,
+          "used": false
+        }
+      },
+      "note": "No replacement/debt/chain selector is decoded by this event path."
+    },
+    {
+      "input": {
+        "action": "gift",
+        "playerId": 42,
+        "item": {
+          "id": 101,
+          "modelId": 240
+        },
+        "replacement": true
+      },
+      "decoded": {
+        "action": "gift",
+        "player_id": 42,
+        "item": {
+          "token": 101,
+          "model": 240,
+          "fake": 0,
+          "used": false
+        }
+      },
+      "note": "No replacement/debt/chain selector is decoded by this event path."
+    },
+    {
+      "input": {
+        "action": "gift",
+        "playerId": 42,
+        "item": {
+          "id": 101,
+          "modelId": 240
+        },
+        "replacement": false,
+        "additive": true
+      },
+      "decoded": {
+        "action": "gift",
+        "player_id": 42,
+        "item": {
+          "token": 101,
+          "model": 240,
+          "fake": 0,
+          "used": false
+        }
+      },
+      "note": "No replacement/debt/chain selector is decoded by this event path."
+    },
+    {
+      "input": {
+        "action": "gift",
+        "playerId": 42,
+        "item": {
+          "id": 101,
+          "modelId": 240
+        },
+        "grantDebt": 9,
+        "grantChainId": 17
+      },
+      "decoded": {
+        "action": "gift",
+        "player_id": 42,
+        "item": {
+          "token": 101,
+          "model": 240,
+          "fake": 0,
+          "used": false
+        }
+      },
+      "note": "No replacement/debt/chain selector is decoded by this event path."
+    }
+  ],
+  "local_adapter_boundary": {
+    "enabled": "opt-in experimental reserved-grant phase4,not a phase inferred from these source widgets",
+    "ordinary_selector": "local action model0 requests the existing236-model499-ticket normal draw;it is not official gift.item.modelId0",
+    "devil_selector": "caller explicitly supplies model240..244 and validated DevilAction resource/removal choice;no automatic appearance/resource/copy selector",
+    "quota_and_retry": "original grant debt persists across supplied devil effects and is completed by an ordinary draw;this is an explicit local continuation contract",
+    "decision_bound": "per-resolver decision charging and max-decisions cutoff are local bounded execution semantics,not client-generated chain facts",
+    "unchanged": "old default grant behavior;no automatic25percent roll,new distribution or hidden choice leakage implied by this evidence"
+  },
+  "conclusions": [
+    "The actual Reference UI prints appearanceRate7%,5%,3%,5%,5% for the five devils. Their sum25% matches JA/EN prose. In contrast,ordinary artifact giftRate is displayed over all-currentcatalog500,and canonical guardian rates over20. These are different published quantities,not a shared arbitrary-weight display.",
+    "The real dZ/hm delivery overwrites the first existing empty widget. The hand array doesnot append a new slot. useDevilItem cleanup replaces that devil with another empty placeholder. Two supplied devils followed by an ordinary artifact still finish with exactly one occupied slot.",
+    "When the last empty widget receives a devil,the gift branch suppresses the ordinary final sort. A later supplied ordinary artifact fills the same reserved slot and allows the final sort. Retained miracle and unrelated ordinary widgets stay in their original hand array.",
+    "The serial event queue disables controls,awaits supplied events inFIFOorder,andreactivates only after the supplied queue empties. Reentrant supplied events are buffered. It never generates another gift or automatic devil usage by observing a devil category.",
+    "A supplied devil-only gift can leave a devil widget without auto-use,and a supplied gift/useDevilItem prefix can finish with an empty placeholder and controls active. Therefore the next replacement grant,chain stop and pending-debt phase are not enforced by the public receiver.",
+    "Snapshot/item/event decoders project explicit item records and normalworld metadata,not a grant quota,debt,cursor,chain selector or appearance RNG. Rawgift model0 fails the real hm model lookup and isnot a normal-artifact selection request."
+  ],
+  "limitations": [
+    "No official RNG staging,weighted-devil draw algorithm,resource244 distribution,243copy selector,threshold-crossing timing,server future-event generation,recipient ordering,death/revival interruption or recursive gift/devil chain is reconstructed. Published appearance percentages do not prove those implementation details.",
+    "The proposed phase4,original-debt retention/retry,one-resolution budget charge and cutoff cancellation are explicit local adapter contracts. Forced sample sequences are display/control-flow evidence only,not observed server traces or server acceptance tests.",
+    "The ordinary Reference denominator500includes207,while the current executable normalpool remains236/499andowned207usesexternal fate. The sourceformatter mustnot be misreported as a new normal executablepool.",
+    "Unknown extra wire keys in decoder probes are synthetic adversarial inputs,not claims the server sends those fields. Absence from this projection cannot rule out other unobserved backend state or transport messages.",
+    "DOM construction,placeholder animations,selection highlights,layout/sounds and final control widget sinks are stubbed. The queue/receiver/delivery/cleanup/Reference formatter anddecoders execute unchanged. No application startup,backend,account,timer or network connection runs."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_grant_oracle.cjs --client /path/main.dart.js --locale-ja /path/ja.json --locale-en /path/en.json [--check]"
+}

@@ -111,7 +111,11 @@ Outcome outcome(const SnapshotState& state) {
     for (const auto& p : state.players) if (p.team == first->team) result.winners.push_back(p.id);
     return result;
 }
+void sync_grant_proof(MatchSnapshot& s) {
+    if (s.grant_proof && s.batch) s.grant_proof=*s.batch;
+}
 void finish(MatchSnapshot& s, const Outcome& result) {
+    sync_grant_proof(s); s.pending_grant.reset();
     s.terminated = true; s.truncated = false; s.state.is_over = true;
     s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.deaths.clear(); s.purchase.reset();
     std::fill(s.gifts.begin(), s.gifts.end(), 0);
@@ -210,6 +214,7 @@ ResponseContext response_context(const MatchSnapshot& s) {
     return {has_curse(s.state.players[index(s, effect.target)], Curse::flash), effect.category, effect.element, damaging(effect)};
 }
 std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool confusion_command=false) {
+    if (s.phase==MatchPhase::grant) unsupported("grant outcome must be supplied by an external chance driver");
     require(s.phase != MatchPhase::finished && s.actor && *s.actor == command.actor, "wrong actor or finished match");
     if (static_cast<unsigned>(command.kind) > 9) unsupported("unsupported match command kind");
     require(command.kind == CommandKind::exchange || !command.allocation, "only exchange accepts a resource allocation");
@@ -669,11 +674,15 @@ void advance(MatchSnapshot& s) {
     if (!external && next_automatic_guardian(s)) return;
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
         while (s.gifts[seat]) {
-            if (!s.state.players[seat].dead) gift(s, seat);
-            --s.gifts[seat];
+            if (s.state.players[seat].dead) { s.gifts[seat]=0; break; }
+            if (s.config.external_grants && apocalypse_active(s.state)) {
+                s.pending_grant=s.state.players[seat].id; s.actor.reset(); s.phase=MatchPhase::grant;
+                s.grant_proof=*s.batch; return;
+            }
+            gift(s,seat); --s.gifts[seat];
         }
     }
-    s.batch.reset();
+    sync_grant_proof(s); s.batch.reset();
     if (external && !owner.dead) { s.actor = s.owner; s.phase = MatchPhase::main; return; }
     const auto old = index(s, s.owner);
     for (std::size_t offset = 1; offset <= s.state.players.size(); ++offset) {
@@ -827,7 +836,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset(); s.pending_grant.reset(); s.grant_proof.reset(); s.last_grant.reset();
     s.last_auto_guardians.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -841,7 +850,7 @@ ActionBatch action_anchor(const MatchSnapshot& s) {
     batch.revivals = s.revivals;
     batch.dream_rolls = s.dream_rolls; batch.dream_masks = s.dream_masks;
     batch.redraws = s.redraws; batch.redrawn_items = s.redrawn_items;
-    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions; batch.phenomenon_actions=s.phenomenon_actions; batch.fate_actions=s.fate_actions; batch.devil_actions=s.devil_actions;
+    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions; batch.phenomenon_actions=s.phenomenon_actions; batch.fate_actions=s.fate_actions; batch.devil_actions=s.devil_actions; batch.grant_resolutions=s.grant_resolutions; batch.grant_artifacts=s.grant_artifacts; batch.grant_devils=s.grant_devils;
     batch.guardian_summons=s.guardian_summons; batch.guardian_opportunities=s.guardian_opportunities; batch.auto_guardian_actions=s.auto_guardian_actions;
     batch.guardian_departure_rolls=s.guardian_departure_rolls; batch.guardian_departures=s.guardian_departures;
     batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
@@ -859,7 +868,7 @@ MatchSnapshot snapshot_from_anchor(const ActionBatch& batch, const MatchConfig& 
     replay.revivals = batch.revivals;
     replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
     replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
-    replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions; replay.fate_actions=batch.fate_actions; replay.devil_actions=batch.devil_actions;
+    replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions; replay.fate_actions=batch.fate_actions; replay.devil_actions=batch.devil_actions; replay.grant_resolutions=batch.grant_resolutions; replay.grant_artifacts=batch.grant_artifacts; replay.grant_devils=batch.grant_devils;
     replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
     replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
     replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
@@ -873,10 +882,12 @@ void complete_decision(MatchSnapshot& s, bool completed) {
     if (natural.terminal) finish(s, natural);
     else if (s.decisions == s.config.max_decisions) {
         if (s.purchase) complete_purchase(s, PurchaseReason::cutoff);
+        sync_grant_proof(s); s.pending_grant.reset();
         s.truncated = true; s.phase = MatchPhase::finished; s.actor.reset(); s.queue.clear(); s.batch.reset(); s.counters.clear(); s.deaths.clear(); std::fill(s.gifts.begin(), s.gifts.end(), 0);
     } else if (completed) {
         if (!next_action_effect(s)) advance(s);
     }
+    sync_grant_proof(s);
 }
 void execute_guardian(MatchSnapshot& s, const GuardianAction& action) {
     prepare_guardian(s, action);
@@ -1006,8 +1017,7 @@ void execute_fate(MatchSnapshot& s, const FateAction& action) {
     }
     complete_decision(s,completed);
 }
-void prepare_devil(const MatchSnapshot& s, const DevilAction& action) {
-    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated,"devil effect requires a main boundary");
+void devil_shape(const MatchSnapshot& s, const DevilAction& action) {
     if (!match_devil_supported(action.model)) unsupported("unsupported devil model");
     const auto& target=s.state.players[index(s,action.target)]; require(!target.dead,"devil recipient is dead");
     require(action.removed.size()<=2,"oversized devil removal manifest");
@@ -1020,21 +1030,27 @@ void prepare_devil(const MatchSnapshot& s, const DevilAction& action) {
                 && (!i || action.removed[i]!=action.removed[0]),"unknown or duplicate devil removal token");
     } else require(action.removed.empty(),"only trickster accepts removed copies");
 }
-void execute_devil(MatchSnapshot& s, const DevilAction& action) {
-    prepare_devil(s,action); clear_events(s); auto anchor=action_anchor(s); auto batch=anchor;
-    batch.devil_action=action; batch.models={action.model}; batch.tick_processed=true; s.batch=std::move(batch);
-    s.last_devil=DevilRecord{std::move(anchor),action,{}}; s.last_devil_event=DevilEvent{action.target,action.model,{}};
-    ++s.devil_actions; auto& target=s.state.players[index(s,action.target)];
+void prepare_devil(const MatchSnapshot& s, const DevilAction& action) {
+    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated,"devil effect requires a main boundary"); devil_shape(s,action);
+}
+DevilEvent apply_devil_body(MatchSnapshot& s, const DevilAction& action) {
+    DevilEvent event{action.target,action.model,{}}; auto& target=s.state.players[index(s,action.target)];
     if (action.model<=242) {
         const auto hp=target.hp; change_resource(target,Resource::hp,-find_card(action.model)->ability_value);
         guardian_damage(s,target,hp-target.hp);
     } else if (action.model==243) {
         for (const auto token:action.removed) {
             auto item=std::find_if(target.items.begin(),target.items.end(),[&](const auto& copy){return copy.token==token;});
-            reveal_item(s,target.id,*item); s.last_devil_event->removed_models.push_back(item->model); target.items.erase(item);
+            reveal_item(s,target.id,*item); event.removed_models.push_back(item->model); target.items.erase(item);
         }
     } else change_resource(target,*action.resource,find_card(action.model)->ability_value);
-    finalize_deaths(s); complete_decision(s,true);
+    finalize_deaths(s); return event;
+}
+void execute_devil(MatchSnapshot& s, const DevilAction& action) {
+    prepare_devil(s,action); clear_events(s); auto anchor=action_anchor(s); auto batch=anchor;
+    batch.devil_action=action; batch.models={action.model}; batch.tick_processed=true; s.batch=std::move(batch);
+    s.last_devil=DevilRecord{std::move(anchor),action,{}}; s.last_devil_event=DevilEvent{action.target,action.model,{}};
+    ++s.devil_actions; s.last_devil_event=apply_devil_body(s,action); complete_decision(s,true);
 }
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false) {
@@ -1151,6 +1167,38 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
     }
     complete_decision(s, completed);
 }
+void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
+    require(s.phase==MatchPhase::grant && !s.actor && s.pending_grant==action.target && s.batch
+        && s.config.external_grants && apocalypse_active(s.state) && !s.terminated && !s.truncated,"grant needs the current environment recipient");
+    const auto seat=index(s,action.target); require(!s.state.players[seat].dead && s.gifts[seat]>0,"missing live gift debt");
+    if (!match_grant_supported(action.model)) unsupported("unsupported grant outcome");
+    if (action.model==0) require(!action.resource && action.removed.empty(),"ordinary grant has inactive devil fields");
+    else devil_shape(s,action);
+}
+void execute_grant(MatchSnapshot& s, const GrantAction& action) {
+    prepare_grant(s,action); const auto seat=index(s,action.target);
+    s.batch->grants.push_back({s.batch->responses.size(),action});
+    s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
+    if (!action.model) {
+        gift(s,seat); --s.gifts[seat]; ++s.grant_artifacts; s.last_grant=DevilEvent{action.target,0,{}};
+    } else {
+        ++s.grant_devils; s.last_grant=apply_devil_body(s,action);
+        if (s.state.players[seat].dead) s.gifts[seat]=0;
+    }
+    complete_decision(s,true);
+}
+void replay_launch(MatchSnapshot& replay,const ActionBatch& journal) {
+    const auto sources=static_cast<unsigned>(journal.fate_action.has_value())+static_cast<unsigned>(journal.devil_action.has_value())
+        +static_cast<unsigned>(journal.phenomenon_action.has_value())+static_cast<unsigned>(journal.guardian_action.has_value())
+        +static_cast<unsigned>(journal.guardian_payload_action.has_value());
+    require(sources<=1,"mixed original grant action sources");
+    if (journal.fate_action) execute_fate(replay,*journal.fate_action);
+    else if (journal.devil_action) execute_devil(replay,*journal.devil_action);
+    else if (journal.phenomenon_action) execute_phenomenon(replay,*journal.phenomenon_action);
+    else if (journal.guardian_payload_action) execute_guardian_payload(replay,*journal.guardian_payload_action);
+    else if (journal.guardian_action) execute_guardian(replay,*journal.guardian_action);
+    else execute(replay,journal.attack,journal.confusion_command);
+}
 void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
     const auto n = s.state.players.size();
@@ -1165,7 +1213,36 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.guardian_actions <= s.decisions && s.guardian_payload_actions<=s.decisions-s.guardian_actions
         && s.phenomenon_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions
         && s.fate_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions
-        && s.devil_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions-s.fate_actions,"invalid external activation counts");
+        && s.devil_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions-s.fate_actions
+        && s.grant_resolutions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions-s.fate_actions-s.devil_actions,"invalid external activation counts");
+    require(s.grant_artifacts<=s.grant_resolutions && s.grant_devils==s.grant_resolutions-s.grant_artifacts
+        && (!s.grant_resolutions || (s.config.external_grants && apocalypse_active(s.state))),"invalid grant outcome counters");
+    require(s.pending_grant.has_value()==(s.phase==MatchPhase::grant)
+        && (!(s.pending_grant || s.last_grant) || s.grant_proof.has_value()),"grant phase or notice lacks its journal");
+    if (s.grant_proof) {
+        const auto& journal=*s.grant_proof;
+        require(s.config.external_grants && journal.initial_state.players.size()==n && journal.decisions<s.decisions
+            && journal.attack.items.size()<=s.config.hand_limit && journal.models.size()<=visible_hand_capacity
+            && journal.targets.size()<=2*(n-1) && journal.responses.size()<s.config.max_decisions && journal.grants.size()<s.config.max_decisions
+            && journal.responses.size()+journal.grants.size()==s.decisions-journal.decisions-1,"invalid original grant journal shape");
+        for (const auto& player:journal.initial_state.players) require(player.items.size()<=s.config.hand_limit,"oversized grant anchor inventory");
+        for (const auto& response:journal.responses) require(response.items.size()<=s.config.hand_limit,"oversized grant journal response");
+        for (const auto& entry:journal.grants) require(entry.action.removed.size()<=2 && entry.responses_before<=journal.responses.size(),"oversized grant resolution entry");
+        if (journal.fate_action) { require(journal.fate_action->outcome.guardians.size()<=player_capacity,"oversized original fate array");
+            if (journal.fate_action->shuffle) require(journal.fate_action->shuffle->order.size()<=player_capacity*visible_hand_capacity,"oversized original fate shuffle"); }
+        if (journal.devil_action) require(journal.devil_action->removed.size()<=2,"oversized original devil selection");
+        if (journal.phenomenon_action) require(journal.phenomenon_action->guardians.size()<=player_capacity,"oversized original phenomenon array");
+        if (journal.guardian_payload_action) require(journal.guardian_payload_action->models.size()<=visible_hand_capacity,"oversized original guardian payload");
+        closed_state(journal.initial_state,s.config); auto replay=snapshot_from_anchor(journal,s.config); validate_snapshot(replay); replay_launch(replay,journal);
+        std::size_t response_cursor=0;
+        for (const auto& entry:journal.grants) {
+            require(entry.responses_before>=response_cursor,"grant journal response prefix moved backwards");
+            while (response_cursor<entry.responses_before) execute(replay,journal.responses[response_cursor++]);
+            execute_grant(replay,entry.action);
+        }
+        while (response_cursor<journal.responses.size()) execute(replay,journal.responses[response_cursor++]);
+        require(replay.grant_proof && *replay.grant_proof==journal && replay==s,"grant journal does not reproduce the complete snapshot"); return;
+    }
     require(s.last_fate.has_value()==s.last_fate_event.has_value(),"fate notice and launch proof must coexist");
     require(s.last_devil.has_value()==s.last_devil_event.has_value(),"devil notice and launch proof must coexist");
     if (s.last_devil) {
@@ -1403,7 +1480,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     {
         require(s.batch.has_value(), "pending effect is missing its launch journal");
         const auto& batch = *s.batch;
-        require(!batch.fate_action && !batch.devil_action && batch.owner == s.owner && batch.initial_state.players.size() == n
+        require(batch.grants.empty() && !batch.fate_action && !batch.devil_action && batch.owner == s.owner && batch.initial_state.players.size() == n
             && !(batch.guardian_action && batch.guardian_payload_action)
             && !(batch.phenomenon_action && (batch.guardian_action || batch.guardian_payload_action))
             && !(batch.confusion_command && (batch.phenomenon_action || batch.guardian_action || batch.guardian_payload_action))
@@ -1468,6 +1545,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
+bool match_grant_supported(CardId id) noexcept { return id==0 || match_devil_supported(id); }
 bool match_devil_supported(CardId id) noexcept { return id>=240 && id<=244; }
 bool match_fate_supported(CardId id) noexcept { return id==207; }
 bool match_item_shuffle_supported(CardId id) noexcept { return id==295; }
@@ -1535,6 +1613,12 @@ MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
 }
+bool Match::grant_legal(const GrantAction& action) const noexcept {
+    try { prepare_grant(data_,action); return true; } catch (...) { return false; }
+}
+MatchStep Match::grant_step(const GrantAction& action) {
+    auto next=data_; execute_grant(next,action); auto output=result(next); data_=std::move(next); return output;
+}
 bool Match::devil_legal(const DevilAction& action) const noexcept {
     try { prepare_devil(data_,action); return true; } catch (...) { return false; }
 }
@@ -1560,6 +1644,7 @@ MatchStep Match::guardian_step(const GuardianAction& action) {
     auto next = data_; execute_guardian(next,action); const auto output = result(next); data_ = std::move(next); return output;
 }
 Command Match::sample_action(std::uint64_t& policy_rng) const {
+    if (data_.phase==MatchPhase::grant) unsupported("grant selection must be supplied by an external chance driver");
     require(!done() && data_.actor.has_value(), "cannot sample a finished match");
     auto rng = policy_rng;
     const auto actor = *data_.actor;
@@ -1706,9 +1791,9 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
     auto next=data_; execute_guardian_payload(next,action); auto output=result(next); data_=std::move(next); return output;
 }
 std::string Match::observe(std::optional<PlayerId> viewer) const {
-    const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
+    const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v38\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v39\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1747,7 +1832,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"confusion_rule\":\""; out += confusion_rule;
     out += "\",\"fate_rule\":\""; out += fate_rule;
     out += "\",\"devil_rule\":\""; out += devil_rule;
-    out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
+    out += "\",\"grant_rule\":\""; out += grant_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
     out += ",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
@@ -1759,6 +1845,16 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += guardian_name(find_card(action.model)->guardian); out += "\",\"target\":";
         out += action.target ? std::to_string(*action.target) : "null"; out += '}';
     };
+    out += ",\"pending_grant\":";
+    if (data_.pending_grant) out+="{\"target\":"+std::to_string(*data_.pending_grant)+'}'; else out+="null";
+    out += ",\"last_grant\":";
+    if (!data_.last_grant) out+="null";
+    else {
+        const auto& event=*data_.last_grant; out+="{\"target\":"+std::to_string(event.target)+",\"devil\":";
+        out+=event.model?std::to_string(event.model):"null"; out+=",\"removed_models\":[";
+        for (std::size_t i=0;i<event.removed_models.size();++i) {if(i)out+=',';out+=std::to_string(event.removed_models[i]);}
+        out+="]}";
+    }
     out += ",\"last_devil\":";
     if (!data_.last_devil_event) out+="null";
     else {

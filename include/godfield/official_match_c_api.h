@@ -12,7 +12,7 @@ extern "C" {
 typedef struct gfo_match gfo_match;
 typedef struct gfo_match_config {
     uint32_t max_decisions;
-    uint8_t initial_hand, hand_limit, reserved[2];
+    uint8_t initial_hand, hand_limit, external_grants, reserved[1]; // external_grants strictly0/1, default0.
     int32_t initial_hp, initial_mp, initial_cp;
     uint8_t reserved_tail[4];
 } gfo_match_config;
@@ -59,12 +59,13 @@ typedef struct gfo_match_devil_action {
     uint16_t model;
     uint8_t resource, has_resource, removed_count, reserved[3];
 } gfo_match_devil_action;
+typedef gfo_match_devil_action gfo_match_grant_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
     double rewards[9];
     uint64_t winners[9];
-    uint8_t player_count, winner_count, phase, has_actor, terminated, truncated, reserved[2]; // main0/response1/finished2/purchase3
+    uint8_t player_count, winner_count, phase, has_actor, terminated, truncated, reserved[2]; // main0/response1/finished2/purchase3/grant4(no actor)
 } gfo_match_status;
 
 int gfo_match_abi_version(void);
@@ -90,6 +91,8 @@ size_t gfo_match_fate_action_size(void);
 int gfo_match_fate_supported(uint16_t model);
 size_t gfo_match_devil_action_size(void);
 int gfo_match_devil_supported(uint16_t model);
+size_t gfo_match_grant_action_size(void);
+int gfo_match_grant_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -142,6 +145,11 @@ int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* action, g
 // owned tokens;244 requires resource HP0/MP1/CP2. All inactive fields are zero.
 int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* action, uint8_t* out);
 int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action, gfo_match_status* out);
+// Opt-in apocalypse reserved-gift continuation. Only the pending recipient may
+// be selected. Model0 draws one normal artifact;240..244 apply a supplied devil
+// and retain the original debt. Each resolution is one decision, not a selector.
+int gfo_match_grant_legal(const gfo_match* match, const gfo_match_grant_action* action, uint8_t* out);
+int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

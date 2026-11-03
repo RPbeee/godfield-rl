@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v40";
-inline constexpr const char* match_scope = "experimental:236-models;external207;external-devils;threshold-sacrifice;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v41";
+inline constexpr const char* match_scope = "experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -39,7 +39,7 @@ inline constexpr const char* redraw_rule = "experimental:response-only178;consum
 inline constexpr const char* guardian_rule = "experimental:canonical42-only;auto-after-ordinary-owner-tick-before-gifts;alive-enemy-sources-in-input-order;one-quarter-opportunity-draw-per-present-source;weighted6-5-4-3-2-for-first8;earth285-moon286-fixed-singleton-move-draw;uniform-alive-enemy-for-atk-curse-bribe-takecp-otherwise-alive-allies-including-self;singleton-target-draw;280-all-alive-no-target-draw;single-target-percent-and-darkcloud;no-fog-reselection;counter-death-fifo-before-next-source;stop-on-main-owner-death;no-internal-decisions-or-source-fee-gift;external-main-boundary-one-decision-no-auto-followup;earth-moon-general-selection-unsupported";
 inline constexpr const char* guardian_summon_rule = "experimental:201-and239-current-target;uniform-all10-in-enum-order;one-draw-including-resummon-same-type;normal-consumption-mp-retention-and-gift";
 inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
-inline constexpr std::uint32_t match_snapshot_version = 40;
+inline constexpr std::uint32_t match_snapshot_version = 41;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 inline constexpr const char* guardian_payload_rule = "experimental:externally-selected-earth-moon-ordinary-model-columns;main-boundary-one-decision;alive-source-owns-explicit-guardian;all-models-in-guardian-category-domain-and-supported;actual-main-append;max18-models;earth120-moon26-standalone-bases;trade-danger-passive-response-only-bases-unsupported;mixed-domain-and-wide-unsupported;explicit-single-alive-target;14-two-fresh-hits-same-target;single-target-percent-and-darkcloud-no-reroll;no-fog-or-dream-reselection;no-source-inventory-retention-ordinary-mp-fee-or-operation-gift;58-launch-source-mp-times2-then-mp0-once;202-one-launch-sign;fixed-origin-guardian-and-launch-values-through-redirects;ordinary-response-counter-death-redraw-and-deferred-gifts;no-owner-tick-gf-or-auto-followup;resume-owner-or-next-alive;general-selector-unsupported";
 inline constexpr const char* phenomenon_rule = "experimental:external-source-free-phenomena287-288-289-290-291-292-293-294-296;main-boundary-one-injection-decision;global5-unchanged-from-v34-plus289-alive-count-plus3-immediate-atomic-no-rng;targeted291-light50-292-dark30-at75-percent-293-hpplus50-cap99;explicit-single-alive-recipient291-to294;no-target-selector-wide-or-fog-reselection;targeted3-always-response-after-single-target-chance-and-darkcloud;environmental-frame-origin-source-absent-not-player0;190-consume-and-reserve-response-gift-then-cancel-without-return-recipient;source-directed-counters-not-created-without-source;187-self-mp-counter-and112-death-use-real-player-sources;ordinary-defense-filter-revival-death-redraw-and-deferred-gifts;targeted3-original-action-anchor-and-full-response-replay;no-owner-tick-gf-auto-source-items-mp-fee-or-operation-gift;resume-owner-or-next-alive-with-natural-before-cutoff;287-direct-fever-replacement-no-upgrade-or-heavenfall;288-idempotent-fog;290-direct-hp1-not-damage;294-sum-alive-cp-then-zero-all-before-recipient-cap99;296-exact-alive-count-explicit-guardian1-to10;guardian-changes-event-time-fog-filtered;public-model-recipient-only-no-assignment-array-or-cp-total;207-selector-unsupported-owned207-requires-fate-api;289-counts-require-dedicated-confusion-command-api;295-requires-dedicated-item-shuffle-api";
@@ -48,6 +48,8 @@ inline constexpr const char* confusion_rule = "experimental:external-resolved-co
 inline constexpr const char* fate_rule = "experimental:external-outcome-owned207-only;standard-pool236-weight499-unchanged;207-scene-only-special-capability-no-gift-or-earth-payload;main-owner-single-actual-unused-unmasked207-token;normal207-play-and-sampler-generation-unsupported-discard-and-trade-inert;explicit-one-of-ten-phenomena-no-selector-or-selector-rng;generic9-outcome-shape-and295-only-exact-post-consumption-alive-copy-manifest;reserved-operation-gift-excluded-from-shuffle;one-normal-main-decision-single207-consumption-and-one-reserved-gift-no-mp-fee;positive-confusion-one-pre-outcome-debit;source-free-targeted291-292-293-with-ordinary-response-counter-death-redraw;global6-and295-immediate-body-before-cutoff;ordinary-owner-tick-auto-guardian-deferred-gifts-gf-next-owner-after-whole-action;natural-before-cutoff-pending-response-cancellation-as-normal;private-pre207-nonrecursive-anchor-full-action-and-response-replay-through-completion;public-actor-model207-outcome-model-only-plus-existing-phenomenon-recipient-no-token-manifest-or-count;failure-rolls-back-before207-use;server-outcome-distribution-targets-and-schedule-unverified";
 inline constexpr const char* devil_rule = "experimental:external240-to244-explicit-alive-target-only;main-boundary-one-external-decision;no-owned-devil-or-gift-selector-tiebreak-threshold-sacrifice-or-cascade;standard236-weight499-and-special207-unchanged;240-241-242-direct-hp-minus10-20-30-no-initial-response-def-reflection-or-counter;positive-hp-loss-uses-local-ten-percent-guardian-departure;243-exact-min2-physical-copies-distinct-owned-token-order-including-used-passives207;no-removal-rng-gift-or-ability-trigger;local-allviewer-actual-model-list-and-existing-fake-reveal-not-server-fanout-proof;244-explicit-hp-mp-cp-plus10-cap99;inactive-resource-and-removal-fields-rejected;shared208-revival112-death-and-response-counter-fifo;no-operation-cost-gift-owner-tick-gf-auto-or-confusion-debit;revival-gift-uses-existing-pool-without-new-devil-roll;resume-live-owner-or-next-alive-without-gf;natural-before-cutoff-body-before-pending-cancel;private-preaction-nonrecursive-anchor-full-response-replay-through-completion;public-model-target-removed-models-only-no-resource-token-or-anchor;failure-atomic;appearance-rate-resource-and-copy-choice-and-server-schedule-unverified";
 inline constexpr const char* apocalypse_rule = "experimental:decoded-nonnegative-safe-tiebreak-gf-or-null;active-iff-threshold-present-and-current-gf-at-least-threshold;raw0-active-from-gf0-local-domain-not-an-extra-ui-preset;default-reset-threshold-null-and-standard236-weight499-special207-unchanged;main-discard-before-threshold-sacrifice9-at-or-after-threshold;canonical-ui-operation-replacement-not-server-manual-opcode-acceptance-proof;virtual2-not-owned-or-gifted;one-or-more-distinct-owned-physical-tokens-no-target-allocation-or-mp-fee;visible-discard-eligibility-excludes-weapons208209-includes-used-miracles-compatible-dream-only;erase-all-selected-copies-including-used-then-reserve-one-gift-per-copy;shared-selected-fake-reveal-no-item-ability-retention-or-self-curse-trigger;ordinary-termination-cutoff-owner-tick-revival-death-auto-guardian-deferred-gift-gf-next-owner-schedule;natural-and-cutoff-cancel-gifts-as-normal;confusion-api-one-launch-debit;sampler-single-copy-operation-proposals-switch-kind-without-extra-selector-rng;private-prelaunch-gf-threshold-command-and-whole-pending-journal-replay;public-derived-apocalypse-active-bool-no-private-gift-manifest;no-devil-appearance-selection-gift-cascade-or207-distribution;server-gift-and-turn-order-unverified";
+inline constexpr const char* grant_rule = "experimental:opt-in-external-grants-default-false;reserved-gift-pump-only-while-apocalypse-active;reset-immediate-redraw-and-trade-unchanged;phase4-grant-actor-absent-pending-recipient-only;explicit-model0-normal-existing236-weight499-draw-or240-to244-devil-payload;no-appearance-resource-or-copy-selector-rng;ordinary-grant-fills-one-debt-with-existing-compatible-dream-mask;devil-retains-original-slot-for-retry-no-physical-devil-token;208-adds-separate-debt-243-adds-no-replacement;dead-debts-cancelled;shared-direct-devil-body-local-guardian-departure-and-death-response-counter-fifo;resume-lowest-live-input-seat-with-positive-debt;one-accepted-grant-is-one-decision-and-update-for-finite-max-decisions-cutoff;no-repeat-owner-tick-auto-or-confusion-debit-original-gf-advance-only-after-drain;natural-before-cutoff-body-before-work-cancel;source-fate-devil-records-preserved;private-nonrecursive-full-original-action-response-prefix-grant-journal-through-completion;public-pending-target-last-grant-target-devil-or-null-removed-models-only;normal-model-token-resource-remaining-count-and-future-choices-private;normal-commands-and-sampler-refuse-grant-phase-with-policy-rng-unchanged;failed-resolution-rolls-back-to-current-pending-state;25percent-and7-5-3-5-5-ui-rates-not-an-engine-selector;server-distribution-retry-and-order-unverified";
+[[nodiscard]] bool match_grant_supported(CardId id) noexcept;
 [[nodiscard]] bool match_devil_supported(CardId id) noexcept;
 [[nodiscard]] bool match_fate_supported(CardId id) noexcept;
 [[nodiscard]] bool match_item_shuffle_supported(CardId id) noexcept;
@@ -61,6 +63,7 @@ struct MatchConfig {
     std::uint32_t max_decisions = 512;
     std::uint8_t initial_hand = 9, hand_limit = 18;
     int initial_hp = 40, initial_mp = 10, initial_cp = 20;
+    bool external_grants = false; // Pause active-apocalypse deferred gifts for an external chance driver.
     bool operator==(const MatchConfig&) const = default;
 };
 struct PlayerSetup {
@@ -68,7 +71,7 @@ struct PlayerSetup {
     Team team = Team::solo;
     std::string name;
 };
-enum class MatchPhase : std::uint8_t { main, response, finished, purchase };
+enum class MatchPhase : std::uint8_t { main, response, finished, purchase, grant };
 enum class CommandKind : std::uint8_t { play, defend, discard, pray, exchange, sell, buy, accept, decline, sacrifice };
 struct ResourceAllocation {
     std::int32_t hp = 0, mp = 0, cp = 0;
@@ -133,6 +136,7 @@ struct DevilAction {
     std::vector<ItemToken> removed;
     bool operator==(const DevilAction&) const = default;
 };
+using GrantAction = DevilAction; // model0 is one ordinary draw; otherwise an explicit devil outcome.
 struct DevilEvent {
     PlayerId target = 0;
     CardId model = 0;
@@ -166,6 +170,11 @@ struct EffectFrame {
     bool environmental = false; // True means origin/source are absent; their canonical0 slots are unused, not player0.
     bool operator==(const EffectFrame&) const = default;
 };
+struct GrantResolution {
+    std::size_t responses_before = 0;
+    GrantAction action;
+    bool operator==(const GrantResolution&) const = default;
+};
 // Non-recursive privileged launch anchor and accepted response journal. Current
 // targets/cursor/models are derived again when the batch is restored.
 struct ActionBatch {
@@ -189,6 +198,7 @@ struct ActionBatch {
     std::uint64_t phenomenon_actions = 0;
     std::uint64_t fate_actions = 0;
     std::uint64_t devil_actions = 0;
+    std::uint64_t grant_resolutions = 0, grant_artifacts = 0, grant_devils = 0;
     std::uint64_t guardian_summons = 0, guardian_opportunities = 0, auto_guardian_actions = 0;
     std::uint64_t guardian_departure_rolls = 0, guardian_departures = 0;
     std::size_t guardian_cursor = 0;
@@ -203,6 +213,7 @@ struct ActionBatch {
     bool chance = false;
     std::size_t counters_created = 0;
     std::vector<Command> responses;
+    std::vector<GrantResolution> grants; // Ordered between responses by the prefix length.
     bool operator==(const ActionBatch&) const = default;
 };
 struct ItemShuffleRecord {
@@ -310,6 +321,10 @@ struct MatchSnapshot {
     std::uint64_t phenomenon_actions = 0;
     std::uint64_t fate_actions = 0;
     std::uint64_t devil_actions = 0;
+    std::uint64_t grant_resolutions = 0, grant_artifacts = 0, grant_devils = 0;
+    std::optional<PlayerId> pending_grant; // One environment recipient; no policy actor in phase4.
+    std::optional<ActionBatch> grant_proof; // Full original action journal, retained through completion.
+    std::optional<DevilEvent> last_grant; // model0 hides the ordinary drawn model, including from Dream owner.
     std::optional<DevilRecord> last_devil; // Privileged whole direct action and response proof.
     std::optional<DevilEvent> last_devil_event;
     std::optional<FateRecord> last_fate; // Privileged full launch and response proof, persists through completion.
@@ -363,6 +378,8 @@ public:
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool legal(const Command& command) const noexcept;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
+    [[nodiscard]] bool grant_legal(const GrantAction& action) const noexcept;
+    MatchStep grant_step(const GrantAction& action);
     [[nodiscard]] bool devil_legal(const DevilAction& action) const noexcept;
     MatchStep devil_step(const DevilAction& action);
     [[nodiscard]] bool fate_legal(const FateAction& action) const noexcept;
