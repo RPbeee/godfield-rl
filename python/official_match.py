@@ -306,6 +306,18 @@ def _decode_command(value):
     if allocation is not None and any(amount < 0 or amount > 99 for amount in allocation): raise MatchError("invalid native resource allocation", -3)
     return Command(value.actor, KINDS[value.kind], tuple(value.items[:value.item_count]), value.target if value.has_target else None, allocation)
 
+def _decode_grant(value):
+    if (value.model not in (0, 240, 241, 242, 243, 244) or value.has_resource > 1 or value.removed_count > 2
+        or any(value.reserved) or any(value.removed[value.removed_count:])
+        or (not value.has_resource and value.resource) or (value.removed_count == 2 and value.removed[0] == value.removed[1])):
+        raise MatchError("invalid native grant descriptor", -3)
+    if value.has_resource and value.resource > 2: raise MatchError("invalid native grant resource", -3)
+    action = GrantAction(value.target, value.model, ("hp", "mp", "cp")[value.resource] if value.has_resource else None,
+                         tuple(value.removed[:value.removed_count]))
+    try: _grant_action(action)
+    except InvalidMatchError as error: raise MatchError("invalid native grant shape", -3) from error
+    return action
+
 class Match:
     """Owned mutable experimental match. Successful commands commit individually.
 
@@ -326,7 +338,7 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v41"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v42"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.reserved.offset != 7
             or lib.gfo_match_player_size() != c.sizeof(_Player)
@@ -401,6 +413,8 @@ class Match:
         lib.gfo_match_grant_step.argtypes = [c.c_void_p, c.POINTER(_DevilAction), c.POINTER(_Status)]
         lib.gfo_match_grant_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
+        lib.gfo_match_sample_grant.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_DevilAction)]
+        lib.gfo_match_sample_grant.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
         self.supported_models = tuple(card.id for card in self._data if lib.gfo_match_supported(card.id))
@@ -590,6 +604,16 @@ class Match:
         self._open(); rng = c.c_uint64(_integer(policy_rng, "policy_rng", 0, 2**64 - 1)); result = _Command()
         _check(self._lib.gfo_match_sample_action(self._handle, c.byref(rng), c.byref(result)))
         return _decode_command(result), rng.value
+
+    def sample_grant(self, chance_rng):
+        """Privileged local chance: returns (GrantAction,new_rng), without changing the match.
+
+        Uses actual current tokens for243. This is separate from policy/game RNG
+        and does not claim the server's resource or copy selection distribution.
+        """
+        self._open(); rng = c.c_uint64(_integer(chance_rng, "chance_rng", 0, 2**64 - 1)); result = _DevilAction()
+        _check(self._lib.gfo_match_sample_grant(self._handle, c.byref(rng), c.byref(result)))
+        return _decode_grant(result), rng.value
 
     def observe(self, viewer=None):
         self._open(); present = viewer is not None; id = 0 if viewer is None else _integer(viewer, "viewer")

@@ -22,8 +22,8 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 [限定実行器の契約](docs/official-execution-subset.md)、
 [適合計画と未完了条件](docs/official-conformance-plan.md)、
 [296件の出典・取得hash・旧版比較](data/official-v2/README.md)を参照してください。
-限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadとglobal現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。混乱289と外部指定の混乱主動作も扱い、自動選択分布は実装しません。所有する207と外部指定結果を通常手番として解決するFate専用入口も扱います。悪魔5種は外部指定の直接効果として扱います。終末GFの閾値と「ささげる」は限定した通常操作として扱います。opt-inでは予約補充をphase4の外部chanceで進められます。
-公式の237モデル全配布や全固有効果、一般effect queue、公式Dream全候補分布・実体不適合入力、取引server挙動の未確定部分、Earth/Moonの一般神器/奇跡選出・207からの全現象抽選・混乱の自動選択分布・悪魔の自動出現/再授与連鎖等の完全な終末処理には未対応です。
+限定範囲では主動作・応答・効果・死亡・補充・次手番・チーム終局を進め、物理反射・属性消去・遮断・跳ね返し・FREE・属性付替・倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲の付与/反撃/解除・未使用手札/使用済み奇跡の除去・MP武器58・二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入確認付きBUY5・病気4状態と付与6種・自己病気防具168/MP+Heaven雑貨198・Fog付与4種と観測/対象選択・112の通常/死亡時攻撃・Dream4種・178のredrawと互換クラス限定maskを扱います。201/239による召喚とcanonical42の自動行動・離脱を実験規約で扱い、外部指定行動に加え、typed Earth/Moon payloadとglobal現象5種・応答付きのsourceなし現象3種・明示permutationによる磁気嵐295の別入口も扱います。混乱289と外部指定の混乱主動作も扱い、自動選択分布は実装しません。所有する207と外部指定結果を通常手番として解決するFate専用入口も扱います。悪魔5種は外部指定の直接効果として扱います。終末GFの閾値と「ささげる」は限定した通常操作として扱います。opt-inでは予約補充をphase4の外部chanceで進められ、公開率に従うローカル `sample_grant` も使えます。
+公式の237モデル全配布や全固有効果、一般effect queue、公式Dream全候補分布・実体不適合入力、取引server挙動の未確定部分、Earth/Moonの一般神器/奇跡選出・207からの全現象抽選・混乱の自動選択分布・全補充経路の悪魔出現/再授与連鎖等の完全な終末処理には未対応です。
 旧版37profileの対戦Env・C ABI・Pythonは保存し、公式版へ改称しません。学習器と学習済みモデルは含めません。
 
 **旧Flash版を参考に、全7属性・回復/攻撃/状態・解除/追加ATK/倍化/全体化奇跡の保持・順序付き追加・物理品238の追加ATKとMP無料化・確率攻撃・反撃6種・HP吸収・HP増減賭け・購入確認と強制売却・杵/臼・自己被害付き武器・手札除去・忘却・資源交換・自動蘇生・物理品による魔法跳ね返し・魔法/万能反射・病気・一部harmsまで実装しています。現行公式の完全再現ではありません。**
@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v41` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 236モデル/重み499、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289と外部指定主動作/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v42` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 236モデル/重み499、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289と外部指定主動作/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -248,7 +248,7 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、
 236モデル/重み499を対象に、全7属性、通常武器・普通防御、HP/MP/CPの単純回復、
 奇跡のused保持・再使用、物理反射/消去/遮断/跳ね返し、FREE5種・属性付替2種・倍化231、単純確率攻撃21種・攻撃/資源反撃181/184/187/188・HP吸収/同被害5種・閃光付与/反撃/解除7種・暗雲・除去・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・売却4・購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種/178redrawと互換クラス限定mask・201/239召喚とcanonical42自動行動/離脱、2〜9人とチームを扱います。
-rulesetは `official-execution-subset-v41`、scopeは `experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence` です。
+rulesetは `official-execution-subset-v42`、scopeは `experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence` です。
 207のunused/unmasked特例を除く対象外のモデル・互換クラス外または不正なfake・病気4種/Fog/Dream/閃光/暗雲以外の災い・不正な守護神identity・不正な混乱count・負/unsafeな終末閾値を持つ局面は、黙って通常品へ置換せず拒否します。
 read-onlyな `OfficialState` が表示できる局面を、全てこの実行器へ渡せるわけではありません。
 
@@ -278,7 +278,7 @@ matching遮断は現在のpayload全体を取消し、原発者のMPや既消費
 ＜壁＞は通常は初回/再使用とも6MP、初回はused保持し、空きがあれば補充1・満杯なら0。v4では直後のFREEで費用0にもできます。
 遮断後は未終局・未打切りの場合だけまとめて補充してownerを巡回します。
 blockイベントが元効果をどう取り消すかはclientの演出だけで証明できず、この実行器の明示規約です。
-公開JSONは `official-execution-view-v39`、Snapshot41、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
+公開JSONは `official-execution-view-v40`、Snapshot42、MatchのC ABIは2です。read-only catalog/state ABI1は維持します。`pending.reflections` は反射、`pending.bounces` は跳ね返し件数、`pending.hit_rate` は命中率、`pending.counter` は反撃payloadかを示します。181の75は反撃開始後の表示であり、初期全敵chanceとは別です。
 
 FREEは直前のMCだけを無料化し、複数MC→FREEペアも全て免除します。MP不足のMCを含む途中prefixでは拒否せず、完成列の最終費用を検証します。
 壁233→FREEは全選択を消費/used保持する契約で、旧版の「特殊後FREE未消費」は採用しません。
@@ -422,7 +422,7 @@ raw scene/checkpointのimport・restoreはC/Python公開APIへ追加していま
 これは限定プールとローカル方策での実行速度を測り、公式全モデル・対局trace・サーバーとの一致や学習性能を示すものではありません。
 
 以下は過去の **v1・132モデル/重み308** のRelease計測（seed42、1 worker）です。
-現行v41の性能やchecksumを示すものではありません。
+現行v42の性能やchecksumを示すものではありません。
 
 | 人数 | 試合数 | 意思決定数 | draw / 打切り | 秒 | 意思決定/秒 |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -460,7 +460,7 @@ Python Match10ケースも通過。公式assetsの再取得hashと296モデルfa
 9人10,000試合が2.46832秒（1,154,300意思決定/秒）で、上表の全決定的fieldを維持しました。
 合法手sampler・実行・終了snapshot検証を含みます。Release/SAN各1,000試合の時間以外の全集計も一致しました。
 勝数・反射/消去の集計は[契約文書のv3記録](docs/official-execution-subset.md#v3の過去の検証と集計)へ記載しています。
-これらのv1〜v8結果は現行v41の236モデルの速度・checksumではありません。
+これらのv1〜v8結果は現行v42の236モデルの速度・checksumではありません。
 
 v4は全Release CTest129件/19.67秒、ASan/UBSan89件/51.30秒が通過しました（各 `-j4` 同時実行）。Python Matchは11ケースです。
 その後、0MPの追加Aura+FREE pairを生成する専用native局面を追加し、Release/SAN各1件も通過しました（0.26/0.57秒）。coreの追加変更はありません。
@@ -2193,3 +2193,79 @@ experimental:opt-in-external-grants-default-false;reserved-gift-pump-only-while-
 | 9人 | 10,000 | 107,590 / 26,804 | 34,569 / 36,217 | 104 | `16124954102603085708` | `8795386664659394638` |
 
 9人600sceneのRelease/SAN一致は6,533decisions、4,271grant解決（normal2,040/devil2,231）、death574予約/460開始、revival169、redraw190、cutoff7を含む。244のHP/MP/CP指定はそれぞれ120/777/116回で、checksumは `13373311760285701770`。全grant境界で通常policy拒否とRNG不変、対象順、元のtick/auto/GF進行、proofの応答prefix順序、public noticeの形を検査した。これらの回数は明示driverのfixture分布であり、公式の出現率やserver対局統計ではない。
+
+
+## v42：公開出現率を使うローカル補充サンプラー
+
+`official-execution-subset-v42` は、phase4専用の `GrantAction sample_grant(uint64_t& chance_rng) const`、Cの `gfo_match_sample_grant`、Pythonの `sample_grant(chance_rng) -> (GrantAction, next_rng)` を追加する。外部driverは通常補充/悪魔5種と必要なpayloadをこの関数で選び、既存 `grant_step` で適用できる。Snapshot42は旧1〜41を拒否し、公開viewは `official-execution-view-v40`。Config24/Command184/Status248/GrantAction32byte、ABI2、phase0〜4、scopeはv41と同じである。学習器・旧37profile・official-v2 pinsと過去の検証履歴を変更しない。
+
+### 公開資料とローカル選択規約
+
+| 項目 | 確認できた根拠 | v42で実行する規約 |
+| --- | --- | --- |
+| 悪魔の出現率 | 実Referenceの絶対表示7%/5%/3%/5%/5%、教典の合計25% | 100ticketのうち240=0〜6、241=7〜11、242=12〜14、243=15〜19、244=20〜24、通常0=25〜99 |
+| 243の除去 | 神器か起こした奇跡を二個。均等・選択順の記載なし | 現受取人のraw物理inventoryをpartial Fisher-Yatesでmin(2,N)個、一様・非復元・順序付き選択 |
+| 244の資源 | HP/MP/CPのいずれかを10増加。同率の記載なし | HP/MP/CPを各1/3で選択。既に99の資源も除外しない |
+| RNGと連鎖 | 公開receiverは供給済みイベントを消費する。server chooser未取得 | 外部chance streamのSplitMix64/rejection bounded drawと既存v41の予約補充継続を使う |
+
+表示された確率のmassと、ローカルな区間順・乱数方式・243/244の分布を区別する。旧Flashにも現行悪魔chooserを裏付ける実装は見つからず、そちらのpieces/magics別選択を根拠に転用しない。これは公式server selectorの完全移植ではない。
+
+243はraw所有tokenを対象にし、used奇跡、passive、scene上の207、互換Dream fakeを除外しない。k番目は `j=k+bounded(N-k)` を選んでswapし、一つしか候補がなくてもdrawする。空手札ならcopy drawは0回。通常0はこの関数で神器modelやDream maskを選ばず、後の `grant_step` が既存ゲームRNGで236モデル/重み499を抽選する。207の通常配布や公式237/500には広げない。
+
+### 特権・RNG・transaction
+
+これは通常player policyへ渡すAPIではない。243の実token等は特権chance driver用で、公開viewへ選択候補・資源・未来choiceを追加しない。phase4以外はRNGを進める前に拒否する。成功時はcallerのchance_rngだけを更新し、Matchのworld、game RNG、通常policy RNG、decision、private journal、public eventを変えない。サンプル結果は適用後に既存grant journalへ保存される。全snapshotだけで外部chance streamは保存されないので、controllerはchance_rngもcheckpointへ含める。
+
+sampleとstepは別transactionである。二つをまとめてcommitしたいdriverはchance_rngのcopyからsampleし、`grant_step` 成功後だけ元chance_rngへcommitする。失敗時に既に受理済みの元actionを巻き戻すものではない。通常samplerは引き続きphase4を拒否し、既定 `external_grants=False` の対局や明示GrantActionを使うdriverの動作は変わらない。reset、178の即時redraw、売買商品の直接配送への悪魔置換、207/Earth/Moon/混乱の一般selector、公式Dream全分布・実体不適合入力等は残件である。
+
+公開 `grant_sampler_rule` はheaderと同じ次の文字列で、private seedや実行前payloadを含まない。
+
+```text
+experimental:privileged-const-grant-phase-only-local-sampler;caller-owned-chance-rng-separate-from-game-and-policy;splitmix64-rejection-bounded100-one-ticket;published-absolute-appearance-mass240-7-241-5-242-3-243-5-244-5-ordinary75;id-order-devils-first-ordinary-last;243-uniform-ordered-physical-copies-without-replacement-min2-raw-inventory-partial-fisher-yates-one-draw-per-copy-including-singleton-used-passives-and207-eligible;244-uniform-hp-mp-cp-one-draw-including-capped-resources;resource-and-copy-distributions-and-rng-staging-local-not-official;normal0-defers-actual-artifact-and-compatible-dream-draw-to-grant-step;no-match-state-game-rng-policy-rng-decision-or-public-event-mutation;sampling-failure-preserves-caller-rng;sample-and-step-separate-transactions;chance-rng-not-in-snapshot-controller-must-save-it;explicit-grant-api-and-default-behavior-unchanged;no-reset-redraw-trade-or207-fullpool-coverage;not-official-server-selector-equivalence
+```
+
+### v42の検証
+
+[sourceとローカルreferenceの生成器](scripts/official_grant_sampler_oracle.cjs) / [保存report](data/official-v2/grant-sampler-client-v42.json) は、実Referenceの表示14件と、**別区分のローカルgolden**（100ticket境界12件・edge10件）を保存する。後者は独立BigIntによるSplitMix64/逆写像・rejection・partial Fisher-Yatesの参照値であり、公式chooserのgoldenとは呼ばない。full17は実際のH18予約境界、full18は現在到達不能の低水準reference専用として明示している。reportは31,427 bytes、SHA256 `c8ea648daba7af3217fe798909277b40befbaae58322bb0a69a535aeb4062cfa`。rootの `--check` はbyte一致した。
+
+Release CTest **141/141（20.97秒）**、ASan/UBSan CTest **101/101（47.07秒）** が全て通過した。native188関数は配列へ各1回・旧183件の順序を保って登録し、Pythonは新3件を加え129メソッドが重複なく登録された。C API/Pythonのfocused2件も通過した。新native5群は逆写像で作る全100ticketの厳密mass、不変query/rejection、raw0/1/2/17copyとused/fake/passive/207・全資源上限、wrongphaseとchance copy-commit/遅い失敗、snapshot＋外部chance RNGの再開、独立BigIntの到達可能21境界/edge vectorを検査する。Cの9固定goldenは32byte全体のinactive/padding、NULL/phase failureのcanaryを含み、Pythonは独立SplitMix/FY参照と全100ticket、strict uint64 seed等を検査する。
+
+テスト追加後、ASanで旧テストの入口にstack-overflowを検出した。mainへの多数関数のinline合算を避けるため、188件を関数ポインタ配列から順に呼ぶrunnerへ変更した。内容と順序、unused-functionによる未登録検出は保ち、修正後の全SAN suiteで通過した。suite時間を実行器の性能差へ読み替えない。READMEの例も実行し `[242, 0] main 7 3 4354685564936845396` が一致した。
+
+通常/canonical/payload/global現象/targeted現象/shuffle/confusion/fate/devil/sacrifice/明示grant/新grant samplerの各2人数、計24組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで実行し、時間・速度・worker数以外の全fieldが一致した。Release/SAN小行列13組もchecksumを含む非時間fieldが一致した。サンプラーを呼ばない既存11familyのgameplay fieldはv41と同値で、通常/canonical/payloadはchecksumも同値だった。残るfamilyの旧版比較だけはSnapshot.version42を含むchecksumを除き、worker間・Release/SAN間ではchecksumも照合した。
+
+新 `godfield_grant_sampler_bench`（CTest `official_grant_sampler_benchmark 600 9 42 2`）は5起動元とrich sceneから、全grant choiceをhelperで選び、必要な応答を含む元actionの完了まで進める。通常policyと独立chance streamを持ち、各grant境界で2個のrestore cloneに同seedを渡してpayload・next_rng・Match不変を照合する。実stepが成功した後だけchance streamをcommitする。97scene毎はmax_decisions2でsample適用後cutoffを検査する。600scene以上では6outcome、全3資源、used奇跡の除去が実際に選ばれたことを検査する。choice列、chance RNG列、world＋選択counterのchecksumを分け、全private snapshotは各checkpointのrestore完全一致で別に検査する。
+
+| ローカル抽選・seed42 | scenes | normal / devil解決 | 妖精HP / MP / CP | chance checksum | action checksum | world checksum |
+| --- | ---: | ---: | ---: | --- | --- | --- |
+| 2人 | 100,000 | 167,961 / 55,780 | 3746 / 3676 / 3733 | `14045303676355207807` | `5923566862139370756` | `12269019345486087550` |
+| 9人 | 10,000 | 32,203 / 10,729 | 701 / 704 / 695 | `4731159512000537428` | `16856585937920654990` | `4831156122709328760` |
+
+9人600sceneでは4,602decisions、2,592grant解決（normal1903/devil689）、death280予約/214開始、revival164、redraw191、cutoff probe7を含む。243はused13・fake37・207は8copyを選び、244のHP/MP/CP指定は38/43/41回（上限資源の指定61回）。chance/action/world checksumはそれぞれ `10419100228575040986` / `14144487001133331999` / `91435489873529096` でRelease/SAN一致。fixtureの終了・死亡・cutoffにより観測したsample数はscene数と異なり、これを公式serverの対局分布や同値性の検証として扱わない。
+
+### Pythonで終末の補充を自動進行する例
+
+`PYTHONPATH=python python3` で実行できる。受理成功後にだけchance seedを更新する。実際のdriverではresponse/purchaseを既存APIで解決してから、再びgrant phaseを処理する。
+
+```python
+from official_state import OfficialState
+from official_match import Match, Config, Command
+
+raw = {"gf": 0, "tiebreakGF": 0, "players": [
+    {"id": 0, "hp": 99, "mp": 99, "cp": 99,
+     "items": [{"id": 0, "modelId": 235, "used": True}]},
+    {"id": 7, "hp": 99, "mp": 99, "cp": 99, "items": []},
+]}
+with OfficialState(raw) as scene, Match(config=Config(external_grants=True)) as game:
+    game.load_scene(scene, owner=0, seed=7)
+    game.step(Command(0, "sacrifice", items=(0,)))
+    chance_rng, outcomes = 42, []
+    while game.status.phase == "grant":
+        action, trial_rng = game.sample_grant(chance_rng)
+        game.grant_step(action)
+        chance_rng = trial_rng
+        outcomes.append(action.model)
+    print(outcomes, game.status.phase, game.status.owner,
+          game.status.decisions, chance_rng)
+    # [242, 0] main 7 3 4354685564936845396
+```

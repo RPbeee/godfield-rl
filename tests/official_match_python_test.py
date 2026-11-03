@@ -11,6 +11,29 @@ from official_state import OfficialState
 from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
+def grant_reference(seed, tokens, target=0):
+    """Independent integer reference: SplitMix64 rejection, then ticket/FY law."""
+    mask, gamma, draws = (1 << 64)-1, 0x9e3779b97f4a7c15, 0
+    def bounded(bound):
+        nonlocal seed, draws
+        while True:
+            seed = (seed + gamma) & mask; draws += 1
+            value = seed
+            value = ((value ^ (value >> 30)) * 0xbf58476d1ce4e5b9) & mask
+            value = ((value ^ (value >> 27)) * 0x94d049bb133111eb) & mask
+            value ^= value >> 31
+            if value >= (1 << 64) % bound: return value % bound
+    ticket = bounded(100)
+    model = 240 if ticket < 7 else 241 if ticket < 12 else 242 if ticket < 15 else 243 if ticket < 20 else 244 if ticket < 25 else 0
+    removed, resource = [], None
+    if model == 243:
+        pool = list(tokens)
+        for index in range(min(2, len(pool))):
+            other = index + bounded(len(pool)-index)
+            pool[index], pool[other] = pool[other], pool[index]; removed.append(pool[index])
+    if model == 244: resource = ("hp", "mp", "cp")[bounded(3)]
+    return GrantAction(target, model, resource, tuple(removed)), seed, ticket, draws
+
 class MatchTests(unittest.TestCase):
     def match(self, **kwargs):
         value = Match(library=LIBRARY, **kwargs); self.addCleanup(value.close); return value
@@ -20,7 +43,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v41"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v42"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +51,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v39")
+        self.assertEqual(own["schema"], "official-execution-view-v40")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +247,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v39")
+        self.assertEqual(event["schema"], "official-execution-view-v40")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3570,6 +3593,93 @@ class MatchTests(unittest.TestCase):
             with self.assertRaises(InvalidMatchError): game.grant_step(GrantAction(0))
             self.assertEqual((game.observe(0), game.status), (before, status))
             self.assertNotIn(0, {item["token"] for item in before["board"]["hand"]})
+
+    def test_sample_grant_all_ticket_boundaries_independent_reference_and_no_mutation(self):
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [
+            {"id": 0, "hp": 99, "mp": 99, "cp": 99, "curses": ["dream"], "items": [
+                {"id": 0, "modelId": 235, "used": True}, {"id": 901, "modelId": 207},
+                {"id": 77, "modelId": 118, "fakeModelId": 123}, {"id": 1, "modelId": 152}]},
+            {"id": 7, "hp": 99, "mp": 99, "cp": 99}]}
+        game, control = [self.match(config=Config(initial_hand=0, external_grants=True)) for _ in range(2)]
+        for match in (game, control):
+            with OfficialState(raw, library=LIBRARY) as scene: match.load_scene(scene, 0, 42)
+            match.step(Command(0, "sacrifice", (1,)))
+        before, status = game.observe(0), game.status
+        witnesses = {}
+        for seed in range(10000):
+            ticket = grant_reference(seed, ())[2]; witnesses.setdefault(ticket, seed)
+            if len(witnesses) == 100: break
+        self.assertEqual(len(witnesses), 100); counts = {model: 0 for model in (0, 240, 241, 242, 243, 244)}
+        for ticket, seed in sorted(witnesses.items()):
+            expected, rng, unused, draws = grant_reference(seed, (0, 901, 77))
+            actual = game.sample_grant(seed)
+            self.assertEqual(actual, (expected, rng)); self.assertEqual(game.sample_grant(seed), actual)
+            self.assertTrue(game.grant_legal(actual[0])); counts[actual[0].model] += 1
+        self.assertEqual(counts, {0: 75, 240: 7, 241: 5, 242: 3, 243: 5, 244: 5})
+        self.assertEqual({game.sample_grant(seed)[0].resource for seed in (8, 12, 106)}, {"hp", "mp", "cp"})
+        rejection_seed = 7046029254386353131
+        expected, rng, ticket, draws = grant_reference(rejection_seed, (0, 901, 77))
+        self.assertEqual((draws, ticket), (2, 35)); self.assertEqual(game.sample_grant(rejection_seed), (expected, rng))
+        self.assertEqual(game.sample_grant(2**64-1), grant_reference(2**64-1, (0, 901, 77))[:2])
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        for match in (game, control): match.grant_step(GrantAction(0))
+        self.assertEqual((game.observe(0), game.status), (control.observe(0), control.status))
+
+    def test_sample_grant_partial_fisher_yates_empty_single_and_full_pending_inventory(self):
+        tokens = (0, 901, 77, *range(100, 114))
+        for count in (0, 1, 2, 17):
+            models = [235, 207, 118, 208, 209, 6] + [152]*11
+            inventory = [{"id": token, "modelId": models[index], **({"used": True} if index == 0 else {}),
+                          **({"fakeModelId": 123} if index == 2 else {})} for index, token in enumerate(tokens[:count])]
+            raw = {"gf": 0, "tiebreakGF": 0, "players": [
+                {"id": 0, "hp": 99, "mp": 99, "cp": 99, "curses": ["dream"],
+                 "items": inventory + [{"id": 999, "modelId": 152}]}, {"id": 7, "hp": 99, "mp": 99, "cp": 99}]}
+            game = self.match(config=Config(initial_hand=0, external_grants=True))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            game.step(Command(0, "sacrifice", (999,)))
+            before, status = game.observe(0), game.status
+            expected, rng, ticket, draws = grant_reference(5, tokens[:count])
+            self.assertEqual(ticket, 18); self.assertEqual(draws, 1 + min(2, count))
+            self.assertEqual(game.sample_grant(5), (expected, rng)); self.assertTrue(game.grant_legal(expected))
+            seen = set()
+            for seed in range(50000 if count else 0):
+                reference, state, unused, unused_draws = grant_reference(seed, tokens[:count])
+                if reference.model != 243 or not (set(reference.removed)-seen): continue
+                self.assertEqual(game.sample_grant(seed), (reference, state)); seen.update(reference.removed)
+                if seen == set(tokens[:count]): break
+            self.assertEqual(seen, set(tokens[:count])); self.assertEqual((game.observe(0), game.status), (before, status))
+            game.grant_step(expected)
+            self.assertEqual(game.observe()["last_grant"]["removed_models"],
+                             [next(item["modelId"] for item in inventory if item["id"] == token) for token in expected.removed])
+            self.assertEqual(game.status.phase, "grant")
+
+    def test_sample_grant_wrong_phases_strict_seeds_and_future_failure_are_atomic(self):
+        game = self.match(config=Config(initial_hand=0, external_grants=True))
+        raw = {"gf": 0, "tiebreakGF": 0, "players": [
+            {"id": 0, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 6}, {"id": 1, "modelId": 5}]},
+            {"id": 7, "hp": 99, "mp": 99, "cp": 99, "items": [{"id": 0, "modelId": 152}]}]}
+        for kind in ("main", "response", "purchase"):
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            if kind == "response": game.step(Command(0, "play", (0,), 7))
+            if kind == "purchase": game.step(Command(0, "buy", (1,), 7)); game.step(Command(7, "defend"))
+            self.assertEqual(game.status.phase, kind); before, status = game.observe(0), game.status
+            with self.assertRaises(InvalidMatchError): game.sample_grant(0)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        cutoff = self.match(config=Config(initial_hand=0, external_grants=True, max_decisions=1))
+        cutoff.step(Command(0, "pray")); self.assertTrue(cutoff.done)
+        with self.assertRaises(InvalidMatchError): cutoff.sample_grant(0)
+        raw["players"][0]["items"] = [{"id": 0, "modelId": 152}, {"id": 9007199254740991, "modelId": 6}]
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "sacrifice", (0,))); before, status = game.observe(0), game.status
+        for invalid in (True, False, -1, 2**64, 0.0, "0", None):
+            with self.assertRaises(InvalidMatchError): game.sample_grant(invalid)
+        selected, state = game.sample_grant(0)
+        self.assertEqual(selected, GrantAction(0)); self.assertEqual(state, 11400714819323198485)
+        self.assertTrue(game.grant_legal(selected))
+        with self.assertRaises(InvalidMatchError): game.grant_step(selected)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.close()
+        with self.assertRaises(InvalidMatchError): game.sample_grant(0)
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

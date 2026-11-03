@@ -181,6 +181,19 @@ gfo_match_command encode(const official::Command& c) {
     for (std::size_t i = 0; i < c.items.size(); ++i) { valid(c.items[i] <= official::max_wire_integer); out.items[i] = c.items[i]; }
     return out;
 }
+gfo_match_grant_action encode_grant(const official::GrantAction& action) {
+    valid(action.target<=official::max_wire_integer && (action.model==0 || official::match_devil_supported(action.model))
+        && action.removed.size()<=2 && (action.model==244)==action.resource.has_value()
+        && (action.model==243 || action.removed.empty()));
+    gfo_match_grant_action out{};out.target=action.target;out.model=action.model;
+    out.has_resource=action.resource.has_value();
+    if(action.resource){valid(static_cast<unsigned>(*action.resource)<=2);out.resource=static_cast<uint8_t>(*action.resource);}
+    out.removed_count=static_cast<uint8_t>(action.removed.size());
+    for(std::size_t i=0;i<action.removed.size();++i){
+        valid(action.removed[i]<=official::max_wire_integer && (!i || action.removed[i]!=action.removed[0]));out.removed[i]=action.removed[i];
+    }
+    return out;
+}
 gfo_match_status status(const official::Match& match) {
     const auto& s = match.snapshot();
     if (s.state.players.size() > 9 || s.winners.size() > 9 || s.rewards.size() != s.state.players.size()) throw std::logic_error("invalid native match output sizes");
@@ -403,6 +416,13 @@ int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_ma
         valid(!match->value.done()); auto rng = *policy_rng; const auto result = encode(match->value.sample_action(rng));
         *policy_rng = rng; *out = result; return 0;
     } catch (...) { return error(); }
+}
+int gfo_match_sample_grant(const gfo_match* match, uint64_t* chance_rng, gfo_match_grant_action* out) {
+    if(!match || !chance_rng || !out) return -1;
+    try {
+        auto rng=*chance_rng;const auto result=encode_grant(match->value.sample_grant(rng));
+        *chance_rng=rng;*out=result;return 0;
+    } catch(...) {return error();}
 }
 int gfo_match_observe(const gfo_match* match, uint8_t has_viewer, uint64_t viewer, char* buffer, size_t capacity, size_t* required) {
     if (!match || !required || (!buffer && capacity)) return -1;

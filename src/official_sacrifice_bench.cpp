@@ -251,7 +251,7 @@ int main(int argc,char** argv) { try {
           && total.terminated+total.truncated<=count,"sacrifice benchmark accounting failed");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:explicit-threshold-discard-or-sacrifice-then-normal-followups;isolated-exact-gift-receipts-and-rich-replay;not-automatic-devils-or-official-gift-schedule;world-selected-counter-hashes-plus-full-restore-audit"
-             <<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
+             <<"\napocalypse_rule="<<apocalypse_rule<<"\ngrant_rule="<<grant_rule<<"\ngrant_sampler_rule="<<grant_sampler_rule<<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(decisions); OUTPUT(responses); OUTPUT(purchase_commands); OUTPUT(terminated); OUTPUT(truncated); OUTPUT(discard_plays); OUTPUT(sacrifice_plays);
     OUTPUT(selected_copies); OUTPUT(selected_used); OUTPUT(selected_fake); OUTPUT(selected207); OUTPUT(max_selected); OUTPUT(confusion_debits);

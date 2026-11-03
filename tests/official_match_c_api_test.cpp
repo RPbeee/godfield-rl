@@ -56,8 +56,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v41"
-        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v41 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v42"
+        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v42 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -290,7 +290,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v39\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v40\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2600,6 +2600,50 @@ int main() {
     check(gfo_match_grant_step(grant_match,&grant,&result)==0&&result.phase==4&&result.decisions==2&&hand_size(grant_match,0)==1
         &&gfo_match_grant_step(grant_match,&grant,&result)==0&&result.phase==2&&result.truncated&&result.decisions==3&&hand_size(grant_match,0)==1
         &&observe(grant_match,0,0).find("\"pending_grant\":null")!=std::string::npos,"each explicit devil retry costs a decision and cutoff cancels the outstanding slot");
+    gfo_match_destroy(grant_match);
+    grant_cfg.max_decisions=32;check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"chance helper match create");
+    std::array<gfo_state_player,2> chance_people{};chance_people[0].id=0;chance_people[1].id=7;
+    for(auto& person:chance_people){person.hp=99;person.mp=99;person.cp=99;}
+    chance_people[0].item_count=4;chance_people[0].curse_count=1;chance_people[1].item_offset=4;chance_people[1].curse_offset=1;
+    std::array<gfo_state_item,4> chance_items{};
+    chance_items[0].model=235;chance_items[0].used=1;chance_items[1].token=901;chance_items[1].model=207;
+    chance_items[2].token=77;chance_items[2].model=118;chance_items[2].fake_model=123;chance_items[3].token=1;chance_items[3].model=152;
+    const uint8_t chance_dream=static_cast<uint8_t>(official::Curse::dream);gfo_state_meta chance_meta{};chance_meta.has_tiebreak=1;
+    gfo_state* chance_scene=nullptr;
+    check(gfo_state_create(&chance_meta,chance_people.data(),2,chance_items.data(),chance_items.size(),&chance_dream,1,&chance_scene)==0
+        &&gfo_match_load_scene(grant_match,chance_scene,0,42,&result)==0,"chance fixture preserves raw used207fake token order");gfo_state_destroy(chance_scene);
+    gfo_match_grant_action chance_out;std::memset(&chance_out,0xa5,sizeof chance_out);const auto old_chance_out=chance_out;uint64_t chance_rng=123;
+    const auto before_chance_main=observe(grant_match,0,0);
+    check(gfo_match_sample_grant(grant_match,&chance_rng,&chance_out)==-2&&chance_rng==123&&equal(chance_out,old_chance_out)
+        &&observe(grant_match,0,0)==before_chance_main,"wrong-phase chance failure is atomic");
+    gfo_match_command chance_offer{};chance_offer.kind=9;chance_offer.item_count=1;chance_offer.items[0]=1;
+    check(gfo_match_step(grant_match,&chance_offer,&result)==0&&result.phase==4,"chance fixture enters external grant waiting");
+    const auto grant_sample_before=observe(grant_match,0,0);const auto grant_sample_status=status(grant_match);
+    check(gfo_match_sample_grant(nullptr,&chance_rng,&chance_out)==-1&&gfo_match_sample_grant(grant_match,nullptr,&chance_out)==-1
+        &&gfo_match_sample_grant(grant_match,&chance_rng,nullptr)==-1&&chance_rng==123&&equal(chance_out,old_chance_out),"chance NULL guards preserve the entire output and stream");
+    struct ChanceGolden{uint64_t seed,next;uint16_t model;uint8_t resource,has_resource,count;uint64_t first,second;};
+    const std::array<ChanceGolden,9> chance_goldens{{
+        {0,11400714819323198485ULL,0,0,0,0,0,0},
+        {2,11400714819323198487ULL,241,0,0,0,0,0},
+        {5,15755400384260043844ULL,243,0,0,2,901,77},
+        {8,4354685564936845362ULL,244,2,1,0,0,0},
+        {11,11400714819323198496ULL,242,0,0,0,0,0},
+        {12,4354685564936845366ULL,244,0,1,0,0,0},
+        {29,11400714819323198514ULL,240,0,0,0,0,0},
+        {106,4354685564936845460ULL,244,1,1,0,0,0},
+        {7046029254386353131ULL,11400714819323198485ULL,0,0,0,0,0,0}
+    }};
+    for(const auto& golden:chance_goldens){chance_rng=golden.seed;chance_out=old_chance_out;gfo_match_grant_action expected{};
+        expected.model=golden.model;expected.resource=golden.resource;expected.has_resource=golden.has_resource;
+        expected.removed_count=golden.count;expected.removed[0]=golden.first;expected.removed[1]=golden.second;
+        check(gfo_match_sample_grant(grant_match,&chance_rng,&chance_out)==0&&chance_rng==golden.next&&equal(chance_out,expected)
+            &&gfo_match_grant_legal(grant_match,&chance_out,&legal)==0&&legal&&equal(status(grant_match),grant_sample_status)
+            &&observe(grant_match,0,0)==grant_sample_before,"chance exact independent goldens cover six outcomes, raw partial FY, resource caps, rejection and zeroed inactive bytes");
+    }
+    gfo_match_grant_action ordinary_chance{};
+    check(gfo_match_grant_step(grant_match,&ordinary_chance,&result)==0&&result.phase==0,"sampling does not prevent later ordinary resolution");
+    chance_rng=123;chance_out=old_chance_out;
+    check(gfo_match_sample_grant(grant_match,&chance_rng,&chance_out)==-2&&chance_rng==123&&equal(chance_out,old_chance_out),"completed chance helper refuses new draws atomically");
     gfo_match_destroy(grant_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);

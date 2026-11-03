@@ -1613,6 +1613,30 @@ MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
 }
+GrantAction Match::sample_grant(std::uint64_t& chance_rng) const {
+    GrantAction selected{data_.pending_grant.value_or(0),0,{},{}};
+    prepare_grant(data_,selected);
+    auto rng=chance_rng;
+    auto ticket=bounded(rng,100);
+    for (CardId model=240; model<=244; ++model) {
+        const auto mass=static_cast<std::uint64_t>(find_card(model)->appearance_rate);
+        if (ticket<mass) { selected.model=model; break; }
+        ticket-=mass;
+    }
+    if (selected.model==243) {
+        const auto& items=data_.state.players[index(data_,selected.target)].items;
+        std::array<ItemToken,visible_hand_capacity> tokens;
+        for (std::size_t i=0; i<items.size(); ++i) tokens[i]=items[i].token;
+        const auto count=std::min<std::size_t>(2,items.size());
+        selected.removed.reserve(count);
+        for (std::size_t i=0; i<count; ++i) {
+            const auto choice=i+bounded(rng,items.size()-i);
+            std::swap(tokens[i],tokens[choice]); selected.removed.push_back(tokens[i]);
+        }
+    } else if (selected.model==244) selected.resource=static_cast<Resource>(bounded(rng,3));
+    chance_rng=rng;
+    return selected;
+}
 bool Match::grant_legal(const GrantAction& action) const noexcept {
     try { prepare_grant(data_,action); return true; } catch (...) { return false; }
 }
@@ -1793,7 +1817,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v39\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v40\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1833,7 +1857,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"fate_rule\":\""; out += fate_rule;
     out += "\",\"devil_rule\":\""; out += devil_rule;
     out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
-    out += "\",\"grant_rule\":\""; out += grant_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"grant_rule\":\""; out += grant_rule;
+    out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
     out += ",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";

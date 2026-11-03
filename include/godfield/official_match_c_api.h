@@ -153,6 +153,13 @@ int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action,
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);
+// Privileged local chance helper, only in phase4. Uses the current recipient's
+// raw inventory for243, not a policy-visible hand. One bounded100 ticket:
+//240=0..6/241=7..11/242=12..14/243=15..19/244=20..24/normal=25..99.
+//243 uses partial Fisher-Yates (including singleton draws),244 uniform HP/MP/CP.
+// No server selector is claimed. Only chance_rng changes on success; the match,
+// normal policy RNG and game RNG do not change. Errors preserve RNG/output.
+int gfo_match_sample_grant(const gfo_match* match, uint64_t* chance_rng, gfo_match_grant_action* out);
 // Explicit spectator:has_viewer0/viewer0. Otherwise has_viewer1 and an actual ID.
 // required includes NUL. NULL0 queries length. Short-4 changes no output bytes or
 // required length, and observation does not mutate any match state.

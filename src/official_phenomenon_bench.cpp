@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
         const auto seconds = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
         std::cout << "ruleset=" << match_ruleset << "\nscope=experimental:external5-global-primitives-then-ordinary-prayer-tick-guardian-replay;not-phenomenon-selector"
                   << "\ncatalog_version=" << catalog_version << "\ncatalog_sha256=" << catalog_sha256 << "\nclient_sha256=" << client_sha256
-                  << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\nguardian_rule=" << guardian_rule;
+                  << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule << "\napocalypse_rule=" << apocalypse_rule << "\ngrant_rule=" << grant_rule << "\ngrant_sampler_rule=" << grant_sampler_rule << "\nguardian_rule=" << guardian_rule;
 #define OUTPUT(key, value) std::cout << "\n" key "=" << (value)
         OUTPUT("scenes", total.scenes); OUTPUT("players", players); OUTPUT("seed", seed); OUTPUT("workers", workers);
         OUTPUT("models_covered", covered_models); OUTPUT("decisions", total.decisions); OUTPUT("responses", total.responses);

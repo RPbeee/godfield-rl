@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v41"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v42"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v39\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v40\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2383,191 +2383,314 @@ void grant_dream_privacy_and_immediate_delivery_exceptions(){
         &&trade.snapshot().gifts[0]==1&&trade.snapshot().gifts[1]==0&&trade.snapshot().grant_resolutions==0,"trade delivery remains immediate and only reserved replacements enter grant control");roundtrip(trade);trade.grant_step({0,0,{},{}});roundtrip(trade);
 }
 
+// Invert the output permutation to probe every published percent ticket exactly.
+std::uint64_t grant_seed_for_word(std::uint64_t word){
+    auto value=word^(word>>31)^(word>>62);value*=0x319642b2d24d8ec3ULL;
+    value^=(value>>27)^(value>>54);value*=0x96de1b173f119089ULL;
+    value^=(value>>30)^(value>>60);return value-0x9e3779b97f4a7c15ULL;
+}
+void grant_sampler_exact_percent_tickets_and_pure_queries(){
+    auto state=scene({},{});state.tiebreak_gf=0;auto game=grant_fixture(state);game.step(pray(0));const auto pending=game.snapshot();
+    std::array<unsigned,6> counts{};
+    for(unsigned ticket=0;ticket<100;++ticket){
+        auto rng=grant_seed_for_word(100+ticket);const auto before=rng;const auto action=game.sample_grant(rng);
+        const CardId model=ticket<7?240:ticket<12?241:ticket<15?242:ticket<20?243:ticket<25?244:0;
+        check(action.target==0&&action.model==model&&game.grant_legal(action)&&game.snapshot()==pending,"every absolute percent ticket returns its exact published model without mutating the paused match");
+        check(action.removed.empty()&&(action.resource.has_value()==(model==244)),"empty hand and inactive grant sampler fields stay canonical");
+        if(model!=244)check(rng==before+0x9e3779b97f4a7c15ULL,"ordinary/direct/empty trickster choice consumes exactly the ticket draw");
+        ++counts[model?model-239:0];
+        auto same=before;check(game.sample_grant(same)==action&&same==rng,"same state and caller chance seed reproduce the whole privileged payload");
+    }
+    check(counts==std::array<unsigned,6>{75,7,5,3,5,5},"published absolute mass is not normalized to an all-devil draw");
+    auto reject_rng=0ULL-0x9e3779b97f4a7c15ULL;const auto ordinary=game.sample_grant(reject_rng);
+    check(ordinary.model==0&&reject_rng==0x9e3779b97f4a7c15ULL&&game.snapshot()==pending,"zero SplitMix word is rejected before bounded100 and the next ticket35 requests normal0");
+    check(game.observe({}).find(grant_sampler_rule)!=std::string::npos,"public metadata declares the local chance contract without exposing a sampled choice");
+}
+void grant_sampler_physical_copy_order_and_resource_domains(){
+    for(unsigned n=0;n<=2;++n){auto state=scene({},{});state.tiebreak_gf=0;for(unsigned i=0;i<n;++i)state.players[0].items.push_back({10+i,207,{},false});auto game=grant_fixture(state);game.step(pray(0));
+        auto rng=grant_seed_for_word(115);const auto before=rng;const auto action=game.sample_grant(rng);
+        check(action.model==243&&action.removed.size()==n&&rng==before+(1+n)*0x9e3779b97f4a7c15ULL,"trickster draws one index per physical copy, including singleton and final singleton");
+        std::set<ItemToken> unique(action.removed.begin(),action.removed.end());check(unique.size()==n,"two identical model copies remain distinct token choices");for(auto token:action.removed)check(token>=10&&token<10+n,"sampled token belongs to the actual raw recipient hand");
+        game.grant_step(action);check(game.snapshot().gifts[0]==1&&game.snapshot().state.players[0].items.empty(),"sampled trickster is executable without inventing replacement debts");roundtrip(game);
+    }
+    auto rich=scene({199,235,207,208,112,114,209,236,239,184,187,188,189,199,203,235,236,239},{});rich.tiebreak_gf=0;rich.players[0].curses={Curse::dream};
+    rich.players[0].items[1].used=rich.players[0].items[7].used=true;rich.players[0].items[5].fake_model=125;auto game=grant_fixture(rich);game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();
+    std::set<ItemToken> touched;std::set<std::pair<ItemToken,ItemToken>> ordered;std::set<unsigned> resources;
+    for(std::uint64_t seed=0;seed<8192;++seed){auto rng=seed;const auto action=game.sample_grant(rng);check(game.grant_legal(action)&&game.snapshot()==pending,"rich hidden inventory sampling remains privileged, pure and executable");
+        if(action.model==243){check(action.removed.size()==2&&action.removed[0]!=action.removed[1],"full pending hand chooses two copies without replacement");ordered.emplace(action.removed[0],action.removed[1]);for(auto token:action.removed)touched.insert(token);}
+        if(action.model==244)resources.insert(static_cast<unsigned>(*action.resource));
+    }
+    check(touched.size()==17&&touched.contains(1)&&touched.contains(2)&&touched.contains(3)&&touched.contains(5)&&touched.contains(6),"raw candidate set covers used miracles,207,208,112,Dream fake and209 without visible-face filtering");
+    check(ordered.size()>100&&resources==std::set<unsigned>{0,1,2},"the local copy policy has varied ordered pairs and the fairy includes all resources");
+    auto capped=rich;capped.players[0].hp=capped.players[0].mp=capped.players[0].cp=99;auto cap=grant_fixture(capped);cap.step({0,CommandKind::sacrifice,{0},{}});
+    for(std::uint64_t seed=0;seed<1024;++seed){auto a=seed,b=seed;check(game.sample_grant(a)==cap.sample_grant(b)&&a==b,"capped resources do not alter the local chance choices or draw staging");}
+}
+void grant_sampler_phase_refusal_and_separate_stream_transactions(){
+    const auto refused=[](const Match& game){const auto old=game.snapshot();auto rng=UINT64_MAX;bool failed=false;try{(void)game.sample_grant(rng);}catch(const MatchError& error){failed=error.code==MatchErrorCode::invalid;}check(failed&&rng==UINT64_MAX&&game.snapshot()==old,"non-grant sampling refuses before a chance draw or match mutation");};
+    Match main;refused(main);auto inactive=grant_fixture(scene({},{}));inactive.step(pray(0));refused(inactive);
+    auto response_state=scene({6},{});response_state.tiebreak_gf=0;auto response=grant_fixture(response_state);response.step(play(0,{0},7));refused(response);
+    auto state=scene({199},{});state.tiebreak_gf=0;auto cutoff=grant_fixture(state,7,2);cutoff.step({0,CommandKind::sacrifice,{0},{}});cutoff.grant_step({0,0,{},{}});refused(cutoff);
+    auto fail_state=state;fail_state.update_count=max_wire_integer-1;auto failing=grant_fixture(fail_state);failing.step({0,CommandKind::sacrifice,{0},{}});const auto pending=failing.snapshot();
+    auto committed=grant_seed_for_word(125);auto trial=committed;const auto action=failing.sample_grant(trial);bool failed=false;try{failing.grant_step(action);}catch(const MatchError&){failed=true;}
+    check(failed&&failing.snapshot()==pending&&committed!=trial&&committed==grant_seed_for_word(125),"copy-then-commit caller chance seed permits atomic sample-plus-step despite late update exhaustion");
+    auto a=grant_fixture(state),b=grant_fixture(state);a.step({0,CommandKind::sacrifice,{0},{}});b.step({0,CommandKind::sacrifice,{0},{}});auto ra=grant_seed_for_word(125),rb=grant_seed_for_word(199);
+    const auto ca=a.sample_grant(ra),cb=b.sample_grant(rb);check(ca==cb&&a.snapshot()==b.snapshot(),"different external chance seeds requesting normal do not affect game RNG before grant step");a.grant_step(ca);b.grant_step(cb);check(a.snapshot()==b.snapshot(),"actual artifact and Dream chooser remain solely in the unchanged game RNG stream");roundtrip(a);
+}
+void grant_sampler_resume_with_controller_checkpoint(){
+    auto state=scene({},{});state.tiebreak_gf=0;state.players[0].hp=99;for(unsigned i=0;i<18;++i)state.players[0].items.push_back({i,235,{},true});auto left=grant_fixture(state);std::vector<ItemToken> all;for(unsigned i=0;i<18;++i)all.push_back(i);left.step({0,CommandKind::sacrifice,all,{}});
+    Match right;right.restore(left.snapshot());std::uint64_t lc=9881,rc=lc;unsigned sampled=0;
+    while(left.snapshot().phase==MatchPhase::grant){const auto old=left.snapshot();auto la=left.sample_grant(lc),ra=right.sample_grant(rc);check(la==ra&&lc==rc&&left.snapshot()==old&&right.snapshot()==old,"snapshot plus saved external chance RNG reproduce subsequent complete choices");left.grant_step(la);right.grant_step(ra);check(left.snapshot()==right.snapshot(),"restored controller applies identical local chance continuation");roundtrip(left);++sampled;check(sampled<128,"ordinary ticket mass drains this deterministic fixture without an unbounded retry loop");}
+    check(sampled>=18&&left.snapshot().phase==MatchPhase::main&&left.snapshot().owner==7&&left.snapshot().state.gf==1,"sampled devil retries and ordinary grants finish a single original turn");
+}
+
+void grant_sampler_independent_bigint_reference_vectors(){
+    struct Vector { std::uint64_t seed,next; unsigned inventory; bool capped; CardId model; int resource; std::vector<ItemToken> removed; };
+    const std::vector<Vector> vectors{
+        {0x57b4c1fc7ebefd60ULL,0xf5ec3bb5fe097975ULL,2,false,240,-1,{}},
+        {0x447c8b806a150d26ULL,0xe2b40539e95f893bULL,2,false,240,-1,{}},
+        {0x973cb970b2c591edULL,0x3574332a32100e02ULL,2,false,241,-1,{}},
+        {0x90c3b8f90a1ce00dULL,0x2efb32b289675c22ULL,2,false,241,-1,{}},
+        {0xd19b58bc82fe5609ULL,0x6fd2d2760248d21eULL,2,false,242,-1,{}},
+        {0x808110a8378ab12aULL,0x1eb88a61b6d52d3fULL,2,false,242,-1,{}},
+        {0xe7889ba942cb6b77ULL,0xc22f08d5c0aadfb6ULL,2,false,243,-1,{17,29}},
+        {0xa26c5cf25c8fcf5cULL,0x7d12ca1eda6f439bULL,2,false,243,-1,{6,11}},
+        {0xf13e6629a10d52c2ULL,0x2dad599c9fa24aecULL,2,false,244,1,{}},
+        {0xf1fa8c75f7c0cdecULL,0x2e697fe8f655c616ULL,2,false,244,0,{}},
+        {0xb52c7e8ac59bb02dULL,0x5363f84444e62c42ULL,2,false,0,-1,{}},
+        {0x09442a9be64447d3ULL,0xa77ba455658ec3e8ULL,2,false,0,-1,{}},
+        {0x61c8864680b583ebULL,0x9e3779b97f4a7c15ULL,2,false,0,-1,{}},
+        {0x0000000000000005ULL,0x9e3779b97f4a7c1aULL,0,false,243,-1,{}},
+        {0x0000000000000005ULL,0x3c6ef372fe94f82fULL,1,false,243,-1,{0}},
+        {0x0000000000000005ULL,0xdaa66d2c7ddf7444ULL,2,false,243,-1,{151,11}},
+        {0x0000000000000c4fULL,0xdaa66d2c7ddf808eULL,2,false,243,-1,{23,0}},
+        {0x0000000000000316ULL,0xdaa66d2c7ddf7755ULL,2,false,243,-1,{8,53}},
+        {0x000000000000000cULL,0x3c6ef372fe94f836ULL,2,true,244,0,{}},
+        {0x000000000000006aULL,0x3c6ef372fe94f894ULL,2,true,244,1,{}},
+        {0x0000000000000008ULL,0x3c6ef372fe94f832ULL,2,true,244,2,{}},
+    };
+    for(const auto& v:vectors){auto state=scene({},{});auto& own=state.players[0];own.id=42;state.tiebreak_gf=0;
+        if(v.inventory==1)own.items.push_back({0,207,{},false});
+        if(v.inventory==2){own.curses={Curse::dream};own.items={
+            {0,235,{}, true},
+            {23,6,8, false},
+            {4,208,{}, false},
+            {41,209,{}, false},
+            {8,112,{}, false},
+            {53,207,{}, false},
+            {9,218,{}, true},
+            {72,235,{}, false},
+            {11,178,{}, false},
+            {99,168,{}, false},
+            {3,198,{}, false},
+            {121,190,{}, false},
+            {17,4,{}, false},
+            {142,5,{}, false},
+            {6,3,{}, false},
+            {151,120,{}, false},
+            {29,201,{}, false},
+        };}
+        own.items.push_back({999,199,{},false});if(v.capped)own.hp=own.mp=own.cp=99;
+        auto game=grant_fixture(state,7,128,42);game.step({42,CommandKind::sacrifice,{999},{}});const auto before=game.snapshot();auto rng=v.seed;
+        const auto action=game.sample_grant(rng);const auto resource=action.resource?static_cast<int>(*action.resource):-1;
+        check(action.target==42&&action.model==v.model&&resource==v.resource&&action.removed==v.removed&&rng==v.next&&game.snapshot()==before,
+              "reachable boundary and edge vectors match the independent BigInt local reference, including exact RNG state");
+    }
+}
+
 }
 int main(){
-    scope_reset_and_local_contract();
-    weapon_frames_colors_owner_and_fixed_rewards();
-    recovery_retention_capacity_and_atomicity();
-    reflection_filter_and_immutable_origin();
-    reflection_snapshot_adversaries();
-    reflection_chain_exceeds_legacy_limit();
-    reflection_role_capacity_and_late_failures();
-    blocking_roles_retention_and_reflection();
-    ordered_free_setter_and_double();
-    free_response_capacity_sampler_and_atomicity();
-    bounce_targets_roles_and_rng_provenance();
-    retained_bounce_exceeds_physical_limit_and_free();
-    chance_scope_boundaries_and_single_cost();
-    chance_multiplayer_journal_and_privacy();
-    chance_dead_skip_origin_cancel_cutoff_and_rollback();
-    counter_damage_fifo_and_reactions();
-    counter_chance_death_journal_and_atomicity();
-    counter_generation_exceeds_old_duel_limit();
-    resource_counter_mp_cp_and_alias();
-    resource_counter_dead_skip_and_journal();
-    mp_refill_extends_retained_redirect_budget();
-    absorption_stages_reflection_and_retention();
-    same_damage_stages_deaths_and_journal();
-    composed_damage_effect_and_block_cancel();
-    flash_damage_selection_and_cures();
-    flash_counter_chance_and_journal();
-    darkcloud_forced_chance_and_mixed_roster();
-    darkcloud_damage_sources_and_cures();
-    darkcloud_counter_fifo_forced_and_selection();
-    darkcloud_canonical_journal_and_cutoff();
-    removal_counts_tokens_and_rng();
-    removal_retention_gifts_and_status();
-    removal_reflection_and_journal_atomicity();
-    mana_weapon_immutable_power_and_payment();
-    twice_weapon_fresh_frames_costs_and_order();
-    twice_death_cutoff_and_mana_journal();
-    wide_target_modes_payment_and_free();
-    wide_twice_sixteen_fresh_frames();
-    wide_counter_death_and_journal();
-    random_hp_sign_clips_and_death();
-    random_hp_reflections_fixed_and_journal();
-    random_hp_query_cutoff_and_rollback();
-    revival_passive_boundaries_and_prayer();
-    revival_counters_repeats_and_simultaneous();
-    revival_journal_cutoff_and_rollback();
-    danger_random_targets_reflections_and_visibility();
-    danger_mortar_priority_composition_and_revival();
-    danger_selection_gap_journal_and_atomicity();
-    exchange_allocation_fee_revival_and_noop();
-    exchange_invalid_roles_and_policy_allocations();
-    exchange_cutoff_and_atomic_failures();
-    removal_event_public_order_duplicates_and_reflection();
-    removal_event_lifetime_empty_and_rollback();
-    removal_event_snapshot_guards();
-    sell_arithmetic_transfer_and_commodity_is_not_cast();
-    sell_reflections_delivery_revival_and_cutoff();
-    sell_invalid_roles_sampler_and_journal();
-    sell_event_guards_and_atomic_late_failures();
-    buy_quote_accept_decline_and_public_escrow();
-    buy_empty_affordability_and_unused_miracles();
-    buy_reflection_ownership_and_quote_journal();
-    buy_roles_cutoff_returns_and_late_failure();
-    disease_reapplication_cures_and_damage_counter_basis();
-    disease_fixed_roll_post_upgrade_owner_tick();
-    disease_action_boundaries_quotes_repeats_and_cutoff();
-    disease_tick_revivals_and_body_accounting();
-    disease_canonical_tick_guards_and_atomic_failure();
-    fever_mask_full_defense_copies_and_append_boundaries();
-    fever_mask_prefix_fall_body_counter_and_self_alias();
-    heaven_herb_mp_first_reflection_rescue_and_cutoff();
-    disease_items_nonuse_roles_and_atomic_failures();
-    fog_launch_targets_singleton_team_repeat_and_rng();
-    fog_random202_order_exceptions_and_redirects();
-    fog_projection_and_query_noninterference();
-    fog_forced_hit_redaction_survives_reflection();
-    fog_application_cures_journal_and_atomicity();
-    death_main_rate_copies_and_target_roster();
-    death_redirects_counters_and_origin_death_chains();
-    death_general_main_and_single_owner_tick_journals();
-    death_natural_cutoff_revival_and_simultaneous_boundaries();
-    death_snapshot_adversaries_and_atomic_late_failures();
-    death_nine_seat_large_fifo_and_natural_cancellation();
-    trade_overflow_inventory_order_types_and_gift_accounting();
-    trade_overflow_debt_eviction_revival_and_death_order();
-    fog_sell_launch_commodity_roles_reflections_and_overflow();
-    overflow_event_full_replay_and_late_atomic_failures();
-    trade_capacity_queries_and_sampler_use_only_visible_inputs();
-    dream_compatibility_predicates_and_payloads();
-    dream_gift_rng_and_no_retroactive_mask();
-    dream_same_visible_policy_and_actual_execution();
-    dream_sources_cures_and_owner_only_revelation();
-    dream_trade_quotes_removal_and_overflow();
-    dream_checkpoint_guards_and_transactional_replay();
-    redraw_replaces_used_inventory_and_preserves_reserved_gifts();
-    redraw_consumes_whole_selection_before_each_ordered_prefix();
-    redraw_fresh_responses_and_passive_revival_are_immediate();
-    redraw_private_inventory_and_public_event_lifetime();
-    redraw_trade_and_original_payload_survive_replacement();
-    redraw_snapshot_adversaries_and_late_atomic_failures();
-    self_buy_inspects_same_copy_without_money_or_quote();
-    self_buy_empty_and_used_miracles_preserve_candidate_order();
-    self_buy_dream_reveals_only_chosen_copy_and_queries_use_faces();
-    self_buy_fog_team_capacity_and_sampler_do_not_peek();
-    self_buy_events_failures_cutoff_and_shape_guards();
-    self_buy_seeded_rollouts_remain_replayable();
-    guardian_all_canonical_actions_and_distinct_inventory_pool();
-    guardian_reaction_categories_and_immutable_identity();
-    guardian_chance_privacy_and_no_opportunity_sampling();
-    guardian_venus_cp_global_credit_and_debt_order();
-    guardian_cure_earth_gifts_and_ordinary_owner_are_separate();
-    guardian_counters_death_and_resume_owner();
-    guardian_domains_cutoff_snapshot_forgery_and_rollback();
-    guardian_seeded_complete_rollouts_remain_deterministic();
-    guardian_summon_all_ten_and_normal_cast_roles();
-    guardian_auto_all_types_draw_order_and_once_per_source();
-    guardian_departure_actual_stages_and_event_time_visibility();
-    guardian_auto_tick_history_counter_fifo_and_owner_death();
-    guardian_auto_snapshot_forgery_and_late_failures();
-    guardian_auto_seeded_full_turns_replay_all_private_state();
-    checkpoint_cutoff_and_seeded_multiplayer();
-    guardian_payload_all_bases_and_inventory_independence();
-    guardian_payload_domains_shapes_and_strict_composition();
-    guardian_payload_mana_reflection_and_launch_context();
-    guardian_payload_repeat_counter_fifo_and_fixed_identity();
-    guardian_payload_snapshot_forgery_cutoff_and_late_rollback();
-    guardian_payload_summon_random_and_seeded_replay();
-    phenomenon_capabilities_fever_replacement_and_atomic_roles();
-    phenomenon_fog_idempotence_and_hp_setter_are_not_damage();
-    phenomenon_cp_collection_recipient_alias_debt_and_cap();
-    phenomenon_guardian_nine_assignments_event_time_fog_and_cutoff();
-    phenomenon_strict_shapes_pending_exclusion_and_late_rollback();
-    phenomenon_prefix_counters_survive_all_later_action_replay();
-    targeted_phenomenon_source_absence_and_light_filter();
-    targeted_phenomenon_dark_single_chance_force_and_full_defense();
-    targeted_phenomenon_warm_response_cap_and_environmental_cancel();
-    targeted_phenomenon_source_counters_skip_but_self_mp_is_real();
-    targeted_phenomenon_owner_death_fifo_and_cutoff();
-    targeted_phenomenon_replay_forgery_rollback_and_seeded_turns();
-    item_shuffle_source_pairs_fresh_tokens_and_preserved_copies();
-    item_shuffle_dream_boundary_and_retained_recast();
-    item_shuffle_capacity_dead_zero_and_token_budget();
-    item_shuffle_invalid_cover_pending_and_rollback();
-    item_shuffle_full_proof_rejects_tampering();
-    item_shuffle_prefix_and_all_later_actions_replay();
-    confusion_addition_scope_and_projection();
-    confusion_api_gate_overflow_and_transaction();
-    confusion_all_main_kinds_debit_and_cures_preserve();
-    confusion_launch_response_replay_and_tamper();
-    confusion_purchase_and_sale_resolution();
-    confusion_death_revival_end_and_cutoff();
-    confusion_seeded_external_controller_rollouts();
-    fate_special_scene_capability_and_sampler_boundary();
-    fate_global_bodies_cutoff_and_ordinary_schedule();
-    fate_targeted_source_free_response_and_replay();
-    fate_shuffle_post_consumption_copy_and_gift_order();
-    fate_confusion_revival_death_and_natural_end();
-    fate_invalid_shapes_and_late_failure_atomicity();
-    fate_full_launch_response_and_completed_proof_tamper();
-    fate207_inert_discard_trade_fog_and_removal();
-    fate_guardian_followups_and_repeated_counter_anchors();
-    devil_capability_direct_damage_and_no_response();
-    devil_fairy_three_resources_clip_and_private_choice();
-    devil_trickster_exact_copies_used_fake_and_inert_passives();
-    devil_bad_shapes_pending_and_late_atomic_failure();
-    devil_revival_and_natural_end_boundaries();
-    devil_posthumous_fifo_real_source_zero_and_owner_resume();
-    devil_guardian_departure_local_rule_and_fog_filter();
-    devil_full_proof_tamper_and_following_anchor_prefixes();
-    sacrifice_threshold_scene_and_transition_boundaries();
-    sacrifice_multi_used_fake_inert_and_zero_fee();
-    sacrifice_full18_and_cutoff_cancels_all_gifts();
-    sacrifice_role_identity_and_phase_rejections();
-    sacrifice_confusion_one_debit_and_sampler_parity();
-    sacrifice_tick_death_revival_and_natural_completion();
-    sacrifice_exhaustion_rollback_and_launch_threshold_replay();
-    grant_phase_normal_draw_and_original_turn_completion();
-    grant_disabled_prethreshold_and_initial_distribution_parity();
-    grant_retry_trickster_and_decision_cutoff_finite();
-    grant_revival_debt_historical_tick_and_posthumous_interleave();
-    grant_fate_devil_guardian_and_world_original_sources();
-    grant_shape_and_pending_state_atomic_rollback();
-    grant_full_ordered_proof_tamper_and_next_action_prefix();
-    grant_dream_privacy_and_immediate_delivery_exceptions();
+    // Keep independently registered tests out of main's combined ASan stack frame.
+    const std::array<void(*)(),188> tests{{
+        scope_reset_and_local_contract,
+        weapon_frames_colors_owner_and_fixed_rewards,
+        recovery_retention_capacity_and_atomicity,
+        reflection_filter_and_immutable_origin,
+        reflection_snapshot_adversaries,
+        reflection_chain_exceeds_legacy_limit,
+        reflection_role_capacity_and_late_failures,
+        blocking_roles_retention_and_reflection,
+        ordered_free_setter_and_double,
+        free_response_capacity_sampler_and_atomicity,
+        bounce_targets_roles_and_rng_provenance,
+        retained_bounce_exceeds_physical_limit_and_free,
+        chance_scope_boundaries_and_single_cost,
+        chance_multiplayer_journal_and_privacy,
+        chance_dead_skip_origin_cancel_cutoff_and_rollback,
+        counter_damage_fifo_and_reactions,
+        counter_chance_death_journal_and_atomicity,
+        counter_generation_exceeds_old_duel_limit,
+        resource_counter_mp_cp_and_alias,
+        resource_counter_dead_skip_and_journal,
+        mp_refill_extends_retained_redirect_budget,
+        absorption_stages_reflection_and_retention,
+        same_damage_stages_deaths_and_journal,
+        composed_damage_effect_and_block_cancel,
+        flash_damage_selection_and_cures,
+        flash_counter_chance_and_journal,
+        darkcloud_forced_chance_and_mixed_roster,
+        darkcloud_damage_sources_and_cures,
+        darkcloud_counter_fifo_forced_and_selection,
+        darkcloud_canonical_journal_and_cutoff,
+        removal_counts_tokens_and_rng,
+        removal_retention_gifts_and_status,
+        removal_reflection_and_journal_atomicity,
+        mana_weapon_immutable_power_and_payment,
+        twice_weapon_fresh_frames_costs_and_order,
+        twice_death_cutoff_and_mana_journal,
+        wide_target_modes_payment_and_free,
+        wide_twice_sixteen_fresh_frames,
+        wide_counter_death_and_journal,
+        random_hp_sign_clips_and_death,
+        random_hp_reflections_fixed_and_journal,
+        random_hp_query_cutoff_and_rollback,
+        revival_passive_boundaries_and_prayer,
+        revival_counters_repeats_and_simultaneous,
+        revival_journal_cutoff_and_rollback,
+        danger_random_targets_reflections_and_visibility,
+        danger_mortar_priority_composition_and_revival,
+        danger_selection_gap_journal_and_atomicity,
+        exchange_allocation_fee_revival_and_noop,
+        exchange_invalid_roles_and_policy_allocations,
+        exchange_cutoff_and_atomic_failures,
+        removal_event_public_order_duplicates_and_reflection,
+        removal_event_lifetime_empty_and_rollback,
+        removal_event_snapshot_guards,
+        sell_arithmetic_transfer_and_commodity_is_not_cast,
+        sell_reflections_delivery_revival_and_cutoff,
+        sell_invalid_roles_sampler_and_journal,
+        sell_event_guards_and_atomic_late_failures,
+        buy_quote_accept_decline_and_public_escrow,
+        buy_empty_affordability_and_unused_miracles,
+        buy_reflection_ownership_and_quote_journal,
+        buy_roles_cutoff_returns_and_late_failure,
+        disease_reapplication_cures_and_damage_counter_basis,
+        disease_fixed_roll_post_upgrade_owner_tick,
+        disease_action_boundaries_quotes_repeats_and_cutoff,
+        disease_tick_revivals_and_body_accounting,
+        disease_canonical_tick_guards_and_atomic_failure,
+        fever_mask_full_defense_copies_and_append_boundaries,
+        fever_mask_prefix_fall_body_counter_and_self_alias,
+        heaven_herb_mp_first_reflection_rescue_and_cutoff,
+        disease_items_nonuse_roles_and_atomic_failures,
+        fog_launch_targets_singleton_team_repeat_and_rng,
+        fog_random202_order_exceptions_and_redirects,
+        fog_projection_and_query_noninterference,
+        fog_forced_hit_redaction_survives_reflection,
+        fog_application_cures_journal_and_atomicity,
+        death_main_rate_copies_and_target_roster,
+        death_redirects_counters_and_origin_death_chains,
+        death_general_main_and_single_owner_tick_journals,
+        death_natural_cutoff_revival_and_simultaneous_boundaries,
+        death_snapshot_adversaries_and_atomic_late_failures,
+        death_nine_seat_large_fifo_and_natural_cancellation,
+        trade_overflow_inventory_order_types_and_gift_accounting,
+        trade_overflow_debt_eviction_revival_and_death_order,
+        fog_sell_launch_commodity_roles_reflections_and_overflow,
+        overflow_event_full_replay_and_late_atomic_failures,
+        trade_capacity_queries_and_sampler_use_only_visible_inputs,
+        dream_compatibility_predicates_and_payloads,
+        dream_gift_rng_and_no_retroactive_mask,
+        dream_same_visible_policy_and_actual_execution,
+        dream_sources_cures_and_owner_only_revelation,
+        dream_trade_quotes_removal_and_overflow,
+        dream_checkpoint_guards_and_transactional_replay,
+        redraw_replaces_used_inventory_and_preserves_reserved_gifts,
+        redraw_consumes_whole_selection_before_each_ordered_prefix,
+        redraw_fresh_responses_and_passive_revival_are_immediate,
+        redraw_private_inventory_and_public_event_lifetime,
+        redraw_trade_and_original_payload_survive_replacement,
+        redraw_snapshot_adversaries_and_late_atomic_failures,
+        self_buy_inspects_same_copy_without_money_or_quote,
+        self_buy_empty_and_used_miracles_preserve_candidate_order,
+        self_buy_dream_reveals_only_chosen_copy_and_queries_use_faces,
+        self_buy_fog_team_capacity_and_sampler_do_not_peek,
+        self_buy_events_failures_cutoff_and_shape_guards,
+        self_buy_seeded_rollouts_remain_replayable,
+        guardian_all_canonical_actions_and_distinct_inventory_pool,
+        guardian_reaction_categories_and_immutable_identity,
+        guardian_chance_privacy_and_no_opportunity_sampling,
+        guardian_venus_cp_global_credit_and_debt_order,
+        guardian_cure_earth_gifts_and_ordinary_owner_are_separate,
+        guardian_counters_death_and_resume_owner,
+        guardian_domains_cutoff_snapshot_forgery_and_rollback,
+        guardian_seeded_complete_rollouts_remain_deterministic,
+        guardian_summon_all_ten_and_normal_cast_roles,
+        guardian_auto_all_types_draw_order_and_once_per_source,
+        guardian_departure_actual_stages_and_event_time_visibility,
+        guardian_auto_tick_history_counter_fifo_and_owner_death,
+        guardian_auto_snapshot_forgery_and_late_failures,
+        guardian_auto_seeded_full_turns_replay_all_private_state,
+        checkpoint_cutoff_and_seeded_multiplayer,
+        guardian_payload_all_bases_and_inventory_independence,
+        guardian_payload_domains_shapes_and_strict_composition,
+        guardian_payload_mana_reflection_and_launch_context,
+        guardian_payload_repeat_counter_fifo_and_fixed_identity,
+        guardian_payload_snapshot_forgery_cutoff_and_late_rollback,
+        guardian_payload_summon_random_and_seeded_replay,
+        phenomenon_capabilities_fever_replacement_and_atomic_roles,
+        phenomenon_fog_idempotence_and_hp_setter_are_not_damage,
+        phenomenon_cp_collection_recipient_alias_debt_and_cap,
+        phenomenon_guardian_nine_assignments_event_time_fog_and_cutoff,
+        phenomenon_strict_shapes_pending_exclusion_and_late_rollback,
+        phenomenon_prefix_counters_survive_all_later_action_replay,
+        targeted_phenomenon_source_absence_and_light_filter,
+        targeted_phenomenon_dark_single_chance_force_and_full_defense,
+        targeted_phenomenon_warm_response_cap_and_environmental_cancel,
+        targeted_phenomenon_source_counters_skip_but_self_mp_is_real,
+        targeted_phenomenon_owner_death_fifo_and_cutoff,
+        targeted_phenomenon_replay_forgery_rollback_and_seeded_turns,
+        item_shuffle_source_pairs_fresh_tokens_and_preserved_copies,
+        item_shuffle_dream_boundary_and_retained_recast,
+        item_shuffle_capacity_dead_zero_and_token_budget,
+        item_shuffle_invalid_cover_pending_and_rollback,
+        item_shuffle_full_proof_rejects_tampering,
+        item_shuffle_prefix_and_all_later_actions_replay,
+        confusion_addition_scope_and_projection,
+        confusion_api_gate_overflow_and_transaction,
+        confusion_all_main_kinds_debit_and_cures_preserve,
+        confusion_launch_response_replay_and_tamper,
+        confusion_purchase_and_sale_resolution,
+        confusion_death_revival_end_and_cutoff,
+        confusion_seeded_external_controller_rollouts,
+        fate_special_scene_capability_and_sampler_boundary,
+        fate_global_bodies_cutoff_and_ordinary_schedule,
+        fate_targeted_source_free_response_and_replay,
+        fate_shuffle_post_consumption_copy_and_gift_order,
+        fate_confusion_revival_death_and_natural_end,
+        fate_invalid_shapes_and_late_failure_atomicity,
+        fate_full_launch_response_and_completed_proof_tamper,
+        fate207_inert_discard_trade_fog_and_removal,
+        fate_guardian_followups_and_repeated_counter_anchors,
+        devil_capability_direct_damage_and_no_response,
+        devil_fairy_three_resources_clip_and_private_choice,
+        devil_trickster_exact_copies_used_fake_and_inert_passives,
+        devil_bad_shapes_pending_and_late_atomic_failure,
+        devil_revival_and_natural_end_boundaries,
+        devil_posthumous_fifo_real_source_zero_and_owner_resume,
+        devil_guardian_departure_local_rule_and_fog_filter,
+        devil_full_proof_tamper_and_following_anchor_prefixes,
+        sacrifice_threshold_scene_and_transition_boundaries,
+        sacrifice_multi_used_fake_inert_and_zero_fee,
+        sacrifice_full18_and_cutoff_cancels_all_gifts,
+        sacrifice_role_identity_and_phase_rejections,
+        sacrifice_confusion_one_debit_and_sampler_parity,
+        sacrifice_tick_death_revival_and_natural_completion,
+        sacrifice_exhaustion_rollback_and_launch_threshold_replay,
+        grant_phase_normal_draw_and_original_turn_completion,
+        grant_disabled_prethreshold_and_initial_distribution_parity,
+        grant_retry_trickster_and_decision_cutoff_finite,
+        grant_revival_debt_historical_tick_and_posthumous_interleave,
+        grant_fate_devil_guardian_and_world_original_sources,
+        grant_shape_and_pending_state_atomic_rollback,
+        grant_full_ordered_proof_tamper_and_next_action_prefix,
+        grant_dream_privacy_and_immediate_delivery_exceptions,
+        grant_sampler_exact_percent_tickets_and_pure_queries,
+        grant_sampler_physical_copy_order_and_resource_domains,
+        grant_sampler_phase_refusal_and_separate_stream_transactions,
+        grant_sampler_resume_with_controller_checkpoint,
+        grant_sampler_independent_bigint_reference_vectors,
+    }};
+    for(auto test:tests)test();
 
 
 
