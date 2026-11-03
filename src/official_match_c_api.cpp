@@ -34,6 +34,10 @@ static_assert(std::is_standard_layout_v<gfo_match_phenomenon_action>
     && offsetof(gfo_match_phenomenon_action, guardian_count) == 11
     && offsetof(gfo_match_phenomenon_action, guardians) == 12
     && offsetof(gfo_match_phenomenon_action, reserved) == 21);
+static_assert(std::is_standard_layout_v<gfo_match_item_source> && sizeof(gfo_match_item_source) == 16
+    && offsetof(gfo_match_item_source, token) == 8);
+static_assert(std::is_standard_layout_v<gfo_match_item_shuffle_action> && sizeof(gfo_match_item_shuffle_action) == 16
+    && offsetof(gfo_match_item_shuffle_action, count) == 8);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
@@ -126,6 +130,15 @@ official::PhenomenonAction phenomenon_action(const gfo_match_phenomenon_action& 
     }
     return result;
 }
+official::ItemShuffleAction item_shuffle_action(const gfo_match_item_shuffle_action& input) {
+    official::ItemShuffleAction result; result.order.reserve(input.count);
+    for (std::size_t i = 0; i < input.count; ++i) {
+        const auto& source = input.order[i];
+        valid(source.owner <= official::max_wire_integer && source.token <= official::max_wire_integer);
+        result.order.push_back({source.owner,source.token});
+    }
+    return result;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -174,6 +187,9 @@ int gfo_match_guardian_payload_supported(uint8_t guardian, uint16_t model) {
 }
 size_t gfo_match_phenomenon_action_size(void) { return sizeof(gfo_match_phenomenon_action); }
 int gfo_match_phenomenon_supported(uint16_t model) { return official::match_phenomenon_supported(model); }
+size_t gfo_match_item_source_size(void) { return sizeof(gfo_match_item_source); }
+size_t gfo_match_item_shuffle_action_size(void) { return sizeof(gfo_match_item_shuffle_action); }
+int gfo_match_item_shuffle_supported(uint16_t model) { return official::match_item_shuffle_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -267,6 +283,26 @@ int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_actio
     try {
         const auto parsed = phenomenon_action(*input); auto next = match->value;
         next.phenomenon_step(parsed); const auto result = status(next);
+        match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_item_shuffle_legal(const gfo_match* match, const gfo_match_item_shuffle_action* input, uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    if (input->count > official::player_capacity * official::visible_hand_capacity) return -2;
+    if (!input->order && input->count) return -1;
+    try {
+        const auto parsed = item_shuffle_action(*input);
+        const uint8_t result = match->value.item_shuffle_legal(parsed);
+        *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_item_shuffle_step(gfo_match* match, const gfo_match_item_shuffle_action* input, gfo_match_status* out) {
+    if (!match || !input || !out) return -1;
+    if (input->count > official::player_capacity * official::visible_hand_capacity) return -2;
+    if (!input->order && input->count) return -1;
+    try {
+        const auto parsed = item_shuffle_action(*input); auto next = match->value;
+        next.item_shuffle_step(parsed); const auto result = status(next);
         match->value = std::move(next); *out = result; return 0;
     } catch (...) { return error(); }
 }

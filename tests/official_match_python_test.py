@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 class MatchTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v35"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v36"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v33")
+        self.assertEqual(own["schema"], "official-execution-view-v34")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v33")
+        self.assertEqual(event["schema"], "official-execution-view-v34")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2801,6 +2801,125 @@ class MatchTests(unittest.TestCase):
                         queries += 1
             projections += 1
         self.assertEqual((projections, queries), (6, 2360))
+
+    def test_item_shuffle_pairs_fresh_tokens_dead_exclusion_and_retained_recast(self):
+        game = self.match(config=Config(initial_hand=0))
+        self.assertEqual(game.supported_item_shuffle_models, (295,))
+        self.assertNotIn(295, game.supported_phenomenon_models)
+        raw = {"gf": 9, "players": [{"id": 0, "hp": 40, "mp": 99, "cp": 20, "items": [
+                   {"id": 0, "modelId": 6}, {"id": 1, "modelId": 235, "used": True}]},
+                   {"id": 7, "hp": 40, "mp": 99, "cp": 20, "items": [{"id": 0, "modelId": 5}, {"id": 1, "modelId": 152}]},
+                   {"id": 23, "hp": 0, "mp": 99, "cp": 20, "dead": True, "items": [{"id": 0, "modelId": 208}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 3)
+        dead = game.observe(23)["board"]["hand"]
+        action = ItemShuffleAction((ItemSource(7, 0), ItemSource(7, 1), ItemSource(0, 1), ItemSource(0, 0)))
+        before, status = game.observe(0), game.status
+        self.assertTrue(game.item_shuffle_legal(action)); self.assertEqual((game.observe(0), game.status), (before, status))
+        game.item_shuffle_step(action)
+        self.assertEqual({item["token"]: (item["face"], item["used"]) for item in game.observe(0)["board"]["hand"]},
+                         {2: (5, False), 3: (152, False)})
+        self.assertEqual({item["token"]: (item["face"], item["used"]) for item in game.observe(7)["board"]["hand"]},
+                         {4: (235, True), 5: (6, False)})
+        self.assertEqual(game.observe(23)["board"]["hand"], dead)
+        view = game.observe()
+        self.assertEqual((game.actor, game.status.owner, game.status.decisions, view["board"]["gf"]), (0, 0, 1, 9))
+        self.assertEqual(view["last_phenomenon"], {"model": 295, "recipient": None})
+        self.assertEqual(view["last_reveals"], []); self.assertEqual(view["last_redraws"], [])
+        self.assertEqual(view["board"]["players"][1]["used_models"], [235])
+        for private in ("order", "sources", "count", "last_item_shuffle", "rng"):
+            self.assertNotIn(private, view); self.assertNotIn(private, view["last_phenomenon"])
+        game.step(Command(0, "discard", (3,)))
+        self.assertFalse(game.legal(Command(7, "play", (1,), 7)))
+        game.step(Command(7, "play", (4,), 7))
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["mp"], 92)
+        self.assertTrue(next(item for item in game.observe(7)["board"]["hand"] if item["token"] == 4)["used"])
+
+    def test_item_shuffle_dream_fake_attributes_move_without_new_masks_or_public_reveal(self):
+        game = self.match(config=Config(initial_hand=0))
+        for recipient_dream in (False, True):
+            raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["fog", "dream"], "items": [
+                        {"id": 0, "modelId": 23, "fakeModelId": 13}, {"id": 1, "modelId": 6}]},
+                        {"id": 7, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"] if recipient_dream else [],
+                         "items": [{"id": 0, "modelId": 152}]}]}
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            game.item_shuffle_step(ItemShuffleAction((ItemSource(7, 0), ItemSource(0, 1), ItemSource(0, 0))))
+            own = game.observe(0)["board"]["hand"]
+            self.assertEqual({item["token"]: item["face"] for item in own}, {2: 152, 3: 6})
+            self.assertFalse(any(item["disguised"] for item in own))
+            incoming = game.observe(7)["board"]["hand"]
+            self.assertEqual(incoming, [{"token": 4, "face": 13 if recipient_dream else 23,
+                                        "reference": 13 if recipient_dream else 23, "disguised": recipient_dream, "used": False}])
+            for viewer in (None, 0, 7):
+                view = game.observe(viewer)
+                self.assertEqual(view["last_reveals"], []); self.assertEqual(view["last_redraws"], [])
+                self.assertEqual(view["last_phenomenon"], {"model": 295, "recipient": None})
+            self.assertIsNone(game.observe(0)["board"]["players"][1]["status"])
+
+    def test_item_shuffle_manifest_strict_exact_cover_and_pending_rejection(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 6}]},
+                             {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 191}]},
+                             {"id": 23, "hp": 0, "mp": 10, "cp": 20, "dead": True, "items": [{"id": 0, "modelId": 208}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        for malformed in (None, ItemShuffleAction([]), ItemShuffleAction(((0, 0),)), ItemShuffleAction((ItemSource(True, 0),)),
+                          ItemShuffleAction((ItemSource(0, False),)), ItemShuffleAction((ItemSource(-1, 0),)),
+                          ItemShuffleAction((ItemSource(0, 9007199254740992),)), ItemShuffleAction((ItemSource(0, 0),) * 163)):
+            with self.assertRaises(InvalidMatchError): game.item_shuffle_legal(malformed)
+            with self.assertRaises(InvalidMatchError): game.item_shuffle_step(malformed)
+        for order in ((), (ItemSource(0, 0),), (ItemSource(0, 0), ItemSource(0, 0)),
+                      (ItemSource(0, 0), ItemSource(999, 0)), (ItemSource(0, 0), ItemSource(7, 99)),
+                      (ItemSource(0, 0), ItemSource(23, 0))):
+            action = ItemShuffleAction(order)
+            self.assertFalse(game.item_shuffle_legal(action))
+            with self.assertRaises(MatchError): game.item_shuffle_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.step(Command(0, "play", (0,), 7))
+        before, status = game.observe(0), game.status
+        self.assertFalse(game.item_shuffle_legal(ItemShuffleAction()))
+        with self.assertRaises(InvalidMatchError): game.item_shuffle_step(ItemShuffleAction())
+        self.assertEqual((game.observe(0), game.status), (before, status))
+
+    def test_item_shuffle_capacity_empty_exhaustion_cutoff_and_late_rollback(self):
+        game = self.match(config=Config(initial_hand=0))
+        ids = (0, 7, 23, 42, 100, 108, 999, 9007199254740991, 3)
+        raw = {"players": [{"id": player, "hp": 99, "mp": 99, "cp": 99,
+                            "items": [{"id": token, "modelId": 6} for token in range(18)]} for player in ids]}
+        order = tuple(reversed(tuple(ItemSource(player, token) for player in ids for token in range(18))))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        self.assertTrue(game.item_shuffle_legal(ItemShuffleAction(order))); game.item_shuffle_step(ItemShuffleAction(order))
+        hands = [game.observe(player)["board"]["hand"] for player in ids]
+        self.assertTrue(all(len(hand) == 18 for hand in hands))
+        self.assertEqual({item["token"] for hand in hands for item in hand}, set(range(18, 180)))
+        small = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 6}]},
+                               {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 191}]},
+                               {"id": 23, "hp": 0, "mp": 10, "cp": 20, "dead": True,
+                                "items": [{"id": 9007199254740991, "modelId": 208}]}]}
+        action = ItemShuffleAction((ItemSource(7, 0), ItemSource(0, 0)))
+        with OfficialState(small, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        self.assertTrue(game.item_shuffle_legal(action))
+        with self.assertRaises(MatchError): game.item_shuffle_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        small["players"][0]["items"] = []; small["players"][1]["items"] = []
+        with OfficialState(small, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        self.assertTrue(game.item_shuffle_legal(ItemShuffleAction())); game.item_shuffle_step(ItemShuffleAction())
+        self.assertEqual(game.observe()["last_phenomenon"], {"model": 295, "recipient": None})
+        self.assertEqual(game.observe(23)["board"]["hand"][0]["token"], 9007199254740991)
+        small["players"][2]["items"] = []
+        for index, model in ((0, 6), (1, 191)): small["players"][index]["items"] = [{"id": 0, "modelId": model}]
+        small["updateCount"] = 9007199254740991
+        with OfficialState(small, library=LIBRARY) as scene: game.load_scene(scene, 0)
+        before, status = game.observe(0), game.status
+        with self.assertRaises(InvalidMatchError): game.item_shuffle_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        small.pop("updateCount")
+        cut = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(small, library=LIBRARY) as scene: cut.load_scene(scene, 0)
+        cut.item_shuffle_step(action)
+        self.assertTrue(cut.status.truncated); self.assertFalse(cut.status.terminated)
+        self.assertEqual({item["token"]: item["face"] for item in cut.observe(0)["board"]["hand"]}, {1: 191})
+        self.assertEqual(cut.observe()["last_phenomenon"], {"model": 295, "recipient": None})
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

@@ -335,6 +335,24 @@ EffectFrame payload_effect_for(const MatchSnapshot& s, const GuardianPayloadActi
                               std::int64_t launch_mp, int random_hp_delta) {
     return effect_for(s,action.models,target,{},launch_mp,random_hp_delta,action.source,action.guardian,false);
 }
+std::vector<ItemInstance> prepare_item_shuffle(const MatchSnapshot& s, const ItemShuffleAction& action) {
+    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated,"item shuffle requires a main boundary");
+    require(action.order.size()<=player_capacity*visible_hand_capacity,"oversized shuffle manifest");
+    std::vector<ItemSource> keys; std::vector<ItemInstance> copies;
+    for (const auto& player:s.state.players) if (!player.dead) for (const auto& item:player.items) {
+        keys.push_back({player.id,item.token}); copies.push_back(item);
+    }
+    require(action.order.size()==keys.size(),"shuffle manifest must cover every alive physical copy");
+    std::array<bool,player_capacity*visible_hand_capacity> seen{}; std::vector<ItemInstance> ordered; ordered.reserve(copies.size());
+    for (const auto& source:action.order) {
+        require(source.owner<=max_wire_integer && source.token<=max_wire_integer,"invalid shuffle source identity");
+        const auto found=std::find(keys.begin(),keys.end(),source);
+        require(found!=keys.end(),"shuffle source is unknown or dead");
+        const auto slot=static_cast<std::size_t>(found-keys.begin());
+        require(!seen[slot],"shuffle source used twice"); seen[slot]=true; ordered.push_back(copies[slot]);
+    }
+    return ordered;
+}
 bool targeted_phenomenon(CardId model) { return model>=291 && model<=293; }
 void phenomenon_shape(const MatchSnapshot& s, const PhenomenonAction& action, bool historical=false) {
     if (!match_phenomenon_supported(action.model)) unsupported("unsupported global phenomenon primitive");
@@ -799,7 +817,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset();
     s.last_auto_guardians.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -819,6 +837,25 @@ ActionBatch action_anchor(const MatchSnapshot& s) {
     batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
     batch.death_rolls = s.death_rolls; batch.death_hits = s.death_hits; batch.death_forced_hits = s.death_forced_hits;
     return batch;
+}
+MatchSnapshot snapshot_from_anchor(const ActionBatch& batch, const MatchConfig& config) {
+    MatchSnapshot replay; replay.config = config; replay.state = batch.initial_state;
+    replay.owner = batch.owner; replay.actor = batch.owner; replay.phase = MatchPhase::main;
+    replay.rng = batch.rng; replay.decisions = batch.decisions; replay.next_token = batch.next_token;
+    replay.chance_rolls = batch.chance_rolls; replay.chance_hits = batch.chance_hits;
+    replay.counter_created = batch.counter_created; replay.counter_started = batch.counter_started;
+    replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
+    replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
+    replay.revivals = batch.revivals;
+    replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
+    replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
+    replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions;
+    replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
+    replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
+    replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
+    replay.death_rolls = batch.death_rolls; replay.death_hits = batch.death_hits; replay.death_forced_hits = batch.death_forced_hits;
+    replay.gifts.assign(batch.initial_state.players.size(), 0); replay.rewards.assign(batch.initial_state.players.size(), 0);
+    return replay;
 }
 void complete_decision(MatchSnapshot& s, bool completed) {
     ++s.decisions; require(s.state.update_count < max_wire_integer, "update counter exhausted"); ++s.state.update_count;
@@ -870,6 +907,26 @@ void execute_guardian_payload(MatchSnapshot& s, const GuardianPayloadAction& act
         s.batch->cursor=s.batch->targets.size(); resolve(s,effect,0); completed=true;
     } else completed=!next_action_effect(s);
     complete_decision(s,completed);
+}
+void execute_item_shuffle(MatchSnapshot& s, const ItemShuffleAction& action) {
+    auto copies=prepare_item_shuffle(s,action);
+    require(s.next_token<=max_wire_integer+1 && copies.size()<=max_wire_integer+1-s.next_token,"shuffle token budget exhausted");
+    clear_events(s); auto anchor=action_anchor(s);
+    std::vector<std::vector<ItemInstance>> hands(s.state.players.size()); std::size_t cursor=0;
+    for (std::size_t seat=0;seat<s.state.players.size();++seat) {
+        const auto& player=s.state.players[seat];
+        if (player.dead) { hands[seat]=player.items; continue; }
+        hands[seat].reserve(player.items.size());
+        for (std::size_t slot=0;slot<player.items.size();++slot) {
+            auto item=copies[cursor++]; item.token=s.next_token++;
+            if (!has_curse(player,Curse::dream)) item.fake_model.reset();
+            hands[seat].push_back(std::move(item));
+        }
+    }
+    for (std::size_t seat=0;seat<hands.size();++seat) s.state.players[seat].items=std::move(hands[seat]);
+    s.last_item_shuffle=ItemShuffleRecord{std::move(anchor),action};
+    s.last_phenomenon=PhenomenonAction{295,{},{}}; ++s.phenomenon_actions;
+    complete_decision(s,false);
 }
 void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
     prepare_phenomenon(s,action); clear_events(s);
@@ -1023,6 +1080,18 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     require(s.guardian_actions <= s.decisions && s.guardian_payload_actions<=s.decisions-s.guardian_actions
         && s.phenomenon_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions,"invalid external activation counts");
+    if (s.last_item_shuffle) {
+        const auto& record=*s.last_item_shuffle; const auto& anchor=record.anchor;
+        require(!s.batch && s.last_phenomenon==PhenomenonAction{295,{},{}}
+            && anchor.initial_state.players.size()==n && record.action.order.size()<=player_capacity*visible_hand_capacity,"invalid shuffle proof shape");
+        for (const auto& player:anchor.initial_state.players) require(player.items.size()<=s.config.hand_limit,"oversized shuffle anchor inventory");
+        closed_state(anchor.initial_state,s.config);
+        auto replay=snapshot_from_anchor(anchor,s.config); validate_snapshot(replay);
+        require(action_anchor(replay)==anchor,"shuffle proof has noncanonical anchor fields");
+        execute_item_shuffle(replay,record.action);
+        require(replay==s,"shuffle proof does not reproduce the complete snapshot");
+        return;
+    }
     if (s.last_guardian_payload) {
         require(s.guardian_payload_actions>0 && s.decisions>0,"invalid guardian payload event");
         payload_models(*s.last_guardian_payload); (void)index(s,s.last_guardian_payload->source); (void)index(s,*s.last_guardian_payload->target);
@@ -1238,22 +1307,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             && batch.responses.size() < s.config.max_decisions, "invalid action journal length");
         for (const auto& response : batch.responses) require(response.items.size() <= s.config.hand_limit, "oversized action response");
         closed_state(batch.initial_state, s.config); // Bound/validate the anchor before copying it.
-        MatchSnapshot replay; replay.config = s.config; replay.state = batch.initial_state;
-        replay.owner = batch.owner; replay.actor = batch.owner; replay.phase = MatchPhase::main;
-        replay.rng = batch.rng; replay.decisions = batch.decisions; replay.next_token = batch.next_token;
-        replay.chance_rolls = batch.chance_rolls; replay.chance_hits = batch.chance_hits;
-        replay.counter_created = batch.counter_created; replay.counter_started = batch.counter_started;
-        replay.counter_rolls = batch.counter_rolls; replay.counter_hits = batch.counter_hits;
-        replay.chance_forced_hits = batch.chance_forced_hits; replay.counter_forced_hits = batch.counter_forced_hits;
-        replay.revivals = batch.revivals;
-        replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
-        replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
-        replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions;
-        replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
-        replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
-        replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
-        replay.death_rolls = batch.death_rolls; replay.death_hits = batch.death_hits; replay.death_forced_hits = batch.death_forced_hits;
-        replay.gifts.assign(n, 0); replay.rewards.assign(n, 0);
+        auto replay=snapshot_from_anchor(batch,s.config);
         validate_snapshot(replay); // Non-recursive anchor has no batch or pending effect.
         require(batch.attack.kind != CommandKind::defend && batch.attack.kind != CommandKind::accept
             && batch.attack.kind != CommandKind::decline, "action journal has no valid main command");
@@ -1292,6 +1346,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
+bool match_item_shuffle_supported(CardId id) noexcept { return id==295; }
 bool match_phenomenon_supported(CardId id) noexcept { return id==287 || id==288 || (id>=290 && id<=294) || id==296; }
 bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept {
     const auto* card=find_card(id);
@@ -1488,6 +1543,12 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
     policy_rng = rng;
     return selected;
 }
+bool Match::item_shuffle_legal(const ItemShuffleAction& action) const noexcept {
+    try { (void)prepare_item_shuffle(data_,action); return true; } catch (...) { return false; }
+}
+MatchStep Match::item_shuffle_step(const ItemShuffleAction& action) {
+    auto next=data_; execute_item_shuffle(next,action); auto output=result(next); data_=std::move(next); return output;
+}
 bool Match::phenomenon_legal(const PhenomenonAction& action) const noexcept {
     try { prepare_phenomenon(data_,action); return true; } catch (...) { return false; }
 }
@@ -1503,7 +1564,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v33\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v34\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1537,7 +1598,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"guardian_summon_rule\":\""; out += guardian_summon_rule;
     out += "\",\"guardian_departure_rule\":\""; out += guardian_departure_rule;
     out += "\",\"guardian_payload_rule\":\""; out += guardian_payload_rule;
-    out += "\",\"phenomenon_rule\":\""; out += phenomenon_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"phenomenon_rule\":\""; out += phenomenon_rule;
+    out += "\",\"item_shuffle_rule\":\""; out += item_shuffle_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";

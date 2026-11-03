@@ -40,10 +40,14 @@ int main() {
         && offsetof(gfo_match_phenomenon_action, has_recipient) == 10
         && offsetof(gfo_match_phenomenon_action, guardian_count) == 11
         && offsetof(gfo_match_phenomenon_action, guardians) == 12
-        && offsetof(gfo_match_phenomenon_action, reserved) == 21, "ABI sizes");
+        && offsetof(gfo_match_phenomenon_action, reserved) == 21
+        && gfo_match_item_source_size() == 16 && sizeof(gfo_match_item_source) == 16
+        && offsetof(gfo_match_item_source, token) == 8
+        && gfo_match_item_shuffle_action_size() == 16 && sizeof(gfo_match_item_shuffle_action) == 16
+        && offsetof(gfo_match_item_shuffle_action, count) == 8, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v35"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v36"
         && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -277,7 +281,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v33\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v34\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2229,6 +2233,66 @@ int main() {
         &&gfo_match_phenomenon_step(weather_match,&weather,&result)==-2&&equal(result,weather_late_status)
         &&observe(weather_match,0,0)==weather_late_view,"late update failure rolls back the percentage launch draw and pending environmental frame");
     gfo_match_destroy(weather_match);
+    check(gfo_match_item_shuffle_supported(295)&&!gfo_match_item_shuffle_supported(294)&&!gfo_match_item_shuffle_supported(296)
+        &&!gfo_match_phenomenon_supported(295)&&!gfo_match_supported(295),"295 has a dedicated manifest API without changing simple phenomenon or gift capabilities");
+    cfg.initial_hand=0;cfg.max_decisions=64;
+    gfo_match* shuffle_match=nullptr;
+    check(gfo_match_create(&cfg,players.data(),2,0,&shuffle_match)==0,"item shuffle bridge create");
+    const auto load_shuffle_scene=[&](bool empty,bool exhausted,uint64_t update){
+        std::array<gfo_state_player,3> people{};people[0].id=0;people[1].id=7;people[2].id=23;
+        for(auto& person:people){person.hp=40;person.mp=99;person.cp=20;}
+        people[2].dead=1;people[2].hp=0;
+        std::vector<gfo_state_item> items(empty?1:5);
+        if(!empty){items[0].token=0;items[0].model=6;items[1].token=1;items[1].model=235;items[1].used=1;
+            items[2].token=0;items[2].model=152;items[3].token=1;items[3].model=191;
+            people[0].item_count=2;people[1].item_offset=2;people[1].item_count=2;people[2].item_offset=4;}
+        items.back().token=exhausted?official::max_wire_integer:0;items.back().model=208;people[2].item_count=1;
+        gfo_state_meta meta{};meta.gf=9;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),3,items.data(),items.size(),nullptr,0,&scene)==0,"typed per-owner duplicate-token shuffle scene");
+        check(gfo_match_load_scene(shuffle_match,scene,0,0,&result)==0,"load shuffle scene");gfo_state_destroy(scene);
+    };
+    load_shuffle_scene(false,false,0);
+    std::array<gfo_match_item_source,4> order{{{7,0},{7,1},{0,1},{0,0}}};
+    gfo_match_item_shuffle_action shuffle{order.data(),order.size()};
+    const auto shuffle_before=observe(shuffle_match,0,0);const auto shuffle_status=status(shuffle_match);uint8_t shuffle_marker=0xa5;
+    for(const auto count:{std::numeric_limits<size_t>::max(),size_t{163}}){
+        gfo_match_item_shuffle_action bad{reinterpret_cast<const gfo_match_item_source*>(uintptr_t{1}),count};result=shuffle_status;
+        check(gfo_match_item_shuffle_legal(shuffle_match,&bad,&shuffle_marker)==-2&&shuffle_marker==0xa5
+            &&gfo_match_item_shuffle_step(shuffle_match,&bad,&result)==-2&&equal(result,shuffle_status)
+            &&observe(shuffle_match,0,0)==shuffle_before,"oversized manifests reject before dereferencing pointer1");}
+    gfo_match_item_shuffle_action null_order{nullptr,1};result=shuffle_status;
+    check(gfo_match_item_shuffle_legal(shuffle_match,&null_order,&shuffle_marker)==-1
+        &&gfo_match_item_shuffle_step(shuffle_match,&null_order,&result)==-1
+        &&gfo_match_item_shuffle_step(shuffle_match,nullptr,&result)==-1
+        &&gfo_match_item_shuffle_step(shuffle_match,&shuffle,nullptr)==-1
+        &&equal(result,shuffle_status)&&shuffle_marker==0xa5,"NULL manifest guards preserve all outputs");
+    auto duplicate=order;duplicate[1]=duplicate[0];gfo_match_item_shuffle_action bad_cover{duplicate.data(),duplicate.size()};
+    check(gfo_match_item_shuffle_legal(shuffle_match,&bad_cover,&legal)==0&&!legal
+        &&gfo_match_item_shuffle_step(shuffle_match,&bad_cover,&result)==-2
+        &&observe(shuffle_match,0,0)==shuffle_before,"duplicate source pair cannot replace a missing copy");
+    auto bad_integer=order;bad_integer[0].owner=official::max_wire_integer+1;bad_cover={bad_integer.data(),bad_integer.size()};
+    check(gfo_match_item_shuffle_legal(shuffle_match,&bad_cover,&shuffle_marker)==-2&&shuffle_marker==0xa5,"source integer validation precedes native mutation");
+    check(gfo_match_item_shuffle_legal(shuffle_match,&shuffle,&legal)==0&&legal&&observe(shuffle_match,0,0)==shuffle_before
+        &&gfo_match_item_shuffle_step(shuffle_match,&shuffle,&result)==0&&result.phase==0&&result.owner==0&&result.actor==0&&result.decisions==1,
+        "full source-pair permutation uses no inventory token sentinel or player-source action");
+    const auto shuffled=observe(shuffle_match,1,7);order.fill({999,999});
+    check(observe(shuffle_match,1,7)==shuffled&&shuffled.find("\"token\":4,\"face\":235,\"reference\":235,\"disguised\":false,\"used\":true")!=std::string::npos
+        &&has_token(shuffle_match,0,2)&&has_token(shuffle_match,0,3)&&has_token(shuffle_match,7,5)&&has_token(shuffle_match,23,0)
+        &&observe(shuffle_match,0,0).find("\"last_phenomenon\":{\"model\":295,\"recipient\":null}")!=std::string::npos
+        &&observe(shuffle_match,0,0).find("\"order\":")==std::string::npos,"manifest storage is copied and only fresh alive tokens plus preserved used flags are observable to their owner");
+    order={{{7,0},{7,1},{0,1},{0,0}}};
+    load_shuffle_scene(false,true,0);const auto exhausted_shuffle=observe(shuffle_match,0,0);const auto exhausted_status=status(shuffle_match);result=exhausted_status;
+    check(gfo_match_item_shuffle_legal(shuffle_match,&shuffle,&legal)==0&&legal
+        &&gfo_match_item_shuffle_step(shuffle_match,&shuffle,&result)==-2&&equal(result,exhausted_status)
+        &&observe(shuffle_match,0,0)==exhausted_shuffle,"fresh-token budget exhaustion rolls back the entire shuffle");
+    load_shuffle_scene(true,true,0);gfo_match_item_shuffle_action empty_shuffle{nullptr,0};
+    check(gfo_match_item_shuffle_legal(shuffle_match,&empty_shuffle,&legal)==0&&legal
+        &&gfo_match_item_shuffle_step(shuffle_match,&empty_shuffle,&result)==0&&result.decisions==1
+        &&has_token(shuffle_match,23,official::max_wire_integer),"empty alive permutation accepts NULL0 even when the next-token space is exhausted");
+    load_shuffle_scene(false,false,official::max_wire_integer);const auto late_shuffle=observe(shuffle_match,0,0);const auto late_shuffle_status=status(shuffle_match);result=late_shuffle_status;
+    check(gfo_match_item_shuffle_step(shuffle_match,&shuffle,&result)==-2&&equal(result,late_shuffle_status)
+        &&observe(shuffle_match,0,0)==late_shuffle,"late update exhaustion restores old owner-token pairs and event history");
+    gfo_match_destroy(shuffle_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

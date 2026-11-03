@@ -43,6 +43,11 @@ typedef struct gfo_match_phenomenon_action {
     uint16_t model;
     uint8_t has_recipient, guardian_count, guardians[9], reserved[3];
 } gfo_match_phenomenon_action;
+typedef struct gfo_match_item_source { uint64_t owner, token; } gfo_match_item_source;
+typedef struct gfo_match_item_shuffle_action {
+    const gfo_match_item_source* order;
+    size_t count;
+} gfo_match_item_shuffle_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -67,6 +72,9 @@ size_t gfo_match_guardian_payload_action_size(void);
 int gfo_match_guardian_payload_supported(uint8_t guardian, uint16_t model);
 size_t gfo_match_phenomenon_action_size(void);
 int gfo_match_phenomenon_supported(uint16_t model);
+size_t gfo_match_item_source_size(void);
+size_t gfo_match_item_shuffle_action_size(void);
+int gfo_match_item_shuffle_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -99,6 +107,12 @@ int gfo_match_guardian_payload_step(gfo_match* match, const gfo_match_guardian_p
 // exactly one per alive player in input order. Unused fields/tails must be0.
 int gfo_match_phenomenon_legal(const gfo_match* match, const gfo_match_phenomenon_action* action, uint8_t* out);
 int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_action* action, gfo_match_status* out);
+// Privileged295 permutation manifest, not a normal policy action/query.
+// Each (owner,token) alive copy occurs exactly once; destinations are existing
+// alive slots in player/inventory order. count<=162 is checked before reading.
+// NULL order is allowed only for count0. The source array is copied, not retained.
+int gfo_match_item_shuffle_legal(const gfo_match* match, const gfo_match_item_shuffle_action* action, uint8_t* out);
+int gfo_match_item_shuffle_step(gfo_match* match, const gfo_match_item_shuffle_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);
