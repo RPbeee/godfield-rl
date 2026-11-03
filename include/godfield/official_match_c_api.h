@@ -54,6 +54,11 @@ typedef struct gfo_match_fate_action {
     gfo_match_item_shuffle_action shuffle;
     uint8_t has_shuffle, reserved[7];
 } gfo_match_fate_action;
+typedef struct gfo_match_devil_action {
+    uint64_t target, removed[2];
+    uint16_t model;
+    uint8_t resource, has_resource, removed_count, reserved[3];
+} gfo_match_devil_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -83,6 +88,8 @@ size_t gfo_match_item_shuffle_action_size(void);
 int gfo_match_item_shuffle_supported(uint16_t model);
 size_t gfo_match_fate_action_size(void);
 int gfo_match_fate_supported(uint16_t model);
+size_t gfo_match_devil_action_size(void);
+int gfo_match_devil_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -130,6 +137,11 @@ int gfo_match_item_shuffle_step(gfo_match* match, const gfo_match_item_shuffle_a
 // The manifest covers alive inventories AFTER207 is consumed, excluding gifts.
 int gfo_match_fate_legal(const gfo_match* match, const gfo_match_fate_action* action, uint8_t* out);
 int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* action, gfo_match_status* out);
+// Externally supplied devil outcome, not an appearance/target selector or gift.
+//240..242 accept no payload;243 accepts exactly min(2,target inventory) distinct
+// owned tokens;244 requires resource HP0/MP1/CP2. All inactive fields are zero.
+int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* action, uint8_t* out);
+int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

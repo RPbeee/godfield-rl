@@ -60,7 +60,7 @@ JSの `aN.kO`（13039–13052行）も、火/水・木/土それぞれの対属�
 
 bounceの対象はevent.playerIdで既に与えられ、handler自身は対象抽選をしない。blockイベントも遮断の演出だけで、補充・次手番を決定しない。counterAttack（11603–11616行）は指定indexの防具を光らせるだけで、反撃の生成や重複、FIFO予約を実装しない。nextAttack（10881–10888行）が受け取るatk/mp/cp等の値を `fv`（12115–12143行）が表示するため、反撃威力のraw/実HP損失依存、×2の算出時点、死亡skip、乱数消費、gift発行順は未確定である。
 
-これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19は同じプールのまま除去結果の公開要約を加える。v20は満杯配送を除く売却4を加えた215モデル/重み457。v21は自己対象/満杯配送を除く購入5を加えた216モデル/重み477。v22は病気4状態/付与6種を加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog4種と観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ台帳で取引配送overflowとFogのforeign SELLを扱い、v27はその規約を維持して公式台帳v2へ同期した。v28はDream4種と互換クラス限定maskを加えた233モデル/重み494を扱い、v29は178のredrawを加えた234モデル/重み495を扱い、v30は同プールで自己BUY照会を追加し、v31は別入口で外部指定の守護神42行動を実行した。v32は201/239召喚とcanonical42の自動行動/離脱を実験規約で接続し236モデル/重み499を扱う。v33は同プールのままtyped Earth/Moon payloadを外部入力で実行する。現行の[限定実行器v38](official-execution-subset.md)は外部global現象5種と応答付きのsourceなし現象3種と明示permutationの磁気嵐295、混乱289と外部指定の混乱主動作、所有207と外部指定結果を組み合わせた通常手番も実行する。互換クラス外の偽装やEarth/Moonの一般神器/奇跡選出・207からの自動現象抽選・混乱の自動選択分布・悪魔・終末は含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
+これを根拠として、限定実行器v2は物理反射38/39/156/167/174/190と消去189を加えた139モデル/重み319に限定し、v3でblockMiracle8種とblockWeapon233を加えた148モデル/重み328へ進めた。v4はさらにFREE・setter・倍化8種を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は単純確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収/同被害5種を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19は同じプールのまま除去結果の公開要約を加える。v20は満杯配送を除く売却4を加えた215モデル/重み457。v21は自己対象/満杯配送を除く購入5を加えた216モデル/重み477。v22は病気4状態/付与6種を加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog4種と観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ台帳で取引配送overflowとFogのforeign SELLを扱い、v27はその規約を維持して公式台帳v2へ同期した。v28はDream4種と互換クラス限定maskを加えた233モデル/重み494を扱い、v29は178のredrawを加えた234モデル/重み495を扱い、v30は同プールで自己BUY照会を追加し、v31は別入口で外部指定の守護神42行動を実行した。v32は201/239召喚とcanonical42の自動行動/離脱を実験規約で接続し236モデル/重み499を扱う。v33は同プールのままtyped Earth/Moon payloadを外部入力で実行する。現行の[限定実行器v39](official-execution-subset.md)は外部global現象5種と応答付きのsourceなし現象3種と明示permutationの磁気嵐295、混乱289と外部指定の混乱主動作、所有207と外部指定結果を組み合わせた通常手番、悪魔5種の外部指定直接効果も実行する。互換クラス外の偽装やEarth/Moonの一般神器/奇跡選出・207からの自動現象抽選・混乱の自動選択分布・悪魔の自動出現・終末は含めず、反応source/target・元payload・各応答者の消費と抽選来歴を分離する。サーバー同等性を確認した全面反応実装ではない。
 
 ### 跳ね返し8モデルの一次確認とv5規約
 
@@ -1365,3 +1365,57 @@ v38の最終全suiteはRelease **137/137件**（21.64秒）、ASan/UBSan **97/97
 | 9人 | 10,000 | 31,683 / 21,683 | 0 / 0 | 6,666 | 95,312 | `2522107609375653635` | `14722099739704624541` | `2778877789192396666` |
 
 fate smoke600sceneは1,951decisions/1,351responses、10結果各60回、混乱減算400回、295を60回/5,707copy（used536）、初期used5,400copyのlaunch保存を確認した。world応答169/190取消50、source宛counter品選択33、実source frame観測1,182（PlayerID0は59）、counter81予約/81開始、death28予約/26開始、revival121、redraw157、通常tick180、自動guardian1,027も含む。frame観測は待機境界ごとの観測回数で、ユニークなpayload数ではない。world checksum `6241521733461852426` がRelease/SANで一致し、world初期frameでは292の既存chance roll以外のselector RNGが無いことを独立計算で検査した。現象の選択分布、207の自動配布、公式のターン処理を証明するものではない。
+
+
+## v39：外部指定の悪魔5種と直接効果
+
+`official-execution-subset-v39` は、`DevilAction(target, model, resource?, removed)` で240〜244の5悪魔を外部指定する入口を追加する。Snapshot39は旧1〜38を拒否し、公開viewは `official-execution-view-v37`。Match ABI2の既存構造体幅・phase・opcodeを維持し、32byteの追加C型とnative/Pythonの専用入口を使う。公開scopeは `experimental:236-models;external207;external-devils;not-official-server-equivalence`。通常配布236モデル/重み499とspecial207は変更しない。実在する悪魔itemの所有を必要とせず、悪魔を通常gift poolやplayer inventoryへ入れる機能ではない。旧37profile、official-v2 pins、過去の実測・v10/v16訂正履歴を保存し、学習器を追加しない。
+
+### 公開説明・受信処理と未確定のserver規約
+
+JAは終末以降に「捨てる」が「ささげる」へ置き換わり、神器を授かるたび25%で悪魔が現れると説明する。台帳240/241/242はHP被害10/20/30、243は神器または起こした奇跡を二個盗み、244はHP/MP/CPのいずれか+10。appearanceRateは7/5/3/5/5である。しかし、serverの悪魔選出・244の資源選択・243の候補抽選・再gift連鎖の順や乱数器を受信handlerから決めることはできない。
+
+実clientのuseDevilItemは指定playerと供給itemを表示し、本人の悪魔個体を消してempty placeholderを作れる。続くresource/removed rowsは別eventで供給される。HP増減のplayerId0はcurrent paneを指す受信sentinelで、MP/CP増加はcurrent paneへ適用される。この表示上の宛先と、typed APIが明示する実在PlayerID0を混同しない。旧Flash固定server modulesには対応する悪魔/終末/SACRIFICE処理が見当たらず、旧仕様を補う根拠にはしない。
+
+### typed効果とsourceなしの死亡処理
+
+main境界で明示したalive targetだけに、1external decisionとして適用する。240/241/242はHPだけを10/20/30減らして0にclipする。244はHP/MP/CPの明示resourceを必須とし、+10して99にclipする。他資源への転送や別ownerからの支払は無い。無関係なresource/除去tokenを付けた入力は拒否する。選出RNG・操作cost・操作gift・ownerのtick/GF/auto guardian・混乱減算は起こさない。
+
+HP被害は直接作用で、普通DEF/190/最初のresponse/source宛counterを作らない。正の実HP損失には既存10%のguardian departureを適用するが、悪魔にこの退去判定を行うことは明示的なローカル規約である。致死時は共通208救済・実死亡・112 FIFOを扱い、自然終局をcutoffより先に判定する。後続death/counterのresponseは通常APIで解決し、全work後に生存者へ既予約giftを配り、元ownerが生存なら同owner、死亡なら次aliveへ戻る。GFは増やさない。208に由来する補充は旧来の236モデルpoolを使い、悪魔の連続出現を抽選しない。
+
+### 243の実物除去と公開範囲
+
+243はtargetの現inventoryから、`min(2, hand_count)` 個のdistinct tokenを供給順に指定する。unused、used奇跡、208/209/112やspecial207も候補となる。空手札なら空tupleでよく、少数/重複/他者token等の非canonical入力は先行検査で拒否する。除去だけにconsume/gift/能力発動を付けず、保持していた奇跡が失われても既存curseを解除しない。
+
+fake付きcopyは共通reveal helperでactualへ戻し、供給順のremoved actual modelを公開する。`last_devil` は `{model, target, removed_models:[IDs]}` で、243以外のlistは空。resource、token、元候補数、private anchorを出さず、listを超えたquantity fieldを追加しない。event/list/revealsを全viewerへ配るのはローカルfanout規約である。clientが受信rowsを表示する事実は、serverが全viewerへ同じ情報を送る権限の証明ではない。boardのFog可視性は既存のままで、他の未除去手札を表示しない。
+
+### 原子的失敗・復元と残件
+
+privateな非再帰の起動前anchor・action・全responseを保持し、完了後も同executorを通じた全snapshot比較で検証する。private devil_actionsは既存external系の累計と分離し、後続actionも全anchorへそのprefix累計をコピーして再生する。次のaccepted main/externalでeventと証拠をclearし、失敗時はHP・除去・RNG・count・giftを含め元状態を保持する。pending死亡workを途中で捨ててquiescent stateへ見せかけない。
+
+この入口はtiebreakGFのgate、25%出現、ささげる、giftの悪魔置換や連鎖を実装しない。207結果選出・Earth/Moon一般selector、公式Dream全分布・実体不適合入力、終末/悪魔の自動schedule等は残件として維持する。指定した5種への分布正規化も行わず、現行serverの全面再現とは呼ばない。
+
+公開 `devil_rule` はheaderと同じ次の文字列である。
+
+```text
+experimental:external240-to244-explicit-alive-target-only;main-boundary-one-external-decision;no-owned-devil-or-gift-selector-tiebreak-threshold-sacrifice-or-cascade;standard236-weight499-and-special207-unchanged;240-241-242-direct-hp-minus10-20-30-no-initial-response-def-reflection-or-counter;positive-hp-loss-uses-local-ten-percent-guardian-departure;243-exact-min2-physical-copies-distinct-owned-token-order-including-used-passives207;no-removal-rng-gift-or-ability-trigger;local-allviewer-actual-model-list-and-existing-fake-reveal-not-server-fanout-proof;244-explicit-hp-mp-cp-plus10-cap99;inactive-resource-and-removal-fields-rejected;shared208-revival112-death-and-response-counter-fifo;no-operation-cost-gift-owner-tick-gf-auto-or-confusion-debit;revival-gift-uses-existing-pool-without-new-devil-roll;resume-live-owner-or-next-alive-without-gf;natural-before-cutoff-body-before-pending-cancel;private-preaction-nonrecursive-anchor-full-response-replay-through-completion;public-model-target-removed-models-only-no-resource-token-or-anchor;failure-atomic;appearance-rate-resource-and-copy-choice-and-server-schedule-unverified
+```
+
+### v39の検証
+
+[悪魔一次oracle](../scripts/official_devil_oracle.cjs) / [保存report](../data/official-v2/devil-client-v39.json) は260ケース、749,116bytes、SHA256 `f77dacc0616469a10b204cf07027c57bc23becd088e929ba6625c879a6a8d4b0` を記録する。useDevil60・gift後use6・数値followup120・forced宛先9・除去followup54・decoder11で、実gift/useDevilItem/resource/removeSomething dispatcher、本人cleanup/placeholder、dr/kq/cA/bZのreveal、used-pane削除、資源算術・pane宛先helperを動かす。visual/widget/同期Future等のshellを使い、アプリ起動・ネットワーク・権威的serverは実行しない。
+
+実受信ではuseDevilItem単独はHP/MP/CPを変えず、後続eventが値を供給する。removeSomethingは強制した3rowまで全件表示でき、二個という上限や候補をhandlerが選ぶわけではない。fakeからactualへのrevealはself/foreign/spectator/Fogでも描画され、本人のphysical token削除とpublic used-pane削除は別の処理である。この観測は供給eventの表示内容を示すだけで、全viewerへそのeventを配るserver権限や順序を証明しない。5モデルの型・量と、typed外部選択/二個制限/全viewer fanout/死亡schedule等のローカル契約を区別する。
+
+v39の最終検証はRelease **138/138件**（既存137件18.69秒＋新bench1件0.23秒）、ASan/UBSan **98/98件**（既存97件45.48秒＋新bench1件0.46秒）の分割実行で全て通過した。native168群はmainへ各1回登録し、Python114件・C API/Python focused2件・固定query384件も通過した。旧173/298ケースと実clientの2,360回のlegality照会は維持した。新8群は5モデルの直接効果/資源cap、243のmixed used/fake/passive/207、shapeとphase排他、late update・208gift ID枯渇のrollback/cutoff、208と自然終局、PlayerID0の112 FIFOとMP反撃・生存owner/次alive復帰、local GP退去/Fog、15種の完了proofと4種のpending改竄、後続Fate/shuffleの累計引継ぎを検査した。READMEの243/244例は実行して記載結果と一致した。READMEにあった旧版系Snapshot38という誤記も実値37へ戻し、旧版コード/ABI/pinsは変更していない。suite時間を速度比較へ使わない。
+
+通常/canonical/payload/global phenomenon/targeted phenomenon/shuffle/confusion/fate/devilの各2人数、計18組で2人100,000局またはscene・9人10,000局またはsceneを1worker/4workersで実行し、worker数・時間・速度以外の全fieldが一致した。既存の通常/canonical/payloadはruleset・scope・rule metadataを除くv38のgameplay field・checksumを維持した。global/targeted現象・shuffle・confusion・fateはSnapshot.version39をhashへ含むためchecksumが変わるが、その他のgameplay fieldはv38と同値だった。Release/SANの通常1,000局×2人数・canonical420・payload456・global500・targeted600・shuffle600・confusion600・fate600・devil600の計10組も非時間fieldが一致した。
+
+新[悪魔専用bench](../src/official_devil_bench.cpp)は `godfield_devil_bench`、CTest登録は `official_devil_benchmark 600 9 42 2` である。5モデルを固定周期で指定し、244の資源3種、243の0/1/2コピー、alive/dead/ID0/owner死亡・208/112を含むsceneから、1外部効果とその全responseを完了する。world・選択した累計のhashと、private journalを含む全snapshot restoreの検査を区別し、25%出現率や公式のselector分布を検証したものではない。
+
+| 明示Devil・seed42 | scenes | decisions / responses | natural / cutoff | 除去copy | revival | primitive checksum | 後続world checksum |
+| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
+| 2人 | 100,000 | 100,000 / 0 | 16,570 / 0 | 31,426 | 15,430 | `8048915018053637964` | `8048915018053637964` |
+| 9人 | 10,000 | 26,915 / 16,915 | 579 / 0 | 3,140 | 3,836 | `4013012224972540074` | `6674028000984604963` |
+
+devil smoke600sceneは5モデル各120回、244資源各40回、243の0/1/2コピーを17/17/86回指定し、1,592decisions/992responses、40自然終局を記録した。除去189copy（used21/fake9/passive55/207は9）、資源給付940、revival222、death1,888予約/990開始、counter53予約/2開始、redraw30を含む。直接悪魔の通常chance判定は0、普通ownerのtick/GF/autoも0で、応答は112とその派生に限る。反撃の予約後に相手が死亡していれば既存policyによりskipする。実source frame観測992（PlayerID0は137）は待機境界ごとの回数であり、ユニークpayload数ではない。world checksum `10402233983967069975` がRelease/SANで一致した。独立した10%GP計算、243/244の全world保存則、救済gift以外の初回token増加が無いことも検査した。終末開始・ささげる・悪魔の出現抽選と再配布連鎖は未対応のままである。

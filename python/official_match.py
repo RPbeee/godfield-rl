@@ -104,6 +104,13 @@ class FateAction:
     shuffle: ItemShuffleAction | None = None
 
 @dataclass(frozen=True)
+class DevilAction:
+    target: int
+    model: int
+    resource: str | None = None
+    removed: tuple[int, ...] = ()
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -146,6 +153,9 @@ class _ItemShuffleAction(c.Structure):
 class _FateAction(c.Structure):
     _fields_ = [("actor", c.c_uint64), ("token", c.c_uint64), ("outcome", _PhenomenonAction),
                 ("shuffle", _ItemShuffleAction), ("has_shuffle", c.c_uint8), ("reserved", c.c_uint8 * 7)]
+class _DevilAction(c.Structure):
+    _fields_ = [("target", c.c_uint64), ("removed", c.c_uint64 * 2), ("model", c.c_uint16),
+                ("resource", c.c_uint8), ("has_resource", c.c_uint8), ("removed_count", c.c_uint8), ("reserved", c.c_uint8 * 3)]
 class _Status(c.Structure):
     _fields_ = [("decisions", c.c_uint64), ("owner", c.c_uint64), ("actor", c.c_uint64),
         ("player_ids", c.c_uint64 * 9), ("rewards", c.c_double * 9), ("winners", c.c_uint64 * 9),
@@ -252,6 +262,21 @@ def _fate_action(value):
         encoded.shuffle, copied = _item_shuffle_action(value.shuffle); encoded.has_shuffle = 1
     return encoded, copied
 
+def _devil_action(value):
+    if not isinstance(value, DevilAction): raise InvalidMatchError("devil operation requires DevilAction")
+    encoded = _DevilAction(target=_integer(value.target, "devil target"), model=_integer(value.model, "devil model", 1, 65535))
+    if (value.resource is not None) != (encoded.model == 244):
+        raise InvalidMatchError("only devil 244 requires a resource")
+    if value.resource is not None:
+        if type(value.resource) is not str or value.resource not in ("hp", "mp", "cp"):
+            raise InvalidMatchError("devil resource must be hp, mp or cp")
+        encoded.resource = ("hp", "mp", "cp").index(value.resource); encoded.has_resource = 1
+    if type(value.removed) is not tuple or len(value.removed) > 2 or (value.removed and encoded.model != 243):
+        raise InvalidMatchError("only devil 243 accepts at most two removed tokens")
+    encoded.removed_count = len(value.removed)
+    for i, token in enumerate(value.removed): encoded.removed[i] = _integer(token, "removed token")
+    return encoded
+
 def _decode_status(value):
     if value.player_count > 9 or value.winner_count > 9 or value.phase > 3 or value.has_actor > 1:
         raise MatchError("invalid native status descriptor", -3)
@@ -284,11 +309,11 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
             for name in ("ruleset", "scope"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size"):
+            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v38"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v39"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
@@ -305,7 +330,10 @@ class Match:
             or lib.gfo_match_item_shuffle_action_size() != c.sizeof(_ItemShuffleAction) or _ItemShuffleAction.count.offset != 8
             or lib.gfo_match_fate_action_size() != c.sizeof(_FateAction) or _FateAction.token.offset != 8
             or _FateAction.outcome.offset != 16 or _FateAction.shuffle.offset != 40
-            or _FateAction.has_shuffle.offset != 56 or _FateAction.reserved.offset != 57):
+            or _FateAction.has_shuffle.offset != 56 or _FateAction.reserved.offset != 57
+            or lib.gfo_match_devil_action_size() != c.sizeof(_DevilAction) or _DevilAction.removed.offset != 8
+            or _DevilAction.model.offset != 24 or _DevilAction.resource.offset != 26
+            or _DevilAction.has_resource.offset != 27 or _DevilAction.removed_count.offset != 28 or _DevilAction.reserved.offset != 29):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
         lib.gfo_match_create.argtypes = [c.POINTER(_Config), c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(c.c_void_p)]
@@ -347,6 +375,11 @@ class Match:
         lib.gfo_match_fate_legal.restype = c.c_int
         lib.gfo_match_fate_step.argtypes = [c.c_void_p, c.POINTER(_FateAction), c.POINTER(_Status)]
         lib.gfo_match_fate_step.restype = c.c_int
+        lib.gfo_match_devil_supported.argtypes = [c.c_uint16]; lib.gfo_match_devil_supported.restype = c.c_int
+        lib.gfo_match_devil_legal.argtypes = [c.c_void_p, c.POINTER(_DevilAction), c.POINTER(c.c_uint8)]
+        lib.gfo_match_devil_legal.restype = c.c_int
+        lib.gfo_match_devil_step.argtypes = [c.c_void_p, c.POINTER(_DevilAction), c.POINTER(_Status)]
+        lib.gfo_match_devil_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
@@ -358,6 +391,7 @@ class Match:
         self.supported_phenomenon_models = tuple(card.id for card in self._data if lib.gfo_match_phenomenon_supported(card.id))
         self.supported_item_shuffle_models = tuple(card.id for card in self._data if lib.gfo_match_item_shuffle_supported(card.id))
         self.supported_fate_models = tuple(card.id for card in self._data if lib.gfo_match_fate_supported(card.id))
+        self.supported_devil_models = tuple(card.id for card in self._data if lib.gfo_match_devil_supported(card.id))
         self.gift_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
             or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
@@ -490,6 +524,17 @@ class Match:
     def fate_step(self, action):
         self._open(); encoded, copied = _fate_action(action); result = _Status()
         _check(self._lib.gfo_match_fate_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
+
+    def devil_legal(self, action):
+        """Validate an externally supplied devil outcome, not an appearance selector."""
+        self._open(); encoded = _devil_action(action); result = c.c_uint8()
+        _check(self._lib.gfo_match_devil_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def devil_step(self, action):
+        self._open(); encoded = _devil_action(action); result = _Status()
+        _check(self._lib.gfo_match_devil_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
 
     def step(self, command):

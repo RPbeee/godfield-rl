@@ -553,7 +553,7 @@ int main(int argc, char** argv) {
             << "\ndream_rule=" << dream_rule
             << "\nredraw_rule=" << redraw_rule
             << "\nguardian_rule=" << guardian_rule
-            << "\nguardian_summon_rule=" << guardian_summon_rule << "\nguardian_departure_rule=" << guardian_departure_rule << "\nguardian_payload_rule=" << guardian_payload_rule << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule
+            << "\nguardian_summon_rule=" << guardian_summon_rule << "\nguardian_departure_rule=" << guardian_departure_rule << "\nguardian_payload_rule=" << guardian_payload_rule << "\nphenomenon_rule=" << phenomenon_rule << "\nitem_shuffle_rule=" << item_shuffle_rule << "\nconfusion_rule=" << confusion_rule << "\nfate_rule=" << fate_rule << "\ndevil_rule=" << devil_rule
             << "\ndecisions=" << stats.decisions << "\ndraws=" << stats.draws << "\ntruncations=" << stats.truncations << "\nwins=";
         for (std::size_t i = 0; i < count; ++i) { if (i) std::cout << ','; std::cout << stats.wins[i]; }
         std::cout << "\nmain_commands=" << stats.main << "\nresponses=" << stats.responses << "\nphysical_used=" << stats.physical

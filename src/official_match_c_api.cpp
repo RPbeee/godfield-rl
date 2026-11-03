@@ -44,6 +44,10 @@ static_assert(std::is_standard_layout_v<gfo_match_fate_action> && sizeof(gfo_mat
     && offsetof(gfo_match_fate_action, reserved) == 57);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
+static_assert(std::is_standard_layout_v<gfo_match_devil_action> && sizeof(gfo_match_devil_action)==32
+    && offsetof(gfo_match_devil_action,removed)==8 && offsetof(gfo_match_devil_action,model)==24
+    && offsetof(gfo_match_devil_action,resource)==26 && offsetof(gfo_match_devil_action,has_resource)==27
+    && offsetof(gfo_match_devil_action,removed_count)==28 && offsetof(gfo_match_devil_action,reserved)==29);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
 namespace {
 template<std::size_t N> bool zero(const uint8_t (&bytes)[N]) { return std::all_of(std::begin(bytes), std::end(bytes), [](auto v) { return v == 0; }); }
@@ -151,6 +155,18 @@ official::FateAction fate_action(const gfo_match_fate_action& input) {
     if(input.has_shuffle) result.shuffle=item_shuffle_action(input.shuffle);
     return result;
 }
+official::DevilAction devil_action(const gfo_match_devil_action& input) {
+    valid(zero(input.reserved) && input.target<=official::max_wire_integer && input.has_resource<=1 && input.removed_count<=2);
+    valid((input.has_resource==1)==(input.model==244) && (input.has_resource ? input.resource<=2 : input.resource==0));
+    valid(input.model==243 || input.removed_count==0);
+    official::DevilAction result; result.target=input.target; result.model=input.model;
+    if(input.has_resource) result.resource=static_cast<official::Resource>(input.resource);
+    for(std::size_t i=0;i<2;++i) {
+        valid(input.removed[i]<=official::max_wire_integer && (i<input.removed_count || input.removed[i]==0));
+        if(i<input.removed_count) result.removed.push_back(input.removed[i]);
+    }
+    return result;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -204,6 +220,8 @@ size_t gfo_match_item_shuffle_action_size(void) { return sizeof(gfo_match_item_s
 int gfo_match_item_shuffle_supported(uint16_t model) { return official::match_item_shuffle_supported(model); }
 size_t gfo_match_fate_action_size(void) { return sizeof(gfo_match_fate_action); }
 int gfo_match_fate_supported(uint16_t model) { return official::match_fate_supported(model); }
+size_t gfo_match_devil_action_size(void) { return sizeof(gfo_match_devil_action); }
+int gfo_match_devil_supported(uint16_t model) { return official::match_devil_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -353,6 +371,17 @@ int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* input, gf
         const auto parsed=fate_action(*input); auto next=match->value; next.fate_step(parsed); const auto result=status(next);
         match->value=std::move(next); *out=result; return 0;
     } catch (...) { return error(); }
+}
+int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* input, uint8_t* out) {
+    if(!match || !input || !out) return -1;
+    try { const auto parsed=devil_action(*input); const uint8_t result=match->value.devil_legal(parsed); *out=result; return 0; }
+    catch(...) { return error(); }
+}
+int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* input, gfo_match_status* out) {
+    if(!match || !input || !out) return -1;
+    try { const auto parsed=devil_action(*input); auto next=match->value; next.devil_step(parsed); const auto result=status(next);
+        match->value=std::move(next); *out=result; return 0; }
+    catch(...) { return error(); }
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {
     if (!match || !policy_rng || !out) return -1;

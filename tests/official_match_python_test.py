@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 class MatchTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v38"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v39"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v36")
+        self.assertEqual(own["schema"], "official-execution-view-v37")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v36")
+        self.assertEqual(event["schema"], "official-execution-view-v37")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3147,6 +3147,134 @@ class MatchTests(unittest.TestCase):
         overflow.step(Command(0, "sell", (0, 1), 7)); overflow.step(Command(7, "defend"))
         self.assertEqual(overflow.observe()["last_sale"]["overflow_model"], 207)
         self.assertIsNone(overflow.observe()["last_fate"])
+
+    def test_devil_fixed_hp_damage_is_immediate_external_and_has_no_counter(self):
+        for model, amount in ((240, 10), (241, 20), (242, 30)):
+            game = self.match(config=Config(initial_hand=0))
+            raw = {"gf": 9, "players": [
+                {"id": 0, "hp": 99, "mp": 11, "cp": 23, "confusionCount": 1, "curses": ["cold"]},
+                {"id": 42, "hp": 99, "mp": 12, "cp": 24, "items": [
+                    {"id": 0, "modelId": 190}, {"id": 1, "modelId": 184}, {"id": 2, "modelId": 187}]}]}
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            self.assertEqual(game.supported_devil_models, (240, 241, 242, 243, 244))
+            self.assertFalse(set(game.supported_devil_models) & set(game.supported_models))
+            before, status = game.observe(), game.status
+            action = DevilAction(42, model)
+            self.assertTrue(game.devil_legal(action)); self.assertEqual((game.observe(), game.status), (before, status))
+            game.devil_step(action); view = game.observe()
+            self.assertEqual((game.status.owner, game.status.actor, game.status.phase, game.status.decisions), (0, 0, "main", 1))
+            self.assertEqual(view["board"]["gf"], 9); self.assertIsNone(view["pending"])
+            self.assertEqual([p["status"]["hp"] for p in view["board"]["players"]], [99, 99-amount])
+            self.assertEqual([(p["status"]["mp"], p["status"]["cp"]) for p in view["board"]["players"]], [(11, 23), (12, 24)])
+            self.assertEqual(view["last_devil"], {"model": model, "target": 42, "removed_models": []})
+            self.assertTrue(game.observe(0)["board"]["players"][0]["status"]["confused"])
+            self.assertEqual(len(game.observe(42)["board"]["hand"]), 3)
+            self.assertEqual(view["last_auto_guardians"], [])
+
+    def test_devil_exact_two_physical_removals_preserve_unselected_passives(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20},
+                {"id": 7, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"], "items": [
+                    {"id": 0, "modelId": 235, "used": True}, {"id": 1, "modelId": 23, "fakeModelId": 13},
+                    {"id": 2, "modelId": 207}, {"id": 3, "modelId": 208}, {"id": 4, "modelId": 112}, {"id": 5, "modelId": 209}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(7), game.status
+        for tokens in ((), (0,), (0, 0), (0, 99)):
+            action = DevilAction(7, 243, removed=tokens)
+            self.assertFalse(game.devil_legal(action))
+            with self.assertRaises(InvalidMatchError): game.devil_step(action)
+            self.assertEqual((game.observe(7), game.status), (before, status))
+        game.devil_step(DevilAction(7, 243, removed=(1, 0)))
+        view = game.observe(); own = game.observe(7)
+        self.assertEqual(view["last_devil"], {"model": 243, "target": 7, "removed_models": [23, 235]})
+        self.assertEqual(view["last_reveals"], [{"owner": 7, "face": 13, "model": 23}])
+        self.assertEqual({item["token"] for item in own["board"]["hand"]}, {2, 3, 4, 5})
+        self.assertEqual(own["board"]["players"][1]["used_models"], [])
+        self.assertIsNone(view["last_fate"]); self.assertIsNone(view["pending"])
+        for count in range(4):
+            raw["players"][1]["items"] = [{"id": i, "modelId": 207} for i in range(count)]
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            game.devil_step(DevilAction(7, 243, removed=tuple(range(min(2, count)))))
+            self.assertEqual(game.observe()["last_devil"]["removed_models"], [207]*min(2, count))
+            self.assertEqual(len(game.observe(7)["board"]["hand"]), max(0, count-2))
+
+    def test_devil_resource_boost_caps_and_fog_hides_private_choice(self):
+        raw = {"gf": 8, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["cold", "fog"], "confusionCount": 3},
+            {"id": 7, "hp": 95, "mp": 95, "cp": 95}]}
+        hidden = []
+        for resource in ("hp", "mp", "cp"):
+            game = self.match(config=Config(initial_hand=0))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            game.devil_step(DevilAction(7, 244, resource))
+            view = game.observe(); target = view["board"]["players"][1]["status"]
+            self.assertEqual(tuple(target[key] for key in ("hp", "mp", "cp")),
+                             tuple(99 if key == resource else 95 for key in ("hp", "mp", "cp")))
+            self.assertEqual(view["last_devil"], {"model": 244, "target": 7, "removed_models": []})
+            self.assertEqual((game.status.owner, game.status.actor, view["board"]["gf"]), (0, 0, 8))
+            hidden.append(game.observe(0))
+        self.assertEqual(hidden[0], hidden[1]); self.assertEqual(hidden[1], hidden[2])
+
+    def test_devil_revival_and_posthumous_responses_use_existing_death_boundary(self):
+        raw = {"gf": 9, "players": [
+            {"id": 0, "hp": 99, "mp": 10, "cp": 20, "curses": ["darkcloud"], "items": [{"id": 0, "modelId": 190}]},
+            {"id": 7, "hp": 5, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 112}]},
+            {"id": 23, "hp": 99, "mp": 10, "cp": 20, "curses": ["darkcloud"]}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.devil_step(DevilAction(7, 240)); view = game.observe(); pending = view["pending"]
+        self.assertEqual((pending["source"], pending["target"], pending["death"], pending["environmental"]), (7, 0, True, False))
+        self.assertEqual(pending["models"], [112]); self.assertEqual(game.status.owner, 0)
+        self.assertFalse(game.devil_legal(DevilAction(0, 244, "hp")))
+        game.step(Command(0, "defend", (0,)))
+        self.assertEqual(game.observe()["pending"]["target"], 23)
+        game.step(Command(23, "defend"))
+        self.assertEqual(game.status.phase, "main"); self.assertEqual(game.status.owner, 0)
+        self.assertEqual(game.observe()["board"]["players"][2]["status"]["hp"], 69)
+        self.assertEqual(game.observe()["board"]["gf"], 9)
+        raw["players"][1]["items"].append({"id": 1, "modelId": 208})
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.devil_step(DevilAction(7, 242)); self.assertIsNone(game.observe()["pending"])
+        self.assertEqual(game.observe()["board"]["players"][1]["status"]["hp"], 10)
+        self.assertIn(0, {item["token"] for item in game.observe(7)["board"]["hand"]})
+        self.assertNotIn(1, {item["token"] for item in game.observe(7)["board"]["hand"]})
+        raw["players"][1]["items"] = [{"id": 0, "modelId": 112}]
+        cut = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(raw, library=LIBRARY) as scene: cut.load_scene(scene, 0, 0)
+        cut.devil_step(DevilAction(7, 240)); self.assertTrue(cut.status.truncated)
+        self.assertIsNone(cut.observe()["pending"]); self.assertEqual(cut.observe(7)["board"]["hand"], [])
+
+    def test_devil_strict_variants_and_late_failure_restore_whole_world(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20},
+                {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 207}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(), game.status
+        for malformed in (None, {}, DevilAction(True, 240), DevilAction(0, True), DevilAction(0, 244),
+                DevilAction(0, 244, "HP"), DevilAction(0, 244, False), DevilAction(0, 240, "hp"),
+                DevilAction(0, 240, removed=(0,)), DevilAction(7, 243, removed=[0]),
+                DevilAction(7, 243, removed=(True,)), DevilAction(7, 243, removed=(0, 1, 2))):
+            with self.assertRaises(InvalidMatchError): game.devil_legal(malformed)
+            with self.assertRaises(InvalidMatchError): game.devil_step(malformed)
+            self.assertEqual((game.observe(), game.status), (before, status))
+        for invalid in (DevilAction(99, 240), DevilAction(0, 239), DevilAction(7, 243, removed=(99,))):
+            self.assertFalse(game.devil_legal(invalid))
+            with self.assertRaises(MatchError): game.devil_step(invalid)
+            self.assertEqual((game.observe(), game.status), (before, status))
+        raw["updateCount"] = 9007199254740991
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(), game.status
+        self.assertTrue(game.devil_legal(DevilAction(0, 244, "cp")))
+        with self.assertRaises(InvalidMatchError): game.devil_step(DevilAction(0, 244, "cp"))
+        self.assertEqual((game.observe(), game.status), (before, status))
+        del raw["updateCount"]
+        raw["players"][0]["items"] = [{"id": 9007199254740991, "modelId": 6}]
+        raw["players"][1].update(hp=5, items=[{"id": 0, "modelId": 208}])
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(7), game.status
+        self.assertTrue(game.devil_legal(DevilAction(7, 240)))
+        with self.assertRaises(InvalidMatchError): game.devil_step(DevilAction(7, 240))
+        self.assertEqual((game.observe(7), game.status), (before, status))
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

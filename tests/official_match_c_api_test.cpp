@@ -47,11 +47,15 @@ int main() {
         && offsetof(gfo_match_item_shuffle_action, count) == 8
         && gfo_match_fate_action_size()==64&&sizeof(gfo_match_fate_action)==64
         &&offsetof(gfo_match_fate_action,outcome)==16&&offsetof(gfo_match_fate_action,shuffle)==40
-        &&offsetof(gfo_match_fate_action,has_shuffle)==56&&offsetof(gfo_match_fate_action,reserved)==57, "ABI sizes");
+        &&offsetof(gfo_match_fate_action,has_shuffle)==56&&offsetof(gfo_match_fate_action,reserved)==57
+        &&gfo_match_devil_action_size()==32&&sizeof(gfo_match_devil_action)==32
+        &&offsetof(gfo_match_devil_action,removed)==8&&offsetof(gfo_match_devil_action,model)==24
+        &&offsetof(gfo_match_devil_action,resource)==26&&offsetof(gfo_match_devil_action,has_resource)==27
+        &&offsetof(gfo_match_devil_action,removed_count)==28&&offsetof(gfo_match_devil_action,reserved)==29, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v38"
-        && std::string(gfo_match_scope()) == "experimental:236-models;external207;not-official-server-equivalence", "explicit v16 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v39"
+        && std::string(gfo_match_scope()) == "experimental:236-models;external207;external-devils;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -284,7 +288,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v36\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v37\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2406,6 +2410,70 @@ int main() {
     check(gfo_match_fate_legal(fate_match,&fate,&legal)==0&&legal&&gfo_match_fate_step(fate_match,&fate,&result)==-2
         &&equal(result,late_fate_status)&&observe(fate_match,0,0)==late_fate_view,"late fate failure restores the pre207 card and predecrement count as well as global HP");
     gfo_match_destroy(fate_match);
+    for(uint16_t model=240;model<=244;++model)check(gfo_match_devil_supported(model)&&!gfo_match_supported(model),"external devil capability does not alter gifts");
+    check(!gfo_match_devil_supported(239)&&!gfo_match_devil_supported(245),"devil capability has exactly five models");
+    cfg.initial_hand=0;cfg.hand_limit=18;cfg.max_decisions=64;
+    gfo_match* devil_match=nullptr;check(gfo_match_create(&cfg,players.data(),2,0,&devil_match)==0,"devil bridge create");
+    const auto load_devil_scene=[&](uint64_t update,int hp,bool mixed){
+        std::array<gfo_state_player,2> people{};people[0].id=0;people[1].id=7;
+        for(auto& person:people){person.hp=hp;person.mp=95;person.cp=95;}
+        people[0].confusion_count=2;
+        std::array<gfo_state_item,3> items{};items[0].model=207;items[1].token=1;items[1].model=235;items[1].used=1;items[2].token=2;items[2].model=208;
+        people[1].item_count=mixed?items.size():0;
+        gfo_state_meta meta{};meta.gf=9;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),mixed?items.size():0,nullptr,0,&scene)==0,"typed devil target with token0 and used miracle");
+        check(gfo_match_load_scene(devil_match,scene,0,0,&result)==0,"load devil scene");gfo_state_destroy(scene);
+    };
+    load_devil_scene(0,99,true);gfo_match_devil_action devil{};devil.target=7;devil.model=240;
+    const auto before_devil=observe(devil_match,0,0);const auto devil_status=status(devil_match);
+    for(unsigned error=0;error<12;++error){auto bad=devil;
+        if(error==0)bad.reserved[0]=1;if(error==1)bad.reserved[2]=1;if(error==2)bad.has_resource=2;
+        if(error==3)bad.resource=1;if(error==4)bad.has_resource=1;if(error==5)bad.model=244;
+        if(error==6){bad.model=244;bad.has_resource=1;bad.resource=3;}
+        if(error==7){bad.model=243;bad.removed_count=3;}
+        if(error==8){bad.model=243;bad.removed_count=1;bad.removed[1]=2;}
+        if(error==9){bad.model=243;bad.removed_count=1;bad.removed[0]=official::max_wire_integer+1;}
+        if(error==10)bad.target=official::max_wire_integer+1;
+        if(error==11){bad.model=244;bad.has_resource=1;bad.removed_count=1;}
+        result=devil_status;uint8_t marker=0xa5;
+        check(gfo_match_devil_legal(devil_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_devil_step(devil_match,&bad,&result)==-2&&equal(result,devil_status)
+            &&observe(devil_match,0,0)==before_devil,"devil wire variants and unused fields reject without changing outputs or world");
+    }
+    result=devil_status;uint8_t devil_marker=0xa5;
+    check(gfo_match_devil_legal(nullptr,&devil,&devil_marker)==-1&&gfo_match_devil_legal(devil_match,nullptr,&devil_marker)==-1
+        &&gfo_match_devil_legal(devil_match,&devil,nullptr)==-1&&devil_marker==0xa5
+        &&gfo_match_devil_step(nullptr,&devil,&result)==-1&&gfo_match_devil_step(devil_match,nullptr,&result)==-1
+        &&gfo_match_devil_step(devil_match,&devil,nullptr)==-1&&equal(result,devil_status),"devil NULL input guards preserve outputs");
+    for(uint16_t model=240;model<=242;++model){load_devil_scene(0,99,false);devil={};devil.target=7;devil.model=model;
+        const auto before=observe(devil_match,0,0);
+        check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&legal&&observe(devil_match,0,0)==before
+            &&gfo_match_devil_step(devil_match,&devil,&result)==0&&result.phase==0&&result.owner==0&&result.actor==0&&result.decisions==1,
+            "direct devil HP body is one external decision without original response");
+        const auto view=observe(devil_match,0,0);const auto hp=99-10*(model-239);
+        check(view.find("\"hp\":"+std::to_string(hp))!=std::string::npos
+            &&view.find("\"last_devil\":{\"model\":"+std::to_string(model)+",\"target\":7,\"removed_models\":[]}")!=std::string::npos,
+            "fixed devil damage and public event are metadata driven");
+    }
+    load_devil_scene(0,99,true);devil={};devil.target=7;devil.model=243;devil.removed_count=2;devil.removed[0]=1;devil.removed[1]=0;
+    check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&legal&&gfo_match_devil_step(devil_match,&devil,&result)==0
+        &&hand_size(devil_match,7)==1&&has_token(devil_match,7,2)
+        &&observe(devil_match,0,0).find("\"last_devil\":{\"model\":243,\"target\":7,\"removed_models\":[235,207]}")!=std::string::npos,
+        "exact removed token order includes used miracle and special207 without gifts or passive activation");
+    load_devil_scene(0,99,true);devil.removed[1]=1;const auto duplicate_view=observe(devil_match,0,0);const auto duplicate_status=status(devil_match);result=duplicate_status;
+    check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&!legal&&gfo_match_devil_step(devil_match,&devil,&result)==-2
+        &&equal(result,duplicate_status)&&observe(devil_match,0,0)==duplicate_view,"duplicate physical removal is atomically rejected");
+    for(uint8_t resource=0;resource<3;++resource){load_devil_scene(0,95,false);devil={};devil.target=0;devil.model=244;devil.has_resource=1;devil.resource=resource;
+        check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&legal&&gfo_match_devil_step(devil_match,&devil,&result)==0&&result.owner==0&&result.actor==0,
+            "fairy accepts each explicit resource and real target ID0");
+        check(observe(devil_match,0,0).find("\"last_devil\":{\"model\":244,\"target\":0,\"removed_models\":[]}")!=std::string::npos,
+            "resource selector is absent from the public devil event");
+    }
+    load_devil_scene(official::max_wire_integer,95,false);devil={};devil.model=244;devil.has_resource=1;devil.resource=2;
+    const auto late_devil=observe(devil_match,0,0);const auto late_devil_status=status(devil_match);result=late_devil_status;
+    check(gfo_match_devil_legal(devil_match,&devil,&legal)==0&&legal&&gfo_match_devil_step(devil_match,&devil,&result)==-2
+        &&equal(result,late_devil_status)&&observe(devil_match,0,0)==late_devil,"late devil update exhaustion restores resources, confusion, event and all caller bytes");
+    gfo_match_destroy(devil_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

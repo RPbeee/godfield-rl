@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v38"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v39"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v36\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v37\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2153,6 +2153,87 @@ void fate_guardian_followups_and_repeated_counter_anchors(){
     check(saw_auto_response&&saw_player_zero_source,"seed sweep exercises guardian responses and real PlayerID0 sources after fate body completion");
 }
 
+void devil_capability_direct_damage_and_no_response(){
+    for(CardId id=0;id<=300;++id)check(match_devil_supported(id)==(id>=240&&id<=244),"only five devil models are external capabilities");
+    check(match_catalog().size()==236&&match_gift_weight()==499&&!match_supported(240)&&!match_guardian_payload_supported(Guardian::earth,240),"devils do not enter ordinary gifts, inventories or guardian payloads");
+    for(CardId model:{240,241,242}){
+        auto s=scene({190,184,187,208},{});s.gf=17;s.players[0].hp=99;s.players[0].mp=13;s.players[0].cp=17;s.players[0].confusion_count=2;s.players[0].curses={Curse::darkcloud};
+        auto m=fixture(s);const auto before=m.snapshot();DevilAction a{0,model,{},{}};check(m.devil_legal(a)&&m.snapshot()==before,"devil legality is pure and resolves actual player0");m.devil_step(a);
+        check(m.snapshot().state.players[0].hp==99-find_card(model)->ability_value&&m.snapshot().state.players[0].mp==13&&m.snapshot().state.players[0].cp==17
+            &&m.snapshot().phase==MatchPhase::main&&m.snapshot().owner==0&&m.snapshot().state.gf==17&&m.snapshot().rng==1234
+            &&m.snapshot().state.players[0].items==s.players[0].items&&m.snapshot().state.players[0].confusion_count==2
+            &&m.snapshot().counter_created==0&&m.snapshot().chance_rolls==0&&m.snapshot().devil_actions==1&&!m.snapshot().last_tick,
+            "fixed HP damage bypasses armor190/counter/DarkCloud and does not debit MP, inventory, confusion or ordinary turn");roundtrip(m);
+        check(m.observe({}).find(devil_rule)!=std::string::npos&&m.observe({}).find("\"last_devil\":{\"model\":"+std::to_string(model)+",\"target\":0,\"removed_models\":[]}")!=std::string::npos,"public devil notice identifies the model and real target without source or manifest");
+    }
+}
+void devil_fairy_three_resources_clip_and_private_choice(){
+    for(auto resource:{Resource::hp,Resource::mp,Resource::cp})for(int amount:{0,1,95,99}){
+        auto s=scene({},{});s.players[0].hp=amount?amount:40;s.players[0].mp=amount;s.players[0].cp=amount;s.players[0].confusion_count=3;s.players[1].curses={Curse::fog};
+        auto expected=s.players[0];if(resource==Resource::hp)expected.hp=std::min<std::int64_t>(99,expected.hp+10);if(resource==Resource::mp)expected.mp=std::min<std::int64_t>(99,expected.mp+10);if(resource==Resource::cp)expected.cp=std::min<std::int64_t>(99,expected.cp+10);
+        auto m=fixture(s);m.devil_step({0,244,resource,{}});check(m.snapshot().state.players[0]==expected&&m.snapshot().rng==1234&&m.snapshot().next_token==0&&m.snapshot().owner==0,"fairy credits exactly one supplied resource, clips99, and keeps all other state");roundtrip(m);
+        const auto view=m.observe(7);check(view.find("\"resource\"")==std::string::npos&&view.find("\"target\":0,\"removed_models\":[]")!=std::string::npos,"Fog observer receives no privileged resource choice in the announcement");
+    }
+}
+void devil_trickster_exact_copies_used_fake_and_inert_passives(){
+    auto s=scene({207,208,112,235,6},{});s.players[0].items[3].used=true;s.players[0].items[4].fake_model=7;s.players[0].curses={Curse::dream};s.players[0].confusion_count=2;
+    s.players.push_back(player(9,{207}));s.players.back().dead=true;s.players.back().hp=0;auto m=fixture(s);m.devil_step({0,243,{}, {3,4}});
+    auto expected=s.players[0];expected.items.erase(expected.items.begin()+3,expected.items.end());check(m.snapshot().state.players[0]==expected&&m.snapshot().state.players[2]==s.players[2]
+        &&m.snapshot().rng==1234&&m.snapshot().next_token==5&&m.snapshot().revivals==0&&m.snapshot().death_bows==0&&m.snapshot().gifts==std::vector<std::uint32_t>(3,0),"trickster removes the supplied used/fake copies and leaves all passives, resources, dead copies and reserved gifts inert");
+    check(m.snapshot().last_devil_event->removed_models==std::vector<CardId>{235,6}&&m.snapshot().last_reveals==std::vector<RevealedItem>{{0,7,6,false}}
+        &&m.observe({}).find("\"removed_models\":[235,6]")!=std::string::npos,"removal order and shared fake reveal are the explicit local display fanout");roundtrip(m);
+    m.devil_step({0,243,{}, {1,2}});check(m.snapshot().state.players[0].items.size()==1&&m.snapshot().state.players[0].items[0].model==207&&m.snapshot().revivals==0&&m.snapshot().death_created==0,"removing208 and112 invokes neither ability nor replacement");roundtrip(m);
+    m.devil_step({0,243,{}, {0}});check(m.snapshot().state.players[0].items.empty()&&m.snapshot().fate_actions==0&&m.snapshot().last_devil_event->removed_models==std::vector<CardId>{207},"one remaining207 is removed without calling a phenomenon");roundtrip(m);
+    m.devil_step({0,243,{}, {}});check(m.snapshot().devil_actions==4&&m.snapshot().last_devil_event->removed_models.empty(),"empty hand has an exact empty manifest");roundtrip(m);
+}
+void devil_bad_shapes_pending_and_late_atomic_failure(){
+    auto s=scene({6,235},{});s.players[0].items[1].used=true;auto m=fixture(s);const auto before=m.snapshot();
+    for(auto a:std::vector<DevilAction>{{0,239,{},{}},{999,240,{},{}},{0,240,Resource::mp,{}},{0,241,{}, {0}},{0,244,{},{}},{0,244,static_cast<Resource>(255),{}},{0,244,Resource::hp,{0}},{0,243,Resource::cp,{0,1}},{0,243,{},{}},{0,243,{}, {0}},{0,243,{}, {0,0}},{0,243,{}, {0,999}},{0,243,{}, {0,1,2}},{0,243,{}, {0,max_wire_integer+1}}}){
+        check(!m.devil_legal(a),"devil model, recipient, inactive field, resource, count and token identity must all be canonical");bool failed=false;try{m.devil_step(a);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"malformed devil effect is atomic");}
+    auto dead=s;dead.players.push_back(player(9));dead.players.back().dead=true;dead.players.back().hp=0;m.load_scene(dead,0,3);check(!m.devil_legal({9,244,Resource::hp,{}}),"fairy cannot resurrect a dead recipient");
+    m=fixture(scene({6},{}));m.step(play(0,{0},7));check(!m.devil_legal({7,240,{},{}}),"external devil cannot interrupt response work");
+    s.update_count=max_wire_integer;m.load_scene(s,0,3);const auto exhausted=m.snapshot();bool failed=false;try{m.devil_step({0,243,{}, {0,1}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exhausted,"late update limit restores removed copies, reveals, notice and proof");
+    auto revival=scene({208},{});revival.players[0].hp=5;revival.players[0].items[0].token=max_wire_integer;m.load_scene(revival,0,3);const auto no_tokens=m.snapshot();failed=false;try{m.devil_step({0,240,{},{}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==no_tokens,"late revival gift exhaustion rolls back HP, amulet consumption and devil counters");
+    MatchConfig cap;cap.max_decisions=1;Match cut(cap);cut.load_scene(revival,0,3);cut.devil_step({0,240,{},{}});check(cut.snapshot().truncated&&cut.snapshot().state.players[0].hp==10&&cut.snapshot().state.players[0].items.empty()&&cut.snapshot().next_token==max_wire_integer+1,"cutoff applies damage and revival before canceling gift without a fresh ID");roundtrip(cut);
+}
+void devil_revival_and_natural_end_boundaries(){
+    auto s=scene({208,190},{});s.gf=17;s.players[0].hp=5;s.players[0].confusion_count=2;s.players[1].curses={Curse::fever};Match m;m.load_scene(s,7,3);m.devil_step({0,240,{},{}});
+    check(m.snapshot().state.players[0].hp==10&&m.snapshot().state.players[0].confusion_count==2&&m.snapshot().state.players[0].items.size()==2&&m.snapshot().revivals==1
+        &&m.snapshot().owner==7&&m.snapshot().actor==7&&m.snapshot().state.gf==17&&!m.snapshot().last_tick&&m.snapshot().guardian_opportunities==0&&m.snapshot().last_devil->responses.empty(),"208 restoration gets only its shared gift, with no ordinary owner tick, GF or new devil cascade");roundtrip(m);
+    auto duel=fixture(scene({112},{}));auto state=duel.snapshot().state;state.players[0].hp=5;state.players[1].confusion_count=2;duel.load_scene(state,0,3);duel.devil_step({0,240,{},{}});
+    check(duel.snapshot().terminated&&duel.snapshot().winners==std::vector<PlayerId>{7}&&duel.snapshot().death_created==0&&duel.snapshot().state.players[0].items.size()==1&&duel.snapshot().state.players[1].confusion_count==0,"natural duel result precedes death-bow reservation and clears survivor confusion");roundtrip(duel);
+}
+void devil_posthumous_fifo_real_source_zero_and_owner_resume(){
+    for(PlayerId owner:{PlayerId{0},PlayerId{7}}){
+        auto s=scene({112},{187,189});s.players.push_back(player(9));s.gf=17;s.players[0].hp=5;s.players[0].confusion_count=2;s.players[1].curses={Curse::darkcloud,Curse::fever};std::sort(s.players[1].curses.begin(),s.players[1].curses.end());s.players[2].curses={Curse::darkcloud};for(auto& p:s.players)if(p.id)p.hp=99;
+        Match m;m.load_scene(s,owner,3);m.devil_step({0,240,{},{}});check(m.snapshot().phase==MatchPhase::response&&m.snapshot().queue[0].is_death&&!m.snapshot().queue[0].environmental
+            &&m.snapshot().queue[0].source==0&&m.snapshot().queue[0].origin==0&&m.snapshot().batch->devil_action&&m.snapshot().batch->tick_processed,"direct devil has no response, but shared112 launches an actual dead player0 source");roundtrip(m);
+        const auto pending=m.snapshot();for(unsigned error=0;error<4;++error){auto bad=pending;if(error==0){bad.last_devil.reset();bad.last_devil_event.reset();}if(error==1)bad.batch->devil_action.reset();if(error==2)bad.queue[0].environmental=true;if(error==3)bad.last_devil->action.target=7;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==pending,"pending devil proof rejects stripped origin, forged source absence and wrong recipient");}
+
+        m.step(defend(7,{1,0}));roundtrip(m);check(m.snapshot().actor==9&&m.snapshot().queue[0].is_death,"remaining death targets precede MP counter FIFO");m.step(defend(9));roundtrip(m);
+        check(m.snapshot().queue[0].is_counter&&m.snapshot().actor==7,"surviving187 response creates a genuine self MP counter");m.step(defend(7));roundtrip(m);
+        check(m.snapshot().phase==MatchPhase::main&&m.snapshot().owner==7&&m.snapshot().state.gf==17&&m.snapshot().counter_created==1&&m.snapshot().death_created==2
+            &&m.snapshot().last_devil->responses.size()==3&&!m.snapshot().last_tick&&m.snapshot().guardian_opportunities==0&&m.snapshot().state.players[0].confusion_count==0,"external completion resumes the live owner or next alive without ordinary tick/GF/auto");
+    }
+}
+void devil_guardian_departure_local_rule_and_fog_filter(){
+    bool departed=false,stayed=false;
+    for(std::uint64_t seed=0;seed<128;++seed){auto s=scene({},{});s.players[0].guardian=Guardian::mars;s.players[1].curses={Curse::fog};Match m;m.load_scene(s,7,seed);m.devil_step({0,240,{},{}});
+        check(m.snapshot().guardian_departure_rolls==1&&m.snapshot().guardian_opportunities==0,"only positive HP damage uses the explicit local departure draw, not ordinary auto opportunity");
+        if(m.snapshot().state.players[0].guardian==Guardian::none){departed=true;check(m.snapshot().last_guardian_changes.size()==1&&m.snapshot().last_guardian_changes[0].hidden_viewers==2
+            &&m.observe(7).find("\"last_guardian_changes\":[]")!=std::string::npos,"departure event uses event-time Fog viewer filtering");}else stayed=true;roundtrip(m);
+    }
+    check(departed&&stayed,"seed sweep covers both branches of local ten-percent departure");
+}
+void devil_full_proof_tamper_and_following_anchor_prefixes(){
+    auto s=scene({207,235,6},{});s.players[0].items[1].used=true;auto m=fixture(s);m.devil_step({0,243,{}, {1,2}});const auto exact=m.snapshot();
+    for(unsigned error=0;error<15;++error){auto bad=exact;if(error==0)bad.last_devil.reset();if(error==1)bad.last_devil_event.reset();if(error==2)bad.last_devil->action.removed={0,2};if(error==3)bad.last_devil_event->removed_models={6,235};if(error==4)bad.last_devil->anchor.models={243};if(error==5)bad.last_devil->anchor.devil_action=bad.last_devil->action;if(error==6)bad.last_devil->anchor.confusion_command=true;if(error==7)bad.last_devil->responses.push_back(defend(0));if(error==8)bad.state.players[0].hp=39;if(error==9)++bad.rng;if(error==10)bad.devil_actions=0;if(error==11)bad.last_devil_event->target=7;if(error==12)bad.last_devil->anchor.devil_actions=1;if(error==13)bad.last_devil->action.resource=Resource::hp;if(error==14)bad.last_devil->action.model=244;
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"completed devil proof rejects altered identities models state journal counters and inactive fields");}
+    m.fate_step({0,0,{288,{},{}},{}});check(m.snapshot().fate_actions==1&&m.snapshot().devil_actions==1&&!m.snapshot().last_devil,"laterFate clears notice while its anchor preserves completed devil prefix");roundtrip(m);
+    m.devil_step({7,244,Resource::cp,{}});check(m.snapshot().last_devil->anchor.fate_actions==1&&m.snapshot().last_devil->anchor.devil_actions==1&&m.snapshot().devil_actions==2,"later devil proof carries both prior activation types");roundtrip(m);
+    m.item_shuffle_step(shuffle_order(m.snapshot().state));check(m.snapshot().devil_actions==2&&!m.snapshot().last_devil,"standalone shuffle retains devil cumulative history without recursive proof");roundtrip(m);
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -2315,6 +2396,15 @@ int main(){
     fate_full_launch_response_and_completed_proof_tamper();
     fate207_inert_discard_trade_fog_and_removal();
     fate_guardian_followups_and_repeated_counter_anchors();
+    devil_capability_direct_damage_and_no_response();
+    devil_fairy_three_resources_clip_and_private_choice();
+    devil_trickster_exact_copies_used_fake_and_inert_passives();
+    devil_bad_shapes_pending_and_late_atomic_failure();
+    devil_revival_and_natural_end_boundaries();
+    devil_posthumous_fifo_real_source_zero_and_owner_resume();
+    devil_guardian_departure_local_rule_and_fog_filter();
+    devil_full_proof_tamper_and_following_anchor_prefixes();
+
 
 
     std::cout<<"Experimental official match passed (236subset/canonical-guardian-auto/self-buy/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
