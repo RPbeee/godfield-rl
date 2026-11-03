@@ -9,8 +9,8 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v37";
-inline constexpr const char* match_scope = "experimental:236-models;not-official-server-equivalence";
+inline constexpr const char* match_ruleset = "official-execution-subset-v38";
+inline constexpr const char* match_scope = "experimental:236-models;external207;not-official-server-equivalence";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -39,12 +39,14 @@ inline constexpr const char* redraw_rule = "experimental:response-only178;consum
 inline constexpr const char* guardian_rule = "experimental:canonical42-only;auto-after-ordinary-owner-tick-before-gifts;alive-enemy-sources-in-input-order;one-quarter-opportunity-draw-per-present-source;weighted6-5-4-3-2-for-first8;earth285-moon286-fixed-singleton-move-draw;uniform-alive-enemy-for-atk-curse-bribe-takecp-otherwise-alive-allies-including-self;singleton-target-draw;280-all-alive-no-target-draw;single-target-percent-and-darkcloud;no-fog-reselection;counter-death-fifo-before-next-source;stop-on-main-owner-death;no-internal-decisions-or-source-fee-gift;external-main-boundary-one-decision-no-auto-followup;earth-moon-general-selection-unsupported";
 inline constexpr const char* guardian_summon_rule = "experimental:201-and239-current-target;uniform-all10-in-enum-order;one-draw-including-resummon-same-type;normal-consumption-mp-retention-and-gift";
 inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
-inline constexpr std::uint32_t match_snapshot_version = 37;
+inline constexpr std::uint32_t match_snapshot_version = 38;
 [[nodiscard]] bool match_supported(CardId id) noexcept;
 inline constexpr const char* guardian_payload_rule = "experimental:externally-selected-earth-moon-ordinary-model-columns;main-boundary-one-decision;alive-source-owns-explicit-guardian;all-models-in-guardian-category-domain-and-supported;actual-main-append;max18-models;earth120-moon26-standalone-bases;trade-danger-passive-response-only-bases-unsupported;mixed-domain-and-wide-unsupported;explicit-single-alive-target;14-two-fresh-hits-same-target;single-target-percent-and-darkcloud-no-reroll;no-fog-or-dream-reselection;no-source-inventory-retention-ordinary-mp-fee-or-operation-gift;58-launch-source-mp-times2-then-mp0-once;202-one-launch-sign;fixed-origin-guardian-and-launch-values-through-redirects;ordinary-response-counter-death-redraw-and-deferred-gifts;no-owner-tick-gf-or-auto-followup;resume-owner-or-next-alive;general-selector-unsupported";
-inline constexpr const char* phenomenon_rule = "experimental:external-source-free-phenomena287-288-289-290-291-292-293-294-296;main-boundary-one-injection-decision;global5-unchanged-from-v34-plus289-alive-count-plus3-immediate-atomic-no-rng;targeted291-light50-292-dark30-at75-percent-293-hpplus50-cap99;explicit-single-alive-recipient291-to294;no-target-selector-wide-or-fog-reselection;targeted3-always-response-after-single-target-chance-and-darkcloud;environmental-frame-origin-source-absent-not-player0;190-consume-and-reserve-response-gift-then-cancel-without-return-recipient;source-directed-counters-not-created-without-source;187-self-mp-counter-and112-death-use-real-player-sources;ordinary-defense-filter-revival-death-redraw-and-deferred-gifts;targeted3-original-action-anchor-and-full-response-replay;no-owner-tick-gf-auto-source-items-mp-fee-or-operation-gift;resume-owner-or-next-alive-with-natural-before-cutoff;287-direct-fever-replacement-no-upgrade-or-heavenfall;288-idempotent-fog;290-direct-hp1-not-damage;294-sum-alive-cp-then-zero-all-before-recipient-cap99;296-exact-alive-count-explicit-guardian1-to10;guardian-changes-event-time-fog-filtered;public-model-recipient-only-no-assignment-array-or-cp-total;207-selector-unsupported;289-counts-require-dedicated-confusion-command-api;295-requires-dedicated-item-shuffle-api";
+inline constexpr const char* phenomenon_rule = "experimental:external-source-free-phenomena287-288-289-290-291-292-293-294-296;main-boundary-one-injection-decision;global5-unchanged-from-v34-plus289-alive-count-plus3-immediate-atomic-no-rng;targeted291-light50-292-dark30-at75-percent-293-hpplus50-cap99;explicit-single-alive-recipient291-to294;no-target-selector-wide-or-fog-reselection;targeted3-always-response-after-single-target-chance-and-darkcloud;environmental-frame-origin-source-absent-not-player0;190-consume-and-reserve-response-gift-then-cancel-without-return-recipient;source-directed-counters-not-created-without-source;187-self-mp-counter-and112-death-use-real-player-sources;ordinary-defense-filter-revival-death-redraw-and-deferred-gifts;targeted3-original-action-anchor-and-full-response-replay;no-owner-tick-gf-auto-source-items-mp-fee-or-operation-gift;resume-owner-or-next-alive-with-natural-before-cutoff;287-direct-fever-replacement-no-upgrade-or-heavenfall;288-idempotent-fog;290-direct-hp1-not-damage;294-sum-alive-cp-then-zero-all-before-recipient-cap99;296-exact-alive-count-explicit-guardian1-to10;guardian-changes-event-time-fog-filtered;public-model-recipient-only-no-assignment-array-or-cp-total;207-selector-unsupported-owned207-requires-fate-api;289-counts-require-dedicated-confusion-command-api;295-requires-dedicated-item-shuffle-api";
 inline constexpr const char* item_shuffle_rule = "experimental:external295-fixed-slot-item-permutation-only;main-boundary-one-phenomenon-decision;alive-input-order-then-raw-inventory-order;source-owner-token-pairs-exact-cover;retain-each-alive-hand-count-and-copy-model-used;dead-inventories-unchanged;all-alive-copies-get-contiguous-fresh-global-tokens-including-identity;existing-compatible-fake-preserved-only-for-dream-recipient-otherwise-private-clear;unmasked-copy-no-new-dream-mask;no-selector-or-rng-consumption-redraw-reveal-gift-cost-ability-trigger;no-resource-curse-guardian-owner-tick-gf-or-auto-changes;body-before-cutoff;zero-copies-valid-even-at-token-exhaustion;private-nonrecursive-pre-action-anchor-and-whole-snapshot-replay;public-phenomenon295-only-no-order-origin-model-count-or-token-manifest;generic-phenomenon-action295-unsupported-use-dedicated-api;server-distribution-slot-used-token-fake-policy-unverified";
 inline constexpr const char* confusion_rule = "experimental:external-resolved-command-only-no-auto-selector;289-add3-to-every-alive-count-no-clamp;nonnegative-safe-wire-counts-dead-zero;main-positive-owner-only-dedicated-confusion-api;ordinary-main-and-sampler-reject-without-policy-rng-change;usual-visible-composition-mp-items-target-and-allocation-validation;one-count-debit-at-launch-before-body-and-cutoff;all-main-kinds-mapped-to-useAttackItems-including-empty-pray-and-auxiliary-discard-trade-exchange;pre-debit-anchor-and-private-confusion-marker-whole-pending-replay;responses-and-purchase-no-debit-and-use-normal-api;no-extra-selector-rng-or-operation-fee;ordinary-body-gifts-owner-tick-gf-auto-and-next-owner;revival-preserves-count-death-clears-natural-end-clears-alive-cutoff-preserves;curse-cures-and-unrelated-external-effects-preserve-count;public-confused-bool-only-with-existing-fog-dead-and-end-filter;server-command-generation-and-selection-distribution-unverified";
+inline constexpr const char* fate_rule = "experimental:external-outcome-owned207-only;standard-pool236-weight499-unchanged;207-scene-only-special-capability-no-gift-or-earth-payload;main-owner-single-actual-unused-unmasked207-token;normal207-play-and-sampler-generation-unsupported-discard-and-trade-inert;explicit-one-of-ten-phenomena-no-selector-or-selector-rng;generic9-outcome-shape-and295-only-exact-post-consumption-alive-copy-manifest;reserved-operation-gift-excluded-from-shuffle;one-normal-main-decision-single207-consumption-and-one-reserved-gift-no-mp-fee;positive-confusion-one-pre-outcome-debit;source-free-targeted291-292-293-with-ordinary-response-counter-death-redraw;global6-and295-immediate-body-before-cutoff;ordinary-owner-tick-auto-guardian-deferred-gifts-gf-next-owner-after-whole-action;natural-before-cutoff-pending-response-cancellation-as-normal;private-pre207-nonrecursive-anchor-full-action-and-response-replay-through-completion;public-actor-model207-outcome-model-only-plus-existing-phenomenon-recipient-no-token-manifest-or-count;failure-rolls-back-before207-use;server-outcome-distribution-targets-and-schedule-unverified";
+[[nodiscard]] bool match_fate_supported(CardId id) noexcept;
 [[nodiscard]] bool match_item_shuffle_supported(CardId id) noexcept;
 [[nodiscard]] bool match_phenomenon_supported(CardId id) noexcept;
 [[nodiscard]] bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept;
@@ -108,6 +110,18 @@ struct ItemShuffleAction {
     std::vector<ItemSource> order; // One source-qualified entry for every existing alive slot.
     bool operator==(const ItemShuffleAction&) const = default;
 };
+struct FateAction {
+    PlayerId actor = 0;
+    ItemToken token = 0;
+    PhenomenonAction outcome;
+    std::optional<ItemShuffleAction> shuffle; // Required only for295; post-consumption physical copies.
+    bool operator==(const FateAction&) const = default;
+};
+struct FateEvent {
+    PlayerId actor = 0;
+    CardId phenomenon = 0;
+    bool operator==(const FateEvent&) const = default;
+};
 struct RedirectFrame {
     PlayerId defender = 0;
     std::vector<CardId> models;
@@ -151,9 +165,11 @@ struct ActionBatch {
     std::optional<GuardianAction> guardian_action;
     std::optional<GuardianPayloadAction> guardian_payload_action;
     std::optional<PhenomenonAction> phenomenon_action; // Targeted source-free launch only.
+    std::optional<FateAction> fate_action; // Owned207; source-free effect, ordinary owner schedule.
     std::int64_t guardian_payload_mp = 0; // Actual source MP at this payload launch.
     std::uint64_t guardian_payload_actions = 0;
     std::uint64_t phenomenon_actions = 0;
+    std::uint64_t fate_actions = 0;
     std::uint64_t guardian_summons = 0, guardian_opportunities = 0, auto_guardian_actions = 0;
     std::uint64_t guardian_departure_rolls = 0, guardian_departures = 0;
     std::size_t guardian_cursor = 0;
@@ -174,6 +190,12 @@ struct ItemShuffleRecord {
     ActionBatch anchor; // Non-recursive full pre-action world, RNG and cumulative counters.
     ItemShuffleAction action;
     bool operator==(const ItemShuffleRecord&) const = default;
+};
+struct FateRecord {
+    ActionBatch anchor;
+    FateAction action;
+    std::vector<Command> responses;
+    bool operator==(const FateRecord&) const = default;
 };
 struct DangerEvent {
     PlayerId origin = 0, target = 0;
@@ -261,6 +283,9 @@ struct MatchSnapshot {
     std::uint64_t guardian_actions = 0; // Private accepted canonical external activations.
     std::uint64_t guardian_payload_actions = 0;
     std::uint64_t phenomenon_actions = 0;
+    std::uint64_t fate_actions = 0;
+    std::optional<FateRecord> last_fate; // Privileged full launch and response proof, persists through completion.
+    std::optional<FateEvent> last_fate_event; // Public actor/207/outcome only, never physical tokens.
     std::optional<ItemShuffleRecord> last_item_shuffle; // Privileged proof, never an observation.
     std::optional<PhenomenonAction> last_phenomenon; // Assignments are private; JSON shows model/recipient only.
     std::optional<GuardianPayloadAction> last_guardian_payload;
@@ -311,6 +336,8 @@ public:
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool legal(const Command& command) const noexcept;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
+    [[nodiscard]] bool fate_legal(const FateAction& action) const noexcept;
+    MatchStep fate_step(const FateAction& action);
     [[nodiscard]] bool confusion_legal(const Command& command) const noexcept;
     MatchStep confusion_step(const Command& command);
     [[nodiscard]] bool guardian_legal(const GuardianAction& action) const noexcept;

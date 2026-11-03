@@ -38,6 +38,10 @@ static_assert(std::is_standard_layout_v<gfo_match_item_source> && sizeof(gfo_mat
     && offsetof(gfo_match_item_source, token) == 8);
 static_assert(std::is_standard_layout_v<gfo_match_item_shuffle_action> && sizeof(gfo_match_item_shuffle_action) == 16
     && offsetof(gfo_match_item_shuffle_action, count) == 8);
+static_assert(std::is_standard_layout_v<gfo_match_fate_action> && sizeof(gfo_match_fate_action) == 64
+    && offsetof(gfo_match_fate_action, token) == 8 && offsetof(gfo_match_fate_action, outcome) == 16
+    && offsetof(gfo_match_fate_action, shuffle) == 40 && offsetof(gfo_match_fate_action, has_shuffle) == 56
+    && offsetof(gfo_match_fate_action, reserved) == 57);
 static_assert(sizeof(gfo_match_status) == 248 && offsetof(gfo_match_status, rewards) == 96
     && offsetof(gfo_match_status, player_count) == 240);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
@@ -139,6 +143,14 @@ official::ItemShuffleAction item_shuffle_action(const gfo_match_item_shuffle_act
     }
     return result;
 }
+official::FateAction fate_action(const gfo_match_fate_action& input) {
+    valid(zero(input.reserved) && input.has_shuffle <= 1 && input.actor <= official::max_wire_integer && input.token <= official::max_wire_integer);
+    valid((input.has_shuffle == 1) == (input.outcome.model == 295));
+    valid(input.has_shuffle || (!input.shuffle.order && !input.shuffle.count));
+    official::FateAction result; result.actor=input.actor; result.token=input.token; result.outcome=phenomenon_action(input.outcome);
+    if(input.has_shuffle) result.shuffle=item_shuffle_action(input.shuffle);
+    return result;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 8
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -190,6 +202,8 @@ int gfo_match_phenomenon_supported(uint16_t model) { return official::match_phen
 size_t gfo_match_item_source_size(void) { return sizeof(gfo_match_item_source); }
 size_t gfo_match_item_shuffle_action_size(void) { return sizeof(gfo_match_item_shuffle_action); }
 int gfo_match_item_shuffle_supported(uint16_t model) { return official::match_item_shuffle_supported(model); }
+size_t gfo_match_fate_action_size(void) { return sizeof(gfo_match_fate_action); }
+int gfo_match_fate_supported(uint16_t model) { return official::match_fate_supported(model); }
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
     try {
@@ -320,6 +334,24 @@ int gfo_match_item_shuffle_step(gfo_match* match, const gfo_match_item_shuffle_a
         const auto parsed = item_shuffle_action(*input); auto next = match->value;
         next.item_shuffle_step(parsed); const auto result = status(next);
         match->value = std::move(next); *out = result; return 0;
+    } catch (...) { return error(); }
+}
+int gfo_match_fate_legal(const gfo_match* match, const gfo_match_fate_action* input, uint8_t* out) {
+    if (!match || !input || !out) return -1;
+    if(input->shuffle.count>official::player_capacity*official::visible_hand_capacity) return -2;
+    if(input->has_shuffle>1 || (input->has_shuffle==1)!=(input->outcome.model==295)) return -2;
+    if(input->has_shuffle==1 && !input->shuffle.order && input->shuffle.count) return -1;
+    try { const auto parsed=fate_action(*input); const uint8_t result=match->value.fate_legal(parsed); *out=result; return 0; }
+    catch (...) { return error(); }
+}
+int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* input, gfo_match_status* out) {
+    if (!match || !input || !out) return -1;
+    if(input->shuffle.count>official::player_capacity*official::visible_hand_capacity) return -2;
+    if(input->has_shuffle>1 || (input->has_shuffle==1)!=(input->outcome.model==295)) return -2;
+    if(input->has_shuffle==1 && !input->shuffle.order && input->shuffle.count) return -1;
+    try {
+        const auto parsed=fate_action(*input); auto next=match->value; next.fate_step(parsed); const auto result=status(next);
+        match->value=std::move(next); *out=result; return 0;
     } catch (...) { return error(); }
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {

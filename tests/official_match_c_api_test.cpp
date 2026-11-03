@@ -44,11 +44,14 @@ int main() {
         && gfo_match_item_source_size() == 16 && sizeof(gfo_match_item_source) == 16
         && offsetof(gfo_match_item_source, token) == 8
         && gfo_match_item_shuffle_action_size() == 16 && sizeof(gfo_match_item_shuffle_action) == 16
-        && offsetof(gfo_match_item_shuffle_action, count) == 8, "ABI sizes");
+        && offsetof(gfo_match_item_shuffle_action, count) == 8
+        && gfo_match_fate_action_size()==64&&sizeof(gfo_match_fate_action)==64
+        &&offsetof(gfo_match_fate_action,outcome)==16&&offsetof(gfo_match_fate_action,shuffle)==40
+        &&offsetof(gfo_match_fate_action,has_shuffle)==56&&offsetof(gfo_match_fate_action,reserved)==57, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v37"
-        && std::string(gfo_match_scope()) == "experimental:236-models;not-official-server-equivalence", "explicit v16 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v38"
+        && std::string(gfo_match_scope()) == "experimental:236-models;external207;not-official-server-equivalence", "explicit v16 scope");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -281,7 +284,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v35\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v36\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -1983,7 +1986,7 @@ int main() {
                 &&gfo_match_guardian_legal(guardian_match,nullptr,&marker)==-1
                 &&equal(sentinel_status,sentinel_before)&&observe(guardian_match)==before_guardian,"new API NULL guards are atomic");
             // A valid read-only catalog scene can still be outside execution scope.
-            gfo_state_item unsupported_item{};unsupported_item.model=207;
+            gfo_state_item unsupported_item{};unsupported_item.model=1;
             scene_players[0].name="safe";scene_players[0].name_size=4;scene_players[0].item_count=1;
             scene_players[1].item_offset=1;scene_players[2].item_offset=1;
             check(gfo_state_create(&scene_meta,scene_players.data(),3,&unsupported_item,1,nullptr,0,&scene)==0,"read-only state accepts a known summon model");
@@ -2348,6 +2351,61 @@ int main() {
         &&gfo_match_confusion_step(confused_match,&supplied_prayer,&result)==-2&&equal(result,late_confusion_status)
         &&observe(confused_match,0,0)==late_confusion&&confused_flags()==2,"late update failure restores the predecrement positive count and full old event state");
     gfo_match_destroy(confused_match);
+    check(gfo_match_fate_supported(207)&&!gfo_match_fate_supported(206)&&!gfo_match_supported(207)
+        &&gfo_match_catalog_count()==236&&gfo_match_gift_weight()==499,"owned207 uses its distinct composite capability without entering default gifts");
+    cfg.initial_hand=0;cfg.hand_limit=18;cfg.max_decisions=64;
+    gfo_match* fate_match=nullptr;check(gfo_match_create(&cfg,players.data(),2,0,&fate_match)==0,"fate bridge create");
+    const auto load_fate_scene=[&](uint64_t update){
+        std::array<gfo_state_player,2> people{};people[0].id=0;people[1].id=7;
+        for(auto& person:people){person.hp=40;person.mp=10;person.cp=20;}
+        people[0].confusion_count=1;people[0].item_count=2;people[1].item_offset=2;people[1].item_count=1;
+        std::array<gfo_state_item,3> items{};items[0].model=207;items[1].token=1;items[1].model=235;items[1].used=1;items[2].model=152;
+        gfo_state_meta meta{};meta.gf=9;meta.update_count=update;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),nullptr,0,&scene)==0,"typed owned207 scene with source-local token0");
+        check(gfo_match_load_scene(fate_match,scene,0,0,&result)==0,"load fate scene");gfo_state_destroy(scene);
+    };
+    load_fate_scene(0);gfo_match_fate_action fate{};fate.outcome.model=287;
+    const auto before_fate=observe(fate_match,0,0);const auto fate_status=status(fate_match);
+    for(unsigned error=0;error<10;++error){auto bad=fate;
+        if(error==0)bad.reserved[0]=1;if(error==1)bad.reserved[6]=1;if(error==2)bad.has_shuffle=2;
+        if(error==3)bad.outcome.reserved[2]=1;if(error==4)bad.shuffle.count=1;
+        if(error==5)bad.shuffle.order=reinterpret_cast<const gfo_match_item_source*>(uintptr_t{1});
+        if(error==6)bad.actor=official::max_wire_integer+1;if(error==7)bad.token=official::max_wire_integer+1;
+        if(error==8){bad.has_shuffle=1;bad.shuffle={reinterpret_cast<const gfo_match_item_source*>(uintptr_t{1}),1};}
+        if(error==9)bad.outcome.model=295;
+        result=fate_status;uint8_t marker=0xa5;
+        check(gfo_match_fate_legal(fate_match,&bad,&marker)==-2&&marker==0xa5
+            &&gfo_match_fate_step(fate_match,&bad,&result)==-2&&equal(result,fate_status)
+            &&observe(fate_match,0,0)==before_fate,"fate wire failures restore card, hidden count, world, event and caller outputs");}
+    auto huge_fate=fate;huge_fate.has_shuffle=1;huge_fate.outcome.model=295;
+    huge_fate.shuffle={reinterpret_cast<const gfo_match_item_source*>(uintptr_t{1}),std::numeric_limits<size_t>::max()};result=fate_status;uint8_t fate_marker=0xa5;
+    check(gfo_match_fate_legal(fate_match,&huge_fate,&fate_marker)==-2&&fate_marker==0xa5
+        &&gfo_match_fate_step(fate_match,&huge_fate,&result)==-2&&equal(result,fate_status),"fate nested count rejects before reading pointer1");
+    auto null_fate=huge_fate;null_fate.shuffle={nullptr,1};
+    check(gfo_match_fate_legal(fate_match,&null_fate,&fate_marker)==-1
+        &&gfo_match_fate_step(fate_match,&null_fate,&result)==-1
+        &&gfo_match_fate_step(fate_match,nullptr,&result)==-1&&gfo_match_fate_step(fate_match,&fate,nullptr)==-1
+        &&observe(fate_match,0,0)==before_fate,"fate NULL nested and top-level inputs are atomic");
+    check(gfo_match_fate_legal(fate_match,&fate,&legal)==0&&legal&&observe(fate_match,0,0)==before_fate
+        &&gfo_match_fate_step(fate_match,&fate,&result)==0&&result.phase==0&&result.actor==7&&result.owner==7&&result.decisions==1
+        &&!has_token(fate_match,0,0)&&hand_size(fate_match,0)==2
+        &&observe(fate_match,0,0).find("\"last_fate\":{\"actor\":0,\"model\":207,\"phenomenon\":287}")!=std::string::npos,
+        "atomic fate consumes owned207, debits confusion and completes one ordinary turn with its operation gift");
+    load_fate_scene(0);
+    std::array<gfo_match_item_source,2> fate_order{{{7,0},{0,1}}};fate.outcome.model=295;fate.has_shuffle=1;fate.shuffle={fate_order.data(),fate_order.size()};
+    check(gfo_match_fate_legal(fate_match,&fate,&legal)==0&&legal&&gfo_match_fate_step(fate_match,&fate,&result)==0
+        &&result.actor==7&&has_token(fate_match,0,2)&&has_token(fate_match,0,4)&&has_token(fate_match,7,3)
+        &&observe(fate_match,1,7).find("\"used_models\":[235]")!=std::string::npos,
+        "295 nested manifest covers only the post207 live slots and precedes the reserved operation gift");
+    load_fate_scene(0);auto invalid_order=fate_order;invalid_order[1]={0,0};fate.shuffle={invalid_order.data(),invalid_order.size()};
+    const auto invalid_fate_view=observe(fate_match,0,0);const auto invalid_fate_status=status(fate_match);result=invalid_fate_status;
+    check(gfo_match_fate_legal(fate_match,&fate,&legal)==0&&!legal&&gfo_match_fate_step(fate_match,&fate,&result)==-2
+        &&equal(result,invalid_fate_status)&&observe(fate_match,0,0)==invalid_fate_view,"a manifest referring to consumed207 rolls back to before207 use");
+    load_fate_scene(official::max_wire_integer);fate={};fate.outcome.model=290;
+    const auto late_fate_view=observe(fate_match,0,0);const auto late_fate_status=status(fate_match);result=late_fate_status;
+    check(gfo_match_fate_legal(fate_match,&fate,&legal)==0&&legal&&gfo_match_fate_step(fate_match,&fate,&result)==-2
+        &&equal(result,late_fate_status)&&observe(fate_match,0,0)==late_fate_view,"late fate failure restores the pre207 card and predecrement count as well as global HP");
+    gfo_match_destroy(fate_match);
     check(fixed_query_probes == 384, "all six fixed policy-query loops executed64 probes");
     gfo_match_destroy(blocked_match);
     gfo_match_destroy(reflected_match);

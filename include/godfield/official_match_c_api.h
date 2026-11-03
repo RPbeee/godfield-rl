@@ -48,6 +48,12 @@ typedef struct gfo_match_item_shuffle_action {
     const gfo_match_item_source* order;
     size_t count;
 } gfo_match_item_shuffle_action;
+typedef struct gfo_match_fate_action {
+    uint64_t actor, token;
+    gfo_match_phenomenon_action outcome;
+    gfo_match_item_shuffle_action shuffle;
+    uint8_t has_shuffle, reserved[7];
+} gfo_match_fate_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -75,6 +81,8 @@ int gfo_match_phenomenon_supported(uint16_t model);
 size_t gfo_match_item_source_size(void);
 size_t gfo_match_item_shuffle_action_size(void);
 int gfo_match_item_shuffle_supported(uint16_t model);
+size_t gfo_match_fate_action_size(void);
+int gfo_match_fate_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -117,6 +125,11 @@ int gfo_match_phenomenon_step(gfo_match* match, const gfo_match_phenomenon_actio
 // NULL order is allowed only for count0. The source array is copied, not retained.
 int gfo_match_item_shuffle_legal(const gfo_match* match, const gfo_match_item_shuffle_action* action, uint8_t* out);
 int gfo_match_item_shuffle_step(gfo_match* match, const gfo_match_item_shuffle_action* action, gfo_match_status* out);
+// Atomic207 use plus an externally supplied outcome; no random selector.
+//295 requires shuffle; other outcomes forbid it. Inactive shuffle must be NULL0.
+// The manifest covers alive inventories AFTER207 is consumed, excluding gifts.
+int gfo_match_fate_legal(const gfo_match* match, const gfo_match_fate_action* action, uint8_t* out);
+int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

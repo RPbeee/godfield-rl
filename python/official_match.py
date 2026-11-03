@@ -97,6 +97,13 @@ class ItemShuffleAction:
     order: tuple[ItemSource, ...] = ()
 
 @dataclass(frozen=True)
+class FateAction:
+    actor: int
+    token: int
+    outcome: PhenomenonAction
+    shuffle: ItemShuffleAction | None = None
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -136,6 +143,9 @@ class _ItemSource(c.Structure):
     _fields_ = [("owner", c.c_uint64), ("token", c.c_uint64)]
 class _ItemShuffleAction(c.Structure):
     _fields_ = [("order", c.POINTER(_ItemSource)), ("count", c.c_size_t)]
+class _FateAction(c.Structure):
+    _fields_ = [("actor", c.c_uint64), ("token", c.c_uint64), ("outcome", _PhenomenonAction),
+                ("shuffle", _ItemShuffleAction), ("has_shuffle", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _Status(c.Structure):
     _fields_ = [("decisions", c.c_uint64), ("owner", c.c_uint64), ("actor", c.c_uint64),
         ("player_ids", c.c_uint64 * 9), ("rewards", c.c_double * 9), ("winners", c.c_uint64 * 9),
@@ -231,6 +241,17 @@ def _item_shuffle_action(value):
     if records: encoded.order = copied
     return encoded, copied
 
+def _fate_action(value):
+    if not isinstance(value, FateAction): raise InvalidMatchError("fate operation requires FateAction")
+    encoded = _FateAction(actor=_integer(value.actor, "fate actor"), token=_integer(value.token, "fate token"),
+                          outcome=_phenomenon_action(value.outcome))
+    if (value.shuffle is not None) != (encoded.outcome.model == 295):
+        raise InvalidMatchError("only phenomenon 295 requires a shuffle manifest")
+    copied = None
+    if value.shuffle is not None:
+        encoded.shuffle, copied = _item_shuffle_action(value.shuffle); encoded.has_shuffle = 1
+    return encoded, copied
+
 def _decode_status(value):
     if value.player_count > 9 or value.winner_count > 9 or value.phase > 3 or value.has_actor > 1:
         raise MatchError("invalid native status descriptor", -3)
@@ -263,11 +284,11 @@ class Match:
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
             for name in ("ruleset", "scope"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size"):
+            for name in ("config_size", "player_size", "command_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v37"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v38"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
@@ -281,7 +302,10 @@ class Match:
             or _PhenomenonAction.guardian_count.offset != 11 or _PhenomenonAction.guardians.offset != 12
             or _PhenomenonAction.reserved.offset != 21
             or lib.gfo_match_item_source_size() != c.sizeof(_ItemSource) or _ItemSource.token.offset != 8
-            or lib.gfo_match_item_shuffle_action_size() != c.sizeof(_ItemShuffleAction) or _ItemShuffleAction.count.offset != 8):
+            or lib.gfo_match_item_shuffle_action_size() != c.sizeof(_ItemShuffleAction) or _ItemShuffleAction.count.offset != 8
+            or lib.gfo_match_fate_action_size() != c.sizeof(_FateAction) or _FateAction.token.offset != 8
+            or _FateAction.outcome.offset != 16 or _FateAction.shuffle.offset != 40
+            or _FateAction.has_shuffle.offset != 56 or _FateAction.reserved.offset != 57):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
         lib.gfo_match_create.argtypes = [c.POINTER(_Config), c.POINTER(_Player), c.c_size_t, c.c_uint64, c.POINTER(c.c_void_p)]
@@ -318,6 +342,11 @@ class Match:
         lib.gfo_match_item_shuffle_legal.restype = c.c_int
         lib.gfo_match_item_shuffle_step.argtypes = [c.c_void_p, c.POINTER(_ItemShuffleAction), c.POINTER(_Status)]
         lib.gfo_match_item_shuffle_step.restype = c.c_int
+        lib.gfo_match_fate_supported.argtypes = [c.c_uint16]; lib.gfo_match_fate_supported.restype = c.c_int
+        lib.gfo_match_fate_legal.argtypes = [c.c_void_p, c.POINTER(_FateAction), c.POINTER(c.c_uint8)]
+        lib.gfo_match_fate_legal.restype = c.c_int
+        lib.gfo_match_fate_step.argtypes = [c.c_void_p, c.POINTER(_FateAction), c.POINTER(_Status)]
+        lib.gfo_match_fate_step.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_observe.argtypes = [c.c_void_p, c.c_uint8, c.c_uint64, c.c_void_p, c.c_size_t, c.POINTER(c.c_size_t)]
         lib.gfo_match_observe.restype = c.c_int
@@ -328,6 +357,7 @@ class Match:
             for name, kind in (("earth", 9), ("moon", 10))}
         self.supported_phenomenon_models = tuple(card.id for card in self._data if lib.gfo_match_phenomenon_supported(card.id))
         self.supported_item_shuffle_models = tuple(card.id for card in self._data if lib.gfo_match_item_shuffle_supported(card.id))
+        self.supported_fate_models = tuple(card.id for card in self._data if lib.gfo_match_fate_supported(card.id))
         self.gift_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
             or self.gift_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
@@ -449,6 +479,17 @@ class Match:
         """Apply a supplied permutation; no selection distribution is implied."""
         self._open(); encoded, copied = _item_shuffle_action(action); result = _Status()
         _check(self._lib.gfo_match_item_shuffle_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
+
+    def fate_legal(self, action):
+        """Validate owned207 and its supplied outcome as one atomic action; no selector."""
+        self._open(); encoded, copied = _fate_action(action); result = c.c_uint8()
+        _check(self._lib.gfo_match_fate_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def fate_step(self, action):
+        self._open(); encoded, copied = _fate_action(action); result = _Status()
+        _check(self._lib.gfo_match_fate_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
 
     def step(self, command):

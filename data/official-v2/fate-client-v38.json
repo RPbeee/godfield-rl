@@ -1,0 +1,6154 @@
+{
+  "schema_version": 1,
+  "scope": "public-client-fate-command-and-phenomenon-announcement;not-authoritative-outcome-selector",
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "locales": {
+    "ja": {
+      "url": "https://godfield.net/i18n/ja.json",
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "model": {
+        "imageName": "string-of-fate",
+        "category": "sundries",
+        "ability": "callPhenomenon",
+        "price": 3,
+        "giftRate": 1,
+        "name": "運命のひも"
+      },
+      "description": "超常現象が起こる"
+    },
+    "en": {
+      "url": "https://godfield.net/i18n/en.json",
+      "sha256": "23fbf5e637b8f3f628d78e5de14f3ce2b65442066c6f94820d8f0d517c6fbd00",
+      "model": {
+        "imageName": "string-of-fate",
+        "category": "sundries",
+        "ability": "callPhenomenon",
+        "price": 3,
+        "giftRate": 1,
+        "name": "String of Fate"
+      },
+      "description": "Cause<br>a phenomenon"
+    }
+  },
+  "phenomenon_models": [
+    {
+      "id": 287,
+      "imageName": "afterglow",
+      "category": "phenomena",
+      "guardian": "mars",
+      "ability": "setCurseOfEverybody",
+      "curse": "fever",
+      "name": "夕焼け"
+    },
+    {
+      "id": 288,
+      "imageName": "dense-fog",
+      "category": "phenomena",
+      "guardian": "mercury",
+      "ability": "setCurseOfEverybody",
+      "curse": "fog",
+      "name": "濃霧"
+    },
+    {
+      "id": 289,
+      "imageName": "mushroom-outbreak",
+      "category": "phenomena",
+      "guardian": "jupiter",
+      "ability": "confuseEverybody",
+      "name": "きのこ大発生"
+    },
+    {
+      "id": 290,
+      "imageName": "tornado",
+      "category": "phenomena",
+      "guardian": "saturn",
+      "ability": "setHPOfEverybody",
+      "abilityValue": 1,
+      "name": "竜巻"
+    },
+    {
+      "id": 291,
+      "imageName": "gigantic-tub",
+      "category": "phenomena",
+      "element": "light",
+      "atk": 50,
+      "ability": "attackSomebody",
+      "name": "巨大なタライ"
+    },
+    {
+      "id": 292,
+      "imageName": "black-hole",
+      "category": "phenomena",
+      "element": "darkness",
+      "atk": 30,
+      "hitRate": 75,
+      "name": "ブラックホール"
+    },
+    {
+      "id": 293,
+      "imageName": "warm-current",
+      "category": "phenomena",
+      "guardian": "neptune",
+      "ability": "boostHP",
+      "abilityValue": 50,
+      "name": "暖流"
+    },
+    {
+      "id": 294,
+      "imageName": "gold-mountain",
+      "category": "phenomena",
+      "guardian": "venus",
+      "ability": "collectCPOfEverybody",
+      "name": "金山"
+    },
+    {
+      "id": 295,
+      "imageName": "magnetic-storm",
+      "category": "phenomena",
+      "guardian": "earth",
+      "ability": "shuffleItemsOfEverybody",
+      "name": "磁気嵐"
+    },
+    {
+      "id": 296,
+      "imageName": "solar-eclipse",
+      "category": "phenomena",
+      "guardian": "moon",
+      "ability": "setGuardianOfEverybody",
+      "name": "日食"
+    }
+  ],
+  "helper_sha256": {
+    "event_decoder": "a2c4ea34e8c271c7d687d5d5d347cb03d077bcf48ed7c8764aef4dba61d41ded",
+    "append": "6843fa0629fc5a89f85b9e9b934c60b09908cb3f6c86d7bcc400a712d7dc8753",
+    "start_and_target_default": "4bb1367db7e34dda15d0899c013b29480cf74bfb559e188bd0148f9706c8289e",
+    "select": "3144784f95abdb6b28170a4b9149de719c88cea28c191d73c916faa55cac85b8",
+    "target": "c7e9dcc6c728ad7ebdc5ee88bcb228c097486abb61eb4dde6f9428cd2df14df3",
+    "submit": "1c49f49bf1aa42e931935bafe4a589918a557863e23cb8232769740f67f73048",
+    "attack_use": "8019325febcdfa33e4ef29176d2f2a1176eec94a87d2fe62b9e70917ae61f51b",
+    "announcement": "9b3374f28a69e19308a213cff3ea21d9f84da95ef9618b955910dba641580557",
+    "summary": "92e1e2e302ad75631563235771ddcb8921dd636d4e29b83e11b2d61463828650"
+  },
+  "methods": [
+    "jO.eu/aN.gkM/glj real append/start/automatic-target defaults",
+    "jO.io/aT real selection/target logic (visual update sinks stubbed)",
+    "jS.$0 complete submit preflight/captured payload (RPC replaced before network)",
+    "A.to event decoder",
+    "ks.k complete useAttackItems/phenomenon announcement receive branches with synchronous Future shell",
+    "dA.iI/gf2 real summary removal/attack flag plus tz/lc/ld arithmetic (graphical summary construction stubbed)"
+  ],
+  "counts": {
+    "candidate_append": 296,
+    "role_cases": 4,
+    "target_and_submit": 48,
+    "decoder": 20,
+    "announcement": 53,
+    "total": 421
+  },
+  "selection_cases": [
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 1
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 2
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 3
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 4
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 5
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 6
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 7
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 8
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 9
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 10
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 11
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 12
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 13
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 14
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 15
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 16
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 17
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 18
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 19
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 20
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 21
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 22
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 23
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 24
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 25
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 26
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 27
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 28
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 29
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 30
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 31
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 32
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 33
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 34
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 35
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 36
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 37
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 38
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 39
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 40
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 41
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 42
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 43
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 44
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 45
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 46
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 47
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 48
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 49
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 50
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 51
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 52
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 53
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 54
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 55
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 56
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 57
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 58
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 59
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 60
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 61
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 62
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 63
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 64
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 65
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 66
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 67
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 68
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 69
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 70
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 71
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 72
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 73
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 74
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 75
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 76
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 77
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 78
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 79
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 80
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 81
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 82
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 83
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 84
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 85
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 86
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 87
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 88
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 89
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 90
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 91
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 92
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 93
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 94
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 95
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 96
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 97
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 98
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 99
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 100
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 101
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 102
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 103
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 104
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 105
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 106
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 107
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 108
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 109
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 110
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 111
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 112
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 113
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 114
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 115
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 116
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 117
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 118
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 119
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 120
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 121
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 122
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 123
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 124
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 125
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 126
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 127
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 128
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 129
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 130
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 131
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 132
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 133
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 134
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 135
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 136
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 137
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 138
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 139
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 140
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 141
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 142
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 143
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 144
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 145
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 146
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 147
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 148
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 149
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 150
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 151
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 152
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 153
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 154
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 155
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 156
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 157
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 158
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 159
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 160
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 161
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 162
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 163
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 164
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 165
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 166
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 167
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 168
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 169
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 170
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 171
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 172
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 173
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 174
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 175
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 176
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 177
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 178
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 179
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 180
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 181
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 182
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 183
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 184
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 185
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 186
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 187
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 188
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 189
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 190
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 191
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 192
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 193
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 194
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 195
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 196
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 197
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 198
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 199
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 200
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 201
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 202
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 203
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 204
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 205
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 206
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 207
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 208
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 209
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 210
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 211
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 212
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 213
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 214
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 215
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 216
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 217
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 218
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 219
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 220
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 221
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 222
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 223
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 224
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 225
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 226
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 227
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 228
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 229
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 230
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 231
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 232
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 233
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 234
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 235
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 236
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 237
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 238
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 239
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 240
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 241
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 242
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 243
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 244
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 245
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 246
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 247
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 248
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 249
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 250
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 251
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 252
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 253
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 254
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 255
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 256
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 257
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 258
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 259
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 260
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 261
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 262
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 263
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 264
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 265
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 266
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 267
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 268
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 269
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 270
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 271
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 272
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 273
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 274
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 275
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 276
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 277
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 278
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 279
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 280
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 281
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 282
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 283
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 284
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 285
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 286
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 287
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 288
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 289
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 290
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 291
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 292
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 293
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 294
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 295
+      },
+      "allowed": false
+    },
+    {
+      "input": {
+        "base": [
+          207
+        ],
+        "candidate": 296
+      },
+      "allowed": false
+    }
+  ],
+  "role_cases": [
+    {
+      "models": [
+        207
+      ],
+      "start": true,
+      "automatic_enemy_target": false,
+      "magic_cost": 0,
+      "category": "sundries",
+      "attack_flag": false,
+      "empty_response_candidates": [
+        190
+      ]
+    },
+    {
+      "models": [
+        5,
+        207
+      ],
+      "append_after_buy": false
+    },
+    {
+      "models": [
+        4,
+        207
+      ],
+      "append_as_sell_commodity": true
+    },
+    {
+      "models": [
+        1,
+        207
+      ],
+      "append_after_discard": true
+    }
+  ],
+  "target_cases": [
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "none",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 0,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 0,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 0,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 0,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "self",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 0,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 7,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 7,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 7,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "enemy",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 7,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 9,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 9,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 9,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": 9,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "ally",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": true,
+      "target_after_select": null,
+      "submitted_target": 9,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 9
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 55,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 55,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 55,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "dead",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 55,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 55
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": false,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": false,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": null,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ]
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 99,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": true,
+      "mp": 0,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 99,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": false,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 99,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "events": []
+    },
+    {
+      "target_kind": "unknown",
+      "target_set_after_item_selection": true,
+      "mp": 99,
+      "fog": true,
+      "target_is_in_alive_click_roster": false,
+      "target_after_select": null,
+      "submitted_target": 99,
+      "wire": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            101
+          ],
+          "targetPlayerId": 99
+        }
+      },
+      "events": []
+    }
+  ],
+  "decoder_cases": [
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 0,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": null
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 0,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": "287"
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 0,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 0
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 0,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": -1
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": -1,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 1.5
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 0,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 6
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 6,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 207
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 207,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 287
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 287,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 288
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 288,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 289
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 289,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 290
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 290,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 291
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 291,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 292
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 292,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 293
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 293,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 294
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 294,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 295
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 295,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 296
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 296,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 297
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 297,
+        "items": 0
+      }
+    },
+    {
+      "input": {
+        "action": "phenomenon",
+        "playerId": 42,
+        "itemModelId": 9007199254740991
+      },
+      "decoded": {
+        "action": "phenomenon",
+        "player_id": 42,
+        "item_model_id": 9007199254740991,
+        "items": 0
+      }
+    }
+  ],
+  "announcement_cases": [
+    {
+      "model": 287,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          287
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              287
+            ],
+            "models_after_summary": [
+              287
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 287,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          287
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              287
+            ],
+            "models_after_summary": [
+              287
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 287,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          287
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              287
+            ],
+            "models_after_summary": [
+              287
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 287,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          287
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              287
+            ],
+            "models_after_summary": [
+              287
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 288,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          288
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              288
+            ],
+            "models_after_summary": [
+              288
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 288,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          288
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              288
+            ],
+            "models_after_summary": [
+              288
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 288,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          288
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              288
+            ],
+            "models_after_summary": [
+              288
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 288,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          288
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              288
+            ],
+            "models_after_summary": [
+              288
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 289,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          289
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              289
+            ],
+            "models_after_summary": [
+              289
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 289,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          289
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              289
+            ],
+            "models_after_summary": [
+              289
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 289,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          289
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              289
+            ],
+            "models_after_summary": [
+              289
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 289,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          289
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              289
+            ],
+            "models_after_summary": [
+              289
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 290,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          290
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              290
+            ],
+            "models_after_summary": [
+              290
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 290,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          290
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              290
+            ],
+            "models_after_summary": [
+              290
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 290,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          290
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              290
+            ],
+            "models_after_summary": [
+              290
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 290,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          290
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              290
+            ],
+            "models_after_summary": [
+              290
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 291,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          291
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              291
+            ],
+            "models_after_summary": [
+              291
+            ],
+            "caption": {
+              "power": 50,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 50,
+            "element": "light"
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 291,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          291
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              291
+            ],
+            "models_after_summary": [
+              291
+            ],
+            "caption": {
+              "power": 50,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 50,
+            "element": "light"
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 291,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          291
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              291
+            ],
+            "models_after_summary": [
+              291
+            ],
+            "caption": {
+              "power": 50,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 50,
+            "element": "light"
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 291,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          291
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              291
+            ],
+            "models_after_summary": [
+              291
+            ],
+            "caption": {
+              "power": 50,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 50,
+            "element": "light"
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 292,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          292
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              292
+            ],
+            "models_after_summary": [
+              292
+            ],
+            "caption": {
+              "power": 30,
+              "rate": 75
+            },
+            "attack_flag": true,
+            "power": 30,
+            "element": "darkness"
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 292,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          292
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              292
+            ],
+            "models_after_summary": [
+              292
+            ],
+            "caption": {
+              "power": 30,
+              "rate": 75
+            },
+            "attack_flag": true,
+            "power": 30,
+            "element": "darkness"
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 292,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          292
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              292
+            ],
+            "models_after_summary": [
+              292
+            ],
+            "caption": {
+              "power": 30,
+              "rate": 75
+            },
+            "attack_flag": true,
+            "power": 30,
+            "element": "darkness"
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 292,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          292
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              292
+            ],
+            "models_after_summary": [
+              292
+            ],
+            "caption": {
+              "power": 30,
+              "rate": 75
+            },
+            "attack_flag": true,
+            "power": 30,
+            "element": "darkness"
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 293,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          293
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              293
+            ],
+            "models_after_summary": [
+              293
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 293,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          293
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              293
+            ],
+            "models_after_summary": [
+              293
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 293,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          293
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              293
+            ],
+            "models_after_summary": [
+              293
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 293,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          293
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              293
+            ],
+            "models_after_summary": [
+              293
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 294,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          294
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              294
+            ],
+            "models_after_summary": [
+              294
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 294,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          294
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              294
+            ],
+            "models_after_summary": [
+              294
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 294,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          294
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              294
+            ],
+            "models_after_summary": [
+              294
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 294,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          294
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              294
+            ],
+            "models_after_summary": [
+              294
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 295,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          295
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              295
+            ],
+            "models_after_summary": [
+              295
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 295,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          295
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              295
+            ],
+            "models_after_summary": [
+              295
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 295,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          295
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              295
+            ],
+            "models_after_summary": [
+              295
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 295,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          295
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              295
+            ],
+            "models_after_summary": [
+              295
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 296,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          296
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              296
+            ],
+            "models_after_summary": [
+              296
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 296,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          296
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              296
+            ],
+            "models_after_summary": [
+              296
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 296,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          296
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              296
+            ],
+            "models_after_summary": [
+              296
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 296,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          296
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              296
+            ],
+            "models_after_summary": [
+              296
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 6,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          6
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              6
+            ],
+            "models_after_summary": [
+              6
+            ],
+            "caption": {
+              "power": 1,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 1,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 6,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          6
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              6
+            ],
+            "models_after_summary": [
+              6
+            ],
+            "caption": {
+              "power": 1,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 1,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 6,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          6
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              6
+            ],
+            "models_after_summary": [
+              6
+            ],
+            "caption": {
+              "power": 1,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 1,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 6,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          6
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              6
+            ],
+            "models_after_summary": [
+              6
+            ],
+            "caption": {
+              "power": 1,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 1,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 201,
+      "prior_use_attack_items": false,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          201
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              201
+            ],
+            "models_after_summary": [
+              201
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 201,
+      "prior_use_attack_items": false,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          201
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              201
+            ],
+            "models_after_summary": [
+              201
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [],
+        "sounds": [
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 201,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          201
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              201
+            ],
+            "models_after_summary": [
+              201
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 201,
+      "prior_use_attack_items": true,
+      "viewer": "spectator",
+      "prior_marker": false,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          201
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              201
+            ],
+            "models_after_summary": [
+              201
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 0,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": true,
+        "widget_model_ids": [
+          207
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": -1,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": true,
+        "widget_model_ids": [
+          207
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 297,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": false,
+      "result": {
+        "error": true,
+        "widget_model_ids": [
+          207
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 287,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": true,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          287
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              287
+            ],
+            "models_after_summary": [
+              287
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    },
+    {
+      "model": 291,
+      "prior_use_attack_items": true,
+      "viewer": "self",
+      "prior_marker": true,
+      "result": {
+        "error": false,
+        "widget_model_ids": [
+          207,
+          291
+        ],
+        "summaries": [
+          {
+            "models_before_summary": [
+              207
+            ],
+            "models_after_summary": [
+              207
+            ],
+            "caption": null,
+            "attack_flag": false,
+            "power": 0,
+            "element": null
+          },
+          {
+            "models_before_summary": [
+              207,
+              291
+            ],
+            "models_after_summary": [
+              291
+            ],
+            "caption": {
+              "power": 50,
+              "rate": 0
+            },
+            "attack_flag": true,
+            "power": 50,
+            "element": "light"
+          }
+        ],
+        "generic_mp_delta_calls": [
+          0
+        ],
+        "sounds": [
+          "select-item",
+          "phenomenon"
+        ]
+      }
+    }
+  ],
+  "network_or_application_startup": false,
+  "conclusions": [
+    "207 is a selectable zero-MP sundry with price3/giftRate1. It is not a percentage attack,weapon,miracle or extra-ATK component. No supplied follow-up model passes actual main append after207,including FREE. It may itself be sold or discarded via the ordinary UI operations.",
+    "Selecting207 has no automatic enemy default and clears a previously selected enemy object. A later direct target selection can still be retained and submitted by generic code;the direct helper also accepts dead/unknown objects outside the normal alive click roster. This does not establish those targets as legal fate effects.",
+    "The submit preflight sends the physical itemIds;it sends targetPlayerId only if a target remains. MP0/Fog do not insert a fate-specific submit rejection. No chosen phenomenon model/weights/selector seed appear in that command.",
+    "The phenomenon event decoder takes a supplied integer itemModelId. The receiver displays that selected model and does not perform random selection. It even draws known non-phenomenon models when forcibly supplied,so renderer acceptance is not the authoritative outcome set.",
+    "The actual summary drops207 only when it is first in a list of at least2 displayed models. A single207 preview is nonattacking;after a selected attack phenomenon,the summary describes that phenomenon. Generic response UI for naked207 admits190 only;this is not proof the server gives207 its own response window.",
+    "JA/EN descriptions say a phenomenon occurs but give no distribution. The ten models287..296 are catalog facts,not observed selection frequencies or permission to silently normalize an automatic pool."
+  ],
+  "limitations": [
+    "No authoritative207 selection probability,eligible outcome conditioning,recipient policy,guardian array generation,shuffle manifest generation,event fanout,timing,MP/consume/gift/reflection/counter schedule or one-logical-action decision budget is established by these probes.",
+    "The decoder and renderer do not prove whether a selected target on207 is ignored,validated or reused by the server. Normal alive click eligibility and forced direct-method acceptance are recorded separately.",
+    "UI reaction matching for207 cannot establish whether a body response occurs before or after a selected phenomenon. A supplied event sequence is rendering evidence,not an official scheduler.",
+    "The compatible Dream policy,current experimental external primitive APIs and old Flash selection policy are separate implementations. No server selector is imported or invented here.",
+    "Graphical widgets,layout,Future delays,sound playback andRPC are stubbed;real public selection/submit/decoder/receiver/summary methods execute unchanged. No account,DOM,timer,Dart app startup or backend connection runs."
+  ],
+  "generator": "node scripts/official_fate_oracle.cjs --client /path/main.dart.js --locale-ja /path/ja.json --locale-en /path/en.json [--check]"
+}

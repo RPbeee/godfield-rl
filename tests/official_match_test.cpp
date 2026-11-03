@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v37"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v38"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -78,7 +78,7 @@ void recovery_retention_capacity_and_atomicity(){
     discard.step({0,CommandKind::discard,{0,1},{}});check(discard.snapshot().state.players[0].items.empty()&&discard.snapshot().rng==oldrng,"multiple ordinary discard earns no gifts/RNG draw");roundtrip(discard);
     auto invalid=fixture(scene({image("spring"),image("bronze-club")},{}));state=invalid.snapshot().state;state.players[0].mp=6;invalid.load_scene(state,0,9);
     reject(invalid,play(0,{0},0));reject(invalid,play(0,{1,1},7));reject(invalid,play(999,{1},7));reject(invalid,play(0,{1},999));reject(invalid,pray(0));reject(invalid,{0,CommandKind::discard,{1},{}});
-    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=image("string-of-fate");if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
+    const auto before=invalid.snapshot();for(int error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].items[0].model=1;if(error==1)bad.players[0].items[0].fake_model=image("aqua-shoes");
         if(error==2)bad.players[0].curses={Curse::cold,Curse::fever};if(error==3)bad.players[0].mp=100;if(error==4)bad.players[0].confusion_count=-1;if(error==5)bad.tiebreak_gf=10;
         bool rejected=false;try{invalid.load_scene(bad,0,9);}catch(const MatchError&){rejected=true;}check(rejected&&invalid.snapshot()==before,"unsupported scene feature rejected atomically rather than ignored");}
 }
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v35\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v36\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2040,6 +2040,119 @@ void confusion_seeded_external_controller_rollouts(){
     }
 }
 
+void fate_special_scene_capability_and_sampler_boundary(){
+    check(match_fate_supported(207)&&!match_fate_supported(0)&&!match_fate_supported(201)&&!match_fate_supported(289)
+        &&!match_supported(207)&&match_catalog().size()==236&&match_gift_weight()==499
+        &&!match_guardian_payload_supported(Guardian::earth,207),"207 special ownership capability is distinct from unchanged automatic pool and Earth payload");
+    auto m=fixture(scene({207,6},{}));roundtrip(m);reject(m,play(0,{0},0));reject(m,play(0,{0},7));
+    std::uint64_t policy=0;for(unsigned i=0;i<400;++i){const auto before=m.snapshot();const auto cmd=m.sample_action(policy);
+        check(m.legal(cmd)&&!(cmd.kind==CommandKind::play&&std::find(cmd.items.begin(),cmd.items.end(),0)!=cmd.items.end())&&m.snapshot()==before,"ordinary sampler treats special207 as an inert commodity and never invents a selected phenomenon");}
+    check(m.observe(0).find(fate_rule)!=std::string::npos&&m.observe({}).find("\"last_fate\":null")!=std::string::npos,"view declares special fate contract without a fabricated event");
+}
+void fate_global_bodies_cutoff_and_ordinary_schedule(){
+    for(CardId model:{287,288,289,290,294,296}){
+        auto s=scene({207,235},{7});s.players[0].items[1].used=true;s.players[0].cp=70;s.players[1].cp=80;
+        MatchConfig cap;cap.max_decisions=1;Match m(cap);m.load_scene(s,0,7);PhenomenonAction outcome{model,{},{}};
+        if(model==294)outcome.recipient=7;if(model==296)outcome.guardians={Guardian::mars,Guardian::moon};
+        FateAction action{0,0,outcome,{}};const auto before=m.snapshot();check(m.fate_legal(action)&&m.snapshot()==before,"fate global legality is pure");m.fate_step(action);
+        check(m.snapshot().truncated&&m.snapshot().decisions==1&&m.snapshot().fate_actions==1&&m.snapshot().phenomenon_actions==0
+            &&m.snapshot().state.players[0].items.size()==1&&m.snapshot().state.players[0].items[0].used&&m.snapshot().rng==7&&m.snapshot().state.gf==0,"207 consumption and immediate global body precede cutoff without a second external decision or gift draw");
+        if(model==287)check(m.snapshot().state.players[0].curses==std::vector<Curse>{Curse::fever},"fate Fever body runs before ordinary tick cancellation");
+        if(model==288)check(m.snapshot().state.players[1].curses==std::vector<Curse>{Curse::fog},"fate globalFog includes other player");
+        if(model==289)check(m.snapshot().state.players[0].confusion_count==3&&m.snapshot().state.players[1].confusion_count==3,"fate confusion applies to caller and peers");
+        if(model==290)check(m.snapshot().state.players[0].hp==1&&m.snapshot().state.players[1].hp==1,"fate HP setter applies globally");
+        if(model==294)check(m.snapshot().state.players[0].cp==0&&m.snapshot().state.players[1].cp==99,"fate collection debits every alive before capped credit");
+        if(model==296)check(m.snapshot().last_guardian_changes.size()==2&&m.snapshot().state.players[1].guardian==Guardian::moon,"fate guardian array covers the live roster once");roundtrip(m);
+    }
+    auto m=fixture(scene({207,235},{7}));m.fate_step({0,0,{290,{},{}},{}});
+    check(m.snapshot().owner==7&&m.snapshot().state.gf==1&&m.snapshot().state.players[0].items.size()==2
+        &&m.snapshot().next_token==3&&m.snapshot().state.players[0].mp==10&&m.snapshot().last_fate&&m.snapshot().last_fate_event==FateEvent{0,290},"completed fate gets one ordinary gift and next-owner GF progression");roundtrip(m);
+    auto sick=scene({207},{});sick.players[0].curses={Curse::fever};auto tick=fixture(sick);tick.fate_step({0,0,{288,{},{}},{}});
+    check(tick.snapshot().last_tick&&tick.snapshot().owner==7&&tick.snapshot().state.gf==1,"fate wrapper performs the existing ordinary owner tick instead of external injection scheduling");roundtrip(tick);
+}
+void fate_targeted_source_free_response_and_replay(){
+    for(CardId model:{291,292,293}){
+        auto s=scene({207},{190});s.players[0].confusion_count=1;s.players[1].curses={Curse::darkcloud};auto m=fixture(s);
+        m.fate_step({0,0,{model,7,{}},{}});check(m.snapshot().phase==MatchPhase::response&&m.snapshot().queue[0].environmental
+            &&m.snapshot().queue[0].origin==0&&m.snapshot().queue[0].source==0&&m.snapshot().batch->fate_action
+            &&m.snapshot().batch->confusion_command&&m.snapshot().last_fate->anchor.initial_state.players[0].items[0].model==207
+            &&m.snapshot().state.players[0].confusion_count==0&&m.snapshot().gifts[0]==1,"targeted fate retains pre-consumption proof and one confusion debit, with an absent effect source distinct from caller0");roundtrip(m);
+        m.step(defend(7,{0}));check(m.snapshot().owner==7&&m.snapshot().state.gf==1&&m.snapshot().last_fate->responses.size()==1
+            &&m.snapshot().state.players[0].items.size()==1&&m.snapshot().state.players[1].items.size()==1&&m.snapshot().fate_actions==1,"190 cancels world frame but both reserved gifts and ordinary turn completion survive");roundtrip(m);
+        check(m.observe({}).find("\"last_fate\":{\"actor\":0,\"model\":207,\"phenomenon\":"+std::to_string(model)+"}")!=std::string::npos
+            &&m.observe({}).find("last_fate_event")==std::string::npos&&m.observe({}).find("\"anchor\"")==std::string::npos,"public fate notice omits token, journal, assignment and source manifest");
+    }
+}
+void fate_shuffle_post_consumption_copy_and_gift_order(){
+    auto s=scene({207,235,6},{7,208});s.players[0].items[1].used=true;s.players[0].curses={Curse::dream};s.players[0].items[2].fake_model=7;
+    s.players.push_back(player(9,{207}));s.players.back().dead=true;s.players.back().hp=0;const auto dead=s.players.back();auto m=fixture(s);
+    FateAction action{0,0,{295,{},{}},ItemShuffleAction{{{7,0},{7,1},{0,1},{0,2}}}};m.fate_step(action);const auto& p=m.snapshot().state.players;
+    check(p[0].items.size()==3&&p[0].items[0].model==7&&p[0].items[0].token==3&&p[0].items[1].model==208&&p[0].items[1].token==4
+        &&p[1].items[0].model==235&&p[1].items[0].used&&p[1].items[0].token==5&&p[1].items[1].model==6&&!p[1].items[1].fake_model
+        &&p[1].items[1].token==6&&p[2]==dead&&m.snapshot().next_token==8&&!m.snapshot().last_item_shuffle,"fate295 permutes only remaining physical copies then grants operation gift, preserving used/dead and privately clearing incoming nonDream masks");roundtrip(m);
+    check(m.snapshot().last_fate->action==action&&m.snapshot().last_fate->anchor.initial_state.players[0].items.size()==3
+        &&m.snapshot().owner==7&&m.snapshot().state.gf==1,"original207 anchor remains the proof across shuffle and ordinary completion");
+    auto bad=action;bad.shuffle->order.push_back({0,0});auto again=fixture(s);const auto before=again.snapshot();check(!again.fate_legal(bad),"manifest may not include consumed207 or reserved future gift");bool failed=false;try{again.fate_step(bad);}catch(const MatchError&){failed=true;}check(failed&&again.snapshot()==before,"bad post-consumption manifest preserves pre207 ownership");
+}
+void fate_confusion_revival_death_and_natural_end(){
+    auto s=scene({207},{});s.players[0].confusion_count=max_wire_integer-2;auto m=fixture(s);check(m.fate_legal({0,0,{289,{},{}},{}}),"debit happens before checked+3 so MAX-2 caller is admissible");m.fate_step({0,0,{289,{},{}},{}});
+    check(m.snapshot().state.players[0].confusion_count==max_wire_integer&&m.snapshot().state.players[1].confusion_count==3,"confused207 launch debits once then applies global289");roundtrip(m);
+    for(bool revive:{false,true}){
+        auto state=revive?scene({207},{208}):scene({207},{});state.players.push_back(player(9));state.players[1].confusion_count=3;auto game=fixture(state);game.fate_step({0,0,{291,7,{}},{}});game.step(defend(7));
+        check(game.snapshot().state.players[1].confusion_count==(revive?3:0)&&game.snapshot().state.players[1].dead!=revive
+            &&game.snapshot().owner==(revive?7:9)&&game.snapshot().state.gf==1,"targeted fate uses common revival/death then ordinary next-alive owner schedule");roundtrip(game);
+    }
+    auto duel=fixture(scene({207},{}));duel.fate_step({0,0,{291,7,{}},{}});duel.step(defend(7));check(duel.snapshot().terminated&&duel.snapshot().last_fate
+        &&duel.snapshot().state.players[0].items.empty()&&duel.snapshot().fate_actions==1,"natural end cancels reserved operation gift and retains complete fate proof");roundtrip(duel);
+}
+void fate_invalid_shapes_and_late_failure_atomicity(){
+    auto s=scene({207},{});auto m=fixture(s);const auto before=m.snapshot();
+    for(auto a:std::vector<FateAction>{{7,0,{290,{},{}},{}},{0,99,{290,{},{}},{}},{0,0,{207,{},{}},{}},{0,0,{295,{},{}},{}},{0,0,{287,{},{}},ItemShuffleAction{}},{0,0,{291,999,{}},{}},{0,0,{296,{},{}},{}},{0,0,{295,7,{}},ItemShuffleAction{}},{0,0,{295,{},{}},ItemShuffleAction{{{0,0}}}}}){
+        check(!m.fate_legal(a),"wrong actor/token/model/outcome inactive fields and manifest fail before use");bool failed=false;try{m.fate_step(a);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==before,"invalid fate action preserves the whole pre-use snapshot");}
+    s.gf=max_wire_integer;m.load_scene(s,0,7);const auto gf=m.snapshot();bool failed=false;try{m.fate_step({0,0,{290,{},{}},{}});}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==gf,"late ordinary GF failure rolls back207 body gift RNG proof and cumulative counters");
+    s.gf=0;s.players[0].items[0].token=max_wire_integer;m.load_scene(s,0,7);const auto tokens=m.snapshot();FateAction empty{0,max_wire_integer,{295,{},{}},ItemShuffleAction{}};
+    check(m.fate_legal(empty),"empty post-consumption shuffle needs no fresh token");failed=false;try{m.fate_step(empty);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==tokens,"late operation gift exhaustion rolls back even a valid empty shuffle");
+    MatchConfig cap;cap.max_decisions=1;Match cut(cap);cut.load_scene(s,0,7);cut.fate_step(empty);check(cut.snapshot().truncated&&cut.snapshot().next_token==max_wire_integer+1&&cut.snapshot().state.players[0].items.empty(),"cutoff cancels gift after successful empty shuffle without requiring a token");roundtrip(cut);
+}
+void fate_full_launch_response_and_completed_proof_tamper(){
+    auto m=fixture(scene({207},{190}));m.fate_step({0,0,{291,7,{}},{}});const auto exact=m.snapshot();
+    for(unsigned error=0;error<17;++error){auto bad=exact;if(error==0)bad.last_fate.reset();if(error==1)bad.last_fate_event.reset();if(error==2)bad.last_fate->action.token=99;if(error==3)bad.last_fate->anchor.initial_state.players[0].items[0].model=6;if(error==4)bad.last_fate->anchor.models={207};if(error==5)bad.last_fate->anchor.fate_action=bad.last_fate->action;if(error==6)bad.last_fate->anchor.confusion_command=true;if(error==7)bad.batch->fate_action.reset();if(error==8)bad.batch->fate_action->outcome.model=293;if(error==9)bad.queue[0].environmental=false;if(error==10)bad.state.players[0].hp=39;if(error==11)++bad.rng;if(error==12)bad.fate_actions=0;if(error==13)bad.last_fate_event->phenomenon=293;if(error==14)bad.last_fate->responses.push_back(defend(0));if(error==15)bad.last_fate->anchor.responses.push_back(defend(7));if(error==16)bad.last_phenomenon.reset();
+        bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"fate proof rejects missing notices altered identities anchor markers source flags counters and response journal");}
+    m.step(defend(7,{0}));const auto done=m.snapshot();auto bad=done;bad.last_fate->responses.push_back(defend(7));bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==done,"completed fate proof rejects journal continuation after ordinary advance");roundtrip(m);
+    m.step(pray(7));check(!m.snapshot().last_fate&&!m.snapshot().last_fate_event&&m.snapshot().fate_actions==1,"next accepted main clears prior launch proof while keeping cumulative fate activations");roundtrip(m);
+}
+void fate207_inert_discard_trade_fog_and_removal(){
+    auto discard=fixture(scene({207},{}));discard.step({0,CommandKind::discard,{0},{}});check(discard.snapshot().fate_actions==0&&!discard.snapshot().last_phenomenon,"discarding207 invokes no phenomenon");roundtrip(discard);
+    auto sell_state=scene({4,207},{});sell_state.players[0].curses={Curse::fog};sell_state.players[1].cp=99;auto sell=fixture(sell_state);sell.step({0,CommandKind::sell,{0,1},7});roundtrip(sell);sell.step(defend(7));check(sell.snapshot().last_sale&&sell.snapshot().last_sale->model==207&&sell.snapshot().state.players[1].items[0].model==207&&sell.snapshot().fate_actions==0,"Fog sale moves207 as an inert commodity");roundtrip(sell);
+    auto buy_state=scene({5},{207});buy_state.players[0].cp=99;auto buy=fixture(buy_state);buy.step({0,CommandKind::buy,{0},7});roundtrip(buy);buy.step(defend(7));roundtrip(buy);buy.step({0,CommandKind::accept,{},{}});check(buy.snapshot().last_purchase&&buy.snapshot().last_purchase->model==207&&buy.snapshot().fate_actions==0,"purchase escrow delivery preserves special207 without activation");roundtrip(buy);
+    auto remove=fixture(scene({205},{207}));remove.step(play(0,{0},7));remove.step(defend(7));check(remove.snapshot().last_removal&&remove.snapshot().last_removal->removed_models==std::vector<CardId>{207}&&remove.snapshot().fate_actions==0,"broom removal may report special207 without invoking it");roundtrip(remove);
+}
+
+void fate_guardian_followups_and_repeated_counter_anchors(){
+    bool saw_auto_response=false,saw_player_zero_source=false;
+    for(std::uint64_t seed=0;seed<32;++seed){
+        auto s=scene({207,207},{207});s.players.push_back(player(9,{207}));for(auto& p:s.players){p.hp=p.mp=99;p.cp=40;}
+        Match m;m.load_scene(s,0,seed);m.fate_step({0,0,{296,{},{Guardian::moon,Guardian::moon,Guardian::moon}}, {}});roundtrip(m);
+        while(!m.done()&&m.snapshot().phase!=MatchPhase::main){
+            if(!m.snapshot().last_auto_guardians.empty()){
+                saw_auto_response=true;const auto& e=m.snapshot().queue.front();check(!e.environmental,"guardian follow-up uses its actual player source instead of the original fate's environmental source");
+                saw_player_zero_source|=e.source==0;
+            }
+            std::uint64_t policy=seed;const auto command=m.sample_action(policy);m.step(command);roundtrip(m);
+        }
+        check(!m.done()&&m.snapshot().owner==7&&m.snapshot().fate_actions==1,"first nonlethal fate completes exactly one ordinary turn through all guardian responses");
+        m.fate_step({7,0,{288,{},{}},{}});roundtrip(m);
+        while(!m.done()&&m.snapshot().phase!=MatchPhase::main){
+            if(!m.snapshot().last_auto_guardians.empty()){
+                saw_auto_response=true;const auto& e=m.snapshot().queue.front();check(!e.environmental,"second fate guardian remains a sourced response");saw_player_zero_source|=e.source==0;
+            }
+            std::uint64_t policy=seed;const auto command=m.sample_action(policy);m.step(command);roundtrip(m);
+        }
+        check(m.snapshot().fate_actions==2&&m.snapshot().last_fate->anchor.fate_actions==1&&m.snapshot().phenomenon_actions==0,"a second fate proof preserves previous cumulative activations without counting an external injection");roundtrip(m);
+    }
+    check(saw_auto_response&&saw_player_zero_source,"seed sweep exercises guardian responses and real PlayerID0 sources after fate body completion");
+}
+
 }
 int main(){
     scope_reset_and_local_contract();
@@ -2193,6 +2306,16 @@ int main(){
     confusion_purchase_and_sale_resolution();
     confusion_death_revival_end_and_cutoff();
     confusion_seeded_external_controller_rollouts();
+    fate_special_scene_capability_and_sampler_boundary();
+    fate_global_bodies_cutoff_and_ordinary_schedule();
+    fate_targeted_source_free_response_and_replay();
+    fate_shuffle_post_consumption_copy_and_gift_order();
+    fate_confusion_revival_death_and_natural_end();
+    fate_invalid_shapes_and_late_failure_atomicity();
+    fate_full_launch_response_and_completed_proof_tamper();
+    fate207_inert_discard_trade_fog_and_removal();
+    fate_guardian_followups_and_repeated_counter_anchors();
+
 
     std::cout<<"Experimental official match passed (236subset/canonical-guardian-auto/self-buy/redraw/Dream/overflow/death/Fog/privacy/exchange/danger/revival/randomHP/wide/twice/mana/removal/Flash/DarkCloud/forced/damage-effects/resource-counter/counter/chance/bounce/ordered/FREE/reflection/9teams/snapshot/RNG/cutoff; server scheduling not asserted).\n";
 }

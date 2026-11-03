@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 class MatchTests(unittest.TestCase):
@@ -20,7 +20,7 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v37"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v38"); self.assertIn("236-models", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -28,7 +28,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v35")
+        self.assertEqual(own["schema"], "official-execution-view-v36")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -224,7 +224,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v35")
+        self.assertEqual(event["schema"], "official-execution-view-v36")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -2159,7 +2159,7 @@ class MatchTests(unittest.TestCase):
             self.assertEqual((game.observe(0), game.status), (before, status))
         base = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20}, {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
         bad_scenes = []
-        unsupported = copy.deepcopy(base); unsupported["players"][0]["items"] = [{"id": 0, "modelId": 207}]; bad_scenes.append(unsupported)
+        unsupported = copy.deepcopy(base); unsupported["players"][0]["items"] = [{"id": 0, "modelId": 1}]; bad_scenes.append(unsupported)
         oversized = copy.deepcopy(base); oversized["players"][1]["items"] = [{"id": i, "modelId": 6} for i in range(19)]; bad_scenes.append(oversized)
         tied = copy.deepcopy(base); tied["tiebreakGF"] = 30; bad_scenes.append(tied)
         active = copy.deepcopy(base); active["attacks"] = [{"sourcePlayerId": 0}]; bad_scenes.append(active)
@@ -3031,6 +3031,122 @@ class MatchTests(unittest.TestCase):
         self.assertTrue(game.confusion_legal(action))
         with self.assertRaises(InvalidMatchError): game.confusion_step(action)
         self.assertEqual((game.observe(0), game.status), (before, status))
+
+    def test_fate_owned207_global_body_then_normal_tick_gift_and_confusion_debit(self):
+        game = self.match(config=Config(initial_hand=0))
+        self.assertEqual(game.supported_fate_models, (207,)); self.assertNotIn(207, game.supported_models)
+        raw = {"gf": 9, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "confusionCount": 1,
+                    "curses": ["cold"], "items": [{"id": 0, "modelId": 207}, {"id": 1, "modelId": 191}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        action = FateAction(0, 0, PhenomenonAction(287)); before, status = game.observe(0), game.status
+        self.assertFalse(game.legal(Command(0, "play", (0,), 0)))
+        self.assertTrue(game.fate_legal(action)); self.assertEqual((game.observe(0), game.status), (before, status))
+        game.fate_step(action); view = game.observe()
+        self.assertEqual((game.actor, game.status.owner, game.status.decisions, view["board"]["gf"]), (7, 7, 1, 10))
+        self.assertEqual([player["status"]["hp"] for player in view["board"]["players"]], [38, 40])
+        self.assertFalse(view["board"]["players"][0]["status"]["confused"])
+        self.assertEqual(view["last_fate"], {"actor": 0, "model": 207, "phenomenon": 287})
+        self.assertEqual(view["last_phenomenon"], {"model": 287, "recipient": None})
+        self.assertEqual(len(game.observe(0)["board"]["hand"]), 2)
+        self.assertNotIn(0, {item["token"] for item in game.observe(0)["board"]["hand"]})
+        raw["players"][0]["confusionCount"] = 9007199254740989
+        raw["players"][0]["curses"] = []
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        self.assertFalse(game.phenomenon_legal(PhenomenonAction(289)))
+        action = FateAction(0, 0, PhenomenonAction(289))
+        self.assertTrue(game.fate_legal(action)); game.fate_step(action)
+        self.assertTrue(game.observe()["board"]["players"][0]["status"]["confused"])
+
+    def test_fate_targeted_waits_then_resumes_ordinary_owner_and_cutoff(self):
+        raw = {"gf": 9, "players": [{"id": 0, "hp": 99, "mp": 10, "cp": 20, "curses": ["cold"],
+                    "items": [{"id": 0, "modelId": 207}]},
+                    {"id": 7, "hp": 99, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 190}]}]}
+        game = self.match(config=Config(initial_hand=0))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        action = FateAction(0, 0, PhenomenonAction(291, 7)); game.fate_step(action)
+        view = game.observe()
+        self.assertEqual((game.actor, game.status.owner, view["board"]["gf"]), (7, 0, 9))
+        self.assertEqual((view["pending"]["source"], view["pending"]["origin"], view["pending"]["environmental"]), (None, None, True))
+        self.assertEqual(game.observe(0)["board"]["hand"], [])
+        self.assertEqual(view["board"]["players"][0]["status"]["hp"], 99)
+        game.step(Command(7, "defend", (0,)))
+        view = game.observe()
+        self.assertEqual((game.actor, game.status.owner, view["board"]["gf"]), (7, 7, 10))
+        self.assertEqual([player["status"]["hp"] for player in view["board"]["players"]], [98, 99])
+        self.assertEqual([len(game.observe(player)["board"]["hand"]) for player in (0, 7)], [1, 1])
+        self.assertEqual(view["last_fate"], {"actor": 0, "model": 207, "phenomenon": 291})
+        cut = self.match(config=Config(initial_hand=0, max_decisions=1))
+        with OfficialState(raw, library=LIBRARY) as scene: cut.load_scene(scene, 0, 0)
+        cut.fate_step(action)
+        self.assertTrue(cut.status.truncated); self.assertIsNone(cut.observe()["pending"])
+        self.assertEqual(cut.observe(0)["board"]["hand"], [])
+        self.assertEqual(cut.observe()["board"]["players"][0]["status"]["hp"], 99)
+
+    def test_fate_shuffle_uses_postconsumption_slots_and_excludes_reserved_gift(self):
+        raw = {"gf": 9, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20,
+                    "items": [{"id": 0, "modelId": 207}, {"id": 1, "modelId": 235, "used": True}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 6}, {"id": 1, "modelId": 152}]},
+                    {"id": 23, "hp": 0, "mp": 10, "cp": 20, "dead": True, "items": [{"id": 5, "modelId": 208}]}]}
+        shuffle = ItemShuffleAction((ItemSource(7, 0), ItemSource(0, 1), ItemSource(7, 1)))
+        action = FateAction(0, 0, PhenomenonAction(295), shuffle)
+        for maximum in (512, 1):
+            game = self.match(config=Config(initial_hand=0, max_decisions=maximum))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+            self.assertTrue(game.fate_legal(action)); game.fate_step(action)
+            own = game.observe(0)["board"]["hand"]
+            self.assertEqual(next(item["face"] for item in own if item["token"] == 6), 6)
+            self.assertEqual({item["token"]: (item["face"], item["used"]) for item in game.observe(7)["board"]["hand"]},
+                             {7: (235, True), 8: (152, False)})
+            self.assertEqual({item["token"] for item in own}, {6, 9} if maximum != 1 else {6})
+            self.assertEqual(game.observe()["last_fate"], {"actor": 0, "model": 207, "phenomenon": 295})
+            self.assertEqual(game.observe(23)["board"]["hand"][0]["token"], 5)
+            if maximum == 1: self.assertTrue(game.status.truncated)
+            else:
+                game.step(Command(7, "play", (7,), 7))
+                self.assertEqual(game.observe()["board"]["players"][1]["status"]["mp"], 3)
+
+    def test_fate_strict_whole_operation_rollback_sampler_and_commodity_roles(self):
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [
+                    {"id": 0, "modelId": 207}, {"id": 1, "modelId": 4}, {"id": 2, "modelId": 5}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 152}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(0), game.status
+        for malformed in (None, FateAction(True, 0, PhenomenonAction(287)), FateAction(0, False, PhenomenonAction(287)),
+                          FateAction(0, 0, {}), FateAction(0, 0, PhenomenonAction(295), ()),
+                          FateAction(0, 0, PhenomenonAction(295)),
+                          FateAction(0, 0, PhenomenonAction(287), ItemShuffleAction())):
+            with self.assertRaises(InvalidMatchError): game.fate_legal(malformed)
+            with self.assertRaises(InvalidMatchError): game.fate_step(malformed)
+        for invalid in (FateAction(7, 0, PhenomenonAction(287)), FateAction(0, 1, PhenomenonAction(287)),
+                        FateAction(0, 0, PhenomenonAction(207)),
+                        FateAction(0, 0, PhenomenonAction(295), ItemShuffleAction((ItemSource(0, 0),)))):
+            self.assertFalse(game.fate_legal(invalid))
+            with self.assertRaises(MatchError): game.fate_step(invalid)
+        for seed in range(64):
+            proposal, unused = game.sample_action(seed)
+            self.assertTrue(game.legal(proposal)); self.assertFalse(proposal.kind == "play" and 0 in proposal.items)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.step(Command(0, "sell", (1, 0), 0))
+        self.assertEqual(game.observe()["last_sale"]["model"], 207); self.assertIsNone(game.observe()["last_fate"])
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        game.step(Command(0, "discard", (0,))); self.assertIsNone(game.observe()["last_fate"])
+        raw["updateCount"] = 9007199254740991; raw["players"][0]["confusionCount"] = 1
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 0)
+        before, status = game.observe(0), game.status
+        action = FateAction(0, 0, PhenomenonAction(290)); self.assertTrue(game.fate_legal(action))
+        with self.assertRaises(InvalidMatchError): game.fate_step(action)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        overflow = self.match(config=Config(initial_hand=0, hand_limit=2))
+        full = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 99, "items": [
+                    {"id": 0, "modelId": 4}, {"id": 1, "modelId": 6}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 99, "items": [
+                    {"id": 0, "modelId": 207}, {"id": 1, "modelId": 207}]}]}
+        with OfficialState(full, library=LIBRARY) as scene: overflow.load_scene(scene, 0, 0)
+        overflow.step(Command(0, "sell", (0, 1), 7)); overflow.step(Command(7, "defend"))
+        self.assertEqual(overflow.observe()["last_sale"]["overflow_model"], 207)
+        self.assertIsNone(overflow.observe()["last_fate"])
 
     def test_sampler_pure_policy_stream_and_seeded_replay(self):
         a, b = self.match(), self.match()

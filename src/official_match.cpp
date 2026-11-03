@@ -73,6 +73,7 @@ void guardian_damage(MatchSnapshot& s, PlayerState& player, std::int64_t loss) {
     if (bounded(s.rng,100)<10) { ++s.guardian_departures; change_guardian(s,player,Guardian::none,GuardianChangeReason::departure); }
 }
 
+bool inventory_supported(CardId id) { return match_supported(id) || match_fate_supported(id); }
 void closed_state(const SnapshotState& s, const MatchConfig& c) {
     validate_state(s);
     require(s.players.size() >= 2, "scoped match needs 2..9 players");
@@ -88,7 +89,7 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         require(p.curses.size() <= 5 && std::count_if(p.curses.begin(), p.curses.end(), disease) <= 1 && std::is_sorted(p.curses.begin(), p.curses.end())
             && std::adjacent_find(p.curses.begin(), p.curses.end()) == p.curses.end(), "noncanonical scoped curses");
         for (const auto& item : p.items) {
-            if (!match_supported(item.model)) unsupported("unsupported match model");
+            if (!inventory_supported(item.model)) unsupported("unsupported match model");
             require(!item.fake_model || (has_curse(p, Curse::dream) && !item.used
                 && match_dream_compatible(item.model, *item.fake_model)), "invalid compatible Dream disguise");
             require(!item.used || find_card(item.model)->category == Category::miracles, "only miracles can be retained in scoped matches");
@@ -278,6 +279,7 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool
         return actual_models;
     }
     require(!models.empty(), "play needs items");
+    if (find_card(actual_models.front())->ability==Ability::call_phenomenon) unsupported("owned207 requires a supplied fate outcome");
     require(find_card(models.front())->ability != Ability::exchange && find_card(models.front())->ability != Ability::sell && find_card(models.front())->ability != Ability::buy, "trade needs its explicit command");
     if (find_card(models.front())->ability == Ability::danger) {
         if (has_wide(models)) unsupported("danger with Wide is outside the scoped runtime");
@@ -687,7 +689,7 @@ void advance(MatchSnapshot& s) {
 }
 bool next_action_effect(MatchSnapshot& s) {
     auto& batch = *s.batch;
-    if (!batch.phenomenon_action) {
+    if (!batch.phenomenon_action && !batch.fate_action) {
         const auto origin = batch.guardian_action ? batch.guardian_action->source : batch.guardian_payload_action ? batch.guardian_payload_action->source : batch.owner;
         if (s.state.players[index(s,origin)].dead) batch.cursor=batch.targets.size();
     }
@@ -734,7 +736,8 @@ bool next_action_effect(MatchSnapshot& s) {
         }
         // Original payloads use the launch anchor, never a source's later MP
         // or a previous hit's redirected/filtered frame.
-        if (batch.phenomenon_action) s.queue.push_back(phenomenon_effect_for(*batch.phenomenon_action,s.rng));
+        if (batch.fate_action) s.queue.push_back(phenomenon_effect_for(batch.fate_action->outcome,s.rng));
+        else if (batch.phenomenon_action) s.queue.push_back(phenomenon_effect_for(*batch.phenomenon_action,s.rng));
         else if (batch.guardian_action) s.queue.push_back(guardian_effect_for(*batch.guardian_action, target, s.rng));
         else if (batch.guardian_payload_action) s.queue.push_back(payload_effect_for(s,*batch.guardian_payload_action,target,batch.guardian_payload_mp,batch.random_hp_delta));
         else s.queue.push_back(effect_for(s, batch.models, target, batch.attack.items,
@@ -822,7 +825,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset();
     s.last_auto_guardians.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -836,7 +839,7 @@ ActionBatch action_anchor(const MatchSnapshot& s) {
     batch.revivals = s.revivals;
     batch.dream_rolls = s.dream_rolls; batch.dream_masks = s.dream_masks;
     batch.redraws = s.redraws; batch.redrawn_items = s.redrawn_items;
-    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions; batch.phenomenon_actions=s.phenomenon_actions;
+    batch.guardian_actions = s.guardian_actions; batch.guardian_payload_actions=s.guardian_payload_actions; batch.phenomenon_actions=s.phenomenon_actions; batch.fate_actions=s.fate_actions;
     batch.guardian_summons=s.guardian_summons; batch.guardian_opportunities=s.guardian_opportunities; batch.auto_guardian_actions=s.auto_guardian_actions;
     batch.guardian_departure_rolls=s.guardian_departure_rolls; batch.guardian_departures=s.guardian_departures;
     batch.death_bows = s.death_bows; batch.death_created = s.death_created; batch.death_started = s.death_started;
@@ -854,7 +857,7 @@ MatchSnapshot snapshot_from_anchor(const ActionBatch& batch, const MatchConfig& 
     replay.revivals = batch.revivals;
     replay.dream_rolls = batch.dream_rolls; replay.dream_masks = batch.dream_masks;
     replay.redraws = batch.redraws; replay.redrawn_items = batch.redrawn_items;
-    replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions;
+    replay.guardian_actions = batch.guardian_actions; replay.guardian_payload_actions=batch.guardian_payload_actions; replay.phenomenon_actions=batch.phenomenon_actions; replay.fate_actions=batch.fate_actions;
     replay.guardian_summons=batch.guardian_summons; replay.guardian_opportunities=batch.guardian_opportunities; replay.auto_guardian_actions=batch.auto_guardian_actions;
     replay.guardian_departure_rolls=batch.guardian_departure_rolls; replay.guardian_departures=batch.guardian_departures;
     replay.death_bows = batch.death_bows; replay.death_created = batch.death_created; replay.death_started = batch.death_started;
@@ -913,10 +916,9 @@ void execute_guardian_payload(MatchSnapshot& s, const GuardianPayloadAction& act
     } else completed=!next_action_effect(s);
     complete_decision(s,completed);
 }
-void execute_item_shuffle(MatchSnapshot& s, const ItemShuffleAction& action) {
+void apply_item_shuffle_body(MatchSnapshot& s, const ItemShuffleAction& action) {
     auto copies=prepare_item_shuffle(s,action);
     require(s.next_token<=max_wire_integer+1 && copies.size()<=max_wire_integer+1-s.next_token,"shuffle token budget exhausted");
-    clear_events(s); auto anchor=action_anchor(s);
     std::vector<std::vector<ItemInstance>> hands(s.state.players.size()); std::size_t cursor=0;
     for (std::size_t seat=0;seat<s.state.players.size();++seat) {
         const auto& player=s.state.players[seat];
@@ -929,19 +931,14 @@ void execute_item_shuffle(MatchSnapshot& s, const ItemShuffleAction& action) {
         }
     }
     for (std::size_t seat=0;seat<hands.size();++seat) s.state.players[seat].items=std::move(hands[seat]);
+}
+void execute_item_shuffle(MatchSnapshot& s, const ItemShuffleAction& action) {
+    clear_events(s); auto anchor=action_anchor(s); apply_item_shuffle_body(s,action);
     s.last_item_shuffle=ItemShuffleRecord{std::move(anchor),action};
     s.last_phenomenon=PhenomenonAction{295,{},{}}; ++s.phenomenon_actions;
     complete_decision(s,false);
 }
-void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
-    prepare_phenomenon(s,action); clear_events(s);
-    if (targeted_phenomenon(action.model)) {
-        auto batch=action_anchor(s); batch.phenomenon_action=action; batch.models={action.model};
-        batch.tick_processed=true; batch.chance=find_card(action.model)->hit_rate>0; batch.targets={*action.recipient};
-        s.batch=std::move(batch); s.last_phenomenon=action; ++s.phenomenon_actions;
-        const auto completed=!next_action_effect(s); complete_decision(s,completed); return;
-    }
-    s.last_phenomenon=action; ++s.phenomenon_actions;
+void apply_global_phenomenon_body(MatchSnapshot& s, const PhenomenonAction& action) {
     std::int64_t collected=0;
     if (action.model==294) for (const auto& player:s.state.players) if (!player.dead) collected+=player.cp;
     std::size_t assignment=0;
@@ -960,14 +957,58 @@ void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
         }
     }
     if (action.model==294) change_resource(s.state.players[index(s,*action.recipient)],Resource::cp,collected);
+}
+void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
+    prepare_phenomenon(s,action); clear_events(s);
+    if (targeted_phenomenon(action.model)) {
+        auto batch=action_anchor(s); batch.phenomenon_action=action; batch.models={action.model};
+        batch.tick_processed=true; batch.chance=find_card(action.model)->hit_rate>0; batch.targets={*action.recipient};
+        s.batch=std::move(batch); s.last_phenomenon=action; ++s.phenomenon_actions;
+        const auto completed=!next_action_effect(s); complete_decision(s,completed); return;
+    }
+    s.last_phenomenon=action; ++s.phenomenon_actions;
+    apply_global_phenomenon_body(s,action);
     // These six primitives never create HP0/death or pending work. Keep the
     // ordinary owner and complete only the external decision/cutoff boundary.
     complete_decision(s,false);
+}
+void prepare_fate(const MatchSnapshot& s, const FateAction& action) {
+    require(s.phase==MatchPhase::main && !s.terminated && !s.truncated && s.actor==action.actor && s.owner==action.actor,"fate needs the main owner");
+    const auto seat=index(s,action.actor); const auto& player=s.state.players[seat]; const auto* item=instance(player,action.token);
+    require(!player.dead && item && item->model==207 && !item->used && !item->fake_model,"fate requires one actual unused unmasked owned207");
+    require((action.outcome.model==295)==action.shuffle.has_value(),"only295 requires a shuffle payload");
+    auto after=s;
+    if (after.state.players[seat].confusion_count>0) --after.state.players[seat].confusion_count;
+    consume(after,seat,{action.token},false);
+    if (action.shuffle) {
+        require(!action.outcome.recipient && action.outcome.guardians.empty(),"shuffle outcome has inactive generic fields");
+        (void)prepare_item_shuffle(after,*action.shuffle);
+    } else prepare_phenomenon(after,action.outcome);
+}
+void execute_fate(MatchSnapshot& s, const FateAction& action) {
+    prepare_fate(s,action); clear_events(s); auto anchor=action_anchor(s); auto batch=anchor;
+    batch.fate_action=action; batch.attack={action.actor,CommandKind::play,{action.token},{}};
+    batch.models={action.outcome.model}; batch.confusion_command=s.state.players[index(s,action.actor)].confusion_count>0;
+    if (batch.confusion_command) --s.state.players[index(s,action.actor)].confusion_count;
+    consume(s,index(s,action.actor),{action.token},false);
+    s.last_fate=FateRecord{std::move(anchor),action,{}}; s.last_fate_event=FateEvent{action.actor,action.outcome.model};
+    s.last_phenomenon=action.outcome; ++s.fate_actions;
+    bool completed=true;
+    if (targeted_phenomenon(action.outcome.model)) {
+        batch.targets={*action.outcome.recipient}; batch.chance=find_card(action.outcome.model)->hit_rate>0;
+        s.batch=std::move(batch); completed=!next_action_effect(s);
+    } else {
+        s.batch=std::move(batch);
+        if (action.shuffle) apply_item_shuffle_body(s,*action.shuffle);
+        else apply_global_phenomenon_body(s,action.outcome);
+    }
+    complete_decision(s,completed);
 }
 // Used by both the live transactional step and privileged journal replay.
 void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false) {
     const auto models = prepare(s, command,confusion_command); const auto seat = index(s, command.actor);
     if (s.phase == MatchPhase::main) clear_events(s);
+    else if (s.last_fate && s.batch && s.batch->fate_action) s.last_fate->responses.push_back(command);
     bool completed = false;
     if (s.phase == MatchPhase::main) {
         auto batch = action_anchor(s); batch.attack = command; batch.models = models;
@@ -1087,7 +1128,26 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.counter_forced_hits <= s.counter_started - s.counter_hits, "invalid forced counter count");
     require(s.revivals <= player_capacity * s.decisions, "invalid revival count");
     require(s.guardian_actions <= s.decisions && s.guardian_payload_actions<=s.decisions-s.guardian_actions
-        && s.phenomenon_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions,"invalid external activation counts");
+        && s.phenomenon_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions
+        && s.fate_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions,"invalid external activation counts");
+    require(s.last_fate.has_value()==s.last_fate_event.has_value(),"fate notice and launch proof must coexist");
+    if (s.last_fate) {
+        const auto& record=*s.last_fate; const auto& anchor=record.anchor;
+        require(!s.last_item_shuffle && anchor.initial_state.players.size()==n
+            && s.last_fate_event==FateEvent{record.action.actor,record.action.outcome.model}
+            && record.responses.size()<s.config.max_decisions,"invalid fate proof shape");
+        if (record.action.shuffle) require(record.action.shuffle->order.size()<=player_capacity*visible_hand_capacity,"oversized fate shuffle proof");
+        require(record.action.outcome.guardians.size()<=player_capacity,"oversized fate assignment proof");
+        for (const auto& player:anchor.initial_state.players) require(player.items.size()<=s.config.hand_limit,"oversized fate anchor hand");
+        for (const auto& response:record.responses) require(response.items.size()<=s.config.hand_limit,"oversized fate response");
+        closed_state(anchor.initial_state,s.config); auto replay=snapshot_from_anchor(anchor,s.config); validate_snapshot(replay);
+        require(action_anchor(replay)==anchor,"noncanonical fate anchor"); execute_fate(replay,record.action);
+        for (const auto& response:record.responses) {
+            require(replay.batch && replay.batch->fate_action && replay.phase!=MatchPhase::main,"fate proof continues past completion");
+            execute(replay,response);
+        }
+        require(replay==s,"fate proof does not reproduce the full snapshot"); return;
+    }
     if (s.last_item_shuffle) {
         const auto& record=*s.last_item_shuffle; const auto& anchor=record.anchor;
         require(!s.batch && s.last_phenomenon==PhenomenonAction{295,{},{}}
@@ -1184,14 +1244,14 @@ void validate_snapshot(const MatchSnapshot& s) {
         require(event.model == 205 || event.model == 206, "invalid removal event model");
         require(event.removed_models.size() <= (event.model == 205 ? 3u : 2u), "oversized removal event");
         for (auto model : event.removed_models)
-            require(match_supported(model) && (event.model != 206 || find_card(model)->category == Category::miracles), "invalid removed model");
+            require(inventory_supported(model) && (event.model != 206 || find_card(model)->category == Category::miracles), "invalid removed model");
     }
     if (s.last_sale) {
         require(s.decisions > 0 && s.phase != MatchPhase::purchase && !s.last_danger && !s.last_removal && !s.last_purchase, "invalid sale event boundary");
         const auto& event = *s.last_sale;
         (void)index(s, event.origin); (void)index(s, event.source); (void)index(s, event.target);
-        require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid sale event commodity or price");
-        require(!event.overflow_model || match_supported(*event.overflow_model), "invalid sale overflow model");
+        require(inventory_supported(event.model) && event.price == find_card(event.model)->price, "invalid sale event commodity or price");
+        require(!event.overflow_model || inventory_supported(*event.overflow_model), "invalid sale overflow model");
     }
     if (s.last_purchase) {
         require(s.decisions > 0 && s.phase != MatchPhase::purchase
@@ -1204,9 +1264,9 @@ void validate_snapshot(const MatchSnapshot& s) {
         else if (event.reason != PurchaseReason::empty)
             require(event.buyer != event.seller, "foreign purchase result aliases its participants");
         else require(event.buyer != event.seller || event.origin == event.buyer, "invalid self empty inspection origin");
-        require(!event.overflow_model || (event.reason == PurchaseReason::bought && match_supported(*event.overflow_model)), "invalid purchase overflow model");
+        require(!event.overflow_model || (event.reason == PurchaseReason::bought && inventory_supported(*event.overflow_model)), "invalid purchase overflow model");
         if (event.reason == PurchaseReason::empty) require(event.model == 0 && event.price == 0, "empty purchase has a commodity");
-        else require(match_supported(event.model) && event.price == find_card(event.model)->price, "invalid purchase result price");
+        else require(inventory_supported(event.model) && event.price == find_card(event.model)->price, "invalid purchase result price");
     }
     if (s.last_danger) {
         require(s.decisions > 0, "danger event precedes any accepted action");
@@ -1228,7 +1288,7 @@ void validate_snapshot(const MatchSnapshot& s) {
             && is_enemy(owner, s.state.players[index(s, event.intended)]) && is_enemy(owner, s.state.players[index(s, event.target)]), "invalid Fog selection endpoints");
         require(!event.models.empty() && event.models.size() <= s.config.hand_limit, "invalid Fog selection models");
         std::vector<VisibleSelection> prefix;
-        for (auto model : event.models) { require(match_supported(model) && can_append_main(prefix,{model,false}), "invalid Fog selection composition"); prefix.push_back({model,false}); }
+        for (auto model : event.models) { require(inventory_supported(model) && can_append_main(prefix,{model,false}), "invalid Fog selection composition"); prefix.push_back({model,false}); }
         const auto& base = *find_card(event.models.front());
         require(!base.hit_rate && base.ability != Ability::danger && base.ability != Ability::exchange
             && (base.ability == Ability::sell || !has_wide(event.models))
@@ -1264,7 +1324,7 @@ void validate_snapshot(const MatchSnapshot& s) {
         const auto& seller = s.state.players[index(s, offer.seller)];
         require(offer.buyer != offer.seller && !buyer.dead && !seller.dead && s.actor == offer.buyer
             && !s.last_danger && !s.last_removal && !s.last_sale && !s.last_purchase, "invalid purchase participants");
-        require(match_supported(offer.item.model) && !offer.item.used && !offer.item.fake_model
+        require(inventory_supported(offer.item.model) && !offer.item.used && !offer.item.fake_model
             && offer.item.token < s.next_token && !instance(seller, offer.item.token) && offer.slot <= seller.items.size()
             && seller.items.size() + s.gifts[index(s, offer.seller)] < s.config.hand_limit, "invalid purchase escrow");
         require(buyer.cp >= find_card(offer.item.model)->price, "unaffordable purchase quote");
@@ -1291,7 +1351,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     {
         require(s.batch.has_value(), "pending effect is missing its launch journal");
         const auto& batch = *s.batch;
-        require(batch.owner == s.owner && batch.initial_state.players.size() == n
+        require(!batch.fate_action && batch.owner == s.owner && batch.initial_state.players.size() == n
             && !(batch.guardian_action && batch.guardian_payload_action)
             && !(batch.phenomenon_action && (batch.guardian_action || batch.guardian_payload_action))
             && !(batch.confusion_command && (batch.phenomenon_action || batch.guardian_action || batch.guardian_payload_action))
@@ -1356,6 +1416,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
+bool match_fate_supported(CardId id) noexcept { return id==207; }
 bool match_item_shuffle_supported(CardId id) noexcept { return id==295; }
 bool match_phenomenon_supported(CardId id) noexcept { return (id>=287 && id<=294) || id==296; }
 bool match_guardian_payload_supported(Guardian guardian, CardId id) noexcept {
@@ -1420,6 +1481,12 @@ bool Match::legal(const Command& command) const noexcept { try { (void)prepare(d
 MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
+}
+bool Match::fate_legal(const FateAction& action) const noexcept {
+    try { prepare_fate(data_,action); return true; } catch (...) { return false; }
+}
+MatchStep Match::fate_step(const FateAction& action) {
+    auto next=data_; execute_fate(next,action); auto output=result(next); data_=std::move(next); return output;
 }
 bool Match::confusion_legal(const Command& command) const noexcept {
     try { (void)prepare(data_,command,true); return true; } catch (...) { return false; }
@@ -1492,7 +1559,7 @@ Command Match::sample_action(std::uint64_t& policy_rng) const {
             else if (c.ability == Ability::buy) {
                 for (const auto& target : data_.state.players) if (!target.dead) add(CommandKind::buy,item.token,target.id);
             }
-            else if (can_start_main(face_model(item))) {
+            else if (c.ability!=Ability::call_phenomenon && can_start_main(face_model(item))) {
                 if (c.hit_rate) add_usable(CommandKind::play, item, {});
                 else for (const auto& target : data_.state.players) if (!target.dead) add_usable(CommandKind::play, item, target.id);
             }
@@ -1582,7 +1649,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v35\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v36\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -1618,7 +1685,8 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"guardian_payload_rule\":\""; out += guardian_payload_rule;
     out += "\",\"phenomenon_rule\":\""; out += phenomenon_rule;
     out += "\",\"item_shuffle_rule\":\""; out += item_shuffle_rule;
-    out += "\",\"confusion_rule\":\""; out += confusion_rule; out += "\",\"phase\":\""; out += phase;
+    out += "\",\"confusion_rule\":\""; out += confusion_rule;
+    out += "\",\"fate_rule\":\""; out += fate_rule; out += "\",\"phase\":\""; out += phase;
     out += "\",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";
     out += ",\"terminated\":"; out += data_.terminated ? "true" : "false";
@@ -1629,6 +1697,9 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
         out += guardian_name(find_card(action.model)->guardian); out += "\",\"target\":";
         out += action.target ? std::to_string(*action.target) : "null"; out += '}';
     };
+    out += ",\"last_fate\":";
+    if (!data_.last_fate_event) out+="null";
+    else out+="{\"actor\":"+std::to_string(data_.last_fate_event->actor)+",\"model\":207,\"phenomenon\":"+std::to_string(data_.last_fate_event->phenomenon)+'}';
     out += ",\"last_phenomenon\":";
     if (!data_.last_phenomenon) out+="null";
     else {

@@ -246,7 +246,7 @@ int main(int argc,char** argv) { try {
           "confusion benchmark accounting failed");
     const auto seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-start).count();
     std::cout<<"ruleset="<<match_ruleset<<"\nscope=experimental:external289-and-bounded-command-resolution;privileged-unconfused-clone-proposals-not-official-selector;world-count-and-selected-counter-hashes-plus-full-restore-audit"
-             <<"\nconfusion_rule="<<confusion_rule<<"\nphenomenon_rule="<<phenomenon_rule
+             <<"\nconfusion_rule="<<confusion_rule<<"\nfate_rule="<<fate_rule<<"\nphenomenon_rule="<<phenomenon_rule
              <<"\nscenes="<<total.scenes<<"\nplayers="<<players<<"\nseed="<<seed<<"\nworkers="<<workers;
 #define OUTPUT(name) std::cout<<"\n" #name "="<<total.name
     OUTPUT(phenomenon_actions); OUTPUT(main_launches); OUTPUT(confusion_commands); OUTPUT(normal_main_commands);
