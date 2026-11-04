@@ -309,3 +309,18 @@ Firefoxの応答本文保存を使い、名前・userId・room path・updatedAt�
 | `live-transition-witnesses-v59.json` | 15,278 | `81048035378287ffd6d38528c5206864618b876eecc045ab13709d468ce08778` |
 
 4受信gameは、private本文から名前置換・userId/updatedAt除去だけで全値一致した。全4本文が同一のtraining room文書を参照することと、rawのbytes/SHA・mode600も独立に確認した。rawのroom識別子や認証情報は出力・commitしない。
+
+## v60：開始〜終局の受信列と補充中死亡
+
+[wire-game-updates-v60.json](wire-game-updates-v60.json)に同一CPU修行のupdateCount1/2、[live-transition-witnesses-v60.json](live-transition-witnesses-v60.json)に1完了操作を保存する。累計22完了例・独立routing-only1例。startGame＋CPU起動からendGameまで連続する受信game列1対局分を得たが、CPU通常giftは省略され、全内部イベントtrace0とは区別する。
+
+CPU32＋51のATK22へ本人118＋142のDEF8で応答し、14被害と補充中の241→242でHP26→6→0、GF1維持・CPU勝利を確認した。CPU243による191/206除去と新通常135/172は、受信イベントと手札差分を区別する。CPU通常2結果は両順を試す仮定付きcompletionで、新16再生・32checkpointを別に検査する。終局の本人は実物8＋empty1で、emptyをlive debtへ一般化しない。
+
+匿名化は元name→cpu/viewer・userId/updatedAt除去だけで、game数値・省略field・event順・zero rowは保持する。rawはmode600の一時ファイルのみ。`ReceivedState` がemptyと物理stateを分離するが、入力raw・物理snapshot・empty metadataは検証専用であり方策viewではない。runtime/ABIと旧pins・旧witnessは変更しない。
+
+| v60 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v60.json` | 12,552 | `890d98320f5f4dc7371e942ad01e395ad85f5ccb53e0472f99f8b05f67eec021` |
+| `live-transition-witnesses-v60.json` | 11,395 | `78495d4fea76803d267639f1e20d95c852a8257a1dd604dc61e39e2ceebad726` |
+
+初期本文27,143bytes/終局本文23,365bytesのSHAと同一room参照、指定した匿名化だけでの全game値一致を独立確認した。誤って初期応答を再保存した一時ファイルは出典に含めない。

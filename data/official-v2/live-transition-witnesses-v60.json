@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact UI capture time is assigned from file timestamps or transport metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v59.json",
+  "method": "Firefox native UI and Network Monitor observations,plus a corrected pair of saved Firestore response bodies. Sanitized received game updates1 and2 span startGame/CPU launch through endGame/isOver for this short training game. Request payloads and HTTP headers were not saved.",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse": 1,
+    "cpu_first": true
+  },
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "privacy": "Original names,userId,updatedAt and transport/account material are removed from the companion fixture. Numeric in-game IDs and payloads remain. Raw response bodies and unsanitized games remain in private mode0600 temporary files only.",
+  "authoritative_fixture": "wire-game-updates-v60.json",
+  "cases": [
+    {
+      "id": "training-apocalypse-gf1-defense-medium-large-devils-terminal",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner": "cpu",
+        "actor": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 9,
+        "cpu_received_item_rows": 9,
+        "cpu_positive_model_copies": 7,
+        "cpu_zero_placeholder_rows": 2,
+        "pending_attack": {
+          "playerId": 1,
+          "targetPlayerId": 2,
+          "itemModelIds": [
+            32,
+            51
+          ]
+        },
+        "catalog_attack_parts": [
+          9,
+          13
+        ],
+        "displayed_attack": 22,
+        "selected_defense_items": [
+          {
+            "id": 3,
+            "modelId": 118,
+            "def": 2
+          },
+          {
+            "id": 5,
+            "modelId": 142,
+            "def": 6
+          }
+        ],
+        "displayed_defense": 8
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [
+          118,
+          142
+        ],
+        "item_ids": [
+          3,
+          5
+        ],
+        "ui_confirmation_accepted": true,
+        "outgoing_command_payload_captured": false
+      },
+      "submission_observation": {
+        "earlier_lower_label_click": {
+          "screen_point": [
+            865,
+            665
+          ],
+          "observed_submit_issued": false
+        },
+        "earlier_defense8_label_click": {
+          "observed_submit_issued": false
+        },
+        "accepted_response_pane_click": {
+          "screen_point": [
+            865,
+            420
+          ],
+          "subsequent_functions_post_status": 200,
+          "request_payload_saved": false,
+          "request_headers_saved": false
+        },
+        "scope": "The earlier label clicks are not counted as accepted extra defense commands. The POST status was observed in Network Monitor;its payload and headers are not repository evidence."
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "useDevilItem",
+        "removeSomething",
+        "gift",
+        "gift",
+        "useDevilItem",
+        "dealDamage",
+        "gift",
+        "useDevilItem",
+        "dealDamage",
+        "die",
+        "endGame"
+      ],
+      "received_event_sequence": [
+        {
+          "stage": "defense",
+          "action": "useDefenseItems",
+          "items": [
+            {
+              "modelId": 118,
+              "id": 3
+            },
+            {
+              "modelId": 142,
+              "id": 5
+            }
+          ]
+        },
+        {
+          "stage": "attack body",
+          "action": "dealDamage",
+          "damage": 14,
+          "viewer_hp_from_catalog_arithmetic": 26,
+          "intermediate_hp_is_direct_wire_field": false
+        },
+        {
+          "stage": "cpu devil",
+          "action": "useDevilItem",
+          "playerId": 1,
+          "item": {
+            "modelId": 243,
+            "id": 1
+          }
+        },
+        {
+          "stage": "cpu removal",
+          "action": "removeSomething",
+          "items": [
+            {
+              "modelId": 191,
+              "id": 4
+            },
+            {
+              "modelId": 206,
+              "id": 6
+            }
+          ]
+        },
+        {
+          "stage": "viewer normal gift",
+          "action": "gift",
+          "playerId": 2,
+          "item": {
+            "modelId": 68,
+            "id": 3
+          }
+        },
+        {
+          "stage": "viewer medium devil arrival",
+          "action": "gift",
+          "playerId": 2,
+          "item": {
+            "modelId": 241,
+            "id": 5
+          }
+        },
+        {
+          "stage": "viewer medium devil use",
+          "action": "useDevilItem",
+          "playerId": 2,
+          "item": {
+            "modelId": 241,
+            "id": 5
+          }
+        },
+        {
+          "stage": "medium devil damage",
+          "action": "dealDamage",
+          "damage": 20,
+          "viewer_hp_from_prior_arithmetic": 6
+        },
+        {
+          "stage": "viewer large devil arrival",
+          "action": "gift",
+          "playerId": 2,
+          "item": {
+            "modelId": 242,
+            "id": 5
+          }
+        },
+        {
+          "stage": "viewer large devil use",
+          "action": "useDevilItem",
+          "playerId": 2,
+          "item": {
+            "modelId": 242,
+            "id": 5
+          }
+        },
+        {
+          "stage": "large devil damage",
+          "action": "dealDamage",
+          "damage": 30
+        },
+        {
+          "stage": "death",
+          "action": "die",
+          "playerId": 2
+        },
+        {
+          "stage": "terminal",
+          "action": "endGame"
+        }
+      ],
+      "ui_observation": [
+        "CPU32 power halberd9 plus51 top of combat13 displayed ATK22.",
+        "Viewer118 leather clothes2 plus142 steel gauntlet6 displayed DEF8.",
+        "The accepted pane confirmation was followed by the damage/devil presentation.",
+        "The UI showed viewer HP6 with the large-devil30 presentation,then HP0 and CPU victory at GF1."
+      ],
+      "after": {
+        "gf": 1,
+        "server_update_count": 2,
+        "isOver": true,
+        "last_attack_turn_player_id": 1,
+        "viewer": {
+          "hp": 0,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_dead": true,
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "victory_displayed_for": "cpu",
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 8,
+        "viewer_zero_placeholder_rows": 1,
+        "cpu_received_item_rows": 7,
+        "cpu_positive_model_copies": 7,
+        "cpu_zero_placeholder_rows": 0,
+        "attacks_field_present": false
+      },
+      "snapshot_delta_observations": {
+        "cpu_new_normal_rows": [
+          {
+            "modelId": 135,
+            "id": 1
+          },
+          {
+            "modelId": 172,
+            "id": 4
+          }
+        ],
+        "cpu_corresponding_normal_gift_event_rows": 0,
+        "cpu_removed_rows": [
+          {
+            "modelId": 191,
+            "id": 4
+          },
+          {
+            "modelId": 206,
+            "id": 6
+          }
+        ],
+        "normal_insertion_order_proven": false,
+        "viewer_reused_numeric_id": 5,
+        "viewer_repeated_id_models": [
+          241,
+          242
+        ]
+      },
+      "independent_arithmetic": {
+        "ordered_attack_sum": "9+13=22",
+        "ordinary_defense_sum": "2+6=8",
+        "positive_body_remainder": "22-8=14",
+        "hp_after_body": "40-14=26",
+        "hp_after_medium_devil": "26-20=6",
+        "hp_after_large_devil": "max(0,6-30)=0"
+      },
+      "projection": "Compute ordered ATK22 and DEF8 independently from the selected catalog models,then use the observed named devil outcomes and snapshot-delta normal identities as explicit conditional inputs. Do not inject the received14 damage as the attack calculation or fit a server RNG seed. CPU normal135/172 order is not received and may be varied in conditional native comparisons.",
+      "limits": "The received event list omits CPU normal gift events and is not every internal grant action. Repeated item id5 demonstrates received numeric reuse,not immutable physical-token continuity or a proven backend request identifier. A terminal zero placeholder must not be generalized to a live pending grant. The two updates form a complete received lifecycle for this short game,but do not constitute a complete internal/backend event trace. Native coverage is conditional on the explicit observed outcomes and does not claim generative RNG,slot-allocation or full backend-state equality."
+    }
+  ],
+  "source_body_provenance": [
+    {
+      "label": "initial-pending-cpu-attack",
+      "response_body_bytes": 27143,
+      "response_body_sha256": "f1d20b93d9d6f8ecc2cd49f67d45636deb490e4fef7ed809240c3e0c63ed7ca3",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "terminal-correct-response",
+      "response_body_bytes": 23365,
+      "response_body_sha256": "319acb23a62b4eb342d2fe98358fe9aaf676ec54d0d75e38cabbed9e42ce3322",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "capture_counts": {
+    "authoritative_game_snapshots": 2,
+    "bounded_authoritative_game_update_batches": 1,
+    "initial_authoritative_game_snapshots": 1,
+    "complete_received_game_update_sequences": 1,
+    "complete_received_sequence_scope": "This short CPU training game from startGame/initial CPU launch to endGame/isOver in consecutive updates1 and2.",
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "same_training_room_document_confirmed_in_private_source": true
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 22,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 19,
+  "captured_full_server_event_traces": 0,
+  "complete_received_game_update_sequences": 1,
+  "official_full_simulator_equivalence_established": false,
+  "native_projection_validation": {
+    "kind": "Conditional comparison,not a generative replay of hidden random choices",
+    "unobserved_cpu_normal_orders_tested": 2,
+    "world_seeds_per_order": 8,
+    "received_checkpoints_per_replay": 2,
+    "replays": 16,
+    "checkpoint_comparisons": 32,
+    "release_target_passed": 1,
+    "release_target_total": 1,
+    "asan_ubsan_target_passed": 1,
+    "asan_ubsan_target_total": 1
+  },
+  "session_end_observation": {
+    "training_ui_exited": true,
+    "home_menu_return_directly_confirmed": true,
+    "network_monitor_closed_directly_confirmed": true,
+    "scope": "User-visible cleanup after the captured terminal game;not an additional gameplay transition."
+  }
+}

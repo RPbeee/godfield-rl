@@ -8,11 +8,11 @@
 
 対局エンジンは `official-execution-subset-v53` / Snapshot53 / view-v51。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v58まで18完了例と独立routing-only1例を取得した。[v59受信記録](../data/official-v2/live-transition-witnesses-v59.json)の自己攻撃・Cold空防御・自己解除3例を加えて累計21完了例となる。native比較は従来15例×72＝1080公開投影と別枠72routing・72一新コンポーネントに、新3操作の8seed再生・4checkpoint＝32比較を加える。複合chanceを含む従来3例は記録のみ。今回、同じCPU修行の初期状態1＋連続受信batch3を取得したが、CPU補充等の全内部イベントはeventsに含まれず、full match／全backend traceは0のままである。これらのfixture数と実観測件数を区別する。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v59まで21完了例と独立routing-only1例を取得した。[v60の二枚防御・補充中死亡](../data/official-v2/live-transition-witnesses-v60.json)を加えて累計22完了例となる。native比較対象は19例で、従来15×72＝1080投影、別枠72routing・72一新部分検証、v59の8再生32checkpoint、新v60の2補充順×8seed・2checkpoint＝32比較を区別する。複合chanceを含む従来3例は記録のみ。v60ではstartGameからendGameまで連続する受信game更新2状態を1対局分取得したが、CPU通常gift等はeventsから省略される。全backend内部イベントtraceは0で、受信列の完結と公式server全処理の取得を区別する。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移goldenの拡充 | 完了公開観測21件（native比較対象18件。従来15例1080投影＋新3操作の8再生32checkpoint、複合3例は記録のみ。一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 完了公開観測22件（native比較対象19件。従来15例1080投影＋v59の8再生32checkpoint＋v60の16再生32checkpoint、複合3例は記録のみ。一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の一新と終末授与の境界 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。v58では178・Dream・一新と後続244CP/MPを確認したが、置換8品の内訳と授与slotの由来は未確定で、即時一新＋既存予約補充も排除されない。一新中の悪魔可否、2slot対応、複数帽子、208/112や死亡による中断は未確認で、grantへの接続が必須とは確定していない。取引の直接配送も授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
 | 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |
@@ -2250,3 +2250,11 @@ full比較は従来の15件×72＝1,080公開投影比較と別枠72routingを�
 通常授与161/123はgiftイベントと手札、CPU184は手札差分で確認した。後者について隠れた悪魔の有無や内部retry列を補完しない。受信eventsだけで全配布過程を再現できるとは言えず、server updateCount2には本人の自己攻撃解決と次CPU攻撃開始がまとめられる。受信slotは再利用されるため、native tokenと別に対応付ける必要がある。
 
 ruleset53では設定中プール・非Dreamの通常授与を外部chance入力し、乱数を合わせず4境界を比較できるようにした。raw placeholder0の直接importとpending状態のload_scene、全Dream・全授与経路、178一新中の悪魔、94＋Wide、一般Earth/Moonやserver scheduleは引き続き未対応・未確定である。Coldの1被害と199の解除を観測した今回の短い列を、一般病気tickの順序証明へ広げない。
+
+## v60：受信列の完結と空スロットの読み込み
+
+[新しい受信2更新](../data/official-v2/wire-game-updates-v60.json)は、最初のstartGame/CPU複合攻撃から、二枚防御・終末授与・死亡とendGameまでを含む。連続受信gameの開始〜終局1列を取得した一方、CPUの通常gift2件はeventsに無い。CPU真在庫を含む検証用の有限列であり、全backendイベント・抽選・一般scheduleの取得とは分ける。
+
+新 `ReceivedState` はcanonicalなid0/model0をempty metadataへ分離し、物理コピーだけを既存C++投影へ渡す。元rawとfiltered snapshot、元配列indexを保ち、viewには他者手札やempty情報を追加しない。旧strict constructorとnative ABIは変えず、Matchへの暗黙checkpoint変換も行わない。v59で必要だったfixture専用の手動filterに代わる明示入口である。
+
+終局のdead viewerにはempty1が残ったため、empty数＝未充足授与数という一般則は使えない。CPUの通常135/172は2順のcompletionで比較し、取得順を確定しない。新1例は既存の効果・予約補充・死亡時停止規約と比較するもので、178一新の授与・Dream全分布・94＋Wide等の主要残件は維持する。

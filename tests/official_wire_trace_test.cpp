@@ -137,11 +137,110 @@ void replay(std::uint64_t seed) {
     check(game.legal(halberd),"received CPU32 launch is legal");(void)game.step(halberd);roundtrip(game);
     compare_checkpoint(game,slots,checkpoints[3]);
 }
+
+// Numeric transcription of data/official-v2/wire-game-updates-v60.json.
+// CPU32/id9 +51/id1 are restored ONLY from the received useAttackItems event.
+// Appending these consumed copies reconstructs a deterministic pre-launch scene;
+// it does not recover the original initial draw or its unobserved array order.
+constexpr std::array<ReceivedSlot,9> v60_pending_cpu{{{2,26},{3,5},{4,191},{5,57},{6,206},{7,200},{8,26},{0,0},{0,0}}};
+constexpr std::array<ReceivedSlot,9> v60_pending_viewer{{{1,5},{2,19},{3,118},{4,232},{5,142},{6,26},{7,87},{8,38},{9,13}}};
+constexpr std::array<ReceivedSlot,7> v60_terminal_cpu{{{2,26},{3,5},{5,57},{7,200},{8,26},{1,135},{4,172}}};
+constexpr std::array<ReceivedSlot,9> v60_terminal_viewer{{{1,5},{2,19},{4,232},{6,26},{7,87},{8,38},{9,13},{3,68},{0,0}}};
+constexpr std::array<ReceivedSlot,2> v60_received_launch{{{9,32},{1,51}}};
+void compare_v60(const Match& game,const SlotMap& slots,bool terminal) {
+    const auto& snap=game.snapshot();
+    check(snap.state.gf==1&&snap.state.tiebreak_gf==1&&snap.owner==1&&snap.state.is_over==terminal,"v60 received GF/threshold/owner/ending match");
+    check(snap.state.players.size()==2,"v60 received roster size");
+    std::size_t positive_total=0;
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];
+        const auto rows=seat==0?(terminal?std::span<const ReceivedSlot>(v60_terminal_cpu):std::span<const ReceivedSlot>(v60_pending_cpu))
+                               :(terminal?std::span<const ReceivedSlot>(v60_terminal_viewer):std::span<const ReceivedSlot>(v60_pending_viewer));
+        check(player.id==seat+1&&player.hp==(seat==0?40:terminal?0:40)&&player.mp==10&&player.cp==20,
+              "v60 both received resource triples match");
+        check(player.team==Team::solo&&player.guardian==Guardian::none&&player.curses.empty()&&player.confusion_count==0
+              &&player.dead==(terminal&&seat==1),"v60 received alive/team/curse/guardian defaults match");
+        std::size_t positive=0,empty=0;
+        for(const auto& row:rows) {
+            if(!row.model){check(row.slot==0,"v60 known empty display row");++empty;continue;}
+            ++positive;const auto mapped=slots.find({player.id,row.slot});check(mapped!=slots.end(),"v60 qualified slot mapping exists");
+            const auto item=std::find_if(player.items.begin(),player.items.end(),[&](const auto& x){return x.token==mapped->second;});
+            check(item!=player.items.end()&&item->model==row.model&&item->fake_model.value_or(0)==row.fake&&item->used==row.used,
+                  "v60 positive model/fake/used match, without equating slot and physical token");
+        }
+        check(player.items.size()==positive,"v60 positive copies exclude all renderer placeholders");
+        if(!terminal)check(snap.gifts[seat]==empty,"v60 live placeholder count matches local reserved debts");
+        else check(snap.gifts[seat]==0,"terminal cancellation leaves no live debt despite dead-viewer empty sprite");
+        positive_total+=positive;
+    }
+    check(slots.size()==positive_total,"v60 no stale mappings for removed/consumed copies");
+    if(!terminal) {
+        check(snap.phase==MatchPhase::response&&snap.actor==2&&snap.queue.size()==1,"v60 checkpoint1 waits for viewer defense");
+        const auto& effect=snap.queue.front();
+        check(effect.origin==1&&effect.source==1&&effect.target==2&&effect.models==std::vector<CardId>{32,51}
+              &&effect.category==Category::weapons&&effect.power==22&&!effect.element&&effect.ability==Ability::none
+              &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,
+              "v60 reconstructed received32+51 is one neutral22 initial payload");
+    } else {
+        check(game.done()&&snap.terminated&&!snap.truncated&&snap.phase==MatchPhase::finished&&snap.queue.empty()
+              &&snap.winners==std::vector<PlayerId>{1},"v60 viewer death ends the match with CPU winner before GF advance");
+        check(snap.grant_resolutions==6&&snap.grant_artifacts==3&&snap.grant_devils==3,
+              "v60 selected completion has three explicit ordinary receipts and three recorded devils");
+    }
+    // Native inventory order, fresh IDs, RNG and command counters are NOT
+    // compared with the server. The terminal dead-player empty row is not debt.
+    roundtrip(game);
+}
+void replay_v60(std::uint64_t seed,bool reverse_cpu_receipts) {
+    MatchConfig config;config.initial_hand=0;config.external_grants=true;config.max_decisions=64;
+    Match game(config);SlotMap slots;SnapshotState state;state.gf=1;state.tiebreak_gf=1;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        const auto rows=seat==0?std::span<const ReceivedSlot>(v60_pending_cpu):std::span<const ReceivedSlot>(v60_pending_viewer);
+        const auto add=[&](const ReceivedSlot& row){
+            if(!row.model)return;
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        };
+        for(const auto& row:rows)add(row);
+        if(seat==0)for(const auto& row:v60_received_launch)add(row);
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);roundtrip(game);
+    const Command launch{1,CommandKind::play,{consumed_slot(slots,1,9),consumed_slot(slots,1,1)},2};
+    check(game.legal(launch),"v60 event-restored CPU composition is accepted");(void)game.step(launch);roundtrip(game);
+    compare_v60(game,slots,false);
+    check(find_card(118)->defense+find_card(142)->defense==8,"v60 catalog defense is eight rather than received damage injection");
+    const Command defense{2,CommandKind::defend,{consumed_slot(slots,2,3),consumed_slot(slots,2,5)},{}};
+    check(game.legal(defense),"v60 received two-card defense is accepted");(void)game.step(defense);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==26&&game.snapshot().pending_grant==1,"v60 computed22-minus8 is14 before any devil");
+    const GrantAction thief{1,243,{}, {consumed_slot(slots,1,4),consumed_slot(slots,1,6)}};
+    check(game.grant_legal(thief),"v60 recorded thief choices are valid");(void)game.grant_step(thief);roundtrip(game);
+    check(game.snapshot().gifts==std::vector<std::uint32_t>{2,2},"v60 thief removal does not create compensation debt");
+    // These two CPU normal outcomes are established only by the terminal
+    // inventory delta. Their missing event order is NOT fitted: exercise both
+    // admissible orders as separate local completions and qualify each slot map.
+    if(reverse_cpu_receipts){supplied_receipt(game,slots,1,4,172);supplied_receipt(game,slots,1,1,135);}
+    else {supplied_receipt(game,slots,1,1,135);supplied_receipt(game,slots,1,4,172);}
+    supplied_receipt(game,slots,2,3,68);
+    check(game.snapshot().pending_grant==2&&game.snapshot().state.players[1].hp==26,"v60 viewer first recorded normal result leaves one original gift debt");
+    const GrantAction medium{2,241,{},{}};
+    check(game.grant_legal(medium),"v60 recorded medium devil is legal");(void)game.grant_step(medium);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==6&&game.snapshot().pending_grant==2,"v60 medium20 leaves HP6 and retries the same local debt");
+    const GrantAction large{2,242,{},{}};
+    check(game.grant_legal(large),"v60 recorded large devil is legal");(void)game.grant_step(large);roundtrip(game);
+    compare_v60(game,slots,true);
+}
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
-    for(const auto seed:seeds)replay(seed);
+    for(const auto seed:seeds) {
+        replay(seed);
+        replay_v60(seed,false);replay_v60(seed,true);
+    }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
              <<"not full matches, server RNG equivalence or public-player policy inputs\n";
+    std::cout<<"v60: 8 seeds x2 unknown-CPU-receipt-order completions x2 received checkpoints; "
+             <<"pre-launch CPU hand restored from received use events; dead UI placeholder is not live debt\n";
 }

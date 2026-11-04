@@ -9,6 +9,8 @@ strictly decoded into a separate active_attack() projection; fresh view is uncha
 raw_snapshot is privileged input evidence: never expose it to an agent as a view.
 
 Physical item modelId0 is an empty UI slot, not an imported inventory instance.
+ReceivedState is an explicit adapter separating canonical0/0 empty rows while
+preserving the original raw evidence. It is not a resumable Match checkpoint.
 Tokens/player IDs may be0 and need not equal seats. Players<=9; foreign inventory
 has no guessed16/18 cap. Own fresh view/selection uses the proven18 renderer bound.
 """
@@ -385,6 +387,105 @@ class OfficialState:
         self._check(self._lib.gfo_state_selection_ready(self._handle, viewer, tokens, len(tokens),
                                                       None if context is None else c.byref(context), c.byref(out)))
         return bool(out.value)
+
+@dataclass(frozen=True)
+class EmptySlot:
+    """Privileged raw-array position, not a token, UI coordinate or gift debt."""
+    player_id: int
+    wire_index: int
+
+    def __post_init__(self):
+        _integer(self.player_id, "empty player_id", 0)
+        _integer(self.wire_index, "empty wire_index", 0)
+
+
+class ReceivedState:
+    """Owned read-only received snapshot with explicit empty-slot separation.
+
+    Only id0/modelId0/fakeModelId0/usedFalse rows are placeholders (the last
+    two fields may be omitted). Other known malformed fields remain errors.
+    raw_snapshot and empty_slots are privileged evidence, never a policy view.
+    physical_snapshot preserves attacks/events; it does not resume pending work.
+    This distinct class is deliberately rejected by Match.load_scene.
+    """
+    def __init__(self, snapshot, library: str | Path | None = None):
+        self._state = None
+        raw = _load(snapshot); physical = copy.deepcopy(raw); slots = []
+        for player_index, player in enumerate(_list(physical.get("players", []), "players")):
+            player = _object(player, f"players[{player_index}]")
+            player_id = _integer(player.get("id"), "player.id", 0)
+            items = []
+            for wire_index, item in enumerate(_list(player.get("items", []), "items")):
+                item = _object(item, "item")
+                model = _integer(item.get("modelId"), "modelId", 0)
+                if model == 0:
+                    _integer(item.get("id"), "empty item.id", 0, 0)
+                    _integer(item.get("fakeModelId", 0), "empty fakeModelId", 0, 0)
+                    if _boolean(item.get("used", False), "empty used"):
+                        raise ValueError("empty item cannot be used")
+                    slots.append(EmptySlot(player_id, wire_index))
+                else:
+                    items.append(item)
+            if "items" in player:
+                player["items"] = items
+        # Existing constructor/native validation still owns the physical domain,
+        # including per-player token uniqueness and strict first attack decoding.
+        state = OfficialState(physical, library)
+        self._raw = raw; self._slots = tuple(slots); self._state = state
+
+    @classmethod
+    def from_file(cls, path: str | Path, library: str | Path | None = None):
+        return cls(Path(path).read_bytes(), library)
+
+    @property
+    def raw_snapshot(self):
+        return copy.deepcopy(self._raw)
+
+    @property
+    def physical_snapshot(self):
+        return self._state.raw_snapshot
+
+    @property
+    def empty_slots(self):
+        return self._slots
+
+    @property
+    def closed(self):
+        return self._state is None or self._state.closed
+
+    def _open(self):
+        if self.closed: raise ValueError("received state is closed")
+
+    def close(self):
+        if self._state is not None: self._state.close()
+
+    def __enter__(self):
+        self._open(); return self
+
+    def __exit__(self, *unused):
+        self.close()
+
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
+
+    def view(self, *, player_id=None, user_id=None, spectator=False):
+        self._open()
+        return self._state.view(player_id=player_id, user_id=user_id, spectator=spectator)
+
+    def active_attack(self):
+        self._open(); return self._state.active_attack()
+
+    def can_append_hand(self, selected, next_token, *, player_id=None, user_id=None, response=None):
+        self._open()
+        return self._state.can_append_hand(selected, next_token, player_id=player_id, user_id=user_id, response=response)
+
+    def selection_ready(self, selected, *, player_id=None, user_id=None, response=None):
+        self._open()
+        return self._state.selection_ready(selected, player_id=player_id, user_id=user_id, response=response)
+
 
 if __name__ == "__main__":
     library = sys.argv[1] if len(sys.argv) > 1 else None

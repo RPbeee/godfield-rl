@@ -2966,3 +2966,9 @@ with OfficialState(raw) as state, ActiveDisplay(state) as initial:
 CPU修行で受信した連続4状態を[匿名化fixture](data/official-v2/wire-game-updates-v59.json)へ保存し、自己攻撃・空防御によるCold付与・自己解除の3完了操作を追加しました。累計21完了観測です。新しい[再現テスト](tests/official_wire_trace_test.cpp)は、8 seedで4 checkpointずつ、資源・実手札・病気・進行中の攻撃を照合します。CPUの真手札を含む検証専用データで、方策向け観測には渡しません。
 
 対局v53 / Snapshot53 / view-v51では、外部補充へ通常モデルを明示指定できます。設定中の配布プール内・Dreamなしに限定し、ゲーム乱数を消費せずfresh tokenで受け取ります。既存の通常抽選0と悪魔入力、ローカルsampler、Match ABI2を維持します。受信イベントはCPU補充の一部を省略するため、全内部イベントや公式完全対応の証明にはなりません。[確認範囲と残件](docs/official-spec-gap.md)を参照してください。
+
+## v60：空スロットの分離と、補充中の死亡・終局
+
+公式CPU修行の開始から終局まで、連続する受信game更新2状態を[追加取得](data/official-v2/wire-game-updates-v60.json)しました。複合ATK22へ二枚DEF8で応答した後、悪魔241→242の連続被害で死亡し、G.F.1のまま終局する1完了例です。CPUの243による除去と、受信eventsに現れないCPU通常補充は別々に扱います。全内部イベントの取得を意味しません。
+
+Python `ReceivedState` は、公式データの `{id:0,modelId:0}` を空スロットとして分離し、実物だけを既存のC++状態投影へ渡す明示的な読み込み口です。元データと空スロット情報は検証専用に保持します。死亡後にも空スロットが残るため、補充の予約数へ読み替えません。既存 `OfficialState` の厳密検査とMatchの再開制約、ruleset53 / Snapshot53 / view-v51・ABIは維持します。

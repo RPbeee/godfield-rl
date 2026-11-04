@@ -1,0 +1,483 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "One complete received game-update lifecycle for this short CPU training game:initial update1 contains startGame and the CPU launch,and consecutive update2 contains endGame/isOver. This is not an exhaustive backend/internal event trace or native whole-state equivalence.",
+  "capture_method": "Firefox Network Monitor response-body saves;no request payload,HTTP headers,HAR,document paths or resume tokens are included.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "source_bodies": [
+    {
+      "label": "initial-pending-cpu-attack",
+      "response_body_bytes": 27143,
+      "response_body_sha256": "f1d20b93d9d6f8ecc2cd49f67d45636deb490e4fef7ed809240c3e0c63ed7ca3",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "terminal-correct-response",
+      "response_body_bytes": 23365,
+      "response_body_sha256": "319acb23a62b4eb342d2fe98358fe9aaf676ec54d0d75e38cabbed9e42ce3322",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "continuity": {
+    "consecutive_game_update_counts": [
+      1,
+      2
+    ],
+    "initial_gf": 1,
+    "terminal_gf": 1,
+    "captured_game_snapshot_count": 2,
+    "same_training_room_document_confirmed_in_private_source": true
+  },
+  "sanitization": {
+    "removed": [
+      "players[].userId",
+      "game.updatedAt",
+      "all original player names"
+    ],
+    "replacement_names": {
+      "1": "cpu",
+      "2": "viewer"
+    },
+    "retained": "Numeric in-game player IDs,model IDs,item IDs,event payloads,received array order,zero placeholders,dead/isOver fields and field omission are preserved.",
+    "excluded": [
+      "request payloads",
+      "HTTP headers",
+      "HAR",
+      "document paths",
+      "resume tokens",
+      "raw response bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only. The mistakenly saved duplicate initial body is excluded from this capture pair."
+  },
+  "privileged_scenario_warning": "CPU true model rows are privileged scenario data,not policy-visible hand knowledge.",
+  "boundary_notes": [
+    "The initial update is already pending a CPU attack from models32 and51.",
+    "Received event lists are not an exhaustive internal grant log. Any CPU normal replacement visible only as a snapshot delta must remain separate from emitted gift events.",
+    "The terminal viewer is dead and still has a zero model placeholder row. A placeholder is not generally equivalent to live pending gift debt.",
+    "The terminal response is the distinct23365-byte body;the earlier mistaken duplicate initial response is not used."
+  ],
+  "updates": [
+    {
+      "source_body": "initial-pending-cpu-attack",
+      "game": {
+        "players": [
+          {
+            "mp": 10,
+            "hp": 40,
+            "id": 1,
+            "items": [
+              {
+                "id": 2,
+                "modelId": 26
+              },
+              {
+                "modelId": 5,
+                "id": 3
+              },
+              {
+                "modelId": 191,
+                "id": 4
+              },
+              {
+                "modelId": 57,
+                "id": 5
+              },
+              {
+                "modelId": 206,
+                "id": 6
+              },
+              {
+                "modelId": 200,
+                "id": 7
+              },
+              {
+                "modelId": 26,
+                "id": 8
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              },
+              {
+                "id": 0,
+                "modelId": 0
+              }
+            ],
+            "cp": 20,
+            "isBot": true,
+            "name": "cpu"
+          },
+          {
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 5
+              },
+              {
+                "id": 2,
+                "modelId": 19
+              },
+              {
+                "id": 3,
+                "modelId": 118
+              },
+              {
+                "modelId": 232,
+                "id": 4
+              },
+              {
+                "modelId": 142,
+                "id": 5
+              },
+              {
+                "modelId": 26,
+                "id": 6
+              },
+              {
+                "modelId": 87,
+                "id": 7
+              },
+              {
+                "modelId": 38,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 13
+              }
+            ],
+            "hp": 40,
+            "id": 2,
+            "cp": 20,
+            "name": "viewer"
+          }
+        ],
+        "guardianPlayerIds": [
+          2
+        ],
+        "tiebreakGF": 1,
+        "updateCount": 1,
+        "gf": 1,
+        "attackTurnPlayerId": 1,
+        "attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              32,
+              51
+            ],
+            "playerId": 1
+          }
+        ],
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 5,
+              "id": 1
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "id": 2,
+              "modelId": 19
+            },
+            "action": "gift"
+          },
+          {
+            "item": {
+              "modelId": 118,
+              "id": 3
+            },
+            "playerId": 2,
+            "action": "gift"
+          },
+          {
+            "item": {
+              "modelId": 232,
+              "id": 4
+            },
+            "playerId": 2,
+            "action": "gift"
+          },
+          {
+            "item": {
+              "id": 5,
+              "modelId": 142
+            },
+            "action": "gift",
+            "playerId": 2
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 26,
+              "id": 6
+            },
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 87,
+              "id": 7
+            },
+            "playerId": 2
+          },
+          {
+            "item": {
+              "modelId": 38,
+              "id": 8
+            },
+            "playerId": 2,
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 13,
+              "id": 9
+            },
+            "action": "gift"
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 1
+          },
+          {
+            "items": [
+              {
+                "modelId": 32,
+                "id": 9
+              },
+              {
+                "modelId": 51,
+                "id": 1
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 2,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "diseasePlayerId": 1
+      }
+    },
+    {
+      "source_body": "terminal-correct-response",
+      "game": {
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 118,
+                "id": 3
+              },
+              {
+                "modelId": 142,
+                "id": 5
+              }
+            ],
+            "action": "useDefenseItems"
+          },
+          {
+            "damage": 14,
+            "action": "dealDamage"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 243,
+              "id": 1
+            },
+            "action": "useDevilItem"
+          },
+          {
+            "items": [
+              {
+                "modelId": 191,
+                "id": 4
+              },
+              {
+                "modelId": 206,
+                "id": 6
+              }
+            ],
+            "action": "removeSomething"
+          },
+          {
+            "action": "gift",
+            "playerId": 2,
+            "item": {
+              "id": 3,
+              "modelId": 68
+            }
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 241,
+              "id": 5
+            },
+            "action": "gift"
+          },
+          {
+            "action": "useDevilItem",
+            "playerId": 2,
+            "item": {
+              "id": 5,
+              "modelId": 241
+            }
+          },
+          {
+            "damage": 20,
+            "action": "dealDamage"
+          },
+          {
+            "playerId": 2,
+            "action": "gift",
+            "item": {
+              "modelId": 242,
+              "id": 5
+            }
+          },
+          {
+            "item": {
+              "modelId": 242,
+              "id": 5
+            },
+            "playerId": 2,
+            "action": "useDevilItem"
+          },
+          {
+            "damage": 30,
+            "action": "dealDamage"
+          },
+          {
+            "action": "die",
+            "playerId": 2
+          },
+          {
+            "action": "endGame"
+          }
+        ],
+        "isOver": true,
+        "players": [
+          {
+            "isBot": true,
+            "mp": 10,
+            "hp": 40,
+            "id": 1,
+            "items": [
+              {
+                "modelId": 26,
+                "id": 2
+              },
+              {
+                "modelId": 5,
+                "id": 3
+              },
+              {
+                "id": 5,
+                "modelId": 57
+              },
+              {
+                "id": 7,
+                "modelId": 200
+              },
+              {
+                "modelId": 26,
+                "id": 8
+              },
+              {
+                "modelId": 135,
+                "id": 1
+              },
+              {
+                "modelId": 172,
+                "id": 4
+              }
+            ],
+            "cp": 20,
+            "name": "cpu"
+          },
+          {
+            "items": [
+              {
+                "modelId": 5,
+                "id": 1
+              },
+              {
+                "modelId": 19,
+                "id": 2
+              },
+              {
+                "modelId": 232,
+                "id": 4
+              },
+              {
+                "modelId": 26,
+                "id": 6
+              },
+              {
+                "modelId": 87,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 38
+              },
+              {
+                "modelId": 13,
+                "id": 9
+              },
+              {
+                "id": 3,
+                "modelId": 68
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "cp": 20,
+            "mp": 10,
+            "hp": 0,
+            "id": 2,
+            "dead": true,
+            "name": "viewer"
+          }
+        ],
+        "attackTurnPlayerId": 1,
+        "updateCount": 2,
+        "gf": 1,
+        "tiebreakGF": 1
+      }
+    }
+  ],
+  "bounded_authoritative_game_update_batch_count": 1,
+  "initial_authoritative_game_snapshot_count": 1,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "complete_received_game_update_sequences": 1,
+  "complete_received_sequence_scope": "The two received authoritative game states span this short training game from startGame to endGame/isOver. CPU normal gift events are omitted,so complete received lifecycle is separate from complete internal/backend event capture.",
+  "received_event_scope_notes": [
+    "Initial CPU source32 and51 are already consumed,leaving seven positive rows and two zero placeholders.",
+    "The terminal CPU has seven positive rows,including135/id1 and172/id4 newly visible only through snapshot delta. The received terminal event list has no CPU normal gift rows.",
+    "The terminal viewer has eight positive item rows and one zero placeholder despite dead=true and isOver=true. Preserve the row without interpreting it as a live gift continuation.",
+    "Viewer item id5 is reused on241 and242 gift/use presentations. Reused numeric IDs do not prove immutable physical-token or hidden request identity."
+  ]
+}

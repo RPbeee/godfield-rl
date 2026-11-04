@@ -144,3 +144,17 @@ G.F.11本人mainは本人38/0/20・CPU5/4/20、本人手札10（未使用8・使
 updateCount2には自己攻撃のuse/setTarget/damage/gift/advanceGFだけでなくCPUのuse/setTargetも入る。初期eventsにCPU初期giftは無く、updateCount3にもCPU184のgiftは無い。受信したeventsは全内部処理ではないため、CPU補充時の未観測悪魔列やretryを作らない。受信初期状態1＋後続batch3を取得した有限範囲であり、全対局・全backendイベント列は0件のままとする。
 
 [専用native比較](../tests/official_wire_trace_test.cpp)は通常161・184・123を外部chanceで与え、8seedで4checkpoint＝32比較を行う。seedを観測結果へfitせず、slot対応を管理して実手札・資源・Cold・保留攻撃を照合する。従来15例1080投影、72routing、72一新部分検証は別枠を保つ。[機械可読観測記録](../data/official-v2/live-transition-witnesses-v59.json)に範囲を明示する。
+
+## v60：複合攻撃への二枚防御から補充中の死亡へ
+
+2026年11月5日の2人CPU修行・終末G.F.1で、[開始と終局の受信game](../data/official-v2/wire-game-updates-v60.json)を取得した。viewer2・CPU1で、updateCount1はstartGame・本人初期gift9・CPUの最初の攻撃開始を同じbatchに持ち、updateCount2は防御解決からendGameまでを含む。初回から終局までの連続した受信game列は1対局分となったが、CPUの全gift等の内部イベントを取得したものではない。
+
+CPUの32パワーハルベルトATK9＋51独楽コンバットATK13へ、本人は118革の服DEF2（id3）と142はがねの小手DEF6（id5）を選び、応答ペインで確定した。受信useDefenseItemsと14被害は22−8に一致し、本人HP40→26となる。同じupdate内にCPU243のuseDevilItem、191/id4・206/id6のremoveSomething、本人68/id3のgift、241/id5のgift/use/20被害、242/id5のgift/use/30被害、本人dieとendGameが続く。途中画面で本人HP6と大悪魔30、最終画面で本人HP0・CPU勝利を確認した。G.F.は1のまま、MP10/CP20は双方維持した。
+
+CPUの通常新2品135/id1・172/id4は最終手札の差分で同定したが、giftイベントは無く、取得順は未確定である。初期CPU実物7＋empty2から243で実物2を失い、最終実物7となる。native比較は観測した243に追加補償giftを足さず、2つの通常completion順を両方検査する。未観測のCPU内部retryや乱数列まで復元したという主張はしない。
+
+終局の本人には実物8＋empty1が残る。死亡後のemptyはlive gift debtではなく、empty数から未処理授与やschedulerを推定しない。受信id5は241→242で再利用され、恒久的な物理tokenではない。CPU初回の消費32/id9・51/id1はuseイベントから分かるが、起動直前のCPU配列順や初期抽選は未取得である。
+
+今回1例で累計22完了観測、独立routing-only1例となる。元の15例1080投影＋72routing＋72一新部分検証、v59の8再生32checkpointに、新しい2補充順×8seed・2checkpoint＝32比較を別に加える。公式の全内部処理traceは0のままで、完全な対局実装の証明ではない。[機械可読記録](../data/official-v2/live-transition-witnesses-v60.json)へ境界を固定する。
+
+操作メモとして、下段の「守8」表示へクリックした段階ではsubmit-commandが発行されず、応答ペイン内 `[865,420]` から確定した時にPOST200と状態更新を確認した。下段表示を独立した確定ボタンとみなさない。通信要求を自作・再送せず、応答本文だけを保存した。退出後はホーム復帰とNetwork Monitor閉鎖を確認した。

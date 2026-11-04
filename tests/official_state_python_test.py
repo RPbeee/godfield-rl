@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
-from official_state import OfficialState, ResponseContext, MAX_WIRE_INTEGER
+from official_state import OfficialState, ReceivedState, EmptySlot, ResponseContext, MAX_WIRE_INTEGER
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 def fixture():
@@ -25,6 +25,123 @@ class OfficialStateTests(unittest.TestCase):
         state = OfficialState(fixture() if raw is None else raw, LIBRARY)
         self.addCleanup(state.close)
         return state
+
+    def received(self, raw=None):
+        state = ReceivedState(fixture() if raw is None else raw, LIBRARY)
+        self.addCleanup(state.close)
+        return state
+
+    def test_received_separates_empty_rows_without_losing_real_zero_token(self):
+        physical = fixture(); raw = copy.deepcopy(physical)
+        raw["players"][0]["items"].insert(0, {"id": 0, "modelId": 0})
+        raw["players"][0]["items"].append({"id": 0, "modelId": 0, "fakeModelId": 0, "used": False})
+        raw["players"][2]["items"].append({"id": 0, "modelId": 0})
+        received = self.received(raw); strict = self.state(physical)
+        self.assertEqual(received.raw_snapshot, raw)
+        self.assertEqual(received.physical_snapshot, physical)
+        self.assertEqual(received.empty_slots, (EmptySlot(0, 0), EmptySlot(0, 5), EmptySlot(900, 2)))
+        self.assertEqual(received.view(player_id=0), strict.view(player_id=0))
+        self.assertEqual(received.active_attack(), strict.active_attack())
+        self.assertTrue(received.can_append_hand([], 0, player_id=0))
+        self.assertEqual(received.selection_ready([0], player_id=0), strict.selection_ready([0], player_id=0))
+        self.assertEqual(sum(i["token"] == 0 for i in received.view(player_id=0)["hand"]), 1)
+        for key in ("empty_slots", "wire_index", "events", "userId"):
+            self.assertNotIn(key, json.dumps(received.view(player_id=0)))
+        with self.assertRaises(ValueError): self.state(raw)  # Existing strict constructor is unchanged.
+        absent = {"players": [{"id": 0}], "events": []}
+        self.assertEqual(self.received(absent).physical_snapshot, absent)
+
+    def test_received_canonical_empty_strict_types_and_physical_duplicates(self):
+        invalid = [{"id": i, "modelId": 0} for i in (True, -1, 1, MAX_WIRE_INTEGER + 1)]
+        invalid += [{"id": 0, "modelId": v} for v in (False, None, 0.0, -1, 297)]
+        invalid += [{"id": 0, "modelId": 0, "fakeModelId": v} for v in (True, None, 1, -1)]
+        invalid += [{"id": 0, "modelId": 0, "used": v} for v in (True, 0, "false", None)]
+        invalid += [{"modelId": 0}, None, {"id": 0, "modelId": 0, "opaque": MAX_WIRE_INTEGER + 1}]
+        for item in invalid:
+            with self.subTest(item=item), self.assertRaises(ValueError):
+                self.received({"players": [{"id": 0, "items": [item]}]})
+        duplicate = {"players": [{"id": 0, "items": [{"id": 0, "modelId": 0}, {"id": 0, "modelId": 6}, {"id": 0, "modelId": 7}]}]}
+        with self.assertRaises(ValueError): self.received(duplicate)
+        for raw in ({"players": {}}, {"players": [{"id": False}]}, {"players": [{"id": 0, "items": None}]},
+                    {"players": [{"id": 0}, {"id": 0, "items": [{"id": 0, "modelId": 0}]}]}):
+            with self.subTest(raw=raw), self.assertRaises(ValueError): self.received(raw)
+        with self.assertRaises(ValueError): self.received('{"players":[],"players":[]}')
+
+    def test_received_owns_raw_physical_and_metadata_independently(self):
+        raw = fixture(); raw["players"][0]["items"].append({"id": 0, "modelId": 0})
+        saved = copy.deepcopy(raw); state = self.received(raw)
+        raw["players"][0]["items"].clear(); self.assertEqual(state.raw_snapshot, saved)
+        exposed = state.raw_snapshot; exposed["players"].clear()
+        physical = state.physical_snapshot; physical["attacks"].clear(); physical["players"][0]["items"].clear()
+        self.assertEqual(state.raw_snapshot, saved)
+        self.assertEqual(len(state.physical_snapshot["players"][0]["items"]), 4)
+        self.assertEqual(len(state.physical_snapshot["attacks"]), 2)
+        with self.assertRaises(AttributeError): state.empty_slots = ()
+        with self.assertRaises(AttributeError): state.empty_slots[0].wire_index = 0
+        for args in ((True, 0), (0, -1), (0, MAX_WIRE_INTEGER + 1)):
+            with self.assertRaises(ValueError): EmptySlot(*args)
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "received.json"; path.write_text(json.dumps(saved))
+            with ReceivedState.from_file(path, LIBRARY) as loaded:
+                self.assertEqual(loaded.raw_snapshot, saved)
+            self.assertTrue(loaded.closed)
+
+    def test_received_projection_privacy_and_physical_renderer_bound(self):
+        raw = fixture(); raw["players"][0]["items"].append({"id": 0, "modelId": 0})
+        state = self.received(raw); changed = copy.deepcopy(raw)
+        changed["players"][2]["items"] += [{"id": 0, "modelId": 0}] * 20
+        self.assertNotEqual(self.received(changed).empty_slots, state.empty_slots)
+        self.assertEqual(self.received(changed).view(player_id=0), state.view(player_id=0))
+        for count in (18, 19):
+            items = [{"id": i, "modelId": 6} for i in range(count)] + [{"id": 0, "modelId": 0}] * 5
+            received = self.received({"players": [{"id": 0, "items": items}]})
+            if count == 18: self.assertEqual(len(received.view(player_id=0)["hand"]), 18)
+            else:
+                with self.assertRaises(ValueError): received.view(player_id=0)
+        dead = self.received({"isOver": True, "players": [{"id": 0, "dead": True, "hp": 0, "items": [{"id": 0, "modelId": 0}]}]})
+        self.assertEqual(dead.empty_slots, (EmptySlot(0, 0),))  # Empty is not a gift-debt claim.
+        self.assertEqual(dead.view(player_id=0)["hand"], [])
+
+    def test_received_active_tail_pending_boundary_and_closed_queries(self):
+        from official_match import Match, Config, InvalidMatchError, UnsupportedMatchError
+        raw = fixture(); raw["players"][0]["items"].insert(0, {"id": 0, "modelId": 0})
+        raw["attacks"] = [{"playerId": 900, "targetPlayerId": 0, "itemModelIds": [6]}, {"playerId": False, "itemModelIds": "opaque-tail"}]
+        state = self.received(raw)
+        self.assertEqual(state.physical_snapshot["attacks"], raw["attacks"])
+        self.assertEqual(state.physical_snapshot["events"], raw["events"])
+        attack = state.active_attack(); attack["models"].clear()
+        self.assertEqual(state.active_attack()["models"], [6])
+        with Match(config=Config(initial_hand=0), library=LIBRARY) as match:
+            before = (match.status, match.observe(0))
+            with self.assertRaises(InvalidMatchError): match.load_scene(state, 0)
+            self.assertEqual((match.status, match.observe(0)), before)
+            with OfficialState(state.physical_snapshot, LIBRARY) as board:
+                with self.assertRaises(UnsupportedMatchError): match.load_scene(board, 0)
+        state.close(); state.close(); self.assertTrue(state.closed)
+        for query in (lambda: state.view(spectator=True), state.active_attack,
+                      lambda: state.can_append_hand([], 0, player_id=0), lambda: state.selection_ready([], player_id=0), state.__enter__):
+            with self.assertRaises(ValueError): query()
+        self.assertEqual(state.raw_snapshot, raw)  # Owned evidence remains available after close.
+
+    def test_received_two_actual_sanitized_v60_snapshots(self):
+        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v60.json").read_text())
+        self.assertEqual(len(report["updates"]), 2)
+        for entry in report["updates"]:
+            raw = entry["game"]; physical = copy.deepcopy(raw); slots = []
+            for player in physical["players"]:
+                original = player["items"]
+                slots.extend(EmptySlot(player["id"], i) for i, item in enumerate(original) if item["modelId"] == 0)
+                player["items"] = [item for item in original if item["modelId"] > 0]
+            with self.subTest(update=raw["updateCount"]):
+                received = self.received(raw); strict = self.state(physical)
+                self.assertEqual(received.raw_snapshot, raw)
+                self.assertEqual(received.physical_snapshot, physical)
+                self.assertEqual(received.empty_slots, tuple(slots)); self.assertTrue(slots)
+                self.assertEqual(received.view(spectator=True), strict.view(spectator=True))
+                self.assertEqual(received.active_attack(), strict.active_attack())
+                for player in raw["players"]:
+                    self.assertEqual(received.view(player_id=player["id"]), strict.view(player_id=player["id"]))
 
     def test_projection_ownership_tokens_and_raw_preservation(self):
         raw = fixture(); saved = copy.deepcopy(raw); state = self.state(raw)

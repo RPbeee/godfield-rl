@@ -2012,3 +2012,15 @@ CPU修行の `room.game` を含む4連続更新を匿名化して保存し、3�
 検証はRelease全156 CTestターゲットを、先行155/155（42.09秒）とnative追加後1/1（1.02秒）に分けて実行し全通過した。Python Matchは155 method、native Matchは224登録callbackである。ASan/UBSanでは最終の `official_live_trace` / `official_wire_trace` / `official_driver` / `official_match` / `official_match_c_api` が5/5通過（27.04秒）。driver benchmark・grant benchmark・grant sampler benchmarkも各通過した。全legacyを含むSAN suiteは再実行していない。最終Release/SAN buildのwarning/errorは0件で、旧pins・旧witness・旧reportは変更していない。
 
 explicitordinaryのconfigured pool/207 gate、Dream拒否とinactive payloadの原子性、fresh unused token・非詠唱・無RNG、normal0と既定経路のstate/RNG比較、private journalのrestoreと改ざん拒否、token/update/GF枯渇rollback、cutoffでのbody先行を追加検証した。受信fixtureはprivate原本から指定した匿名化だけで全値一致し、全4本文の同一room文書参照も識別子を出力せず確認した。
+
+## v60：完結した受信列と明示empty adapter
+
+新しい1完了観測で累計22例・native比較対象19例となる。開始〜終局を含む連続受信gameの2状態を1対局分取得し、受信列の完結と、全内部serverイベントtrace0を区別する。CPU通常2結果の順は未観測なので2順×8seedで再生し、2checkpoint計32比較を追加する。v59の8再生32checkpointと既存15例1080投影・72routing・72一新部分検証は別枠を維持する。
+
+補充中の死亡はGF1のまま終了し、dead本人のempty1が残った。新 `ReceivedState` はcanonical emptyを元位置付きmetadataへ分離して物理stateを既存C++で投影する。rawと物理snapshotはprivilegedで、公開viewへ他者手札/emptyを加えない。旧strict constructorやABI、Matchの再開制約を緩めず、ruleset53/Snapshot53/view-v51を維持する。
+
+Dream全分布・一新中の授与・94＋Wideと一般schedulerは未確定のまま。今回のCPU243は追加補償なしのcompletionと整合するが、全局面の補償法則や未観測のCPU内部retryまで確定したものではない。
+
+検証はReleaseの `official_wire_trace` / `official_state` / `official_state_c_api` / `official_state_python` / `official_match_python` が5/5通過（6.79秒）。State Pythonは既存12＋ReceivedStateの6群＝18 method、Match Pythonは155 methodである。新wireのRelease/SAN個別実行も各1/1通過（0.27／0.40秒）、最終build warning/errorは0件。今回は本体を変更せず、全156ターゲットや全legacy SAN suiteを再実行したものではない。
+
+PythonからSAN版libraryを使う追加試行は、指定した `DYLD_INSERT_LIBRARIES` がPython processへ保持されず、ASan interceptor初期化でabortしたため、成功したSAN Python検査へ数えない。Python adapterの型検査・所有権・close・pending import拒否はReleaseで確認した。rawと匿名化gameの全値、artifact SHA、同一room参照と元識別情報の除去も独立検査した。

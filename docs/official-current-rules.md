@@ -2115,3 +2115,11 @@ submit-commandはmode/roomIdと、選択した `itemIds`・存在する `targetP
 clientが受理するgameのfieldにはplayers/gf/tiebreakGF/attackTurnPlayerId/attacks/isOver/events/updateCountがある。今回の4状態ではisOverは省略され既定falseとなり、attacksは保留攻撃のあるupdate2/4だけに存在する。受信gameにはdiseasePlayerId/guardianPlayerIds/updatedAtもあった。これらの補助fieldや受信updateCountをnative counterへ直接対応させない。fv.fqは直前updateCount＋1と非empty eventsの場合に増分表示し、初回や再接続では状態から組み立て直す。1server更新へ複数の主動作が入り得る。[取得記録](official-live-observations.md#v59連続した受信game文書と3完了操作)ではupdateCount1〜4を連続取得したが、CPU初期giftやCPU184のgiftがeventsに無く、全内部イベントの取得とは異なる。
 
 対局ruleset53 / Snapshot53 / view-v51では、設定中プール内・非Dreamの通常授与を明示chance入力し、161/184/123を乱数消費なしで再生できる。受信slot再利用は所有者＋slot→fresh local tokenの対応で扱う。CPU真手札は検証専用で、公開方策へ出さない。全21完了観測のうち従来15例と新3例がnative比較対象であり、178一新・94＋Wide・Dream全分布・一般scheduleの残件を解消したとはしない。
+
+## v60：補充中死亡の受信イベントと終局後empty
+
+[追加したCPU修行の受信game](../data/official-v2/wire-game-updates-v60.json)はupdateCount1（startGameとCPU32＋51起動）から2（endGame）までを含む。公開クライアントが受け取るgame文書の開始〜終局列は1対局分取得したが、CPU通常gift2件はeventsに無く、全backend内部イベントの取得とは分ける。
+
+本人118＋142のDEF8に対するATK22の14被害、CPU243による191/206除去、本人68の通常受領と同じ受信id5での241→242、HP26→6→0、die→endGameを記録した。最終GF1・CPU勝利は、補充中の致死で次GFへ進まない現規約と整合する。CPU135/172は手札差分から分かる通常結果で、順は不明。新native比較は両順を試す条件付きcompletionであり、CPU内部retryや一般recipient順の証明へ広げない。
+
+最終本人はdead=true・HP0だが、実物8とmodel0/id0のempty1が残る。したがってempty表示からlive gift debtを自動生成できない。Pythonの明示 `ReceivedState` はこのcanonical emptyを元配列index付きmetadataへ分離し、実物を既存native投影で検証する。strict `OfficialState` / native ItemInstanceのmodel0拒否とMatchのpending scene制約は維持する。実行器本体はruleset53 / Snapshot53 / view-v51・ABI2のままで、補充や死亡規約を今回変更したものではない。

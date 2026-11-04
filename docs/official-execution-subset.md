@@ -3085,3 +3085,11 @@ replaceItemsの受信表示は悪魔itemを排除せず、popupは別のuseDevil
 これは同一CPU修行の連続した有限範囲であり、CPU真手札は検証専用である。単一server更新へ複数のmain操作がまとめられ、CPU初期・補充giftの全てがeventsへ現れるわけではない。全backend処理・全対局・server乱数や一般病気scheduleの同値性へ広げない。既存15例1080投影・72routing・72一新コンポーネントは別枠のまま保持する。
 
 この版の検証はRelease全156ターゲット（155＋native1）と、SANの本体/live/wire/C API/driverの5対象が通過。通常入力のpool/Dream/payload検査、RNGとnormal0維持、restore改ざん検出、遅延失敗rollbackとcutoffを含む。詳細と別実行したbenchmark対象は[適合計画v59](official-conformance-plan.md)へ記録する。
+
+## 作業世代v60：補充中の死亡を含む受信境界（対局v53維持）
+
+[受信2更新](../data/official-v2/wire-game-updates-v60.json)は、G.F.1のCPU32＋51に対する本人118＋142の応答から、終末補充中の死亡・endGameまでを示す。native wire targetでは、受信useAttackItemsの32/id9・51/id1を起動前sceneへ戻して既存Commandで1度起動し、受信checkpoint1へ合わせる。この再構成を原初抽選・初期配列順の復元とは呼ばない。DEFは台帳から8と計算し、被害14を入力しない。
+
+本人HP26から、記録したCPU243の除去2個と通常135/172のcompletion、本人通常68、241、242を外部chanceで適用し、HP6→0・CPU勝利・GF1維持を比較する。CPU通常の取得順は未記録なので2順×8seedを試し、受信2checkpoint計32比較となる。各native境界の全snapshot/restore、明示通常3件の無RNGを検証する。nativeの6grant/3normal/3devil等は選んだcompletion内のcounterであり、server counterとの一致ではない。
+
+CPU243へ補償giftを増やさず終点と整合する一方、これだけで全授与経路の補償・retry・recipient順を確定しない。終局本人のempty1はnativeのlive gift0へ等置しない。`ReceivedState` は受信emptyを物理在庫から明示分離するread-only入口であり、emptyをdebtへ変換したり、pending checkpointをMatchへ暗黙loadしたりしない。ruleset53/Snapshot53/view-v51とABI、既存sampler・配布・死亡規約は維持する。

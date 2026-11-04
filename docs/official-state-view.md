@@ -6,6 +6,26 @@
 
 ここでいうviewは、既存のイベント記憶や過去に見た値を補完せず、新規に状態を構成したときの表示・閲覧可能情報である。サーバーのゲーム遷移や乱数生成の再現ではない。wireに存在する値が、そのまま本人へ表示されるとは限らない。
 
+## v60: 受信スナップショットの空スロット分離
+
+Pythonの `ReceivedState` は、公式受信gameに含まれる空行と物理カードを明示的に分離する読み取り専用adapterである。既存の厳格な `OfficialState` constructor、native `ItemInstance`、State ABI1、Match ABI2・ruleset53は変更しない。
+
+```python
+from official_state import ReceivedState
+
+with ReceivedState(raw_game, library) as received:
+    view = received.view(player_id=viewer_id)
+    active = received.active_attack()
+    slots = received.empty_slots         # 特権metadata。policy viewには渡さない
+    physical = received.physical_snapshot
+```
+
+空行として取り除くのは `id=0, modelId=0, fakeModelId=0, used=false` だけで、後ろ2fieldは省略できる。boolを整数として受け入れず、非zero ID・fake、used=true、既知fieldの不正型、安全整数域外値は拒否する。正のmodelIdを持つ実物の `id=0` は保持し、物理カードの重複token等は従来の検査へ渡す。複数の空行は許し、frozen `EmptySlot(player_id, wire_index)` で元配列の0始まり位置を区別する。wire_indexはUIの表示位置や物理tokenではない。終局後の死者にも空行が残る実受信例があるため、空行を未処理gift債務へ読み替えない。
+
+`raw_snapshot` は空行を含む元のJSON、`physical_snapshot` は空行だけを除いたJSONの独立copyを返す。省略field、attacks全列、eventsやopaque fieldは保持し、先頭attackの厳格なdecodeと公開view/active attack/手札queryは内包する既存 `OfficialState` に委譲する。他者の未使用手札・空行数・raw metadataを公開JSONへ追加しない。入力と返されたcopyを変更してもadapterへ影響せず、close/context終了後も所有済みの証拠copyとempty metadataは読めるが、native queryは拒否する。
+
+`ReceivedState` は別型なので `Match.load_scene` へ直接渡せない。必要に応じて `OfficialState(received.physical_snapshot, library)` を明示的に作れるが、attacks/eventsを再生・除去する操作ではなく、非空attacksのMatch import拒否も維持する。pending checkpointの再開APIではない。[匿名化されたv60受信2スナップショット](../data/official-v2/wire-game-updates-v60.json)について、空行の分離、元JSON保持、既存fresh/active投影との一致を検査した。
+
 ## wireの形と本人の特定
 
 `tk`（3752–3786行）はゲーム全体の `players`、`gf`、`tiebreakGF`、`attackTurnPlayerId`、`attacks`、`isOver`、`events`、`updateCount` を読む。表示再構成は `ft.fs`（12334–12376行）。増分イベントを使う経路もあるが、本契約ではfreshな再構成経路だけを扱う。
