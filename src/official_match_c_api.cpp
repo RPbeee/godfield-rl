@@ -16,7 +16,8 @@ namespace official = godfield::official;
 struct gfo_match { official::Match value; explicit gfo_match(official::MatchConfig c) : value(c) {} };
 static_assert(sizeof(gfo_match_config) == 24 && offsetof(gfo_match_config, initial_hp) == 8
     && offsetof(gfo_match_config,external_grants)==6 && offsetof(gfo_match_config,include_fate)==7
-    && offsetof(gfo_match_config,local_guardian_payloads)==20 && offsetof(gfo_match_config,reserved_tail)==21);
+    && offsetof(gfo_match_config,local_guardian_payloads)==20 && offsetof(gfo_match_config,external_artifacts)==21
+    && offsetof(gfo_match_config,reserved_tail)==22);
 static_assert(sizeof(gfo_match_command) == 184 && offsetof(gfo_match_command, items) == 24
     && offsetof(gfo_match_command, hp) == 168 && offsetof(gfo_match_command, has_allocation) == 180);
 static_assert(std::is_standard_layout_v<gfo_match_choice> && sizeof(gfo_match_choice)==208
@@ -90,8 +91,8 @@ std::string text(const char* data, std::size_t size) {
 }
 official::MatchConfig config(const gfo_match_config* c) {
     if (!c) return {};
-    valid(c->external_grants<=1 && c->include_fate<=1 && c->local_guardian_payloads<=1 && zero(c->reserved_tail));
-    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp, c->external_grants!=0,c->include_fate!=0,c->local_guardian_payloads!=0};
+    valid(c->external_grants<=1 && c->include_fate<=1 && c->local_guardian_payloads<=1 && c->external_artifacts<=1 && zero(c->reserved_tail));
+    return {c->max_decisions, c->initial_hand, c->hand_limit, c->initial_hp, c->initial_mp, c->initial_cp, c->external_grants!=0,c->include_fate!=0,c->local_guardian_payloads!=0,c->external_artifacts!=0};
 }
 std::vector<official::PlayerSetup> setup(const gfo_match_player* players, std::size_t count) {
     valid(count <= official::player_capacity);
@@ -326,6 +327,7 @@ int gfo_match_grant_supported(uint16_t model) { return official::match_grant_sup
 size_t gfo_match_artifact_grant_action_size(void) { return sizeof(gfo_match_artifact_grant_action); }
 int gfo_match_artifact_grant_supported(uint16_t model) { return official::match_artifact_grant_supported(model); }
 const char* gfo_match_artifact_grant_rule(void) { return official::artifact_grant_rule; }
+const char* gfo_match_normal_grant_rule(void) { return official::normal_grant_rule; }
 
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;

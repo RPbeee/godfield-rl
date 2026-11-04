@@ -1,0 +1,417 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "One bounded received composite update after a viewer198 self play and automatic CPU191 self-heal,with an initial snapshot. It is not a complete received game lifecycle or an exhaustive backend event trace.",
+  "capture_method": "Firefox native UI and Network Monitor saved response bodies;request payloads,HTTP headers,HAR,document paths and resume tokens are not repository artifacts.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 24064,
+      "response_body_sha256": "fe95fedd905d19198b8e96605a8ae35a7a55c3945cb182491ff4e73cf836100f",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "post-heaven",
+      "response_body_bytes": 20677,
+      "response_body_sha256": "2a698aec8c0c45ec9a37c2e68faf0a14559f9370659afe10a3ff36d1f9daffb4",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "continuity": {
+    "consecutive_game_update_counts": [
+      1,
+      2
+    ],
+    "initial_gf": 1,
+    "post_gf": 3,
+    "captured_game_snapshot_count": 2
+  },
+  "sanitization": {
+    "removed": [
+      "players[].userId",
+      "game.updatedAt",
+      "all original player names"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Numeric in-game IDs,model/item IDs,event payloads,array order,zero placeholders and field omission are preserved.",
+    "raw_source_retention": "Private mode0600 temporary files only. No raw response or account/transport identifier is copied into the repository."
+  },
+  "privileged_scenario_warning": "Received CPU true inventory is privileged scenario data and is not policy-visible hand knowledge.",
+  "boundary_notes": [
+    "One1-to2 server update contains viewer198 self use,Heaven tick,viewer replenishment,GF advance,CPU191 self-heal and another GF advance. Native command/update counters are not assumed equal to server transaction counters.",
+    "CPU replacement is available as a snapshot delta even though no corresponding CPU gift event appears in this viewer-received event list. Received events are not a complete internal grant log.",
+    "The observed non-worsening Heaven tick does not determine the official disease RNG or justify fitting a local seed.",
+    "No terminal state was captured in this pair,so this artifact adds no complete received lifecycle."
+  ],
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 1,
+              "modelId": 35
+            }
+          },
+          {
+            "item": {
+              "id": 2,
+              "modelId": 135
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 199,
+              "id": 3
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 4,
+              "modelId": 155
+            }
+          },
+          {
+            "item": {
+              "modelId": 3,
+              "id": 5
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 4,
+              "id": 6
+            }
+          },
+          {
+            "item": {
+              "modelId": 31,
+              "id": 7
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 156,
+              "id": 8
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 198,
+              "id": 9
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "updateCount": 1,
+        "diseasePlayerId": 1,
+        "players": [
+          {
+            "items": [
+              {
+                "modelId": 35,
+                "id": 1
+              },
+              {
+                "modelId": 135,
+                "id": 2
+              },
+              {
+                "modelId": 199,
+                "id": 3
+              },
+              {
+                "modelId": 155,
+                "id": 4
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "modelId": 4,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 31
+              },
+              {
+                "modelId": 156,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 198
+              }
+            ],
+            "cp": 20,
+            "mp": 10,
+            "hp": 40,
+            "id": 1,
+            "name": "viewer"
+          },
+          {
+            "mp": 10,
+            "hp": 40,
+            "id": 2,
+            "cp": 20,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 118
+              },
+              {
+                "id": 2,
+                "modelId": 157
+              },
+              {
+                "id": 3,
+                "modelId": 44
+              },
+              {
+                "id": 4,
+                "modelId": 135
+              },
+              {
+                "id": 5,
+                "modelId": 219
+              },
+              {
+                "modelId": 5,
+                "id": 6
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 191,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 212
+              }
+            ],
+            "isBot": true,
+            "name": "cpu"
+          }
+        ],
+        "gf": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "attackTurnPlayerId": 1
+      }
+    },
+    {
+      "source_body": "post-heaven",
+      "game": {
+        "attackTurnPlayerId": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 198,
+                "id": 9
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "mp": 20,
+            "action": "boostMP"
+          },
+          {
+            "curse": "heaven",
+            "action": "addCurse"
+          },
+          {
+            "playerId": 1,
+            "action": "disease"
+          },
+          {
+            "hp": 5,
+            "playerId": 1,
+            "action": "boostHP"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 191,
+              "id": 9
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 191,
+                "id": 8
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "hp": 5,
+            "action": "boostHP"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "diseasePlayerId": 1,
+        "players": [
+          {
+            "cp": 20,
+            "curses": [
+              "heaven"
+            ],
+            "items": [
+              {
+                "id": 1,
+                "modelId": 35
+              },
+              {
+                "modelId": 135,
+                "id": 2
+              },
+              {
+                "modelId": 199,
+                "id": 3
+              },
+              {
+                "modelId": 155,
+                "id": 4
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "modelId": 4,
+                "id": 6
+              },
+              {
+                "modelId": 31,
+                "id": 7
+              },
+              {
+                "modelId": 156,
+                "id": 8
+              },
+              {
+                "modelId": 191,
+                "id": 9
+              }
+            ],
+            "mp": 30,
+            "hp": 45,
+            "id": 1,
+            "name": "viewer"
+          },
+          {
+            "items": [
+              {
+                "modelId": 118,
+                "id": 1
+              },
+              {
+                "modelId": 157,
+                "id": 2
+              },
+              {
+                "modelId": 44,
+                "id": 3
+              },
+              {
+                "modelId": 135,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 219
+              },
+              {
+                "id": 6,
+                "modelId": 5
+              },
+              {
+                "id": 7,
+                "modelId": 3
+              },
+              {
+                "id": 9,
+                "modelId": 212
+              },
+              {
+                "modelId": 207,
+                "id": 8
+              }
+            ],
+            "mp": 10,
+            "hp": 45,
+            "id": 2,
+            "isBot": true,
+            "cp": 20,
+            "name": "cpu"
+          }
+        ],
+        "gf": 3,
+        "updateCount": 2
+      }
+    }
+  ],
+  "bounded_authoritative_game_update_batch_count": 1,
+  "initial_authoritative_game_snapshot_count": 1,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

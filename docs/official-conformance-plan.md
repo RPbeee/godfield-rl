@@ -125,11 +125,11 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
 156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えたv9の194モデル・配布重み381を経て、閃光付与/反撃/解除7種を加えたv10の201モデル・配布重み404を経て、暗雲付与/反撃3種を加えたv11の204モデル・配布重み407を経て、除去2種を加えたv12の206モデル・配布重み409を経て、MP武器58/二回攻撃14を加えたv13の208モデル・配布重み411を経て、全敵化232を加えたv14の209モデル・配布重み412を経て、HP増減202を加えたv15の210モデル・配布重み414を経て、自動復活208を加えたv16の211モデル・配布重み415を経て、杵94/臼209を加えたv17の213モデル・配布重み417を経て、v18で両替3を加えた214モデル・配布重み437を経て、v19で同じプールのまま除去結果を公開し、v20で売却4を加えた215モデル/重み457を経て、v21で購入5を加えた216モデル/重み477を経て、v22で病気4状態/付与6種を加えた222モデル/重み483を経て、v23で168/198を加えた224モデル/重み485を経て、v24でFog4種と観測/対象選択を加えた228モデル/重み489を経て、v25で112を加えた229モデル/重み490を経て、取引配送overflowとFogのforeign SELLを扱う `official-execution-subset-v26` へ進め、v27で規約を変えずにofficial-v2へ同期した。
-現行は `official-execution-subset-v54`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
+現行は `official-execution-subset-v55`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
 201/239召喚・canonical42自動行動、限定Earth120/Moon26のopt-in自動payload、外部現象9種と295専用shuffle、
 Fate/悪魔の外部入力と専用ローカルsampler、終末閾値/ささげる、予約補充phase4までを実験規約で扱う。
-Snapshot54、`official-execution-view-v52`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
-C Configのbyte6は `external_grants`、byte7は `include_fate`、byte20は `local_guardian_payloads` の独立したstrict boolで、byte21〜23は0を要求する。
+Snapshot55、`official-execution-view-v53`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
+C Configのbyte6は `external_grants`、byte7は `include_fate`、byte20は `local_guardian_payloads`、byte21は `external_artifacts` の独立したstrict boolで、byte22〜23は0を要求する。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
 別policy乱数、プログラム内snapshot再開、C/Python実行APIを持つ。
@@ -2034,3 +2034,15 @@ PythonからSAN版libraryを使う追加試行は、指定した `DYLD_INSERT_LI
 最終Release build後の全156 CTestが通過した（21.86秒）。Python Matchは158 unique method、native Matchは226 unique callback。重点Release6対象も6/6通過（8.70秒）。ASan/UBSanでは本体・C API・wire・driverの4/4（14.79秒）と、live・driver benchmark・grant benchmark・grant sampler benchmarkの4/4（17.49秒）が通過した。最終Release/SAN buildはwarning/error0。全legacyを含むSAN全suiteやPython SANを実行したという意味ではない。
 
 互換masked/明示unmasked、Dream gate、configured207、型・reserved・NULL・出力canary、本人faceと他者への非漏洩、使用時actual/reveal、混合typed journalの全snapshot再生と不整合拒否、token/update/GF枯渇rollback、cutoffを確認した。既存samplerは独立64seed参照との一致を維持し、旧grant/driver/live/wireの比較も通過した。旧pins・観測記録・oracle・legacy37は変更していない。
+
+## v62：非終末の通常補充と天国病の受信順
+
+`external_artifacts=False` を追加し、任意設定で全GFの予約通常補充を外部結果へ分離する。悪魔許可は従来のexternal_grantsかつactive apocalypseだけとし、normal-only helperはchance entropy0で通常0を返す。driver・元anchor再生・GF閾値跨ぎ・cutoffを同じ条件へ揃える。Config24 byteの21を使用し、ruleset55/Snapshot55/view-v53、ABI2と旧行動幅を保つ。
+
+[新しい受信2状態](../data/official-v2/wire-game-updates-v62.json)は、終末なしの198自己使用から、MP＋20→Heaven→disease→HP＋5→本人191補充→次CPUの191自己回復→G.F.3までを示す。CPU新207は手札差分からの結果で、giftイベントや選出率を取得したものではない。通常授与の結果を乱数へfitせず入力できるようにする今回の入口と接続する。病気悪化の確率は従来のローカル規約を維持し、全server schedulerや率の証明へ広げない。
+
+新1複合観測で累計23完了例・native対象20例となる。v62は従来と同じ固定8seedで2checkpoint計16比較を加え、全てのseedを実行する。初回病気rollは35/65/10/87/13/35/69/13で既存の非悪化枝を通り、seed検索・除外や病気結果の上書きはしない。この一致を公式悪化率の測定へ広げない。通常191とCPU207は明示結果で与え、全物理model/fake/usedと資源・Heaven・GF/owner、各native境界のsnapshot/restoreを比較する。
+
+最終Release検証は、wire以外155/155（22.95秒）と新wire1/1（0.26秒）を合わせ全156ターゲットが通過した。Python Matchは161 unique method、native Matchは229 unique callback。SANは本体1/1（12.96秒）、C API/driver/liveとdriver・grant・grant sampler benchmarkの6/6（19.41秒）、新wire1/1（0.40秒）の8対象が通過した。最終Release/SAN buildのwarning/errorは0件。全legacy SAN suiteやPython SANを再実行したものではない。
+
+20個のflag×閾値scene、normal-onlyのdriver/2stream無消費と旧通常0のgame RNG一致、defaultfalse、非終末masked proof・late token/update/GF rollback・cutoff、reset/178即時redraw/取引配送の例外、208復活で元攻撃と復活の別2予約が一度だけ満たされることを検証した。テストfixtureでは通常199自己使用を補充契機とし、無補充のdiscardを使わない。旧非終末flagだけの捏造grant累計をrestoreで拒否する従来の厳格性も維持する。

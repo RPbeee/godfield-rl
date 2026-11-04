@@ -231,16 +231,85 @@ void replay_v60(std::uint64_t seed,bool reverse_cpu_receipts) {
     check(game.grant_legal(large),"v60 recorded large devil is legal");(void)game.grant_step(large);roundtrip(game);
     compare_v60(game,slots,true);
 }
+
+// Numeric transcription of data/official-v2/wire-game-updates-v62.json.
+// These are privileged received inventories, not policy observations. Update2
+// contains both main operations. CPU207 is a snapshot delta, not a captured CPU
+// gift event. The existing eight fixed seeds all take the observed non-worsening
+// Heaven branch; no seed search, exclusion, skip or supplied disease outcome is
+// used. This is conditional trace agreement, not server RNG/distribution proof.
+constexpr std::array<ReceivedSlot,9> v62_initial_viewer{{{1,35},{2,135},{3,199},{4,155},{5,3},{6,4},{7,31},{8,156},{9,198}}};
+constexpr std::array<ReceivedSlot,9> v62_initial_cpu{{{1,118},{2,157},{3,44},{4,135},{5,219},{6,5},{7,3},{8,191},{9,212}}};
+constexpr std::array<ReceivedSlot,9> v62_final_viewer{{{1,35},{2,135},{3,199},{4,155},{5,3},{6,4},{7,31},{8,156},{9,191}}};
+constexpr std::array<ReceivedSlot,9> v62_final_cpu{{{1,118},{2,157},{3,44},{4,135},{5,219},{6,5},{7,3},{9,212},{8,207}}};
+void compare_v62(const Match& game,const SlotMap& slots,bool final) {
+    const auto& snap=game.snapshot();
+    check(snap.config.external_artifacts&&snap.config.include_fate&&!snap.config.external_grants,
+          "v62 uses the actual full ordinary gift pool and normal-only reserved input mode");
+    check(snap.state.gf==(final?3:1)&&!snap.state.tiebreak_gf&&snap.owner==1&&snap.actor==1&&snap.phase==MatchPhase::main
+          &&!snap.state.is_over&&!snap.terminated&&!snap.truncated&&snap.queue.empty()&&!snap.pending_grant,
+          "v62 received initial/final GF, owner, no-apocalypse and quiescent boundaries match");
+    check(snap.state.players.size()==2&&slots.size()==18&&snap.gifts==std::vector<std::uint32_t>{0,0},"v62 exactly eighteen positive mapped copies and no residual debt");
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];
+        const auto& rows=seat==0?(final?v62_final_viewer:v62_initial_viewer):(final?v62_final_cpu:v62_initial_cpu);
+        check(player.id==seat+1&&player.hp==(final?45:40)&&player.mp==(final&&seat==0?30:10)&&player.cp==20
+              &&player.items.size()==rows.size()&&!player.dead&&player.guardian==Guardian::none&&player.confusion_count==0&&player.team==Team::solo,
+              "v62 received resources, alive/default state and physical counts match");
+        const auto curses=final&&seat==0?std::vector<Curse>{Curse::heaven}:std::vector<Curse>{};
+        check(player.curses==curses,"v62 Heaven is applied only to its observed recipient");
+        for(const auto& row:rows) {
+            const auto mapped=slots.find({player.id,row.slot});check(mapped!=slots.end(),"v62 positive row has a qualified local mapping");
+            check(std::find(player.items.begin(),player.items.end(),ItemInstance{mapped->second,row.model,{},false})!=player.items.end(),
+                  "v62 actual model, absent fake and unused state match without received-slot/native-token identity");
+        }
+    }
+    if(final)check(snap.grant_resolutions==2&&snap.grant_artifacts==2&&snap.grant_devils==0&&snap.decisions==4,
+                  "v62 local completion contains two player plays and two explicit normal receipts");
+    // Received transaction counters, RNG, inventory order and native fresh IDs
+    // are excluded. The intermediate grant boundaries are local, not extra
+    // received checkpoints. All old nonselected mapped copies remain intact.
+    roundtrip(game);
+}
+void replay_v62(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.max_decisions=64;config.external_artifacts=true;config.include_fate=true;
+    Match game(config);SlotMap slots;SnapshotState state;state.gf=1;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        const auto& rows=seat==0?v62_initial_viewer:v62_initial_cpu;
+        for(const auto& row:rows){const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;player.items.push_back({token,row.model,{},false});}
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_v62(game,slots,false);
+    check(find_card(198)->ability==Ability::boost_mp_and_add_curse&&find_card(198)->ability_value==20&&find_card(198)->curse==Curse::heaven
+          &&find_card(191)->ability==Ability::boost_hp&&find_card(191)->ability_value==5,"v62 resource changes are derived from catalog effects, not supplied damage");
+    const Command herb{1,CommandKind::play,{consumed_slot(slots,1,9)},1};
+    check(game.legal(herb),"v62 observed self198 is legal");(void)game.step(herb);roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1&&game.snapshot().state.gf==1
+          &&game.snapshot().state.players[0].hp==45&&game.snapshot().state.players[0].mp==30
+          &&game.snapshot().last_tick&&game.snapshot().last_tick->before==Curse::heaven&&game.snapshot().last_tick->after==Curse::heaven
+          &&!game.snapshot().last_tick->worsened&&!game.snapshot().last_tick->fallen,
+          "v62 existing fixed seed takes the recorded Heaven non-worsening branch before its pending ordinary receipt");
+    supplied_receipt(game,slots,1,9,191);
+    const Command dew{2,CommandKind::play,{consumed_slot(slots,2,8)},2};
+    check(game.legal(dew),"v62 observed CPU self191 is legal");(void)game.step(dew);roundtrip(game);
+    check(game.snapshot().pending_grant==2&&game.snapshot().state.gf==2&&game.snapshot().state.players[1].hp==45,
+          "v62 CPU recovery completes before the inferred ordinary inventory delta");
+    supplied_receipt(game,slots,2,8,207);compare_v62(game,slots,true);
+}
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
+        replay_v62(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
              <<"not full matches, server RNG equivalence or public-player policy inputs\n";
     std::cout<<"v60: 8 seeds x2 unknown-CPU-receipt-order completions x2 received checkpoints; "
              <<"pre-launch CPU hand restored from received use events; dead UI placeholder is not live debt\n";
+    std::cout<<"v62: existing 8 fixed seeds x2 received checkpoints, no-apocalypse198/191 plays and explicit191/207 receipts; "
+             <<"all seeds match the observed non-worsening Heaven branch without search or skip; not server RNG equivalence\n";
 }

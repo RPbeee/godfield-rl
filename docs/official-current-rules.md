@@ -2129,3 +2129,9 @@ clientが受理するgameのfieldにはplayers/gf/tiebreakGF/attackTurnPlayerId/
 既存clientのitem decoderはmodelId/fakeModelId/usedを別に持ち、選択はfake優先、受信use表示はactualへの翻面を行う。翻面だけでrawのfakeが消えるとは確定しない。この境界を保ち、新 `ArtifactGrantAction` は既知の互換actual/fakeまたは明示unmasked結果を外部chanceとして入力する。供給結果を生成する乱数や公式selectorの実装を得たという意味ではない。
 
 ruleset54 / Snapshot54 / view-v52で型付きgrant journalとC16 byteの独立入口を追加した。旧GrantAction/通常0/sampler、互換クラス内という実行閉包、配布・死亡scheduleは維持する。今回の探索で新しい公式Dream pairを確定していないため、完了観測の件数は増やさない。互換外を真値による事前拒否でごまかす方式や、同一modelへのmaskで50%へ合わせる変更も行っていない。
+
+## v62：天国草の付与・病気処理・補充の受信順
+
+[終末なしCPU修行の受信記録](../data/official-v2/wire-game-updates-v62.json)で、本人198/id9の自己使用からboostMP20・addCurse heaven・本人disease・boostHP5・gift191/id9・advanceGF CPUの順を取得した。同じupdateCount2にはCPU191/id8の自己使用・boostHP5・advanceGF本人も入る。初期GF1の両者40/10/20から、GF3の本人45/30/20Heaven・CPU45/10/20へ進んだ。この有限条件の受信イベントでは、新規Heavenのdisease/回復が通常補充・GF更新より前に並ぶ。悪化率や一般病気scheduler、backend内部計算全体の順序を証明しない。
+
+CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベントは収録されていない。207の自然受領に整合するが、その使用・現象選出や率は比較していない。新external_artifacts optionはこうした非終末通常結果の再現用で、既定の抽選・悪魔範囲を維持する。reset/即時一新/取引配送の別経路やDream全分布を今回広げたものではない。

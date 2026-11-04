@@ -207,6 +207,8 @@ void consume(MatchSnapshot& s, std::size_t seat, const std::vector<ItemToken>& t
 }
 bool damaging(const EffectFrame& effect) { return effect.power > 0 || effect.category == Category::weapons; }
 bool apocalypse_active(const SnapshotState& state) { return state.tiebreak_gf && state.gf>=*state.tiebreak_gf; }
+bool devil_grants_enabled(const MatchSnapshot& s) { return s.config.external_grants && apocalypse_active(s.state); }
+bool external_grant_pause(const MatchSnapshot& s) { return s.config.external_artifacts || devil_grants_enabled(s); }
 bool discardable(const Card& card) {
     return card.category != Category::weapons && card.ability != Ability::revive && card.ability != Ability::attract_danger;
 }
@@ -716,7 +718,7 @@ void advance(MatchSnapshot& s) {
     for (std::size_t seat = 0; seat < s.gifts.size(); ++seat) {
         while (s.gifts[seat]) {
             if (s.state.players[seat].dead) { s.gifts[seat]=0; break; }
-            if (s.config.external_grants && apocalypse_active(s.state)) {
+            if (external_grant_pause(s)) {
                 s.pending_grant=s.state.players[seat].id; s.actor.reset(); s.phase=MatchPhase::grant;
                 s.grant_proof=*s.batch; return;
             }
@@ -1266,7 +1268,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
 }
 void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
     require(s.phase==MatchPhase::grant && !s.actor && s.pending_grant==action.target && s.batch
-        && s.config.external_grants && apocalypse_active(s.state) && !s.terminated && !s.truncated,"grant needs the current environment recipient");
+        && external_grant_pause(s) && !s.terminated && !s.truncated,"grant needs the current environment recipient");
     const auto seat=index(s,action.target); require(!s.state.players[seat].dead && s.gifts[seat]>0,"missing live gift debt");
     if (!match_grant_supported(action.model)) unsupported("unsupported grant outcome");
     if (!match_devil_supported(action.model)) {
@@ -1275,7 +1277,10 @@ void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
             if (!gift_model_supported(action.model,s.config.include_fate)) unsupported("explicit ordinary model is outside the configured gift pool");
             if (has_curse(s.state.players[seat],Curse::dream)) unsupported("explicit ordinary grant cannot infer a Dream disguise");
         }
-    } else devil_shape(s,action);
+    } else {
+        if (!devil_grants_enabled(s)) unsupported("devil grant requires the apocalypse external-grants mode");
+        devil_shape(s,action);
+    }
 }
 void prepare_artifact_grant(const MatchSnapshot& s, const ArtifactGrantAction& action) {
     // Reuse only the ordinary sentinel's phase/debt checks, never its chooser.
@@ -1360,12 +1365,13 @@ void validate_snapshot(const MatchSnapshot& s) {
         && s.devil_actions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions-s.fate_actions
         && s.grant_resolutions<=s.decisions-s.guardian_actions-s.guardian_payload_actions-s.phenomenon_actions-s.fate_actions-s.devil_actions,"invalid external activation counts");
     require(s.grant_artifacts<=s.grant_resolutions && s.grant_devils==s.grant_resolutions-s.grant_artifacts
-        && (!s.grant_resolutions || (s.config.external_grants && apocalypse_active(s.state))),"invalid grant outcome counters");
+        && (!s.grant_resolutions || external_grant_pause(s))
+        && (!s.grant_devils || devil_grants_enabled(s)),"invalid grant outcome counters");
     require(s.pending_grant.has_value()==(s.phase==MatchPhase::grant)
         && (!(s.pending_grant || s.last_grant) || s.grant_proof.has_value()),"grant phase or notice lacks its journal");
     if (s.grant_proof) {
         const auto& journal=*s.grant_proof;
-        require(s.config.external_grants && journal.initial_state.players.size()==n && journal.decisions<s.decisions
+        require((s.config.external_grants || s.config.external_artifacts) && journal.initial_state.players.size()==n && journal.decisions<s.decisions
             && journal.attack.items.size()<=s.config.hand_limit && journal.models.size()<=visible_hand_capacity
             && journal.targets.size()<=2*(n-1) && journal.responses.size()<s.config.max_decisions && journal.grants.size()<s.config.max_decisions
             && journal.responses.size()+journal.grants.size()==s.decisions-journal.decisions-1,"invalid original grant journal shape");
@@ -1839,6 +1845,7 @@ MatchStep Match::rollout_step(std::uint64_t& policy_rng, std::uint64_t& chance_r
 GrantAction Match::sample_grant(std::uint64_t& chance_rng) const {
     GrantAction selected{data_.pending_grant.value_or(0),0,{},{}};
     prepare_grant(data_,selected);
+    if (!devil_grants_enabled(data_)) return selected;
     auto rng=chance_rng;
     auto ticket=bounded(rng,100);
     for (CardId model=240; model<=244; ++model) {
@@ -2086,7 +2093,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v52\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v53\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -2129,6 +2136,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
     out += "\",\"grant_rule\":\""; out += grant_rule;
     out += "\",\"artifact_grant_rule\":\""; out += artifact_grant_rule;
+    out += "\",\"normal_grant_rule\":\""; out += normal_grant_rule;
     out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
     out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule;
     out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule;
@@ -2138,6 +2146,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"gift_pool\":{\"include_fate\":"; out += data_.config.include_fate?"true":"false";
     out += ",\"models\":"+std::to_string(data_.config.include_fate?237:236)+",\"weight\":"+std::to_string(gift_weight())+'}';
     out += ",\"local_guardian_payloads\":"; out += data_.config.local_guardian_payloads?"true":"false";
+    out += ",\"external_artifacts\":"; out += data_.config.external_artifacts?"true":"false";
     out += ",\"apocalypse_active\":"; out += apocalypse_active(data_.state)?"true":"false";
     out += ",\"owner\":" + std::to_string(data_.owner) + ",\"actor\":";
     out += data_.actor ? std::to_string(*data_.actor) : "null";

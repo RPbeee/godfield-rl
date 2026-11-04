@@ -164,3 +164,15 @@ CPUの通常新2品135/id1・172/id4は最終手札の差分で同定したが�
 CPU修行を3対局探索したが、新たなDreamのmodelId/fakeModelId pairを確定していない。未記録の単発経過や初期手札を、新しい完了witnessやfull比較へ加算しない。探索終了後はホームへ戻り、Network Monitor閉鎖を確認した。公式完了観測22件・native対象19件、独立routing1、完結した受信game列1対局分・全backendイベントtrace0を維持する。
 
 今回追加した `ArtifactGrantAction` の互換pair検証は合成fixtureによるローカル契約の比較である。公式の全Dream候補・50%分布・互換外実体の使用結果が確認できたという記録へ読み替えない。
+
+## v62：終末なし天国草と通常補充
+
+2026年11月5日の2人CPU修行・終末なしで、[連続受信game2状態](../data/official-v2/wire-game-updates-v62.json)を保存した。viewer1・CPU2、updateCount1はGF1本人main、双方HP40/MP10/CP20・実手札9である。198天国草（＋MP20、Heaven）を選び、本人statusを明示targetとして主動作ペインから確定した。
+
+updateCount2の順は、本人198/id9使用→target1→MP＋20→Heaven付与→本人disease→HP＋5→本人191/id9受領→CPUへGF更新→CPU191/id8使用→HP＋5→本人へGF更新である。UIでもGF3本人45/30/20・Heaven、CPU45/10/20・本人手札9を確認した。本人の191はgiftイベント、CPUの新207/id8は受信在庫差分として区別する。同じid9は198→191へ再利用され、恒久的物理tokenとはしない。
+
+新1例は本人の操作からCPU自己回復を経た次mainまでの複合完了例として数え、CPU回復を別の独立例へ重複加算しない。開始〜終局ではなくGF3で退出し、ホーム復帰・Network Monitor閉鎖を確認した。本文だけを保存し、名前/userId/updatedAt等を除去してgame数値・省略field・events順を保持する。
+
+この非悪化Heavenの1例から5%率を測定したとはしない。新external_artifacts modeでは通常の結果を入力できるが、病気tickは既存game RNGのままである。native比較でも既定の固定seed集合を変えず、観測結果に合わせた検索・除外を行わない。[機械可読観測](../data/official-v2/live-transition-witnesses-v62.json)に比較範囲を記録する。
+
+累計23完了観測・native対象20例となる。新wire比較は固定8seed×2checkpoint＝16比較で、従来の1080投影・72routing・72一新部分検証、v59の32checkpoint、v60の32checkpointと別集計である。全8seedは既存のローカルHeaven非悪化枝を通るが、公式の率や一般的な病気処理順を検証するものではない。開始〜終局の受信列1対局分・全backendイベントtrace0は維持する。

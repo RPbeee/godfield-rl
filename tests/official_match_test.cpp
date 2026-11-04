@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v54"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v55"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v52\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v53\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3029,7 +3029,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==54&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==55&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3039,7 +3039,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v52")!=std::string::npos
+    check(view.find("official-execution-view-v53")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3417,10 +3417,110 @@ void artifact_grant_validation_journal_and_late_rollback(){
     mixed.grant_step({0,0,{},{}});check(mixed.snapshot().grant_proof->grants.size()==2&&mixed.snapshot().grant_artifacts==2,"typed artifact and legacy random0 resolutions coexist in one replay journal");roundtrip(mixed);
 }
 
+void external_artifacts_flags_thresholds_sampler_and_driver(){
+    for(bool artifacts:{false,true})for(bool devils:{false,true})for(int threshold:{-1,0,4,5,6}){
+        MatchConfig config;config.initial_hand=0;config.external_artifacts=artifacts;config.external_grants=devils;
+        auto state=scene({199},{});state.gf=5;if(threshold>=0)state.tiebreak_gf=threshold;
+        Match game(config);game.load_scene(state,0,42);const bool active=threshold>=0&&threshold<=5;
+        const Command command=play(0,{0},0);
+        game.step(command);const bool pause=artifacts||(devils&&active);
+        check((game.snapshot().phase==MatchPhase::grant)==pause,"four flags and absent/before/at/after threshold select only the intended reserved pump");
+        if(!pause){check(game.snapshot().decisions==1&&game.snapshot().owner==7&&game.snapshot().state.gf==6,"disabled or prethreshold original normal gift stays within its main decision");roundtrip(game);continue;}
+        const auto pending=game.snapshot();roundtrip(game);
+        check(game.grant_legal({0,240,{},{}})==(devils&&active),"external artifacts alone never permits a devil even after apocalypse");
+        for(const auto& action:std::vector<GrantAction>{{0,241,{},{}},{0,242,{},{}},{0,243,{},{}},{0,244,Resource::hp,{}}})
+            check(game.grant_legal(action)==(devils&&active),"all supplied devil variants share the event-time apocalypse permission");
+        std::uint64_t chance=123;const auto sample=game.sample_grant(chance);
+        check(game.snapshot()==pending&&game.grant_legal(sample),"grant sampler remains pure and always returns a legal mode-specific outcome");
+        if(!(devils&&active))check(sample==GrantAction{0,0,{},{}}&&chance==123,"normal-only sampler returns zero without touching chance RNG");
+        else {auto old_config=config;old_config.external_artifacts=false;Match old(old_config);old.load_scene(state,0,42);old.step(command);std::uint64_t old_chance=123;
+            check(old.sample_grant(old_chance)==sample&&old_chance==chance,"apocalypse external-grants sampler keeps its original chooser law under either artifact flag");}
+        if(!(devils&&active)){
+            Match driven(config);driven.restore(pending);std::uint64_t policy=73,driver_chance=123;driven.rollout_step(policy,driver_chance);
+            game.grant_step({0,0,{},{}});check(driven.snapshot()==game.snapshot()&&policy==73&&driver_chance==123,"driver drains normal-only grant without external policy or chance entropy");
+            auto direct_config=config;direct_config.external_artifacts=false;direct_config.external_grants=false;Match direct(direct_config);direct.load_scene(state,0,42);direct.step(command);
+            auto expected=direct.snapshot().state;expected.update_count=game.snapshot().state.update_count;
+            check(game.snapshot().state==expected&&game.snapshot().rng==direct.snapshot().rng&&game.snapshot().next_token==direct.snapshot().next_token
+                &&game.snapshot().decisions==2,"normal-only zero grants retain default gift RNG and gameplay with one extra explicit decision");
+            if(threshold==6)check(game.snapshot().state.gf==6&&game.snapshot().grant_proof->initial_state.gf==5,"completed proof preserves the pre-apocalypse anchor across GF threshold crossing");
+            roundtrip(game);
+        }
+    }
+    MatchConfig legacy;legacy.initial_hand=0;legacy.external_grants=true;
+    Match unchanged(legacy);unchanged.load_scene(scene(),0,42);unchanged.step(pray(0));
+    const auto exact=unchanged.snapshot();auto forged=exact;
+    forged.grant_resolutions=1;forged.grant_artifacts=1;
+    bool rejected=false;try{unchanged.restore(forged);}catch(const MatchError&){rejected=true;}
+    check(rejected&&unchanged.snapshot()==exact,"legacy pre-apocalypse mode still rejects invented external grant counters");
+}
+
+void external_artifacts_masked_replay_cutoff_and_late_failure(){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;
+    auto state=scene({199},{});state.players[0].curses={Curse::dream};
+    Match game(config);game.load_scene(state,0,7);game.step(play(0,{0},0));const auto pending=game.snapshot();
+    check(!pending.state.tiebreak_gf&&pending.phase==MatchPhase::grant&&game.artifact_grant_legal({0,29,54}),"non-apocalypse recipient supports a recorded compatible Dream artifact");
+    for(const auto& bad:std::vector<GrantAction>{{0,240,{},{}},{0,244,Resource::cp,{}}}){
+        bool failed=false;try{game.grant_step(bad);}catch(const MatchError& e){failed=e.code==MatchErrorCode::unsupported;}
+        check(failed&&game.snapshot()==pending,"normal-only devil refusal is atomic before any resource or chooser effect");
+    }
+    game.artifact_grant_step({0,29,54});const auto saved=game.snapshot();roundtrip(game);
+    check(saved.rng==pending.rng&&saved.dream_rolls==0&&saved.dream_masks==0&&saved.state.players[0].items[0].fake_model==54
+        &&saved.owner==7&&saved.state.gf==1,"recorded non-apocalypse mask advances the original turn with no local RNG draws");
+    for(unsigned error=0;error<3;++error){auto bad=saved;
+        if(error==0)bad.config.external_artifacts=false;
+        if(error==1)std::get<ArtifactGrantAction>(bad.grant_proof->grants[0].action).fake_model.reset();
+        if(error==2)++bad.rng;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}
+        check(failed&&game.snapshot()==saved,"normal-only full proof rejects config, disguise and RNG tampering");
+    }
+    for(unsigned failure=0;failure<3;++failure){auto late=state;
+        if(failure==0)late.players[0].items[0].token=max_wire_integer;
+        if(failure==1)late.update_count=max_wire_integer-1;
+        if(failure==2)late.gf=max_wire_integer;
+        Match atomic(config);atomic.load_scene(late,0,7);atomic.step(play(0,{late.players[0].items[0].token},0));const auto exact=atomic.snapshot();
+        bool failed=false;try{atomic.artifact_grant_step({0,29,54});}catch(const MatchError&){failed=true;}
+        check(failed&&atomic.snapshot()==exact,"non-apocalypse late token/update/GF failure rolls back to the pending checkpoint");roundtrip(atomic);
+    }
+    for(std::uint32_t limit:{1u,2u}){auto limited=config;limited.max_decisions=limit;Match cutoff(limited);cutoff.load_scene(state,0,7);cutoff.step(play(0,{0},0));
+        if(limit==2)cutoff.artifact_grant_step({0,29,54});
+        check(cutoff.snapshot().truncated&&cutoff.snapshot().state.gf==0&&cutoff.snapshot().gifts==std::vector<std::uint32_t>{0,0}
+            &&cutoff.snapshot().state.players[0].items.size()==limit-1&&cutoff.snapshot().rng==7,"extra grant decisions use the existing body-before-cutoff and debt cancellation policy");roundtrip(cutoff);
+    }
+}
+
+void external_artifacts_reset_redraw_and_trade_exceptions(){
+    MatchConfig enabled;enabled.external_artifacts=true;MatchConfig disabled=enabled;disabled.external_artifacts=false;
+    Match normal(disabled),external(enabled);check(normal.snapshot().state==external.snapshot().state&&normal.snapshot().rng==external.snapshot().rng
+        &&normal.snapshot().next_token==external.snapshot().next_token&&external.snapshot().phase==MatchPhase::main,"opt-in flag does not pause or alter reset distribution");
+    const std::array<PlayerSetup,2> players{{{0,Team::solo,"a"},{7,Team::solo,"b"}}};external.reset(players,91);normal.reset(players,91);
+    check(external.snapshot().config.external_artifacts&&external.snapshot().state==normal.snapshot().state&&external.snapshot().rng==normal.snapshot().rng,"reset preserves the flag without changing initial RNG draws");
+    auto hat_state=scene({6},{178,235});hat_state.players[1].items[1].used=true;Match hat(enabled);hat.load_scene(hat_state,0,7);hat.step(play(0,{0},7));hat.step(defend(7,{0}));
+    check(hat.snapshot().phase==MatchPhase::grant&&hat.snapshot().pending_grant==0&&hat.snapshot().redraws==1&&hat.snapshot().redrawn_items==1
+        &&hat.snapshot().state.players[1].items.size()==1&&!hat.snapshot().state.players[1].items[0].used&&hat.snapshot().state.players[1].items[0].token==2
+        &&hat.snapshot().next_token==3&&hat.snapshot().grant_resolutions==0,"178 redraw commits its immediate fresh replacement before only the reserved gift pump pauses");roundtrip(hat);
+    auto trade_state=scene({4,6},{});Match sale(enabled);sale.load_scene(trade_state,0,7);sale.step({0,CommandKind::sell,{0,1},0});
+    check(sale.snapshot().phase==MatchPhase::grant&&sale.snapshot().state.players[0].items==std::vector<ItemInstance>{{2,6,{},false}}
+        &&sale.snapshot().next_token==3&&sale.snapshot().gifts[0]==1&&sale.snapshot().grant_resolutions==0,"trade commodity arrives normally and only its separate operation gift pauses");roundtrip(sale);
+    auto revival_state=scene({6},{208});revival_state.players[1].hp=1;
+    Match revived(enabled);revived.load_scene(revival_state,0,7);revived.step(play(0,{0},7));revived.step(defend(7));
+    check(revived.snapshot().revivals==1&&revived.snapshot().state.players[1].hp==10
+        &&revived.snapshot().gifts==std::vector<std::uint32_t>{1,1}&&revived.snapshot().pending_grant==0,
+        "non-apocalypse revival reserves its own replacement beside the original attack gift");roundtrip(revived);
+    revived.artifact_grant_step({0,6,{}});
+    check(revived.snapshot().pending_grant==7&&revived.snapshot().revivals==1,"normal-only continuation reaches the revived recipient without repeating revival");roundtrip(revived);
+    revived.artifact_grant_step({7,16,{}});
+    check(revived.snapshot().phase==MatchPhase::main&&revived.snapshot().owner==7&&revived.snapshot().state.gf==1
+        &&revived.snapshot().state.players[1].hp==10&&revived.snapshot().revivals==1&&revived.snapshot().rng==7,
+        "both supplied normal replacements drain once before the next living owner");roundtrip(revived);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),226> tests{{
+    const std::array<void(*)(),229> tests{{
+        external_artifacts_flags_thresholds_sampler_and_driver,
+        external_artifacts_masked_replay_cutoff_and_late_failure,
+        external_artifacts_reset_redraw_and_trade_exceptions,
         artifact_grant_delivery_privacy_and_reveal,
         artifact_grant_validation_journal_and_late_rollback,
         explicit_ordinary_grant_delivery_rng_and_config,

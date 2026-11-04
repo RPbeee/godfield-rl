@@ -328,3 +328,16 @@ CPU32＋51のATK22へ本人118＋142のDEF8で応答し、14被害と補充中�
 ## v61：Dream結果の明示入力（新witness追加なし）
 
 ruleset54 / Snapshot54 / view-v52の新 `ArtifactGrantAction` は、現互換クラス内actual/fakeまたは明示unmaskedを外部chanceで受け取る。新C16 byte型を追加するが、既存GrantAction32 byteとABI2・通常0/samplerを維持する。新たな公式Dream pairを今回確定していないため、台帳pins・過去witness・件数は変更しない。合成入力テストは完了観測22例・native対象19例へ加算しない。詳しい入力契約は[実行規約](../../docs/official-execution-subset.md)を参照。
+
+## v62：非終末の天国草・病気処理・通常授与
+
+[wire-game-updates-v62.json](wire-game-updates-v62.json)へ同じ終末なしCPU修行のupdate1/2、[live-transition-witnesses-v62.json](live-transition-witnesses-v62.json)へ1複合完了操作を保存する。198自己使用のMP＋20・Heaven付与・disease/HP＋5・本人191補充、その後のCPU191自己回復を同じbatchで取得した。CPU207は最終在庫差分からの記録結果で、giftイベントや率の証明とは区別する。
+
+runtimeはruleset55/Snapshot55/view-v53。新external_artifactsは全GFの予約通常補充へ入力できるが、悪魔は旧終末modeだけ、reset/即時redraw/取引配送は変えない。元識別情報とroom path・headerを含めず、game内の数値・field省略・events順・受信slot再利用は保持する。旧pins・witness・oracleは変更しない。
+
+| v62 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v62.json` | 10,303 | `feb6b6f323e12ce51ecb558749477601c4c263154b02fe124b35716597d5c0d1` |
+| `live-transition-witnesses-v62.json` | 8,621 | `74329bbddf358fae79ff25351fae285cf8144ebd4ad201156eaa7be2cef1bcb6` |
+
+新1例で累計23完了観測・native対象20例。固定8seed×2checkpoint＝16比較を従来の集計と分ける。同一room参照と指定した匿名化だけでの全game値一致、raw mode600、元識別情報の不在、受信イベント列の一致を独立検査した。

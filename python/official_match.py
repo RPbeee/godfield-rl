@@ -57,6 +57,7 @@ class Config:
     external_grants: bool = False
     include_fate: bool = False
     local_guardian_payloads: bool = False
+    external_artifacts: bool = False
 
 @dataclass(frozen=True)
 class PlayerSetup:
@@ -179,7 +180,7 @@ class RolloutError(MatchError):
 class _Config(c.Structure):
     _fields_ = [("max_decisions", c.c_uint32), ("initial_hand", c.c_uint8), ("hand_limit", c.c_uint8),
         ("external_grants", c.c_uint8), ("include_fate", c.c_uint8), ("initial_hp", c.c_int32), ("initial_mp", c.c_int32), ("initial_cp", c.c_int32),
-        ("local_guardian_payloads", c.c_uint8), ("reserved_tail", c.c_uint8 * 3)]
+        ("local_guardian_payloads", c.c_uint8), ("external_artifacts", c.c_uint8), ("reserved_tail", c.c_uint8 * 2)]
 class _Player(c.Structure):
     _fields_ = [("id", c.c_uint64), ("name", c.c_char_p), ("name_size", c.c_size_t), ("team", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _Command(c.Structure):
@@ -221,7 +222,8 @@ def _config(value):
     if type(value.external_grants) is not bool: raise InvalidMatchError("external_grants must be bool")
     if type(value.include_fate) is not bool: raise InvalidMatchError("include_fate must be bool")
     if type(value.local_guardian_payloads) is not bool: raise InvalidMatchError("local_guardian_payloads must be bool")
-    result = _Config(external_grants=value.external_grants, include_fate=value.include_fate, local_guardian_payloads=value.local_guardian_payloads, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
+    if type(value.external_artifacts) is not bool: raise InvalidMatchError("external_artifacts must be bool")
+    result = _Config(external_grants=value.external_grants, include_fate=value.include_fate, local_guardian_payloads=value.local_guardian_payloads, external_artifacts=value.external_artifacts, max_decisions=_integer(value.max_decisions, "max_decisions", 0, 2**32 - 1),
         initial_hand=_integer(value.initial_hand, "initial_hand", 0, 255), hand_limit=_integer(value.hand_limit, "hand_limit", 0, 255))
     for name in ("initial_hp", "initial_mp", "initial_cp"):
         setattr(result, name, _integer(getattr(value, name), name, -(2**31), 2**31 - 1))
@@ -441,7 +443,7 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
             for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
@@ -449,12 +451,14 @@ class Match:
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
         self.self_attack_rule = lib.gfo_match_self_attack_rule().decode()
         self.artifact_grant_rule = lib.gfo_match_artifact_grant_rule().decode()
+        self.normal_grant_rule = lib.gfo_match_normal_grant_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v54"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v55"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
-            or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21
+            or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21
+            or _Config.reserved_tail.offset != 22
             or lib.gfo_match_player_size() != c.sizeof(_Player)
             or lib.gfo_match_command_size() != c.sizeof(_Command) or lib.gfo_match_status_size() != c.sizeof(_Status)
             or self.driver_api_version != 1 or lib.gfo_match_choice_size() != c.sizeof(_Choice)
@@ -839,6 +843,8 @@ class Match:
         """Privileged local chance: returns (GrantAction,new_rng), without changing the match.
 
         Returns model0 or a devil, never an explicit ordinary-model result.
+        Without authorized apocalypse devils, normal-only mode returns0 and
+        preserves chance_rng; the normal artifact itself uses game RNG at step.
         Uses actual current tokens for243. This is separate from policy/game RNG
         and does not claim the server's resource or copy selection distribution.
         """

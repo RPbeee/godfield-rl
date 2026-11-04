@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "Capture date is known;individual absolute UI timestamps were not retained.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v60.json",
+  "method": "Native Firefox CPU-training UI plus response-only Network Monitor exports. No outgoing command replay or request/header/HAR export.",
+  "session": {
+    "mode": "training",
+    "player_count": 2,
+    "tiebreak_gf": null,
+    "viewer_player_id": 1,
+    "cpu_player_id": 2,
+    "returned_home_after_observation": true,
+    "network_monitor_closed_after_observation": true
+  },
+  "privacy": {
+    "original_names_and_user_ids_removed": true,
+    "raw_bodies_private_mode0600": true,
+    "received_cpu_inventory": "Privileged fixture only;not policy-visible or a multiplayer privacy claim."
+  },
+  "authoritative_fixture": "wire-game-updates-v62.json",
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 24064,
+      "response_body_sha256": "fe95fedd905d19198b8e96605a8ae35a7a55c3945cb182491ff4e73cf836100f",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "post-heaven",
+      "response_body_bytes": 20677,
+      "response_body_sha256": "2a698aec8c0c45ec9a37c2e68faf0a14559f9370659afe10a3ff36d1f9daffb4",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "cases": [
+    {
+      "id": "training-no-apocalypse-gf1-heaven-herb-to-cpu-smile-dew",
+      "native_projection_covered": true,
+      "before": {
+        "update_count": 1,
+        "gf": 1,
+        "owner": 1,
+        "apocalypse": false,
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20,
+          "physical_items": 9,
+          "curses": []
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20,
+          "physical_items": 9,
+          "curses": []
+        }
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "operation": "play",
+        "received_items": [
+          {
+            "id": 9,
+            "modelId": 198
+          }
+        ],
+        "target_player_id": 1,
+        "ui": "Selected Heaven Herb,explicitly selected own status,then submitted once through the main pane."
+      },
+      "received_event_sequence": [
+        {
+          "items": [
+            {
+              "modelId": 198,
+              "id": 9
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 1,
+          "action": "setTargetPlayer"
+        },
+        {
+          "mp": 20,
+          "action": "boostMP"
+        },
+        {
+          "curse": "heaven",
+          "action": "addCurse"
+        },
+        {
+          "playerId": 1,
+          "action": "disease"
+        },
+        {
+          "hp": 5,
+          "playerId": 1,
+          "action": "boostHP"
+        },
+        {
+          "playerId": 1,
+          "item": {
+            "modelId": 191,
+            "id": 9
+          },
+          "action": "gift"
+        },
+        {
+          "playerId": 2,
+          "action": "advanceGF"
+        },
+        {
+          "items": [
+            {
+              "modelId": 191,
+              "id": 8
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "hp": 5,
+          "action": "boostHP"
+        },
+        {
+          "playerId": 1,
+          "action": "advanceGF"
+        }
+      ],
+      "ui_observation": "After resolution and the automatic CPU self-heal,G.F.3 showed viewer45/30/20 with Heaven and CPU45/10/20;viewer had nine physical cards.",
+      "after": {
+        "update_count": 2,
+        "gf": 3,
+        "owner": 1,
+        "apocalypse": false,
+        "viewer": {
+          "hp": 45,
+          "mp": 30,
+          "cp": 20,
+          "physical_items": 9,
+          "curses": [
+            "heaven"
+          ]
+        },
+        "cpu": {
+          "hp": 45,
+          "mp": 10,
+          "cp": 20,
+          "physical_items": 9,
+          "curses": []
+        }
+      },
+      "snapshot_delta_observations": [
+        "Viewer model198/id9 is consumed and event-confirmed ordinary191 reuses id9.",
+        "CPU model191/id8 is consumed;model207/id8 appears in the final inventory without a CPU gift event.",
+        "Received item IDs are reused slots,not immutable local physical tokens."
+      ],
+      "independent_arithmetic": {
+        "viewer_mp": "10+20=30 from catalog198",
+        "viewer_hp": "40+5=45 on the recorded non-worsening Heaven branch",
+        "cpu_hp": "40+5=45 from catalog191"
+      },
+      "projection": {
+        "target": "tests/official_wire_trace_test.cpp",
+        "local_config": {
+          "initial_hand": 0,
+          "max_decisions": 64,
+          "include_fate": true,
+          "external_artifacts": true,
+          "external_grants": false
+        },
+        "native_actions": "Viewer198 self;supplied viewer191;CPU191 self;supplied CPU207.",
+        "ordinary_inputs": [
+          {
+            "recipient": 1,
+            "model": 191,
+            "fake_model": null,
+            "evidence": "received gift event"
+          },
+          {
+            "recipient": 2,
+            "model": 207,
+            "fake_model": null,
+            "evidence": "received inventory delta only"
+          }
+        ],
+        "seed_set": "Unchanged shared eight-seed set:0,1,2,7,42,1337,1000000000,0xfffffffffffffffe.",
+        "all_seeds_executed": true,
+        "seed_search_exclusion_or_skip": false,
+        "disease_outcome_injected": false,
+        "local_initial_bounded100_rolls": [
+          35,
+          65,
+          10,
+          87,
+          13,
+          35,
+          69,
+          13
+        ],
+        "chance_scope": "All existing fixed seeds naturally take the observed non-worsening branch;this is not a test of official disease RNG or probability.",
+        "replays": 8,
+        "received_checkpoints_per_replay": 2,
+        "received_checkpoint_comparisons": 16,
+        "comparison": "GF/threshold/owner/phase/resources/curses/alive/default team and guardians/all18 actual-fake-used copies via owner-qualified slot mapping.",
+        "native_local_checks": "Every accepted boundary fully snapshot/restores;each supplied ordinary receipt leaves game RNG unchanged;Heaven recovery occurs before the pending viewer receipt.",
+        "excluded": "Server update counters,server RNG,original physical-token identity,inventory order and unobserved CPU gift/retry sequence.",
+        "validation": {
+          "release_ctest": "official_wire_trace 1/1 passed",
+          "asan_ubsan_ctest": "official_wire_trace 1/1 passed"
+        }
+      },
+      "limits": [
+        "One composite completed witness;the automatic CPU191 heal is not counted as a separate independent observed case.",
+        "Event ordering is received presentation evidence,not proof of every backend internal calculation order.",
+        "The newly added Heaven tick and its +5 HP were observed in this condition;no disease worsening-rate measurement or general scheduler proof is claimed.",
+        "CPU207 is a recorded inventory result,not a captured CPU gift event,207 use or proof of its selection distribution.",
+        "The game was left at G.F.3;no additional complete received lifecycle or full backend event trace was captured."
+      ]
+    }
+  ],
+  "capture_counts": {
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "same_training_room_document_confirmed_in_private_source": true
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 23,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 20,
+  "native_coverage_note": "New8x2=16 received-checkpoint comparisons are separate from old15x72=1080 public projections,72 routing probes,72 redraw components,v59 eight replays/32 checkpoints and v60 sixteen conditional replays/32 checkpoints. Three older composite observations remain record-only.",
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

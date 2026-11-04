@@ -15,7 +15,8 @@ typedef struct gfo_match_config {
     uint8_t initial_hand, hand_limit, external_grants, include_fate; // Both flags strictly0/1, default0.
     int32_t initial_hp, initial_mp, initial_cp;
     uint8_t local_guardian_payloads; // Strictly0/1, default0: local automatic Earth/Moon payloads.
-    uint8_t reserved_tail[3];
+    uint8_t external_artifacts; // Strictly0/1, default0: reserved ordinary grants at any threshold.
+    uint8_t reserved_tail[2];
 } gfo_match_config;
 typedef struct gfo_match_player {
     uint64_t id;
@@ -122,6 +123,7 @@ size_t gfo_match_artifact_grant_action_size(void);
 // are checked by legal/step. Neither actual model0 nor devils are artifacts.
 int gfo_match_artifact_grant_supported(uint16_t model);
 const char* gfo_match_artifact_grant_rule(void);
+const char* gfo_match_normal_grant_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -190,7 +192,8 @@ int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* action, g
 // owned tokens;244 requires resource HP0/MP1/CP2. All inactive fields are zero.
 int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* action, uint8_t* out);
 int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action, gfo_match_status* out);
-// Opt-in apocalypse reserved-gift continuation. Only the pending recipient may
+// Opt-in reserved-gift continuation:external_artifacts pauses at any threshold;
+// devils require external_grants and active apocalypse. Only the pending recipient may
 // be selected. Model0 draws one normal artifact; a configured positive-gift ID
 // supplies one unused artifact without game RNG (non-Dream only;207 opt-in).
 //240..244 apply a supplied devil and retain the original debt. Ordinary inputs

@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v54
+# 現行公式データによる限定実行器 v55
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v54` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v55` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3107,3 +3107,21 @@ CPU243へ補償giftを増やさず終点と整合する一方、これだけで�
 ruleset54 / Snapshot54 / `official-execution-view-v52` とし、旧snapshot1〜53は拒否する。grant journalのresolutionを旧GrantActionと新ArtifactGrantActionのvariantにしたため、C++のproof読取callerは型を確認して取得する。benchmarkの既存GrantAction比較も型取得へ同期しただけで、選択・抽選を変えない。reset・178即時redraw・取引配送・非終末補充への悪魔適用範囲は広げない。
 
 この版はRelease全156ターゲット、SAN重点8対象が通過した。検証の内訳と範囲は[適合計画v61](official-conformance-plan.md)へ記録する。合成の互換pairを公式Dreamの実測や分布一致へ加算せず、完了観測22件・native対象19件は維持する。
+
+## 対局v55（作業世代v62）：全G.F.の通常予約補充を外部入力
+
+`MatchConfig.external_artifacts`（既定false）は、既存の予約補充pumpを全G.F.でphase4へ停止させる。通常授与の停止と悪魔許可を別条件にし、適用順は次のとおりである。
+
+| 条件 | 予約補充の処理 | sample_grant |
+| --- | --- | --- |
+| external_grantsかつ終末中 | 従来の外部chance。通常・悪魔を受理 | 従来の100ticket選出 |
+| 上記以外でexternal_artifacts | normal-onlyの外部入力。通常0・設定pool内positive・ArtifactGrantを受理 | 0を返しchance RNG無消費 |
+| それ以外 | 従来の内部通常gift | phase4でないため拒否 |
+
+normal-onlyでは240〜244を効果・RNG・資源変更前に拒否する。設定flagだけで非終末へ悪魔を導入しない。通常0の配送は従来のgame RNGによるgift/Dream抽選、ArtifactGrantは既知actual/fakeを無game RNGで配送する。旧positive GrantActionのDream拒否・新ArtifactGrantの9key互換制約は維持する。driverは既存phase4経路を使い、normal-onlyの解決ではpolicy/chance RNGを進めない。
+
+各補充解決は既存どおり1decision/updateである。flag有効時にはmainと補充を分ける分だけdecisionが増えるため、max_decisionsに到達する時期は変わり得る。body先行・残debtキャンセル・GF据置というcutoff規約を共有する。病気tick/自動守護神/復活を補充ごとに繰り返さず、元actionの進行を再開する。reset・178の即時redraw・取引商品の直接配送は停止せず、それらの別途予約した補充分だけが対象となる。
+
+Config24 byteのbyte21をstrict bool external_artifactsに使い、reservedは22〜23の2 byteへ移す。byte0〜20・他の行動型・Match ABI2は維持し、旧callerのzero初期化は同じ意味である。C++ Configには末尾bool、Python Configには末尾optionを加えた。公開viewは静的flagとnormal_grant_ruleを加えるが、debt数・未来の結果・他者の真手札は公開しない。ruleset55 / Snapshot55 / view-v53とし、旧snapshot1〜54は拒否する。
+
+全grant proofは元anchorからevent-timeの条件で再生する。非終末の通常授与からGFが終末閾値を跨いだ後も、その前の入力が悪魔を許したことにはならない。旧flagだけの非終末snapshotに外部grant累計を捏造した場合は、従来の拒否を維持する。これは外部結果を供給する実験用入口であり、公式の補充順・選出分布を新たに実装したという主張ではない。

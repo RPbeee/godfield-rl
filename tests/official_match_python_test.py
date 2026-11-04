@@ -108,7 +108,7 @@ class MatchTests(unittest.TestCase):
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
         self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v54"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v55"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v52")
+        self.assertEqual(own["schema"], "official-execution-view-v53")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v52")
+        self.assertEqual(event["schema"], "official-execution-view-v53")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3604,6 +3604,78 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(len(view["board"]["hand"]), 1); self.assertIsNone(view["pending_grant"])
         self.assertEqual(view["last_grant"], {"target": 0, "devil": None, "removed_models": []})
         self.assertFalse(game.grant_legal(action))
+
+    def test_external_artifacts_flag_and_threshold_authorization_matrix(self):
+        base = {"gf": 0, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20},
+                                       {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        for artifacts in (False, True):
+            for devils in (False, True):
+                for threshold in (None, 0, 1):
+                    raw = copy.deepcopy(base); raw["tiebreakGF"] = threshold
+                    game = self.match(config=Config(initial_hand=0, external_artifacts=artifacts, external_grants=devils))
+                    with OfficialState(raw, library=LIBRARY) as state: game.load_scene(state, 0, 42)
+                    self.assertEqual(game.observe()["external_artifacts"], artifacts)
+                    self.assertEqual(game.observe()["normal_grant_rule"], game.normal_grant_rule)
+                    game.step(Command(0, "pray"))
+                    authorized = devils and threshold == 0
+                    if artifacts or authorized:
+                        self.assertEqual((game.status.phase, game.actor), ("grant", None))
+                        before, status = game.observe(0), game.status
+                        self.assertEqual(game.grant_legal(GrantAction(0, 240)), authorized)
+                        if not authorized:
+                            with self.assertRaises(UnsupportedMatchError): game.grant_step(GrantAction(0, 240))
+                            self.assertEqual(game.sample_grant(123), (GrantAction(0), 123))
+                        self.assertEqual((game.observe(0), game.status), (before, status))
+                        game.artifact_grant_step(ArtifactGrantAction(0, 23))
+                    self.assertEqual((game.status.phase, game.status.owner), ("main", 7))
+                    self.assertEqual(game.observe()["board"]["gf"], 1)
+
+    def test_normal_only_grant_driver_preserves_streams_and_old_gift_result(self):
+        for dream in (False, True):
+            raw = {"gf": 0, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20},
+                                         {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+            if dream: raw["players"][0]["curses"] = ["dream"]
+            baseline = self.match(config=Config(initial_hand=0))
+            manual, driven = [self.match(config=Config(initial_hand=0, external_artifacts=True)) for _ in range(2)]
+            for game in (baseline, manual, driven):
+                with OfficialState(raw, library=LIBRARY) as state: game.load_scene(state, 0, 42)
+                game.step(Command(0, "pray"))
+            before, status = driven.observe(0), driven.status
+            with self.assertRaises(UnsupportedMatchError): driven.sample_action(17)
+            self.assertEqual(driven.sample_grant(123), (GrantAction(0), 123))
+            self.assertEqual((driven.observe(0), driven.status), (before, status))
+            manual.grant_step(GrantAction(0))
+            self.assertEqual(driven.rollout_step(17, 123), (manual.status, 17, 123))
+            for viewer in (None, 0, 7):
+                self.assertEqual(driven.observe(viewer), manual.observe(viewer))
+                self.assertEqual(driven.observe(viewer)["board"], baseline.observe(viewer)["board"])
+            self.assertEqual(baseline.status.decisions, 1)
+            self.assertEqual(driven.status.decisions, 2)  # external resolution is a local decision
+            explicit_false = self.match(config=Config(initial_hand=0, external_artifacts=False))
+            with OfficialState(raw, library=LIBRARY) as state: explicit_false.load_scene(state, 0, 42)
+            explicit_false.step(Command(0, "pray"))
+            self.assertEqual(explicit_false.observe(0), baseline.observe(0))
+
+    def test_external_artifacts_strict_flag_masked_input_and_late_rollback(self):
+        for bad in (0, 1, None, "true", 1.0):
+            with self.assertRaises(InvalidMatchError): self.match(config=Config(external_artifacts=bad))
+        base = {"gf": 0, "players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"]},
+                                      {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(base, library=LIBRARY) as state: game.load_scene(state, 0, 42)
+        game.step(Command(0, "pray")); game.artifact_grant_step(ArtifactGrantAction(0, 23, 16))
+        item, = game.observe(0)["board"]["hand"]
+        self.assertEqual((item["face"], item["disguised"], item["used"]), (16, True, False))
+        for exhausted in ("update", "token"):
+            raw = copy.deepcopy(base)
+            if exhausted == "update": raw["updateCount"] = 9007199254740990
+            else: raw["players"][0]["items"] = [{"id": 9007199254740991, "modelId": 152}]
+            with OfficialState(raw, library=LIBRARY) as state: game.load_scene(state, 0, 42)
+            game.step(Command(0, "pray")); before, status = game.observe(0), game.status
+            with self.assertRaises(InvalidMatchError): game.artifact_grant_step(ArtifactGrantAction(0, 23, 16))
+            self.assertEqual((game.observe(0), game.status), (before, status))
+            with self.assertRaises(InvalidMatchError): game.rollout_step(17, 123)
+            self.assertEqual((game.observe(0), game.status), (before, status))
 
     def test_artifact_grant_explicit_disguise_absence_and_actual_reveal(self):
         raw = {"gf": 0, "tiebreakGF": 0, "players": [
