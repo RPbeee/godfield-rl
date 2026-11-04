@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v55"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v56"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v53\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v54\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -1511,7 +1511,7 @@ void dream_checkpoint_guards_and_transactional_replay(){
         if(error==0)bad.last_reveals.clear();if(error==1)bad.last_reveals[0].owner_only=true;if(error==2)bad.last_reveals[0].model=7;if(error==3)bad.last_reveals[0].face=19;if(error==4)bad.last_reveals[0].owner=7;
         if(error==5)bad.batch->initial_state.players[0].items[0].fake_model=19;if(error==6)bad.batch->initial_state.players[0].items[0].model=7;if(error==7)bad.dream_rolls=1;if(error==8)bad.dream_masks=1;if(error==9)bad.batch->dream_rolls=1;if(error==10)bad.last_reveals.push_back(bad.last_reveals[0]);if(error==11)bad.rng^=1;
         bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"pending full replay rejects forged Dream reveal, original mask, statistics and RNG atomically");}
-    for(unsigned error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].curses.clear();if(error==1)bad.players[0].items[0].fake_model=6;if(error==2)bad.players[0].items[0].fake_model=178;if(error==3)bad.players[0].items[0].fake_model=143;if(error==4)bad.players[0].items[0].used=true;if(error==5)bad.players[0].curses={Curse::dream,Curse::dream};bool rejected=false;try{m.load_scene(bad,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"canonical execution rejects unsafe, stale, used, duplicate and unsupported mask scenes");}
+    for(unsigned error=0;error<6;++error){auto bad=state;if(error==0)bad.players[0].curses.clear();if(error==1)bad.players[0].items[0].fake_model=207;if(error==2)bad.players[0].items[0].fake_model=178;if(error==3)bad.players[0].items[0].fake_model=143;if(error==4)bad.players[0].items[0].used=true;if(error==5)bad.players[0].curses={Curse::dream,Curse::dream};bool rejected=false;try{m.load_scene(bad,0,1);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"canonical execution rejects unsafe, stale, used, duplicate and unsupported mask scenes");}
     m.step(defend(7));roundtrip(m);
 }
 
@@ -3029,7 +3029,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==55&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==56&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3039,7 +3039,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v53")!=std::string::npos
+    check(view.find("official-execution-view-v54")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3378,7 +3378,7 @@ void artifact_grant_delivery_privacy_and_reveal(){
 void artifact_grant_validation_journal_and_late_rollback(){
     auto state=scene({199},{});state.tiebreak_gf=0;state.players[0].curses={Curse::dream};
     auto game=grant_fixture(state);game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();
-    for(const auto& bad:std::vector<ArtifactGrantAction>{{7,29,54},{0,0,{}},{0,244,{}},{0,29,CardId{0}},{0,29,29},{0,29,161},{0,29,207},{0,207,6},{0,207,{}}}){
+    for(const auto& bad:std::vector<ArtifactGrantAction>{{7,29,54},{0,0,{}},{0,244,{}},{0,29,CardId{0}},{0,29,135},{0,29,161},{0,29,207},{0,207,6},{0,207,{}}}){
         check(!game.artifact_grant_legal(bad),"artifact delivery rejects wrong recipient, unsupported or incompatible models and disabled207");
         bool failed=false;try{game.artifact_grant_step(bad);}catch(const MatchError&){failed=true;}
         check(failed&&game.snapshot()==pending,"invalid artifact preserves complete pending state");
@@ -3514,10 +3514,58 @@ void external_artifacts_reset_redraw_and_trade_exceptions(){
         "both supplied normal replacements drain once before the next living owner");roundtrip(revived);
 }
 
+void dream_weapon_self_body_and_narrow_routing(){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;
+    for(CardId model:{CardId{80},CardId{36}}){
+        auto state=scene({model,150},{});Match game(config);game.load_scene(state,0,7);game.step(play(0,{0},0));const auto pending=game.snapshot();
+        check(pending.phase==MatchPhase::grant&&!pending.actor&&pending.queue.empty()&&pending.decisions==1&&pending.pending_grant==0
+            &&pending.state.players[0].hp==40-find_card(model)->atk&&pending.state.players[0].mp==10&&pending.state.players[0].cp==20
+            &&pending.state.players[0].curses==std::vector<Curse>{Curse::dream}&&pending.state.players[0].items==std::vector<ItemInstance>{{1,150,{},false}}
+            &&pending.rng==7,"80 observed and36 same-trait inference resolve self damage and Dream in one play without selecting available defense");roundtrip(game);
+        game.artifact_grant_step({0,135,135});
+        check(game.snapshot().state.gf==1&&game.snapshot().owner==7&&game.snapshot().state.players[0].items.back()==ItemInstance{pending.next_token,135,135,false}
+            &&game.snapshot().rng==7&&game.snapshot().dream_rolls==0&&game.snapshot().dream_masks==0,"received identity mask follows the self body without changing local mask generation statistics");roundtrip(game);
+    }
+    auto foreign=fixture(scene({80},{141}));foreign.step(play(0,{0},7));check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7,"foreign Dream weapon keeps its ordinary response");
+    check(foreign.legal(defend(7,{0})),"Wood4 accepts Stone DEF5 in the foreign-response fixture");foreign.step(defend(7,{0}));check(foreign.snapshot().state.players[1].hp==40&&foreign.snapshot().state.players[1].curses.empty(),"full foreign defense prevents Dream on damage");roundtrip(foreign);
+    auto cold=fixture(scene({62},{}));cold.step(play(0,{0},0));check(cold.snapshot().phase==MatchPhase::response&&cold.snapshot().actor==0&&cold.snapshot().state.players[0].hp==40,"self Cold weapon is excluded from the observed Dream-only routing extension");roundtrip(cold);
+    auto wide_state=scene({80,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);wide.step(play(0,{0,1},0));
+    check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,"Wide Dream column remains an enemy response rather than a direct self body");roundtrip(wide);
+}
+
+void received_identity_disguise_presence_use_and_replay(){
+    for(const auto& card:catalog()){
+        check(!match_dream_compatible(card.id,card.id),"local generation still excludes all identity candidates");
+        check(match_dream_disguise_supported(card.id,card.id)==match_supported(card.id),"received identity masks admit supported ordinary models only, excluding207");
+    }
+    check(!match_dream_disguise_supported(207,207)&&!match_dream_disguise_supported(6,178)&&!match_dream_disguise_supported(0,0),"identity support does not admit special207 or incompatible nonidentity masks");
+    auto state=scene({135},{6});state.players[0].curses={Curse::dream};state.players[0].items[0].fake_model=135;
+    auto plain=state;plain.players[0].items[0].fake_model.reset();
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;Match masked(config),unmasked(config);masked.load_scene(state,7,7);unmasked.load_scene(plain,7,7);
+    const auto own=project_view(masked.snapshot().state,0),other=project_view(unmasked.snapshot().state,0);
+    check(own.hand[0].face==135&&own.hand[0].reference==135&&own.hand[0].disguised&&!other.hand[0].disguised,"present identity face differs from None through the visible disguise marker");
+    check(masked.observe(7)==unmasked.observe(7)&&masked.observe({})==unmasked.observe({}),"enemy and spectator views do not reveal the private identity marker");roundtrip(masked);
+    masked.step(play(7,{0},0));const auto pending=masked.snapshot();roundtrip(masked);masked.step(defend(0,{0}));const auto saved=masked.snapshot();
+    check(saved.phase==MatchPhase::grant&&saved.grant_proof.has_value()&&saved.last_reveals==std::vector<RevealedItem>{{0,135,135,false}}&&saved.state.players[0].items.empty()
+        &&saved.rng==7&&saved.dream_rolls==0&&saved.dream_masks==0,"identity defense use consumes and publishes a same-face/actual reveal without local RNG");roundtrip(masked);
+    for(unsigned error=0;error<3;++error){auto bad=saved;
+        if(error==0)bad.grant_proof->initial_state.players[0].items[0].fake_model.reset();
+        if(error==1)bad.last_reveals.clear();
+        if(error==2)bad.last_reveals[0].face=207;
+        bool failed=false;try{masked.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&masked.snapshot()==saved,"full replay distinguishes an identity mask from absent fake and rejects forged reveal");
+    }
+    Match resumed(config);resumed.restore(pending);resumed.step(defend(0,{0}));check(resumed.snapshot()==saved,"pending identity-disguise defense resumes exactly");
+    auto cure_state=scene({200,135},{});cure_state.players[0].curses={Curse::dream};cure_state.players[0].items[1].fake_model=135;Match cured(config);cured.load_scene(cure_state,0,7);cured.step(play(0,{0},0));
+    check(cured.snapshot().state.players[0].curses.empty()&&!cured.snapshot().state.players[0].items.front().fake_model
+        &&cured.snapshot().last_reveals==std::vector<RevealedItem>{{0,135,135,true}},"all-cure clears an identity marker with an owner-only same-model reveal");roundtrip(cured);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),229> tests{{
+    const std::array<void(*)(),231> tests{{
+        dream_weapon_self_body_and_narrow_routing,
+        received_identity_disguise_presence_use_and_replay,
         external_artifacts_flags_thresholds_sampler_and_driver,
         external_artifacts_masked_replay_cutoff_and_late_failure,
         external_artifacts_reset_redraw_and_trade_exceptions,

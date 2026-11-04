@@ -200,9 +200,11 @@ int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action,
 // have no resource/removed payload. Each resolution is one decision, not a selector.
 int gfo_match_grant_legal(const gfo_match* match, const gfo_match_grant_action* action, uint8_t* out);
 int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action, gfo_match_status* out);
-// No RNG: deliver one unused artifact with the supplied compatible disguise.
+// No RNG: deliver one unused artifact, preserving a supplied nonzero fake even
+// when it equals the actual model. An absent disguise remains distinct.
 // An absent disguise is accepted even for Dream recipients. Nonzero fake needs Dream
-// and the existing9field compatibility;207 requires include_fate and no fake.
+// and either distinct9field compatibility or identical supported non207.
+//207 requires include_fate and no fake; local random Dream choices stay distinct.
 int gfo_match_artifact_grant_legal(const gfo_match* match, const gfo_match_artifact_grant_action* action, uint8_t* out);
 int gfo_match_artifact_grant_step(gfo_match* match, const gfo_match_artifact_grant_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the

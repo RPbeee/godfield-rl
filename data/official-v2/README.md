@@ -341,3 +341,15 @@ runtimeはruleset55/Snapshot55/view-v53。新external_artifactsは全GFの予約
 | `live-transition-witnesses-v62.json` | 8,621 | `74329bbddf358fae79ff25351fae285cf8144ebd4ad201156eaa7be2cef1bcb6` |
 
 新1例で累計23完了観測・native対象20例。固定8seed×2checkpoint＝16比較を従来の集計と分ける。同一room参照と指定した匿名化だけでの全game値一致、raw mode600、元識別情報の不在、受信イベント列の一致を独立検査した。
+
+
+## v63：Dream自己使用と同一番号の偽装
+
+[wire-game-updates-v63.json](wire-game-updates-v63.json)は終末なしCPU修行のpost-only updateCount2、[live-transition-witnesses-v63.json](live-transition-witnesses-v63.json)は80自己使用の1完了例を保存する。本人HP40→36・Dream・通常補充135/fake135・次CPU60の攻撃開始を確認した。初期wireは未取得で、残在庫とuseイベントから作るpre-play sceneは再構成である。別対局の初期資料を混ぜず、原初期draw/orderや完全なbackend列を主張しない。
+
+runtimeはruleset56/Snapshot56/view-v54。同番号fakeのpresenceを保ち、従来の異番号9key生成器・率・RNGを維持する。CPU真手札はprivileged検証専用で、policyへ渡さない。元識別情報・updatedAt・room path・headerを除き、受信ゲーム数値・省略field・events順・slot再利用を保持する。旧世代のpins/記録は変更しない。
+
+| v63 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v63.json` | 8,525 | `ed52d185c30650490e657f7c0160d5451cccfd339ae2a3850a2cbb6c50826101` |
+| `live-transition-witnesses-v63.json` | 7,455 | `9faafbc7ce558b2289c74bca809cf08b7c76c25623f9283b2c1ed32afae7fffb` |

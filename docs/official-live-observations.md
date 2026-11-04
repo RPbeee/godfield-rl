@@ -176,3 +176,14 @@ updateCount2の順は、本人198/id9使用→target1→MP＋20→Heaven付与�
 この非悪化Heavenの1例から5%率を測定したとはしない。新external_artifacts modeでは通常の結果を入力できるが、病気tickは既存game RNGのままである。native比較でも既定の固定seed集合を変えず、観測結果に合わせた検索・除外を行わない。[機械可読観測](../data/official-v2/live-transition-witnesses-v62.json)に比較範囲を記録する。
 
 累計23完了観測・native対象20例となる。新wire比較は固定8seed×2checkpoint＝16比較で、従来の1080投影・72routing・72一新部分検証、v59の32checkpoint、v60の32checkpointと別集計である。全8seedは既存のローカルHeaven非悪化枝を通るが、公式の率や一般的な病気処理順を検証するものではない。開始〜終局の受信列1対局分・全backendイベントtrace0は維持する。
+
+
+## v63：夢の木づちの自己使用と135/135補充
+
+2026年11月5日の2人CPU修行・終末なしで、viewer1の80夢の木づち（Wood4）を本人へ使用した。初期資源はUIで双方40/10/20、curseなし、GF1。主動作ペインで1回確定すると、追加の自己防御入力なしに本人HP36・Dreamとなった。GF2ではCPU2が60つらら（Water1）を本人へ攻撃し、防御待ちに入った。
+
+[受信post状態](../data/official-v2/wire-game-updates-v63.json)のupdateCount2は、use80/id1→target1→damage4→addCurse dream→本人gift `{id:1,modelId:135,fakeModelId:135}` →advanceGF CPU→CPU use60/id2→target1の順を持つ。同一番号fakeの明示存在を確認した初の例で、元からあった135/id4とは別copyである。使用slot1は補充で再利用されるため、固定の物理IDとはみなさない。
+
+初期のNetwork応答はpendingで本文を取得できず、この対局の権威的初期snapshotは無い。別の探索対局の初期記録やgameを含まない162 byteの応答を混ぜない。native比較は受信post在庫に消費80/id1とCPU60/id2を戻した再構成sceneから行い、原初期draw・配列順を証明しない。受信後のブラウザ操作がwindow-not-foundとなり、CPU60への防御や新135の使用結果は未観測のままである。退出やホーム復帰も確認できていない。
+
+1自己使用を新しい完了例として累計24例・native対象21例へ追加する。旧固定8seed×1受信checkpoint＝8比較を別枠で加え、1080投影・72routing・72一新部分検証・v59/v60各32checkpoint・v62の16checkpointを保つ。開始〜終局の受信game列1対局分・全backend内部trace0は維持する。同一番号の受領1例から全候補・50%率・異番号互換外の使用処理を一般化しない。

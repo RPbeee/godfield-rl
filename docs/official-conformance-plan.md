@@ -125,10 +125,10 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
 156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えたv9の194モデル・配布重み381を経て、閃光付与/反撃/解除7種を加えたv10の201モデル・配布重み404を経て、暗雲付与/反撃3種を加えたv11の204モデル・配布重み407を経て、除去2種を加えたv12の206モデル・配布重み409を経て、MP武器58/二回攻撃14を加えたv13の208モデル・配布重み411を経て、全敵化232を加えたv14の209モデル・配布重み412を経て、HP増減202を加えたv15の210モデル・配布重み414を経て、自動復活208を加えたv16の211モデル・配布重み415を経て、杵94/臼209を加えたv17の213モデル・配布重み417を経て、v18で両替3を加えた214モデル・配布重み437を経て、v19で同じプールのまま除去結果を公開し、v20で売却4を加えた215モデル/重み457を経て、v21で購入5を加えた216モデル/重み477を経て、v22で病気4状態/付与6種を加えた222モデル/重み483を経て、v23で168/198を加えた224モデル/重み485を経て、v24でFog4種と観測/対象選択を加えた228モデル/重み489を経て、v25で112を加えた229モデル/重み490を経て、取引配送overflowとFogのforeign SELLを扱う `official-execution-subset-v26` へ進め、v27で規約を変えずにofficial-v2へ同期した。
-現行は `official-execution-subset-v55`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
+現行は `official-execution-subset-v56`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
 201/239召喚・canonical42自動行動、限定Earth120/Moon26のopt-in自動payload、外部現象9種と295専用shuffle、
 Fate/悪魔の外部入力と専用ローカルsampler、終末閾値/ささげる、予約補充phase4までを実験規約で扱う。
-Snapshot55、`official-execution-view-v53`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
+Snapshot56、`official-execution-view-v54`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
 C Configのbyte6は `external_grants`、byte7は `include_fate`、byte20は `local_guardian_payloads`、byte21は `external_artifacts` の独立したstrict boolで、byte22〜23は0を要求する。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
@@ -2046,3 +2046,15 @@ PythonからSAN版libraryを使う追加試行は、指定した `DYLD_INSERT_LI
 最終Release検証は、wire以外155/155（22.95秒）と新wire1/1（0.26秒）を合わせ全156ターゲットが通過した。Python Matchは161 unique method、native Matchは229 unique callback。SANは本体1/1（12.96秒）、C API/driver/liveとdriver・grant・grant sampler benchmarkの6/6（19.41秒）、新wire1/1（0.40秒）の8対象が通過した。最終Release/SAN buildのwarning/errorは0件。全legacy SAN suiteやPython SANを再実行したものではない。
 
 20個のflag×閾値scene、normal-onlyのdriver/2stream無消費と旧通常0のgame RNG一致、defaultfalse、非終末masked proof・late token/update/GF rollback・cutoff、reset/178即時redraw/取引配送の例外、208復活で元攻撃と復活の別2予約が一度だけ満たされることを検証した。テストfixtureでは通常199自己使用を補充契機とし、無補充のdiscardを使わない。旧非終末flagだけの捏造grant累計をrestoreで拒否する従来の厳格性も維持する。
+
+
+## v63：Dream自己使用と受信identityの検証
+
+80の自己使用と同一番号135/135補充を新規1完了観測として保存し、累計24完了例・native対象21例とする。最初のgame応答は取得できず、権威的資料はpost-only updateCount2の1状態である。残在庫とuseイベントから80/id1・CPU60/id2を戻した再構成sceneを使い、従来の固定8seedで1checkpointずつ照合する。未取得の初期draw・配列順・物理token・CPU内部gift列を補完せず、server updateCountとnative decisionsは比較しない。
+
+本体はDream on-damage武器の明示self直接解決、受信同番号maskの受理とpresence保持を扱う。旧異番号9key selector・RNG消費は変更せず、C/PythonでNoneとの差、非漏洩、実体使用・reveal、restore/rollbackを検証する。36は同traitの一般化、identity防具の使用やquoteはローカル合成回帰として、80の公式完了例から分ける。旧oracle・pins・観測資料・legacy37は保持する。
+
+
+最終Release CTestは156/156（16.39秒）通過。native Matchは231 unique callbacks、Python Matchは163 unique methodsである。ASan/UBSanは本体1/1（12.66秒）、C API・driver・live・wireの4/4（2.47秒）、driver/grant/grant sampler benchmarkの3/3（7.56秒）を合わせ重点8対象が通過した。更新したwireも再確認で通過した。最終Release/SAN buildのwarning/errorは0件。全legacy SAN suiteやPython SANを再実行した意味ではない。
+
+nativeではself80/36の一入力解決と無RNG・予約補充、foreignへの適合Stone防御・Cold/Wide除外、同番号受信とNoneの本人表示差・他者非漏洩、使用/reveal・全解除、pendingからの再開・grant proof改変拒否を検証した。C/Pythonは外部同番号授与・無RNG・fresh unused・実体DEF・公開reveal、型/NULL/旧幅、late failure原子性を含む。旧Dream生成器の参照比較と全旧Releaseテストを維持し、合成回帰を公式の追加使用観測へ数えない。

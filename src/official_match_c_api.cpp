@@ -191,6 +191,7 @@ official::DevilAction devil_action(const gfo_match_devil_action& input) {
 official::ArtifactGrantAction artifact_grant_action(const gfo_match_artifact_grant_action& input) {
     valid(zero(input.reserved) && input.target<=official::max_wire_integer);
     official::ArtifactGrantAction result;result.target=input.target;result.model=input.model;
+    // Nonzero is presence, including identity faces; never collapse to absent.
     if(input.fake_model)result.fake_model=input.fake_model;
     return result;
 }

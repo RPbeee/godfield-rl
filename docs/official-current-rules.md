@@ -2135,3 +2135,10 @@ ruleset54 / Snapshot54 / view-v52で型付きgrant journalとC16 byteの独立�
 [終末なしCPU修行の受信記録](../data/official-v2/wire-game-updates-v62.json)で、本人198/id9の自己使用からboostMP20・addCurse heaven・本人disease・boostHP5・gift191/id9・advanceGF CPUの順を取得した。同じupdateCount2にはCPU191/id8の自己使用・boostHP5・advanceGF本人も入る。初期GF1の両者40/10/20から、GF3の本人45/30/20Heaven・CPU45/10/20へ進んだ。この有限条件の受信イベントでは、新規Heavenのdisease/回復が通常補充・GF更新より前に並ぶ。悪化率や一般病気scheduler、backend内部計算全体の順序を証明しない。
 
 CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベントは収録されていない。207の自然受領に整合するが、その使用・現象選出や率は比較していない。新external_artifacts optionはこうした非終末通常結果の再現用で、既定の抽選・悪魔範囲を維持する。reset/即時一新/取引配送の別経路やDream全分布を今回広げたものではない。
+
+
+## v63：受信された同番号Dream mask
+
+[post-onlyの実受信](../data/official-v2/wire-game-updates-v63.json)で、80の明示自己使用後にdamage4・Dream・gift135/fake135が並び、次CPU60の攻撃へ進んだ。追加のself防御入力は行っていない。従来のローカルdistinct-only判定はこの受信状態を拒否するため、受信maskの許可条件へsupported identityを加える。生成器の候補や率にはこの変更を適用しない。Noneとfake==actualを区別し、元の受信presenceを保持する。
+
+権威的初期gameは未取得であり、1受信後状態からの再構成比較である。自己36は同能力による限定一般化、同番号防具の後の使用・費用・quote等は合成回帰である。実際に受信した80の有限列とこれらを区別する。一般の異番号互換外pair・全Dream分布・病気/補充/守護神の一般schedulerは残件のままとする。

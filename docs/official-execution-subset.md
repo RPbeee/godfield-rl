@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v55
+# 現行公式データによる限定実行器 v56
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v55` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v56` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3125,3 +3125,15 @@ normal-onlyでは240〜244を効果・RNG・資源変更前に拒否する。設
 Config24 byteのbyte21をstrict bool external_artifactsに使い、reservedは22〜23の2 byteへ移す。byte0〜20・他の行動型・Match ABI2は維持し、旧callerのzero初期化は同じ意味である。C++ Configには末尾bool、Python Configには末尾optionを加えた。公開viewは静的flagとnormal_grant_ruleを加えるが、debt数・未来の結果・他者の真手札は公開しない。ruleset55 / Snapshot55 / view-v53とし、旧snapshot1〜54は拒否する。
 
 全grant proofは元anchorからevent-timeの条件で再生する。非終末の通常授与からGFが終末閾値を跨いだ後も、その前の入力が悪魔を許したことにはならない。旧flagだけの非終末snapshotに外部grant累計を捏造した場合は、従来の拒否を維持する。これは外部結果を供給する実験用入口であり、公式の補充順・選出分布を新たに実装したという主張ではない。
+
+
+## 対局v56（作業世代v63）：Dream自己武器と受信同番号の偽装
+
+80の自己使用について公式の1入力解決を確認し、必中・非Wide・明示selfの既存直接経路へDream on-damage武器を加える。80は実測、36は同じ能力による限定一般化である。被害・付与・消費・予約補充は既存bodyを使い、他curseや他者targetの応答処理は維持する。
+
+`match_dream_compatible` は従来の異番号9key候補判定を維持する。新 `match_dream_disguise_supported` はそれに対応モデルのactual==faceを加え、import・外部ArtifactGrant・revealの検証に使う。207は対応通常能力モデルでないため同番号fakeも許さない。fakeの存在はDream中・unusedの条件を満たす必要があり、同番号でも明示unmaskedへ正規化しない。使用・quote・除去時の既存reveal、全解除・returnの既存処理を使う。ローカル抽選はこの新判定を使わず、同番号候補を追加しない。
+
+ruleset56 / Snapshot56（旧1〜55拒否）/ view-v54。C Config24 byte、GrantAction32 byte、ArtifactGrantAction16 byte、Match ABI2は維持する。新しい通信・学習器やselectorは追加しない。公式の使用後結果は80と補充135/135までで、identity防具の実使用結果はローカル回帰である。
+
+
+検証はRelease全156対象とSAN重点8対象が通過した。native231 callbacks・Python163 methods、受信post-only比較は8seed×1checkpointである。詳細と未検証範囲は[適合計画v63](official-conformance-plan.md)へ記録する。

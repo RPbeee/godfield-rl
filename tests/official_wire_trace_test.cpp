@@ -297,13 +297,84 @@ void replay_v62(std::uint64_t seed) {
           "v62 CPU recovery completes before the inferred ordinary inventory delta");
     supplied_receipt(game,slots,2,8,207);compare_v62(game,slots,true);
 }
+
+// v63 has one received post-action update, not an authoritative initial frame.
+// Reinsert only the consumed copies named by useAttackItems into the remaining
+// received inventories. This is a deterministic reconstructed pre-play scene;
+// neither original draw/order nor original physical token identities are known.
+constexpr std::array<ReceivedSlot,9> v63_before_viewer{{{1,80},{2,20},{3,195},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162}}};
+constexpr std::array<ReceivedSlot,9> v63_before_cpu{{{1,195},{2,60},{3,94},{4,14},{5,3},{6,23},{7,3},{8,3},{9,166}}};
+constexpr std::array<ReceivedSlot,9> v63_after_viewer{{{2,20},{3,195},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162},{1,135,135}}};
+constexpr std::array<ReceivedSlot,9> v63_after_cpu{{{1,195},{3,94},{4,14},{5,3},{6,23},{7,3},{8,3},{9,166},{0,0}}};
+void replay_v63(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.max_decisions=64;config.external_artifacts=true;
+    Match game(config);SlotMap slots;SnapshotState state;state.gf=1;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        const auto& rows=seat==0?v63_before_viewer:v63_before_cpu;
+        for(const auto& row:rows) {
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);roundtrip(game);
+    const Command mallet{1,CommandKind::play,{consumed_slot(slots,1,1)},1};
+    check(game.legal(mallet),"v63 received self80 selection is legal");(void)game.step(mallet);roundtrip(game);
+    const auto& pending=game.snapshot();
+    check(pending.phase==MatchPhase::grant&&pending.pending_grant==1&&pending.queue.empty()
+          &&pending.state.players[0].hp==36&&pending.state.players[0].curses==std::vector<Curse>{Curse::dream},
+          "v63 one play resolves self80 damage4/Dream without a separate defense command");
+    const auto rng=pending.rng;const auto fresh=pending.next_token;
+    const ArtifactGrantAction received{1,135,135};
+    check(game.artifact_grant_legal(received),"v63 explicit received identity disguise is legal");
+    (void)game.artifact_grant_step(received);slots[{1,1}]=fresh;roundtrip(game);
+    check(game.snapshot().rng==rng&&fresh!=1001,"v63 identity grant consumes no RNG and reused slot gets a fresh local token");
+    const Command icicle{2,CommandKind::play,{consumed_slot(slots,2,2)},1};
+    check(game.legal(icicle),"v63 received CPU60 launch is legal");(void)game.step(icicle);roundtrip(game);
+    const auto& snap=game.snapshot();
+    check(snap.state.gf==2&&snap.owner==2&&!snap.state.is_over&&snap.state.players.size()==2,
+          "v63 received post-only GF/owner/live roster match");
+    check(snap.phase==MatchPhase::response&&snap.actor==1&&snap.queue.size()==1,
+          "v63 received CPU launch waits for viewer response");
+    const auto& effect=snap.queue.front();
+    check(effect.models==std::vector<CardId>{60}&&effect.origin==2&&effect.source==2&&effect.target==1
+          &&effect.category==Category::weapons&&effect.power==1&&effect.element==Element::water
+          &&effect.ability==find_card(60)->ability&&effect.amount==find_card(60)->ability_value
+          &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,
+          "v63 received pending icicle has derived Water1 payload");
+    std::size_t total=0;
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];const auto& rows=seat==0?v63_after_viewer:v63_after_cpu;
+        check(player.id==seat+1&&player.hp==(seat==0?36:40)&&player.mp==10&&player.cp==20
+              &&!player.dead&&player.team==Team::solo&&player.guardian==Guardian::none&&player.confusion_count==0,
+              "v63 received resource/alive/team/guardian defaults match");
+        check(player.curses==(seat==0?std::vector<Curse>{Curse::dream}:std::vector<Curse>{}),
+              "v63 received Dream only on self80 user");
+        std::size_t positive=0,empty=0;
+        for(const auto& row:rows) {
+            if(!row.model){++empty;continue;}
+            ++positive;const auto mapped=slots.find({player.id,row.slot});check(mapped!=slots.end(),"v63 qualified slot mapping exists");
+            const auto item=std::find_if(player.items.begin(),player.items.end(),[&](const auto& x){return x.token==mapped->second;});
+            check(item!=player.items.end()&&item->model==row.model&&item->fake_model.value_or(0)==row.fake
+                  &&item->fake_model.has_value()==(row.fake!=0)&&item->used==row.used,
+                  "v63 received model, explicit fake presence and unused status match all positive copies");
+        }
+        check(player.items.size()==positive&&snap.gifts[seat]==empty,"v63 pending CPU debt matches its received placeholder");total+=positive;
+    }
+    check(slots.size()==total,"v63 no stale consumed slot mappings");
+    check(game.observe(1).find("\"disguised\":true")!=std::string::npos,"v63 identity copy retains owner-visible disguise marker");
+    // updateCount2 is one received grouping, not the native command counter.
+    // CPU true inventory is privileged fixture evidence, never policy input.
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);
+        replay_v62(seed);replay_v63(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -312,4 +383,5 @@ int main() {
              <<"pre-launch CPU hand restored from received use events; dead UI placeholder is not live debt\n";
     std::cout<<"v62: existing 8 fixed seeds x2 received checkpoints, no-apocalypse198/191 plays and explicit191/207 receipts; "
              <<"all seeds match the observed non-worsening Heaven branch without search or skip; not server RNG equivalence\n";
+    std::cout<<"v63: existing 8 seeds x1 received post-only checkpoint; reconstructed pre-play copies, self80 and explicit135/135; no original initial draw/order or server RNG claim\n";
 }

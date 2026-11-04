@@ -92,7 +92,7 @@ void closed_state(const SnapshotState& s, const MatchConfig& c) {
         for (const auto& item : p.items) {
             if (!inventory_supported(item.model)) unsupported("unsupported match model");
             require(!item.fake_model || (has_curse(p, Curse::dream) && !item.used
-                && match_dream_compatible(item.model, *item.fake_model)), "invalid compatible Dream disguise");
+                && match_dream_disguise_supported(item.model, *item.fake_model)), "invalid supported Dream disguise");
             require(!item.used || find_card(item.model)->category == Category::miracles, "only miracles can be retained in scoped matches");
         }
     }
@@ -1232,7 +1232,8 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
             && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon || base.ability == Ability::cut_cost
                     || base.ability == Ability::absorb_hp || base.ability == Ability::attack_twice
-                    || base.ability == Ability::atk_by2x_mp || base.ability == Ability::deal_same_damage))
+                    || base.ability == Ability::atk_by2x_mp || base.ability == Ability::deal_same_damage
+                    || (base.ability == Ability::add_curse_on_damage && base.curse == Curse::dream)))
                 || (base.category == Category::miracles && (base.ability == Ability::none || base.ability == Ability::absorb_hp)))
             && !base.hit_rate && !has_wide(models)) {
             // Extend the observed self-play routing to this explicit allowlist;
@@ -1289,8 +1290,8 @@ void prepare_artifact_grant(const MatchSnapshot& s, const ArtifactGrantAction& a
         unsupported("artifact grant model is outside the configured gift pool");
     if (action.fake_model) {
         const auto& recipient=s.state.players[index(s,action.target)];
-        if (!has_curse(recipient,Curse::dream) || !match_dream_compatible(action.model,*action.fake_model))
-            unsupported("artifact grant needs an existing compatible Dream face");
+        if (!has_curse(recipient,Curse::dream) || !match_dream_disguise_supported(action.model,*action.fake_model))
+            unsupported("artifact grant needs a supported Dream face");
     }
 }
 void deliver_artifact(MatchSnapshot& s, std::size_t seat, CardId model, std::optional<CardId> face = {}) {
@@ -1529,7 +1530,7 @@ void validate_snapshot(const MatchSnapshot& s) {
     require(s.last_reveals.size() <= n * s.config.hand_limit * s.decisions, "invalid reveal event boundary");
     for (const auto& event : s.last_reveals) {
         (void)index(s, event.owner);
-        require(match_dream_compatible(event.model,event.face), "invalid compatible reveal models");
+        require(match_dream_disguise_supported(event.model,event.face), "invalid supported reveal models");
     }
     const auto death_bound = player_capacity * (player_capacity - 1) * s.config.hand_limit;
     require(s.death_bows <= player_capacity * s.config.hand_limit && s.death_bows <= s.death_created
@@ -1738,6 +1739,9 @@ bool match_dream_compatible(CardId actual, CardId face) noexcept {
     return a.category == b.category && a.element == b.element && a.ability == b.ability && a.curse == b.curse
         && a.cost == b.cost && a.hit_rate == b.hit_rate && a.is_plus_atk == b.is_plus_atk
         && (a.atk > 0) == (b.atk > 0) && (a.defense > 0) == (b.defense > 0);
+}
+bool match_dream_disguise_supported(CardId actual, CardId face) noexcept {
+    return match_dream_compatible(actual,face) || (actual==face && match_supported(actual));
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -2093,7 +2097,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v53\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v54\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

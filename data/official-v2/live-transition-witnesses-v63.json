@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact UI capture time or initial wire capture is inferred.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v62.json",
+  "method": "Firefox native UI observed one self-use and its public result. A separately saved Firestore response provided only post update2. Initial wire acquisition failed;the companion initial scene is explicitly reconstructed,not a received authoritative snapshot.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. Raw sources remain private temporary files.",
+  "authoritative_fixture": "wire-game-updates-v63.json",
+  "model_provenance": {
+    "80": {
+      "id": 80,
+      "imageName": "dream-mallet",
+      "category": "weapons",
+      "element": "wood",
+      "atk": 4,
+      "ability": "addCurseOnDamage",
+      "curse": "dream",
+      "price": 15,
+      "giftRate": 1,
+      "name": "夢の木づち"
+    },
+    "60": {
+      "id": 60,
+      "imageName": "icicle",
+      "category": "weapons",
+      "element": "water",
+      "atk": 1,
+      "price": 1,
+      "giftRate": 1,
+      "name": "つらら"
+    },
+    "135": {
+      "id": 135,
+      "imageName": "iron-armor",
+      "category": "armor",
+      "def": 5,
+      "price": 5,
+      "giftRate": 8,
+      "name": "アイアンアーマー"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-dream-weapon-identity-face",
+      "native_projection_covered": true,
+      "before": {
+        "basis": "UI values plus reconstructed local inventory;not an authoritative initial snapshot",
+        "gf": 1,
+        "owner": "viewer",
+        "actor": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_curses": [],
+        "cpu_curses": [],
+        "reconstructed_source_item": {
+          "id": 1,
+          "modelId": 80
+        },
+        "initial_wire_snapshot_captured": false,
+        "initial_inventory_order_known": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          80
+        ],
+        "target": "viewer",
+        "ui_confirmations": 1,
+        "outgoing_command_payload_captured": false
+      },
+      "ui_observation": [
+        "Viewer explicitly selected self as target and confirmed80 once.",
+        "Damage4 and Dream were observed;viewer HP40 changed to36.",
+        "GF2 proceeded to a CPU60 Water ATK1 attack toward viewer."
+      ],
+      "additional_viewer_response_chosen_for_self_attack": false,
+      "authoritative_post": {
+        "server_update_count": 2,
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "viewer",
+        "viewer": {
+          "hp": 36,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 9,
+        "cpu_received_item_rows": 9,
+        "cpu_positive_model_copies": 8,
+        "cpu_zero_placeholder_rows": 1,
+        "pending_attack": {
+          "playerId": 2,
+          "targetPlayerId": 1,
+          "itemModelIds": [
+            60
+          ]
+        },
+        "gift_row": {
+          "id": 1,
+          "modelId": 135,
+          "fakeModelId": 135
+        }
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "addCurse",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_boundary": {
+        "self_operation_prefix_events": 6,
+        "following_cpu_launch_events": 2,
+        "same_model_fake_field": {
+          "actual": 135,
+          "supplied_face": 135,
+          "received_fake_field_present": true
+        },
+        "item_id_reuse": {
+          "consumed_model": 80,
+          "new_model": 135,
+          "numeric_id": 1
+        },
+        "initial_server_update_count_known": false
+      },
+      "projection": "Use a reconstructed initial scene to calculate Wood ATK4 and Dream-on-positive-damage for80,then inject the observed135/fake135 ordinary result and replay the CPU60 launch. Compare the one received post checkpoint across the fixed eight local seeds. The explicit same-model fake presence is preserved by the native received-disguise path;the local generator is unchanged. The reconstruction does not establish initial received order,draws or metadata.",
+      "limits": "The identity-valued fake field is a confirmed received occurrence,not a different-model Dream pair or evidence of a50percent distribution. No initial authoritative snapshot or full lifecycle is available. The CPU60 response and later use of135 were not observed because the UI connection stopped;no later reveal or disguise-use behavior is inferred."
+    }
+  ],
+  "source_body_provenance": [
+    {
+      "label": "post-self-dream",
+      "response_body_bytes": 20563,
+      "response_body_sha256": "d9a8979474512645e7b13fed1ede68afc2157ad4c69731012dca2fe64a9ddb66",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "fixed_reconstruction_replays": 8,
+    "received_checkpoints_per_replay": 1,
+    "received_checkpoint_comparisons": 8,
+    "initial_scene_authoritative": false,
+    "random_seed_fitting": false,
+    "scope": "Conditional reconstructed-scene-to-post comparison with explicit observed chance input,not an initial-wire replay or a generative server RNG match."
+  },
+  "capture_counts": {
+    "authoritative_game_snapshots": 1,
+    "initial_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "ui_connection_error": "target window not found",
+    "training_exit_confirmed": false,
+    "home_menu_return_confirmed": false,
+    "cpu60_response_observed": false,
+    "identity135_later_use_observed": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 24,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 21,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "native_coverage_note": "One completed self80 observation,conditionally compared from a reconstructed initial scene to the single received post-only checkpoint across eight fixed seeds;the original initial wire is absent. Old 15x72 projections,72 routing,72 redraw-component checks,and v59/v60/v62 checkpoint comparisons remain separate."
+}

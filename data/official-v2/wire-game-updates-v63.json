@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "One authoritative post-only update2 plus a separately reconstructed local initial scene. No initial authoritative subscription snapshot was captured,and this is not a complete received lifecycle or full backend event trace.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "post-self-dream",
+      "response_body_bytes": 20563,
+      "response_body_sha256": "d9a8979474512645e7b13fed1ede68afc2157ad4c69731012dca2fe64a9ddb66",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "sanitization": {
+    "removed": [
+      "players[].userId",
+      "game.updatedAt",
+      "all original player names"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric in-game IDs,model/item IDs,event payloads,post-state received array order,zero placeholder rows,same-model fakeModelId aliases and field omissions.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "resume tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "CPU true items are retained only for privileged scenario reconstruction,not public policy observations.",
+  "updates": [
+    {
+      "source_body": "post-self-dream",
+      "game": {
+        "diseasePlayerId": 2,
+        "players": [
+          {
+            "hp": 36,
+            "cp": 20,
+            "id": 1,
+            "mp": 10,
+            "items": [
+              {
+                "modelId": 20,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 195
+              },
+              {
+                "modelId": 135,
+                "id": 4
+              },
+              {
+                "modelId": 170,
+                "id": 5
+              },
+              {
+                "modelId": 144,
+                "id": 6
+              },
+              {
+                "modelId": 19,
+                "id": 7
+              },
+              {
+                "modelId": 193,
+                "id": 8
+              },
+              {
+                "modelId": 162,
+                "id": 9
+              },
+              {
+                "id": 1,
+                "modelId": 135,
+                "fakeModelId": 135
+              }
+            ],
+            "curses": [
+              "dream"
+            ],
+            "name": "viewer"
+          },
+          {
+            "isBot": true,
+            "hp": 40,
+            "mp": 10,
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "id": 3,
+                "modelId": 94
+              },
+              {
+                "id": 4,
+                "modelId": 14
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 23
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 3,
+                "id": 8
+              },
+              {
+                "modelId": 166,
+                "id": 9
+              },
+              {
+                "id": 0,
+                "modelId": 0
+              }
+            ],
+            "cp": 20,
+            "id": 2,
+            "name": "cpu"
+          }
+        ],
+        "updateCount": 2,
+        "guardianPlayerIds": [
+          1
+        ],
+        "attacks": [
+          {
+            "itemModelIds": [
+              60
+            ],
+            "targetPlayerId": 1,
+            "playerId": 2
+          }
+        ],
+        "gf": 2,
+        "events": [
+          {
+            "items": [
+              {
+                "id": 1,
+                "modelId": 80
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "damage": 4,
+            "action": "dealDamage"
+          },
+          {
+            "curse": "dream",
+            "action": "addCurse"
+          },
+          {
+            "item": {
+              "modelId": 135,
+              "fakeModelId": 135,
+              "id": 1
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "id": 2,
+                "modelId": 60
+              }
+            ]
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "attackTurnPlayerId": 2
+      }
+    }
+  ],
+  "reconstructed_initial_scene": {
+    "authoritative": false,
+    "gf": 1,
+    "attackTurnPlayerId": 1,
+    "players": [
+      {
+        "hp": 40,
+        "cp": 20,
+        "id": 1,
+        "mp": 10,
+        "items": [
+          {
+            "id": 1,
+            "modelId": 80
+          },
+          {
+            "modelId": 20,
+            "id": 2
+          },
+          {
+            "id": 3,
+            "modelId": 195
+          },
+          {
+            "modelId": 135,
+            "id": 4
+          },
+          {
+            "modelId": 170,
+            "id": 5
+          },
+          {
+            "modelId": 144,
+            "id": 6
+          },
+          {
+            "modelId": 19,
+            "id": 7
+          },
+          {
+            "modelId": 193,
+            "id": 8
+          },
+          {
+            "modelId": 162,
+            "id": 9
+          }
+        ],
+        "name": "viewer"
+      },
+      {
+        "isBot": true,
+        "hp": 40,
+        "mp": 10,
+        "items": [
+          {
+            "modelId": 195,
+            "id": 1
+          },
+          {
+            "id": 2,
+            "modelId": 60
+          },
+          {
+            "id": 3,
+            "modelId": 94
+          },
+          {
+            "id": 4,
+            "modelId": 14
+          },
+          {
+            "modelId": 3,
+            "id": 5
+          },
+          {
+            "id": 6,
+            "modelId": 23
+          },
+          {
+            "modelId": 3,
+            "id": 7
+          },
+          {
+            "modelId": 3,
+            "id": 8
+          },
+          {
+            "modelId": 166,
+            "id": 9
+          }
+        ],
+        "cp": 20,
+        "id": 2,
+        "name": "cpu"
+      }
+    ],
+    "reconstruction_basis": [
+      "UI before values:both players HP40/MP10/CP20,no curses,viewer main.",
+      "Viewer post gift135/id1 is removed and event-consumed80/id1 is restored.",
+      "CPU zero placeholder is removed and event-launched60/id2 is restored."
+    ],
+    "order_policy": "For the local initializer only,players use post-state order and items are sorted by numeric slot id. Initial received item order and original draw order are unknown.",
+    "not_reconstructed": [
+      "initial server updateCount",
+      "initial event list",
+      "initial disease/guardian scheduling cursors",
+      "initial transport snapshot"
+    ]
+  },
+  "boundary_notes": [
+    "Received gift135 has fakeModelId135 explicitly equal to modelId135. Preserve both the ID and explicit fake presence in this raw-derived fixture and the native received-disguise path;the local generator remains unchanged.",
+    "The post update is already pending CPU60 toward viewer. It includes viewer80 self-use/damage/Dream/gift/GF advance and the next CPU launch.",
+    "CPU has nine received rows:only eight positive model copies plus one zero placeholder.",
+    "Item id1 is reused from consumed80 to gift135. It is not a monotonically new physical-token identity."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54"
+  },
+  "captured_authoritative_game_snapshot_count": 1,
+  "initial_authoritative_game_snapshot_count": 0,
+  "bounded_authoritative_game_update_batch_count": 1,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

@@ -6,16 +6,16 @@
 
 ## 現時点の主要残件（2026-11-05）
 
-対局エンジンは `official-execution-subset-v55` / Snapshot55 / view-v53。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
+対局エンジンは `official-execution-subset-v56` / Snapshot56 / view-v54。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v61まで22完了例と独立routing-only1例を取得した。[v62の天国草・非終末補充](../data/official-v2/live-transition-witnesses-v62.json)を加えて累計23完了例、native比較対象20例となる。従来15×72＝1080投影、別枠72routing・72一新部分検証、v59の8再生32checkpoint、v60の16再生32checkpoint、新v62の8再生16checkpointを区別する。複合chanceを含む従来3例は記録のみ。開始〜終局の受信game列1対局分は維持し、今回のGF1→3は追加の有限列として扱う。CPU通常gift等はeventsから省略され、全backend内部イベントtraceは0のままである。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v61まで22完了例と独立routing-only1例を取得した。[v62の天国草・非終末補充](../data/official-v2/live-transition-witnesses-v62.json)を加えて累計23完了例、native比較対象20例となった。v63の夢の木づち自己使用と135/135補充を加え、現在は24完了例・native比較対象21例。従来15×72＝1080投影、別枠72routing・72一新部分検証、v59の8再生32checkpoint、v60の16再生32checkpoint、v62の8再生16checkpointとv63の8再生1受信checkpoint＝8比較を区別する。複合chanceを含む従来3例は記録のみ。開始〜終局の受信game列1対局分は維持し、v62のGF1→3とv63のpost-only更新は追加の有限列として扱う。CPU通常gift等はeventsから省略され、全backend内部イベントtraceは0のままである。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移goldenの拡充 | 完了公開観測23件（native比較対象20件。従来15例1080投影＋v59の32checkpoint＋v60の32checkpoint＋v62の16checkpoint、複合3例は記録のみ。一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局と、新規Heavenのdisease/HP＋5→通常補充という受信順を1例ずつ確認した。208／112の優先順や、病気tick／補充／守護神の一般的な順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 完了公開観測24件（native比較対象21件。従来15例1080投影＋v59の32checkpoint＋v60の32checkpoint＋v62の16checkpoint＋v63の8checkpoint、複合3例は記録のみ。一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46・夢の木づち80の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局と、新規Heavenのdisease/HP＋5→通常補充という受信順を1例ずつ確認した。208／112の優先順や、病気tick／補充／守護神の一般的な順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の一新と終末授与の境界 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。v58では178・Dream・一新と後続244CP/MPを確認したが、置換8品の内訳と授与slotの由来は未確定で、即時一新＋既存予約補充も排除されない。一新中の悪魔可否、2slot対応、複数帽子、208/112や死亡による中断は未確認で、grantへの接続が必須とは確定していない。取引の直接配送も授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
-| 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |
+| 4 | Dreamの全候補と実体不適合入力 | ローカル生成は見かけの選択互換を保つ9field同値クラスに限定する。v63で135/135を受信し、同一番号の明示偽装を外部入力・snapshotで保持できるようにした。異なる番号で9field互換外のpairは未対応。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |
 | 5 | Earth／Moonの一般処理 | canonical42、明示payload、Earth120／Moon26のローカル選出と任意設定の自動発動はある。全カテゴリのwrapper・混合列・公式候補分布は未対応。教典のEarth四カテゴリ／Moon奇跡という範囲だけから、選出や実行順を補わない |
 
 v57の祈り例では、武器を表示上持たないDream中の本人が祈り、HP50→241の20被害→HP30→通常品受領で手札8→9、G.F.8→9を連続確認した。元の1slotを悪魔後に通常品で満たすlocal retry規約を支持する例だが、243による盗難に追加補償giftが付く証拠ではない。46＋オーラ例の手札の変化とused231消失と残placeholder数も、原授与のretryと盗難補償を一意に区別しない。visible rosterのCPU先・本人後という配置をbackend player array順と同一視せず、recipient間の授与順を今回変更しない。Dream中の顔231やpink/gold iconだけから互換外fakeを断定せず、今回のDream全分布の反例とは数えない。
@@ -2270,3 +2270,12 @@ ruleset53では設定中プール・非Dreamの通常授与を外部chance入力
 external_artifacts optionにより、既定の内部giftを保ったまま非終末の予約通常補充を記録結果へ分離できる。normal-onlyでは悪魔を拒否し、sample_grantはchance無消費の0を返す。旧external_grantsかつ終末中の悪魔法則は維持する。Config24 byteとABI2を保ち、snapshot/viewを55/53へ更新した。
 
 新観測では198自己使用のMP＋20・Heaven付与後、disease・HP＋5が本人通常補充より先に届いた。CPUの191自己回復と207受領差分までを同じ完了例として扱う。病気悪化率・一般scheduler・CPUの省略gift列・207現象選出は未確定のままで、局所的な受信順と全backend処理の取得を混同しない。
+
+
+## v63：Dream自己付与と受信identityの差分
+
+終末なしCPU修行で80の自己使用を1入力で完了し、HP40→36・Dream・135/135のgift・次CPU60の攻撃開始を取得した。以前は80で余分な自己防御入力を要求し、同一番号fakeを拒否していた。新しい直接経路は `weapons / add_curse_on_damage / dream` に限定し、36も同じ能力による一般化として含める。Cold等の他curse・確率攻撃・Wideの経路は広げない。
+
+受信disguise判定と生成候補判定を分離した。`match_dream_disguise_supported` は従来の異番号9key互換または対応モデルの同番号を許す。旧 `match_dream_compatible` と生成候補・半コイン・eligible率・RNG消費は維持する。fake135の存在を消さず、Noneとは区別して使用時reveal・全解除・取引・private proofへ通す。一般の互換外pairや公式50%分布を解決したとは扱わない。
+
+v63の受信はupdateCount2のpost状態1件だけで、初期wireは未取得である。UI初期資源とuseイベントから消費copyを戻した合成初期sceneを使い、既存固定8seedで各1checkpointを比較する。新しい8公式対局や取得済み初期snapshotとは数えない。ブラウザ操作はその後window-not-foundで停止し、CPU攻撃への応答・identity防具の実使用は未観測である。
