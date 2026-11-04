@@ -1268,15 +1268,27 @@ void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
         && s.config.external_grants && apocalypse_active(s.state) && !s.terminated && !s.truncated,"grant needs the current environment recipient");
     const auto seat=index(s,action.target); require(!s.state.players[seat].dead && s.gifts[seat]>0,"missing live gift debt");
     if (!match_grant_supported(action.model)) unsupported("unsupported grant outcome");
-    if (action.model==0) require(!action.resource && action.removed.empty(),"ordinary grant has inactive devil fields");
-    else devil_shape(s,action);
+    if (!match_devil_supported(action.model)) {
+        require(!action.resource && action.removed.empty(),"ordinary grant has inactive devil fields");
+        if (action.model) {
+            if (!gift_model_supported(action.model,s.config.include_fate)) unsupported("explicit ordinary model is outside the configured gift pool");
+            if (has_curse(s.state.players[seat],Curse::dream)) unsupported("explicit ordinary grant cannot infer a Dream disguise");
+        }
+    } else devil_shape(s,action);
 }
 void execute_grant(MatchSnapshot& s, const GrantAction& action) {
     prepare_grant(s,action); const auto seat=index(s,action.target);
     s.batch->grants.push_back({s.batch->responses.size(),action});
     s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
-    if (!action.model) {
-        gift(s,seat); --s.gifts[seat]; ++s.grant_artifacts; s.last_grant=DevilEvent{action.target,0,{}};
+    if (!match_devil_supported(action.model)) {
+        if (!action.model) gift(s,seat);
+        else {
+            auto& recipient=s.state.players[seat];
+            require(recipient.items.size()<s.config.hand_limit,"gift has no reserved display slot");
+            require(s.next_token<=max_wire_integer,"scoped item token exhausted");
+            recipient.items.push_back({s.next_token++,action.model,{},false});
+        }
+        --s.gifts[seat]; ++s.grant_artifacts; s.last_grant=DevilEvent{action.target,0,{}};
     } else {
         ++s.grant_devils; s.last_grant=apply_devil_body(s,action);
         if (s.state.players[seat].dead) s.gifts[seat]=0;
@@ -1671,7 +1683,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
-bool match_grant_supported(CardId id) noexcept { return id==0 || match_devil_supported(id); }
+bool match_grant_supported(CardId id) noexcept { return id==0 || match_devil_supported(id) || gift_model_supported(id,true); }
 bool match_devil_supported(CardId id) noexcept { return id>=240 && id<=244; }
 bool match_fate_supported(CardId id) noexcept { return id==207; }
 bool match_item_shuffle_supported(CardId id) noexcept { return id==295; }
@@ -2039,7 +2051,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v50\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v51\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

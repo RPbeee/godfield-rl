@@ -123,6 +123,11 @@ class DevilAction:
 
 @dataclass(frozen=True)
 class GrantAction:
+    """Privileged grant result: 0 draws, a configured ordinary ID is supplied, or 240..244 resolves a devil.
+
+    Explicit ordinary IDs consume no game RNG and currently require a non-Dream
+    recipient. Model207 additionally requires include_fate; this is not a selector.
+    """
     target: int
     model: int = 0
     resource: str | None = None
@@ -426,7 +431,7 @@ class Match:
         self.self_attack_rule = lib.gfo_match_self_attack_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v52"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v53"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21
@@ -536,6 +541,7 @@ class Match:
         self.supported_item_shuffle_models = tuple(card.id for card in self._data if lib.gfo_match_item_shuffle_supported(card.id))
         self.supported_fate_models = tuple(card.id for card in self._data if lib.gfo_match_fate_supported(card.id))
         self.supported_devil_models = tuple(card.id for card in self._data if lib.gfo_match_devil_supported(card.id))
+        # Static capability includes237 ordinary IDs; config and recipient conditions remain legal() checks.
         self.supported_grant_models = tuple(model for model in (0, *(card.id for card in self._data)) if lib.gfo_match_grant_supported(model))
         base_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
@@ -701,6 +707,11 @@ class Match:
         return bool(result.value)
 
     def grant_step(self, action):
+        """Resolve one reserved gift with a supplied result; positive ordinary IDs do not sample.
+
+        Use model0 for the existing weighted draw, including its Dream policy.
+        Explicit ordinary results carry neither a resource nor removed tokens.
+        """
         self._open(); encoded = _grant_action(action); result = _Status()
         _check(self._lib.gfo_match_grant_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
@@ -785,6 +796,7 @@ class Match:
     def sample_grant(self, chance_rng):
         """Privileged local chance: returns (GrantAction,new_rng), without changing the match.
 
+        Returns model0 or a devil, never an explicit ordinary-model result.
         Uses actual current tokens for243. This is separate from policy/game RNG
         and does not claim the server's resource or copy selection distribution.
         """

@@ -125,3 +125,22 @@ G.F.11本人mainは本人38/0/20・CPU5/4/20、本人手札10（未使用8・使
 取得後はG.F.14の次のCPU攻撃に応答せず検証用修行を終了し、ホームメニューへの帰還を確認した。今回、一新の悪魔適用・複数帽子・途中の死亡復活・serverのslot/debt対応を確定したとはしない。
 
 その後、別の短いCPU修行でFirefoxのNetwork Monitorを開き、Firestoreの部屋情報の応答をUIから閲覧できることを確認した。ゲームの全イベント列は取得できておらず、前の178経過のwireを遡って復元したとは扱わない。確認用の対局と開発者ツールを閉じ、ホームへの復帰を確認した。新しい完了ケースやfull wire traceの件数には加算しない。
+
+## v59：連続した受信game文書と3完了操作
+
+2026年11月5日の2人CPU修行・終末G.F.1で、Firefox Network Monitorの「別名で応答を保存」から受信本文だけを取得した。HAR・認証header・cookie・送信要求は保存せず、raw本文はpermission600の `/tmp` 作業物に限定する。[匿名化game fixture](../data/official-v2/wire-game-updates-v59.json)は名前・userId・room path・updatedAtを除去し、モデル・受信slot・省略field・events順を残した。viewer1/CPU2は受信game内の数値IDである。
+
+| 受信updateCount | 確定した操作と境界 | 本人HP/MP/CP・状態 | 主な受信結果 |
+| --- | --- | --- | --- |
+| 1 | G.F.1、本人main・初期実手札9 | 40/10/20 | CPUも実手札9、保留攻撃なし |
+| 2 | 23硬いつちを明示自己使用→CPU62攻撃開始 | 34/10/20 | 通常161受領。CPU62（土1）が本人をtarget、CPU実物8＋placeholder1 |
+| 3 | CPU62へ空防御→G.F.3本人main | 33/10/20・Cold | CPU手札差分に184、giftイベントは省略。両者実物9 |
+| 4 | 199スマイルの貝がらを明示自己使用→CPU32攻撃開始 | 33/10/20・Cold解除 | 通常123受領。CPU32（無9）が本人をtarget、CPU実物8＋placeholder1 |
+
+3操作を完了観測へ追加し、累計21件となる。G.F.4のCPU32への応答は行わず退出し、ホーム復帰とNetwork Monitor閉鎖を確認した。今回のCold付与で被害1、199の解除後は本人HP33を維持したが、一般病気schedulerの全順序や乱数分布へ一般化しない。
+
+23の受信id6は161へ、199のid1は123へ再利用される。これらは恒久的な物理個体IDではない。CPUの `{id:0,modelId:0}` は空slotであり、実物9枚と数えない。CPUの真モデルは修行の受信fixtureに含まれるが、検証専用で、方策のviewer観測や対人戦の秘匿性へ適用しない。
+
+updateCount2には自己攻撃のuse/setTarget/damage/gift/advanceGFだけでなくCPUのuse/setTargetも入る。初期eventsにCPU初期giftは無く、updateCount3にもCPU184のgiftは無い。受信したeventsは全内部処理ではないため、CPU補充時の未観測悪魔列やretryを作らない。受信初期状態1＋後続batch3を取得した有限範囲であり、全対局・全backendイベント列は0件のままとする。
+
+[専用native比較](../tests/official_wire_trace_test.cpp)は通常161・184・123を外部chanceで与え、8seedで4checkpoint＝32比較を行う。seedを観測結果へfitせず、slot対応を管理して実手札・資源・Cold・保留攻撃を照合する。従来15例1080投影、72routing、72一新部分検証は別枠を保つ。[機械可読観測記録](../data/official-v2/live-transition-witnesses-v59.json)に範囲を明示する。

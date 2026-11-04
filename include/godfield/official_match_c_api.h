@@ -108,6 +108,8 @@ int gfo_match_fate_supported(uint16_t model);
 size_t gfo_match_devil_action_size(void);
 int gfo_match_devil_supported(uint16_t model);
 size_t gfo_match_grant_action_size(void);
+// Static union:0,237 positive-gift IDs,240..244. Current pool/Dream checks are
+// performed by grant_legal/step;207 support here does not imply include_fate.
 int gfo_match_grant_supported(uint16_t model);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
@@ -178,8 +180,10 @@ int gfo_match_fate_step(gfo_match* match, const gfo_match_fate_action* action, g
 int gfo_match_devil_legal(const gfo_match* match, const gfo_match_devil_action* action, uint8_t* out);
 int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action, gfo_match_status* out);
 // Opt-in apocalypse reserved-gift continuation. Only the pending recipient may
-// be selected. Model0 draws one normal artifact;240..244 apply a supplied devil
-// and retain the original debt. Each resolution is one decision, not a selector.
+// be selected. Model0 draws one normal artifact; a configured positive-gift ID
+// supplies one unused artifact without game RNG (non-Dream only;207 opt-in).
+//240..244 apply a supplied devil and retain the original debt. Ordinary inputs
+// have no resource/removed payload. Each resolution is one decision, not a selector.
 int gfo_match_grant_legal(const gfo_match* match, const gfo_match_grant_action* action, uint8_t* out);
 int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the

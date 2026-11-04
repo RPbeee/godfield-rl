@@ -2,7 +2,7 @@
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この文書は2026-11-01のv1と2026-11-02のv2を通常のHTTP GETで取得した調査記録である。ログイン、匿名認証、部屋への参加、対戦、Cloud Functionsへのコマンド送信は行っていない。旧Flashエミュレーターの仕様を現行公式の根拠として扱わない。
+この文書の初期調査は2026-11-01のv1と2026-11-02のv2を通常のHTTP GETで取得した記録で、この初期段階ではログイン・匿名認証・対戦・コマンド送信を行っていない。後述v52以降には、許可されたCPU修行の操作・受信観測を追記する。旧Flashエミュレーターの仕様を現行公式の根拠として扱わない。
 
 現行公式は[公式サイト](https://godfield.net/)に配信される Dart コンパイル済みJavaScriptとローカライズJSONから、神器台帳、教典、画面の選択制約、表示処理を検証できる。ただし、これだけで全ゲーム状態遷移や乱数処理まで取得できたという根拠はない。以下の「未確定」は仕様の推測で埋めない。
 
@@ -2105,3 +2105,13 @@ G.F.8の本人の祈りは、241中悪魔の20被害に続けて新神器1枚が
 対局ruleset52 / Snapshot52 / view-v50、ABI2を維持する。従来15例1080投影＋72routingに、今回の防御・Dream・旧使用済みコピー消失に対応する72コンポーネント検証を別枠で加える。そこには原発201の予約補充がなく、8fresh通常品は現行仮説の合成中間境界である。公式の最終手札10・次G.F.12を再現するfull比較へ加算しない。
 
 別の通常GETでも公開物を再照合した。応答のHTTP Dateは2026年11月4日16:23:27 UTC（対局captureの時刻ではない）。JS440,420bytesとJA49,240bytesのSHA256は既存v2 pinに全本文一致し、Last-Modifiedは両方2026年11月4日07:33:42 UTCだった。raw本文は作業cacheだけへ保存し、旧pins・oracleを変更していない。この公開物の一致をbackend実装の取得や同等性証明とは扱わない。
+
+## v59：training roomの受信gameと送信commandの境界
+
+固定した公開client（JS SHA256 `5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd`）では、H.iW（14887–14892）からA.po（3387–3389）を通り、`modes/training/rooms/<roomId>` の単一文書をonSnapshotで購読する。callback（9307–9309）→doc.data()→lQ（14974）→A.u7（4538）のroom.game→tn（3754）→fv.fq（12354）へ渡る。create-roomのroomIdを使い、start-game/submit-commandの戻り値をgame snapshotとして扱う経路ではない（H.lz 14903–14924）。別のgames/events subcollection購読は確認していない。
+
+submit-commandはmode/roomIdと、選択した `itemIds`・存在する `targetPlayerId`・両替のmp/cp等のcommandを送る。空祈り/空応答は空command、購入はboughtであり、威力・防御・真モデル・fakeや期待乱数を送るものではない。今回の操作は画面UIだけで行い、認証requestを自作・再送していない。
+
+clientが受理するgameのfieldにはplayers/gf/tiebreakGF/attackTurnPlayerId/attacks/isOver/events/updateCountがある。今回の4状態ではisOverは省略され既定falseとなり、attacksは保留攻撃のあるupdate2/4だけに存在する。受信gameにはdiseasePlayerId/guardianPlayerIds/updatedAtもあった。これらの補助fieldや受信updateCountをnative counterへ直接対応させない。fv.fqは直前updateCount＋1と非empty eventsの場合に増分表示し、初回や再接続では状態から組み立て直す。1server更新へ複数の主動作が入り得る。[取得記録](official-live-observations.md#v59連続した受信game文書と3完了操作)ではupdateCount1〜4を連続取得したが、CPU初期giftやCPU184のgiftがeventsに無く、全内部イベントの取得とは異なる。
+
+対局ruleset53 / Snapshot53 / view-v51では、設定中プール内・非Dreamの通常授与を明示chance入力し、161/184/123を乱数消費なしで再生できる。受信slot再利用は所有者＋slot→fresh local tokenの対応で扱う。CPU真手札は検証専用で、公開方策へ出さない。全21完了観測のうち従来15例と新3例がnative比較対象であり、178一新・94＋Wide・Dream全分布・一般scheduleの残件を解消したとはしない。

@@ -49,6 +49,92 @@ gfo_match* redirected_alias_fixture(uint16_t model) {
     }
     check(false,"bounded bounce fixture reaches an aliased defender");return nullptr;
 }
+
+// The public C interface has no execution-checkpoint import. Pair each typed
+// C transition with native execution and audit the native full replay separately.
+void explicit_ordinary_grant_interop() {
+    namespace official = godfield::official;
+    for(unsigned variant=0;variant<3;++variant) {
+        const bool opted=variant!=0, dream=variant==2;
+        gfo_match_config config{};config.max_decisions=32;config.hand_limit=18;
+        config.initial_hp=40;config.initial_mp=10;config.initial_cp=20;
+        config.external_grants=1;config.include_fate=opted;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;
+        gfo_match* game=nullptr;gfo_match_status result{};
+        check(gfo_match_create(&config,setup.data(),setup.size(),42,&game)==0,"explicit ordinary C match create");
+        std::array<gfo_state_player,2> people{};people[1].id=7;
+        for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}
+        people[0].item_count=2;people[1].item_offset=2;
+        std::array<gfo_state_item,2> items{};
+        items[0].model=152;items[1].token=1;items[1].model=235;items[1].used=1;
+        const uint8_t curse=static_cast<uint8_t>(official::Curse::dream);
+        if(dream){people[0].curse_count=1;people[1].curse_offset=1;}
+        gfo_state_meta meta{};meta.has_tiebreak=1;gfo_state* scene=nullptr;
+        check(gfo_state_create(&meta,people.data(),people.size(),items.data(),items.size(),dream?&curse:nullptr,dream?1:0,&scene)==0
+            &&gfo_match_load_scene(game,scene,0,42,&result)==0,"explicit ordinary C typed scene");
+        gfo_state_destroy(scene);
+        official::MatchConfig native_config;native_config.initial_hand=0;native_config.max_decisions=32;
+        native_config.external_grants=true;native_config.include_fate=opted;
+        official::Match native(native_config);official::SnapshotState state;state.tiebreak_gf=0;
+        state.players.resize(2);state.players[1].id=7;
+        state.players[0].items={{0,152,{},false},{1,235,{},true}};
+        if(dream)state.players[0].curses={official::Curse::dream};
+        native.load_scene(state,0,42);
+        const auto audit=[&] {
+            official::Match restored;restored.restore(native.snapshot());
+            check(restored.snapshot()==native.snapshot(),"explicit receipt and remaining debt full native snapshot roundtrip");
+            check(observe(game,0,0)==native.observe({})&&observe(game,1,0)==native.observe(0)
+                &&observe(game,1,7)==native.observe(7),"typed C receipt matches native public projections");
+        };
+        gfo_match_command sacrifice{};sacrifice.kind=9;sacrifice.item_count=2;sacrifice.items[1]=1;
+        check(gfo_match_step(game,&sacrifice,&result)==0&&result.phase==4,"two receipts reserved for explicit-model C interop");
+        (void)native.step({0,official::CommandKind::sacrifice,{0,1},{}});audit();
+        const auto before=observe(game,1,0);const auto before_status=status(game);uint8_t legal=0;
+        gfo_match_grant_action supplied{};supplied.model=opted?207:6;
+        if(dream) {
+            for(uint16_t model:{uint16_t{6},uint16_t{207}}){supplied.model=model;result=before_status;
+                check(gfo_match_grant_legal(game,&supplied,&legal)==0&&!legal
+                    &&gfo_match_grant_step(game,&supplied,&result)==-5&&equal(result,before_status)
+                    &&observe(game,1,0)==before,"Dream explicit-model grants are unsupported and atomic");}
+            supplied.model=0;
+        } else {
+            if(!opted){auto disabled=supplied;disabled.model=207;result=before_status;
+                check(gfo_match_grant_legal(game,&disabled,&legal)==0&&!legal
+                    &&gfo_match_grant_step(game,&disabled,&result)<0&&equal(result,before_status)
+                    &&observe(game,1,0)==before,"static207 capability still requires opted-in gift pool");}
+            for(unsigned bad_kind=0;bad_kind<4;++bad_kind){auto bad=supplied;
+                if(bad_kind==0){bad.has_resource=1;bad.resource=0;}
+                if(bad_kind==1){bad.removed_count=1;}
+                if(bad_kind==2){bad.removed[1]=1;}
+                if(bad_kind==3){bad.reserved[0]=1;}
+                uint8_t marker=0xa5;result=before_status;
+                check(gfo_match_grant_legal(game,&bad,&marker)==-2&&marker==0xa5
+                    &&gfo_match_grant_step(game,&bad,&result)==-2&&equal(result,before_status)
+                    &&observe(game,1,0)==before,"ordinary-model payload cannot carry resource, removed copies or padding");}
+        }
+        const auto launch_rng=native.snapshot().rng;
+        for(unsigned receipt=0;receipt<2;++receipt){
+            if(receipt)supplied.model=dream?0:214;
+            const auto before_receipt=native.snapshot();
+            check(gfo_match_grant_legal(game,&supplied,&legal)==0&&legal,"ordinary-model C legal is pure");
+            check(gfo_match_grant_step(game,&supplied,&result)==0,"ordinary-model C step");
+            (void)native.grant_step({0,supplied.model,{},{}});audit();
+            if(!dream){
+                check(native.snapshot().rng==launch_rng,"supplied ordinary receipts consume no environment RNG");
+                const auto after_receipt=native.snapshot();
+                const auto& item=after_receipt.state.players[0].items.back();
+                check(item.model==supplied.model&&!item.used&&!item.fake_model
+                    &&item.token==before_receipt.next_token,"ordinary receipt is a fresh unused unmasked local copy");
+            }
+            const auto spectator=observe(game,0,0);
+            check(spectator.find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos
+                &&spectator.find("\"grant_proof\"")==std::string::npos&&spectator.find("\"grants\"")==std::string::npos
+                &&spectator.find("\"token\"")==std::string::npos,"ordinary grant public notice does not expose its supplied model or private proof");
+        }
+        check(result.phase==0&&result.owner==7&&result.decisions==3,"two explicit receipts fill exactly two debts and advance once");
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
     std::size_t fixed_query_probes = 0;
@@ -85,8 +171,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v52"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v52 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v53"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v53 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
@@ -409,7 +495,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v50\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v51\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2677,7 +2763,11 @@ int main() {
     check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&legal&&gfo_match_step(sacrifice_match,&sacrifice,&result)==-2
         &&equal(result,late_sacrifice_status)&&observe(sacrifice_match,0,0)==late_sacrifice,"late sacrifice failure restores used state, copies, gifts and caller output");
     gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
-    check(gfo_match_grant_supported(0)&&!gfo_match_grant_supported(1)&&!gfo_match_grant_supported(207),"grant normal0 is an environment outcome, not a model in the gift pool");
+    explicit_ordinary_grant_interop();
+    check(gfo_match_grant_supported(0)&&gfo_match_grant_supported(6)&&gfo_match_grant_supported(207)
+        &&!gfo_match_grant_supported(1)&&!gfo_match_grant_supported(245),"static grant capability includes ordinary IDs, with config and recipient checks deferred to legal");
+    std::size_t grant_capabilities=0;for(uint16_t model=0;model<=296;++model)grant_capabilities+=gfo_match_grant_supported(model)!=0;
+    check(grant_capabilities==243,"grant capability is237 ordinary models, normal0 and five devils");
     for(uint16_t model=240;model<=244;++model)check(gfo_match_grant_supported(model),"all five supplied devils can resolve a grant");
     auto grant_cfg=cfg;grant_cfg.initial_hand=0;grant_cfg.hand_limit=18;grant_cfg.max_decisions=32;grant_cfg.external_grants=1;
     for(unsigned bad_byte=0;bad_byte<6;++bad_byte){auto bad=grant_cfg;
@@ -2734,6 +2824,10 @@ int main() {
     check(gfo_match_grant_legal(grant_match,&grant,&legal)==0&&legal&&gfo_match_grant_step(grant_match,&grant,&result)==-2
         &&equal(result,late_grant_status)&&observe(grant_match,0,0)==late_grant&&!has_token(grant_match,0,0),
         "late grant failure rolls back to pending state rather than undoing the accepted original command");
+    auto late_explicit_grant=grant;late_explicit_grant.model=6;result=late_grant_status;
+    check(gfo_match_grant_legal(grant_match,&late_explicit_grant,&legal)==0&&legal
+        &&gfo_match_grant_step(grant_match,&late_explicit_grant,&result)==-2&&equal(result,late_grant_status)
+        &&observe(grant_match,0,0)==late_grant,"numeric ordinary late failure preserves C output and pending state");
     gfo_match_destroy(grant_match);grant_cfg.max_decisions=3;
     check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"bounded supplied devil retry create");
     load_grant_scene(0);check(gfo_match_step(grant_match,&grant_offer,&result)==0,"start bounded devil retry");

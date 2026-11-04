@@ -6,13 +6,13 @@
 
 ## 現時点の主要残件（2026-11-05）
 
-対局エンジンは `official-execution-subset-v52` / Snapshot52 / view-v50。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
+対局エンジンは `official-execution-subset-v53` / Snapshot53 / view-v51。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[v52の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)と、[v53のDark自己死亡1件・反射剣の経路観測1件](../data/official-v2/live-transition-witnesses-v53.json)を取得した。さらに[v54の大木自己使用・鎖ガマ空防御・使用済み大木の再使用3件](../data/official-v2/live-transition-witnesses-v54.json)を確認した。[v56の自己売却・石2空防御・46自己使用3件](../data/official-v2/live-transition-witnesses-v56.json)に続き、[v57の売買・Dream・悪魔授与等7件](../data/official-v2/live-transition-witnesses-v57.json)を記録した。さらに[v58の守護封印のつぼ201から夢見る帽子178・後続授与までの1件](../data/official-v2/live-transition-witnesses-v58.json)を加え、完了した公開観測は累計18件、反射剣の追加防御不要という経路だけの観測は別に1件となった。18件すべてを単一効果の独立goldenと数えるものではなく、full比較のnative投影は従来の15件、複合chance/非公開在庫を含む46＋オーラ・購入の2件とv58の全体遷移は未追加である。nativeの15×72＝1,080比較と72routing検査に、一新部分だけの72コンポーネント検証を別枠で加える。これらは実対局の観測件数とは別の合成fixture数。full wire traceは0件で、一般的な進行順・selectorは引き続き未確認である。v57の記録日は2026-11-05、個々の取得は2026-11-04〜05の範囲で、正確なcapture時刻は取得していない。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v58まで18完了例と独立routing-only1例を取得した。[v59受信記録](../data/official-v2/live-transition-witnesses-v59.json)の自己攻撃・Cold空防御・自己解除3例を加えて累計21完了例となる。native比較は従来15例×72＝1080公開投影と別枠72routing・72一新コンポーネントに、新3操作の8seed再生・4checkpoint＝32比較を加える。複合chanceを含む従来3例は記録のみ。今回、同じCPU修行の初期状態1＋連続受信batch3を取得したが、CPU補充等の全内部イベントはeventsに含まれず、full match／全backend traceは0のままである。これらのfixture数と実観測件数を区別する。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移goldenの拡充 | 完了公開観測18件（full比較のnative投影15件、複合2件とv58全体遷移は未追加、一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 完了公開観測21件（native比較対象18件。従来15例1080投影＋新3操作の8再生32checkpoint、複合3例は記録のみ。一新部分の72検証は別枠）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の一新と終末授与の境界 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。v58では178・Dream・一新と後続244CP/MPを確認したが、置換8品の内訳と授与slotの由来は未確定で、即時一新＋既存予約補充も排除されない。一新中の悪魔可否、2slot対応、複数帽子、208/112や死亡による中断は未確認で、grantへの接続が必須とは確定していない。取引の直接配送も授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
 | 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |
@@ -2242,3 +2242,11 @@ gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resourc
 full比較は従来の15件×72＝1,080公開投影比較と別枠72routingを維持する。追加の72一新コンポーネント検証は、外部指定271への178応答でDream、DEF14によるDark2の被害0、旧used奇跡2個の消失という限定観測を比較する。fixture内の手札9→消費後8fresh ordinaryは現規約の仮説を使った合成中間境界で、UIから8ordinaryを読み取った比較ではない。原発201の予約gift1も無いため、公式の最終手札10・G.F.12までを再現したfull goldenへ数えない。
 
 一新内の悪魔出現可否、2slotの対応、複数178、置換途中の208/112と死亡、backend順、fakeの真値や50%分布は未測定である。94＋Wide、Dream互換外、一般Earth/Moonと公式server scheduleの残件、旧検証値・訂正・pins・legacy37は維持する。
+
+## v59：取得できた受信状態と残る境界
+
+[匿名化したroom.game](../data/official-v2/wire-game-updates-v59.json)はupdateCount1〜4の資源・手札・events・進行中attacksを保持する。CPU修行では相手の真モデルも届いていたが、検証専用のprivileged fixtureとし、方策向けの手札公開へ転用しない。対人戦の通信上の秘匿性へも一般化しない。
+
+通常授与161/123はgiftイベントと手札、CPU184は手札差分で確認した。後者について隠れた悪魔の有無や内部retry列を補完しない。受信eventsだけで全配布過程を再現できるとは言えず、server updateCount2には本人の自己攻撃解決と次CPU攻撃開始がまとめられる。受信slotは再利用されるため、native tokenと別に対応付ける必要がある。
+
+ruleset53では設定中プール・非Dreamの通常授与を外部chance入力し、乱数を合わせず4境界を比較できるようにした。raw placeholder0の直接importとpending状態のload_scene、全Dream・全授与経路、178一新中の悪魔、94＋Wide、一般Earth/Moonやserver scheduleは引き続き未対応・未確定である。Coldの1被害と199の解除を観測した今回の短い列を、一般病気tickの順序証明へ広げない。

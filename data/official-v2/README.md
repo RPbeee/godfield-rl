@@ -294,3 +294,18 @@ nativeには先の4例と祈りの5例を追加し、累計15例1080公開投影
 本体ruleset52 / Snapshot52 / view-v50とABI2、旧pins・記録を維持する。nativeの15例1080公開投影＋72routingへ、別の72一新コンポーネント検証を加える。178の防御・Dream・旧usedコピーの消失を照合するが、原発201の予約枠が無い合成境界のため、今回の手札10・次手番までのfull goldenへ数えない。
 
 記録は14,893bytes、SHA256 `cfbc441ee1b945c03dce65d8a1b26d14375000543c6f2c2fd10790c7431bfd90`。件数・native対象ID・相対リンク・別GET本文hashを照合した。Release・ASan/UBSanのlive test各1/1と、既存redraw/grant oracleのbyte一致を確認した。旧記録・reportを変更していない。
+
+## v59：匿名化した連続受信状態と明示通常授与
+
+[wire-game-updates-v59.json](wire-game-updates-v59.json)は同一CPU修行のupdateCount1〜4を保持する検証専用fixtureである。[live-transition-witnesses-v59.json](live-transition-witnesses-v59.json)に、23自己使用・62空防御のCold付与・199自己解除の3完了操作と証拠の範囲を記録する。累計21完了例・独立routing-only1例。取得した初期game1＋受信batch3は有限範囲で、全対局・全backendイベント列は0件である。
+
+Firefoxの応答本文保存を使い、名前・userId・room path・updatedAtを除去した。受信slot ID・model0 placeholder・省略field・events順は保持する。認証header/HARを取得・格納せず、rawはpermission600の `/tmp` のみ。CPU真モデルを含むprivileged fixtureであり、policy向け公開観測へ流用しない。受信id6/1の再利用とnative fresh tokenは別に対応付け、CPU184は手札差分からの結果入力であってgiftイベントではない。
+
+本体ruleset53 / Snapshot53 / view-v51は設定配布プール・非Dreamの通常神器を外部chanceで指定できる。通常0・悪魔・sample_grant・既定配布とABI2を維持する。新wire targetは8seed・4checkpoint＝32比較、既存live targetは15例1080投影＋72routing＋72一新部分検証のまま。旧pins・旧witness・旧reportを変更しない。
+
+| v59 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v59.json` | 18,596 | `4da3062f4d14673aa1c04f3583e18fdc6aee95a84ae7f991e7307ab4784da649` |
+| `live-transition-witnesses-v59.json` | 15,278 | `81048035378287ffd6d38528c5206864618b876eecc045ab13709d468ce08778` |
+
+4受信gameは、private本文から名前置換・userId/updatedAt除去だけで全値一致した。全4本文が同一のtraining room文書を参照することと、rawのbytes/SHA・mode600も独立に確認した。rawのroom識別子や認証情報は出力・commitしない。

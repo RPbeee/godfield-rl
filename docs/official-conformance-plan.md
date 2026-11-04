@@ -125,10 +125,10 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
 156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えたv9の194モデル・配布重み381を経て、閃光付与/反撃/解除7種を加えたv10の201モデル・配布重み404を経て、暗雲付与/反撃3種を加えたv11の204モデル・配布重み407を経て、除去2種を加えたv12の206モデル・配布重み409を経て、MP武器58/二回攻撃14を加えたv13の208モデル・配布重み411を経て、全敵化232を加えたv14の209モデル・配布重み412を経て、HP増減202を加えたv15の210モデル・配布重み414を経て、自動復活208を加えたv16の211モデル・配布重み415を経て、杵94/臼209を加えたv17の213モデル・配布重み417を経て、v18で両替3を加えた214モデル・配布重み437を経て、v19で同じプールのまま除去結果を公開し、v20で売却4を加えた215モデル/重み457を経て、v21で購入5を加えた216モデル/重み477を経て、v22で病気4状態/付与6種を加えた222モデル/重み483を経て、v23で168/198を加えた224モデル/重み485を経て、v24でFog4種と観測/対象選択を加えた228モデル/重み489を経て、v25で112を加えた229モデル/重み490を経て、取引配送overflowとFogのforeign SELLを扱う `official-execution-subset-v26` へ進め、v27で規約を変えずにofficial-v2へ同期した。
-現行は `official-execution-subset-v52`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
+現行は `official-execution-subset-v53`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
 201/239召喚・canonical42自動行動、限定Earth120/Moon26のopt-in自動payload、外部現象9種と295専用shuffle、
 Fate/悪魔の外部入力と専用ローカルsampler、終末閾値/ささげる、予約補充phase4までを実験規約で扱う。
-Snapshot52、`official-execution-view-v50`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
+Snapshot53、`official-execution-view-v51`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
 C Configのbyte6は `external_grants`、byte7は `include_fate`、byte20は `local_guardian_payloads` の独立したstrict boolで、byte21〜23は0を要求する。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
@@ -2000,3 +2000,15 @@ main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計1
 変更したlive targetをRelease→ASan/UBSanでビルドし、CTest `^official_live_trace$` は各1/1件が通過した（0.49秒／0.87秒）。両出力で1080投影＋72routing＋72一新コンポーネントを確認し、ビルドwarning/errorは0件。通常0の解決前で停止する部分検証で、最終手札9を実行したとは記録しない。本体変更が無いため、全suiteとベンチマークは再実行していない。
 
 別GETで既存v2 pinと同じ本文を得たJSを使い、既存のredraw oracle（在庫223＋短入力1＋used pane19）とgrant oracle（42項目）の `--check` も保存reportへbyte一致した。旧reportやpinsを更新せず、receiver関数の一致をserverの生成規則の証明に広げない。
+
+## v59：受信game文書と通常chance入力の接続
+
+CPU修行の `room.game` を含む4連続更新を匿名化して保存し、3完了操作をnative replayへ追加した。累計21完了観測のうち、native比較の対象は従来15例＋新3例。従来15×72＝1080投影、72routing、72一新部分検証は維持し、新3操作は8seed・4 checkpoint＝32比較の専用wire targetで検証する。記録だけの複合3例はfull native比較へ加算しない。初期状態1＋受信更新batch3を取得したが、全対局・全backendイベント列の取得は0のままである。
+
+新ruleset53 / Snapshot53 / view-v51は設定プール内・非Dreamの通常授与を明示chance入力する。通常0と悪魔入力、既定samplerとRNG、ABI2を保ち、記録結果にRNGをfitしない。受信slot再利用とfreshローカルtokenを対応させ、CPU184は手札差分の記録結果として扱う。raw model0 placeholderのread-only importとpending scene再開は未対応を維持する。詳細は[実行契約v53](official-execution-subset.md#対局v53作業世代v59記録された通常授与の明示入力)。
+
+次の観測は178一新に含まれる授与と後続授与の区別、94＋Wide、Dreamの真モデル・mask、死亡中断と全体scheduleを優先する。今回の受信CPU在庫を公開方策へ渡さず、受信eventsを全内部処理とみなさない。
+
+検証はRelease全156 CTestターゲットを、先行155/155（42.09秒）とnative追加後1/1（1.02秒）に分けて実行し全通過した。Python Matchは155 method、native Matchは224登録callbackである。ASan/UBSanでは最終の `official_live_trace` / `official_wire_trace` / `official_driver` / `official_match` / `official_match_c_api` が5/5通過（27.04秒）。driver benchmark・grant benchmark・grant sampler benchmarkも各通過した。全legacyを含むSAN suiteは再実行していない。最終Release/SAN buildのwarning/errorは0件で、旧pins・旧witness・旧reportは変更していない。
+
+explicitordinaryのconfigured pool/207 gate、Dream拒否とinactive payloadの原子性、fresh unused token・非詠唱・無RNG、normal0と既定経路のstate/RNG比較、private journalのrestoreと改ざん拒否、token/update/GF枯渇rollback、cutoffでのbody先行を追加検証した。受信fixtureはprivate原本から指定した匿名化だけで全値一致し、全4本文の同一room文書参照も識別子を出力せず確認した。

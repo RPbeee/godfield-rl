@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "Exact UI capture times are not assigned from response metadata or file timestamps.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v58.json",
+  "method": "Firefox native UI consecutive frame capture,plus separately saved Firestore WebChannel listen response bodies. Four decoded game snapshots with consecutive updateCount1,2,3,4 were confirmed from the same private room document and sanitized before repository storage. The three later received event batches are not a complete internal event or grant log.",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse": 1,
+    "viewer_first": true
+  },
+  "privacy": "Original names,userId,updatedAt and transport/account material are removed from the companion fixture. Only in-game numeric IDs and role labels remain. Raw and unsanitized files stay in mode0600 temporary storage.",
+  "authoritative_fixture": "wire-game-updates-v59.json",
+  "cases": [
+    {
+      "id": "training-apocalypse-gf1-self-hard-hammer-to-cpu-launch",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 1,
+        "owner": "viewer",
+        "actor": "viewer",
+        "server_update_count": 1,
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 9,
+        "cpu_received_item_rows": 9,
+        "cpu_positive_model_copies": 9,
+        "selected_item_id": 6,
+        "selected_model": 23,
+        "attack_display": {
+          "power": 6,
+          "element": null
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          23
+        ],
+        "target": "viewer",
+        "outgoing_wire_command_captured": false,
+        "ui_confirmations": 1
+      },
+      "additional_viewer_response_chosen": false,
+      "ui_observation": [
+        "Viewer confirmed one explicit self-use of23 hard hammer.",
+        "Damage6 was displayed and viewer HP40 changed to34.",
+        "GF2 CPU main was captured continuously before its next launch."
+      ],
+      "ui_completed_checkpoint": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "cpu",
+        "viewer": {
+          "hp": 34,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "checkpoint": "CPU main before its next launch"
+      },
+      "authoritative_update_boundary": {
+        "server_update_count": 2,
+        "event_actions": [
+          "useAttackItems",
+          "setTargetPlayer",
+          "dealDamage",
+          "gift",
+          "advanceGF",
+          "useAttackItems",
+          "setTargetPlayer"
+        ],
+        "self_operation_prefix_event_count": 5,
+        "next_cpu_launch_event_count": 2,
+        "prefix": {
+          "used_items": [
+            {
+              "id": 6,
+              "modelId": 23
+            }
+          ],
+          "target_player_id": 1,
+          "damage": 6,
+          "gift": {
+            "playerId": 1,
+            "item": {
+              "id": 6,
+              "modelId": 161
+            }
+          },
+          "next_owner_player_id": 2
+        },
+        "after_including_next_cpu_launch": {
+          "gf": 2,
+          "owner": "cpu",
+          "actor": "viewer",
+          "viewer": {
+            "hp": 34,
+            "mp": 10,
+            "cp": 20
+          },
+          "cpu": {
+            "hp": 40,
+            "mp": 10,
+            "cp": 20
+          },
+          "viewer_received_item_rows": 9,
+          "viewer_positive_model_copies": 9,
+          "cpu_received_item_rows": 9,
+          "cpu_positive_model_copies": 8,
+          "cpu_zero_placeholder_rows": 1,
+          "pending_attack": {
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              62
+            ]
+          }
+        },
+        "item_id_semantics": "The same numeric viewer item id6 appears on consumed23 and new gift161. Preserve this received reuse and do not label the gift a native monotonically allocated physical token.",
+        "transaction_semantics": "The1-to2 update-count increment contains self completion and the next CPU launch. It is not asserted to equal two separate native command updates."
+      },
+      "projection": "Independently compute neutral ATK6 from catalogued23 and compare the explicit self-use result HP34,unchanged MP/CP,viewer hand9 and next GF/owner. Preserve the authoritative five-event prefix and trailing two-event CPU62 launch. Use observed normal gift161 through explicit chance input,not a fitted RNG seed or injected damage value. The new eight-run wire projection is separate from the earlier generic1080 variants.",
+      "limits": "The bound is the initial subscription plus one later game update,not a completed match or the whole transport. The gift161 identity is observed but does not identify or fit the server RNG. CPU true inventory is privileged scenario input,not policy-visible knowledge. A pending CPU replacement is represented by a zero row;no CPU gift is invented."
+    },
+    {
+      "id": "training-apocalypse-gf2-wind-talons-cold-empty-defense",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "viewer",
+        "server_update_count": 2,
+        "viewer": {
+          "hp": 34,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 9,
+        "cpu_received_item_rows": 9,
+        "cpu_positive_model_copies": 8,
+        "cpu_zero_placeholder_rows": 1,
+        "pending_attack": {
+          "playerId": 2,
+          "targetPlayerId": 1,
+          "itemModelIds": [
+            62
+          ]
+        },
+        "catalog_attack": {
+          "power": 1,
+          "element": "stone",
+          "ability": "addCurseOnDamage",
+          "curse": "cold"
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [],
+        "outgoing_wire_command_captured": false,
+        "ui_confirmations": 1
+      },
+      "ui_observation": [
+        "Viewer chose empty defense against CPU62 wind talons.",
+        "Damage1 and Cold were displayed;viewer HP34 changed to33.",
+        "GF3 viewer main appeared."
+      ],
+      "authoritative_update_boundary": {
+        "server_update_count": 3,
+        "event_actions": [
+          "useDefenseItems",
+          "dealDamage",
+          "addCurse",
+          "advanceGF"
+        ],
+        "empty_defense_encoding": "The received useDefenseItems event omits the items field;the companion fixture preserves that omission.",
+        "damage": 1,
+        "added_curse": "cold",
+        "after": {
+          "gf": 3,
+          "owner": "viewer",
+          "actor": "viewer",
+          "viewer": {
+            "hp": 33,
+            "mp": 10,
+            "cp": 20
+          },
+          "cpu": {
+            "hp": 40,
+            "mp": 10,
+            "cp": 20
+          },
+          "viewer_curses": [
+            "cold"
+          ],
+          "viewer_received_item_rows": 9,
+          "viewer_positive_model_copies": 9,
+          "cpu_received_item_rows": 9,
+          "cpu_positive_model_copies": 9,
+          "attacks_field_present": false
+        },
+        "cpu_replacement_snapshot_delta": {
+          "before": {
+            "id": 0,
+            "modelId": 0
+          },
+          "after": {
+            "id": 5,
+            "modelId": 184
+          },
+          "corresponding_received_gift_event_present": false
+        }
+      },
+      "projection": "Independently calculate Stone ATK1,DEF0 and Cold-on-positive-damage from62. Compare HP33,Cold,unchanged other public resources and next GF/owner. The observed CPU normal replacement184 is a privileged snapshot-delta chance input,not an emitted CPU gift event or a fitted random draw.",
+      "limits": "The received event list is not an exhaustive internal grant log. CPU184 is hidden from the ordinary hand UI and must not become policy-visible knowledge. Attacks omission is preserved rather than normalized to an empty array."
+    },
+    {
+      "id": "training-apocalypse-gf3-smile-shell-self-cure-to-cpu-launch",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 3,
+        "owner": "viewer",
+        "actor": "viewer",
+        "server_update_count": 3,
+        "viewer": {
+          "hp": 33,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_curses": [
+          "cold"
+        ],
+        "viewer_received_item_rows": 9,
+        "viewer_positive_model_copies": 9,
+        "cpu_received_item_rows": 9,
+        "cpu_positive_model_copies": 9,
+        "selected_item_id": 1,
+        "selected_model": 199
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          199
+        ],
+        "target": "viewer",
+        "outgoing_wire_command_captured": false,
+        "ui_confirmations": 1
+      },
+      "ui_observation": [
+        "Viewer used199 smile shell on self.",
+        "Cold disappeared while viewer HP stayed33.",
+        "A DEF3 replacement appeared and GF4 CPU main was followed by the next CPU launch."
+      ],
+      "authoritative_update_boundary": {
+        "server_update_count": 4,
+        "event_actions": [
+          "useAttackItems",
+          "removeCurses",
+          "gift",
+          "advanceGF",
+          "useAttackItems",
+          "setTargetPlayer"
+        ],
+        "self_operation_prefix_event_count": 4,
+        "next_cpu_launch_event_count": 2,
+        "prefix": {
+          "used_items": [
+            {
+              "id": 1,
+              "modelId": 199
+            }
+          ],
+          "removed_curses": [
+            "cold"
+          ],
+          "gift": {
+            "playerId": 1,
+            "item": {
+              "id": 1,
+              "modelId": 123
+            }
+          },
+          "next_owner_player_id": 2
+        },
+        "after_including_next_cpu_launch": {
+          "gf": 4,
+          "owner": "cpu",
+          "actor": "viewer",
+          "viewer": {
+            "hp": 33,
+            "mp": 10,
+            "cp": 20
+          },
+          "cpu": {
+            "hp": 40,
+            "mp": 10,
+            "cp": 20
+          },
+          "viewer_curses_field_present": false,
+          "viewer_received_item_rows": 9,
+          "viewer_positive_model_copies": 9,
+          "cpu_received_item_rows": 9,
+          "cpu_positive_model_copies": 8,
+          "cpu_zero_placeholder_rows": 1,
+          "pending_attack": {
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              32
+            ]
+          }
+        },
+        "item_id_semantics": "Consumed199 and new123 share the numeric item id1;this received slot reuse is preserved.",
+        "transaction_semantics": "One3-to4 server increment contains the self cure and the next CPU32 launch;native accepted-command updates are not assumed identical."
+      },
+      "projection": "Apply catalogued199 mild-curse removal and compare Cold absence,HP33 and unchanged MP/CP/CPU resources. Use the observed normal123 replacement as explicit chance input,then replay the CPU32 launch for the pending checkpoint. Do not fit a random seed or replace the raw item slot IDs with native physical tokens.",
+      "limits": "The received game omits viewer curses after cure;it does not contain an explicit empty curses field. CPU pending replacement remains a zero row. Received events and server transaction counters do not establish the full internal schedule."
+    }
+  ],
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25059,
+      "response_body_sha256": "629e2448fed9847b9e0b08e3f709115bbf794b5ba487c9b5363aa4a02d65b19d",
+      "webchannel_frame_count": 9
+    },
+    {
+      "label": "post-self-play",
+      "response_body_bytes": 19723,
+      "response_body_sha256": "c2cadc287104bcd23113285beaa7ae6684cbfb709ff6520aca5be41d0f2ae95f",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "post-cold-defense",
+      "response_body_bytes": 16083,
+      "response_body_sha256": "f98ea4076b4694c35922025b01f1f60526bd18f433fb8f360d87d20c9a34a511",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "post-self-cure",
+      "response_body_bytes": 19540,
+      "response_body_sha256": "b7679416ee27e6bd726ae2ecfb989b4779f83a4448538376d5417d5827a9dce6",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "capture_counts": {
+    "bounded_authoritative_game_update_batches": 3,
+    "initial_authoritative_game_snapshots": 1,
+    "authoritative_game_snapshots": 4,
+    "captured_full_match_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "new_completed_public_transition_witnesses": 3,
+  "cumulative_completed_public_transition_witnesses": 21,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_native_projection_covered_completed_witnesses": 3,
+  "cumulative_native_projection_covered_completed_witnesses": 18,
+  "native_coverage_note": "The new three completed public transitions are covered by eight wire-projection runs over four received checkpoints(32 comparisons). Earlier generic1080 variants,72 routing probes and72 redraw-component probes remain separate. The adapter uses explicit observed normal chance inputs;whole server metadata,item-ID allocation and transaction-count equivalence are not claimed.",
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v53",
+    "snapshot_version": 53,
+    "observe_schema": "official-execution-view-v51",
+    "new_wire_projection_runs": 8,
+    "checkpoints_per_run": 4,
+    "new_wire_checkpoint_comparisons": 32,
+    "existing_generic_public_projection_variants": 1080,
+    "separate_existing_routing_probes": 72,
+    "separate_existing_redraw_component_probes": 72
+  },
+  "received_event_scope_notes": [
+    "Initial CPU inventory has nine positive model rows while the initial received gift events name only viewer items.",
+    "Update3 CPU placeholder-to184/id5 replacement is present in the snapshot but no CPU gift event is received. The viewer-received event list is not an exhaustive internal grant history.",
+    "All four received games omit isOver. Attacks is present only in updates2 and4. Absence is preserved;no source field is synthesized.",
+    "Explicit-normal chance input is an internal scenario contract. Public last_grant has no model field:the received model identity is not exposed by adding a public model observation key."
+  ]
+}

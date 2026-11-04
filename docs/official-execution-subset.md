@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v47
+# 現行公式データによる限定実行器 v53
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v47` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v53` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3071,3 +3071,17 @@ nativeの自己売却比較は、選択した元4コピーの消費、未選択4
 後続の244のCP・MP効果は外部chance入力で照合し、通常0を解決する前の手札8・G.F.11・grant phaseで検証を止める。仮に残る1枠の通常0を解決すればローカル手札9・G.F.11本人mainとなるが、公式の手札10・G.F.12へは対応しない。原発操作を省いた合成境界として区別し、最終枚数・次owner/G.F.を公式比較へ含めない。
 
 replaceItemsの受信表示は悪魔itemを排除せず、popupは別のuseDevilItemで現れ得る。今回のframe58は重なりを含み8結果を識別できず、frame63/64では9通常品と一時的な244が見える。sortと移動をまたぐ位置から、244が一新由来か後続補充由来かを確定しない。現行の即時redraw＋後続grantを採用した条件付き投影が整合しても、redrawの悪魔除外・必須適用、複数帽子や致死介入、slot/retry対応まで確定したとは扱わない。
+
+## 対局v53（作業世代v59）：記録された通常授与の明示入力
+
+`external_grants=True` の予約補充phase4で、`GrantAction.model` に設定中の配布プールに含まれる正の通常モデルIDを指定できる。`0` は従来のローカル通常抽選、240〜244は従来の悪魔である。明示通常入力はresource/removedを持たず、受取人がDreamならunsupportedとして原子的に拒否する。207は `include_fate=True` が必要である。静的capabilityの243 ID（0＋通常237＋悪魔5）は設定をまたぐunionで、現在の合法性はprepare時に再検査する。
+
+明示通常はゲームRNGを消費せず、未使用・fakeなしの実物1枚をfreshなローカルtokenで追加し、既存の未充足授与を1つ満たす。指定モデルはprivate replay proofに保持する。内部last_grantのmodelは0に正規化し、公開JSONは従来同様 `{target,devil:null,removed_models:[]}` として、他者への非公開授与を漏らさない。`sample_grant` は従来どおり0または悪魔のみを生成する。通常0の抽選・Dreamの互換mask・reset/redraw/取引の範囲や既定配布率は変えない。Snapshot53は旧1〜52を拒否し、viewは `official-execution-view-v51`、Match ABI2とGrantAction32 byteは維持する。
+
+[公式受信fixture](../data/official-v2/wire-game-updates-v59.json)のupdateCount1〜4を、[専用テスト](../tests/official_wire_trace_test.cpp)で8 seed再生する。23の自己使用でHP40→34、CPU62への空防御でHP33とCold、199自己使用でCold解除とHP33維持を比較し、通常補充161・184・123を外部入力する。CPU184は受信手札の差分から同定した結果で、giftイベントの取得を意味しない。CPU次攻撃62/32を含む4 checkpoint計32比較で、各native境界の全snapshot/restoreも検査する。
+
+受信id6は23→161、id1は199→123へ再利用された。受信IDを物理tokenと同一視せず、所有者＋受信slotからfreshなローカルtokenへ明示対応する。model0/id0のplaceholderは実物から除外して未充足授与と比較する。read-only OfficialStateはraw placeholderを直接受理せず、今回のPython検査には既知placeholderだけを除くテスト用adapterを使う。pending attacksを持つ状態からのMatch.load_sceneは引き続き拒否する。server updateCountとnative command/decision数は等置しない。
+
+これは同一CPU修行の連続した有限範囲であり、CPU真手札は検証専用である。単一server更新へ複数のmain操作がまとめられ、CPU初期・補充giftの全てがeventsへ現れるわけではない。全backend処理・全対局・server乱数や一般病気scheduleの同値性へ広げない。既存15例1080投影・72routing・72一新コンポーネントは別枠のまま保持する。
+
+この版の検証はRelease全156ターゲット（155＋native1）と、SANの本体/live/wire/C API/driverの5対象が通過。通常入力のpool/Dream/payload検査、RNGとnormal0維持、restore改ざん検出、遅延失敗rollbackとcutoffを含む。詳細と別実行したbenchmark対象は[適合計画v59](official-conformance-plan.md)へ記録する。
