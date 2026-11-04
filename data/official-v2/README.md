@@ -283,3 +283,14 @@ nativeには先の4例と祈りの5例を追加し、累計15例1080公開投影
 祈り例ではHP50→30、手札8→9を確認し、悪魔後にも神器授与が続いた。石けんでused222を除去しても本人のDreamは残った。新しい品の真偽・model、受取人をまたぐ画面順とbackend順の対応は確定しない。本体ruleset52 / Snapshot52 / view-v50、Match ABI2・台帳pins・旧記録は維持し、178終末grant・94＋Wide・互換外Dreamの未対応範囲を広げない。
 
 記録は26,716bytes、SHA256 `a68dcef535c1918888c104c6d4638e8047d83dfb0edda3743a05cb2d4b917a4a`。件数・native対象ID・ローカル参照リンクを照合し、未同定の品や日時を補完していないことを確認した。
+
+
+## v58：夢見る帽子の一新を含む完了観測
+
+[追加記録](live-transition-witnesses-v58.json)に、2026年11月5日の終末ありCPU修行で、201→CPUの271→本人178防御→一新と後続244→G.F.12を取得した1完了遷移を保存する。累計18完了例・独立routing-only1例・full wire trace0件。本人38/0/20から178で闇2を防ぎ、Dream・旧使用済み226/214を含む手札の置換、CP＋10・MP＋10、最終手札10を確認した。
+
+8置換結果が全て通常品だったとは確定しない。途中の重なりとsortの後には通常品9と一時的な244が見え、一新と後続補充のどちらにその悪魔が含まれたか、二回の244が同じslotを使ったかは不明である。真モデル・fakeやserver乱数を補完せず、redrawへの悪魔適用を必須にも除外にも決めない。
+
+本体ruleset52 / Snapshot52 / view-v50とABI2、旧pins・記録を維持する。nativeの15例1080公開投影＋72routingへ、別の72一新コンポーネント検証を加える。178の防御・Dream・旧usedコピーの消失を照合するが、原発201の予約枠が無い合成境界のため、今回の手札10・次手番までのfull goldenへ数えない。
+
+記録は14,893bytes、SHA256 `cfbc441ee1b945c03dce65d8a1b26d14375000543c6f2c2fd10790c7431bfd90`。件数・native対象ID・相対リンク・別GET本文hashを照合した。Release・ASan/UBSanのlive test各1/1と、既存redraw/grant oracleのbyte一致を確認した。旧記録・reportを変更していない。

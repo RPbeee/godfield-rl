@@ -1985,3 +1985,18 @@ main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計1
 今回の顔231は異なる真モデルへのrevealが確認されず、保存画像のicon比較だけでDream互換外と断定しない。178一新途中grant、94＋Wide、Dream全分布・不適合入力、一般Earth/Moon、公式の死亡/手番/補充scheduleという主要gapを維持する。旧pins、旧観測・oracle、過去の検証値と訂正、legacy37を変更せず、学習器を追加しない。
 
 変更した `godfield_official_live_trace_tests` をReleaseとASan/UBSanでビルドし、CTest `^official_live_trace$` は各1/1件が通過した（Release0.31秒、SAN0.76秒total）。両方で15例1080投影＋72routingを確認し、両ビルドのwarning/errorは0件。今回はテストと記録のみを変更し、本体・C/Python API・legacyを含む全suiteやベンチマークを再実行したとは呼ばない。
+
+
+## v58：一新コンポーネントと全体観測の比較範囲
+
+[v58公開観測記録](../data/official-v2/live-transition-witnesses-v58.json)は、G.F.11の本人201→CPU空応答→CPUPluto271→本人178→後続授与→G.F.12という完了観測1件を加え、累計18件とする。独立routing-only1件・full wire trace0件は維持する。ruleset52 / Snapshot52 / view-v50、Match ABI2、配布poolと進行規約は変更しない。
+
+本人HP38/MP0/CP20、CPU HP5/MP4/CP20から、178単品DEF14でDark2を防ぐ無事→Dream→神器一新と旧used奇跡2個の消失を連続取得した。frame58は7ordinaryが明瞭だが8thは重なりで不明、frame63/64には9ordinary＋transient244がある。置換中popupなしは8ordinaryの証明ではない。後続に244CP+10、244MP+10が現れ、G.F.12 CPUmainの本人はHP38/MP10/CP30・Dream・fresh-unused手札10、CPUはHP5/MP4/CP20。244二回のslot対応や、見かけ各品の実モデルは確定しない。
+
+新しい72一新コンポーネント検証は、外部271への178応答について、Dream・DEF14によるDark2の被害0・旧used奇跡2個の消失という限定観測を比較する。nativeの8fresh ordinaryは現仮説に基づく合成中間境界であり、UIの8ordinary確認や完全な直接境界比較ではない。原発201の予約1も持たないfixtureなので、公式endpointの手札10・G.F.12には比較しない。full比較の15件×72＝1,080と別枠72routingは従来どおりであり、18件すべてをnative full goldenへ変換したとは呼ばない。
+
+[一新の実client oracle](../data/official-v2/redraw-client-v29.json)と[grant oracle](../data/official-v2/grant-client-v41.json)の受信表示処理と整合するが、backend選出・全イベントfanout・debtの証明とは分ける。8ordinary置換＋後続reserved244と、7ordinary＋244の置換＋reserved normalはともに排除できない。sortとawaitしない移動・重なり順の変化により、途中画面の位置からslotの由来も確定できない。現行即時redraw規約の反例も、grant接続が必須である証拠も得ていない。次の観測対象は、一新内の悪魔可否、2slotの対応、複数帽子、208/112と死亡中断、backend recipient順、Dreamの真値・分布である。旧観測・検証値・v10/v16訂正・pins・legacy37は保持する。
+
+変更したlive targetをRelease→ASan/UBSanでビルドし、CTest `^official_live_trace$` は各1/1件が通過した（0.49秒／0.87秒）。両出力で1080投影＋72routing＋72一新コンポーネントを確認し、ビルドwarning/errorは0件。通常0の解決前で停止する部分検証で、最終手札9を実行したとは記録しない。本体変更が無いため、全suiteとベンチマークは再実行していない。
+
+別GETで既存v2 pinと同じ本文を得たJSを使い、既存のredraw oracle（在庫223＋短入力1＋used pane19）とgrant oracle（42項目）の `--check` も保存reportへbyte一致した。旧reportやpinsを更新せず、receiver関数の一致をserverの生成規則の証明に広げない。

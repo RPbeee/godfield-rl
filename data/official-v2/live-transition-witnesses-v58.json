@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "The UI observation was made on this local date. Exact capture times were not saved and no per-frame timestamp is assigned. HTTP dates in the separate source check are not UI capture timestamps.",
+  "url": "https://godfield.net/",
+  "method": "Firefox native accessibility text and consecutive frame/screenshot capture,with saved frames reviewed for inventory copies,overlapping replacement cards,placeholders and transient devil sprites. No injected browser code,backend request replay or full wire capture.",
+  "prior_record": "live-transition-witnesses-v57.json",
+  "privacy": "Viewer and CPU are roles. Names,user IDs,credentials,session URLs and request bodies are omitted. Native role IDs,tokens,seat order and unobserved normal outcomes are local test values,not captured server values.",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse_active": true,
+    "configured_apocalypse_gf": 1,
+    "configured_threshold_transcribed": true,
+    "separate_from_preceding_unresolved_gf9_session": true,
+    "threshold_evidence": "The training setting and every recorded GF header show the threshold as /1."
+  },
+  "model_provenance": "Displayed names and facts are mapped to cards.json:201 guardian-pot/setGuardian;271 wink/Pluto/Dark ATK2;178 dreaming-hat/Wood DEF14/self Dream and redraw;214 rock/Stone ATK8 cost4;226 avalanche/Water ATK8 at75percent cost6;244 charity-fairy/boostSomething10. New replacement identities,true models and Dream masks were not identified.",
+  "cases": [
+    {
+      "id": "training-apocalypse-gf11-pot-pluto-hat-redraw",
+      "native_projection_covered": false,
+      "native_component_projection_covered": true,
+      "observation_scope": "One completed whole public transition:viewer201 toward CPU,CPU empty response,new CPU Pluto271,viewer178 response,replacement and later244 presentations,then GF12 CPU main. It is not a full native transition-replay witness.",
+      "before": {
+        "gf": 11,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main before the guardian pot play",
+        "viewer": {
+          "hp": 38,
+          "mp": 0,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 5,
+          "mp": 4,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 10,
+        "viewer_unused_copy_count": 8,
+        "viewer_used_miracle_count": 2,
+        "viewer_used_miracle_models": [
+          226,
+          214
+        ],
+        "known_unused_models": [
+          201,
+          178
+        ],
+        "cpu_hidden_hand_count": null
+      },
+      "confirmed_choices": [
+        {
+          "actor": "viewer",
+          "kind": "play",
+          "displayed_models": [
+            201
+          ],
+          "target": "cpu"
+        },
+        {
+          "actor": "viewer",
+          "kind": "defend",
+          "displayed_models": [
+            178
+          ]
+        }
+      ],
+      "cpu_response_observation": {
+        "to_displayed_models": [
+          201
+        ],
+        "displayed_defense_models": [],
+        "wire_command_captured": false
+      },
+      "guardian_response_before": {
+        "gf": 11,
+        "owner": "viewer",
+        "actor": "viewer",
+        "viewer": {
+          "hp": 38,
+          "mp": 0,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 5,
+          "mp": 4,
+          "cp": 20
+        },
+        "viewer_guardian_present": true,
+        "viewer_guardian_type": null,
+        "cpu_guardian_present": true,
+        "cpu_guardian_type": "pluto",
+        "incoming_displayed_models": [
+          271
+        ],
+        "incoming_display": {
+          "power": 2,
+          "element": "darkness"
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_unused_copy_count": 7,
+        "viewer_used_miracle_models": [
+          226,
+          214
+        ],
+        "selected_defense": {
+          "model": 178,
+          "power": 14,
+          "element": "wood"
+        },
+        "visible_jar_replacement_placeholder_count": 1
+      },
+      "observed_presentation_sequence": [
+        {
+          "stage": "pot and guardian",
+          "description": "Viewer201 was used toward CPU;CPU presented empty defense and a new purple Pluto guardian appeared. Its271 wink attack toward viewer occurred in the same GF11."
+        },
+        {
+          "stage": "accepted178 response",
+          "description": "Viewer selected178 alone and confirmed once. The selected hat was consumed,leaving eight old physical copies to replace,including both used miracles."
+        },
+        {
+          "stage": "announcements",
+          "displayed_order": [
+            "no harm",
+            "Dream",
+            "item redraw"
+          ],
+          "viewer_hp_after_no_harm": 38,
+          "description": "These are UI presentation labels,not an established backend application or death-finalization order."
+        },
+        {
+          "stage": "replacement animation",
+          "old_remaining_copy_count": 8,
+          "old_used_miracles_no_longer_retained": [
+            226,
+            214
+          ],
+          "new_items_fresh_unused": true,
+          "new_true_models": null,
+          "new_fake_models": null,
+          "description": "The eight old remaining copies were replaced. The evidence does not establish that all eight replacement outcomes were ordinary cards."
+        },
+        {
+          "stage": "saved frame58",
+          "clearly_visible_normal_card_count": 7,
+          "eighth_replacement_ordinary_status": null,
+          "description": "The eighth replacement result was obscured by overlap;this frame cannot certify eight ordinary redraw outcomes."
+        },
+        {
+          "stage": "saved frames63-64",
+          "visible_normal_card_count": 9,
+          "transient_244_sprite_count": 1,
+          "display_slots_with_transient": 10,
+          "description": "Before the response pane finished,the display contained nine normal card sprites plus a transient244 sprite. The additional gold trade image and fairy sprite do not expose originating grant slots."
+        },
+        {
+          "stage": "viewer fairy presentation",
+          "displayed_model": 244,
+          "displayed_resource": "cp",
+          "displayed_amount": 10,
+          "viewer": {
+            "hp": 38,
+            "mp": 0,
+            "cp": 30
+          },
+          "cpu": {
+            "hp": 5,
+            "mp": 4,
+            "cp": 20
+          }
+        },
+        {
+          "stage": "viewer fairy presentation",
+          "displayed_model": 244,
+          "displayed_resource": "mp",
+          "displayed_amount": 10,
+          "viewer": {
+            "hp": 38,
+            "mp": 10,
+            "cp": 30
+          },
+          "cpu": {
+            "hp": 5,
+            "mp": 4,
+            "cp": 20
+          }
+        },
+        {
+          "stage": "later item arrival",
+          "new_pendant_like_image": true,
+          "displayed_model": null,
+          "true_model": null,
+          "is_disguised": null
+        },
+        {
+          "stage": "completed whole transition",
+          "description": "GF12 CPU main was captured with ten fresh unused physical copies;transient sprites and placeholders were excluded from this final count."
+        }
+      ],
+      "after": {
+        "gf": 12,
+        "owner": "cpu",
+        "actor": "cpu",
+        "checkpoint": "CPU main before its next launch",
+        "viewer": {
+          "hp": 38,
+          "mp": 10,
+          "cp": 30
+        },
+        "cpu": {
+          "hp": 5,
+          "mp": 4,
+          "cp": 20
+        },
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_visible_hand_count": 10,
+        "viewer_used_miracle_count": 0,
+        "viewer_fresh_unused_copy_count": 10,
+        "new_visible_model_ids": null,
+        "new_true_model_ids": null,
+        "new_fake_model_ids": null,
+        "old_used226_or214_display_retained": false,
+        "unused_count_evidence": "All ten final displayed artifacts lack the used-miracle badge;the post-action used pane was not separately reopened. Physical token replacement is not asserted."
+      },
+      "observed_inventory_accounting": {
+        "before_pot_physical_copies": 10,
+        "after_pot_before_hat_physical_copies": 9,
+        "after_hat_consumption_old_replacement_population": 8,
+        "final_physical_copies": 10,
+        "all_eight_redraw_outcomes_proven_ordinary": false,
+        "intermediate_exact_eight_ordinary_checkpoint_captured": false,
+        "fairy_slot_identity_known": false,
+        "normal_model_identities_known": false
+      },
+      "native_component_projection": {
+        "kind": "Separate bounded local redraw-component probes,not whole UI transition equality",
+        "variants": 72,
+        "entry": "A synthetic external271 guardian attack toward a state with178 and the old remaining copies;this external entry lacks the pot action and its reserved replenishment.",
+        "compared_public_components": [
+          "178 DEF14 prevents HP loss from Dark2",
+          "viewer Dream is present after the response",
+          "viewer HP38/MP0/CP20 and CPU5/4/20 before later resource boosts",
+          "The old used226 and214 displays disappear;the final UI artifacts lack used badges. Physical token identity is not observed.",
+          "explicit observed244 CP+10 and MP+10 have the catalogued arithmetic"
+        ],
+        "local_only_expectations": [
+          "The existing immediate-redraw implementation can create eight ordinary replacement items in the probe. That is an endpoint-compatible local interpretation,not a directly captured eight-ordinary UI checkpoint.",
+          "The standalone external probe stops pending at eight copies and GF11 after the two explicit244 resource outcomes. Resolving its one hypothetical normal0 would yield nine copies and GF11,not the whole UI endpoint of ten copies and GF12. The probe does not execute that normal0.",
+          "Fresh native token allocation,all-unused flags of the eight generated normal copies and the sole hat reservation are local contract checks,not captured server records or the missing pot reservation."
+        ],
+        "not_established": [
+          "which observed244 or normal item belonged to redraw versus later reserved replenishment",
+          "whether both244 presentations retried one slot or belonged to different slots",
+          "whether a redraw slot itself may produce a devil",
+          "a match of backend grant order or selectors",
+          "full jar-to-guardian-to-redraw-to-GF12 native replay"
+        ]
+      },
+      "compatible_but_unresolved_interpretations": [
+        "Eight ordinary redraw replacements followed by later reserved-slot normal/fairy outcomes.",
+        "Seven ordinary redraw replacements and a244 redraw outcome followed by two later normal outcomes."
+      ],
+      "limits": "The timing of named devil popups does not assign those devils to redraw or reserved slots. No absence of a popup during early replacement proves that redraw excludes devils. Both ordinary replacement identity and Dream distribution remain unknown. The current immediate-redraw plus reserved-grant contract is compatible with the public endpoint,but this observation neither proves it uniquely nor establishes that178 must be connected to the devil-grant path. The no-harm/Dream/redraw label order is presentation evidence only."
+    }
+  ],
+  "preceding_unresolved_session": [
+    {
+      "id": "previous-session-gf9-terminal-with-missing-cause",
+      "checkpoint": {
+        "gf": 9,
+        "viewer": {
+          "hp": 30,
+          "mp": 4,
+          "cp": 5
+        },
+        "cpu": {
+          "hp": 0,
+          "mp": 4,
+          "cp": 35
+        },
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_visible_hand_count": 9,
+        "victory_displayed_for": "viewer"
+      },
+      "cause_and_intervening_cpu_action_captured": false,
+      "counts_as_completed_transition": false,
+      "limits": "The source of CPU death and the CPU action were missed. This endpoint is not merged with the new GF11 hat case and adds no completed witness."
+    }
+  ],
+  "session_end_observation": {
+    "training_ended": true,
+    "home_menu_return_directly_confirmed": true,
+    "home_menu_labels": [
+      "training",
+      "private multiplayer",
+      "serious duel"
+    ],
+    "pending_gf14_cpu_attack_resolved": false,
+    "counts_as_completed_transition": false,
+    "scope": "Later exploratory operations and the unresolved GF14 response are outside the curated new witness count."
+  },
+  "public_source_check": {
+    "kind": "Separate public GET metadata;HTTP Date values are not UI capture timestamps.",
+    "assets": [
+      {
+        "url": "https://godfield.net/main.dart.js",
+        "status": 200,
+        "bytes": 440420,
+        "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+        "response_http_date": "Wed, 04 Nov 2026 16:23:27 GMT",
+        "last_modified": "Wed, 04 Nov 2026 07:33:42 GMT",
+        "pinned_body_equal": true
+      },
+      {
+        "url": "https://godfield.net/i18n/ja.json",
+        "status": 200,
+        "bytes": 49240,
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "response_http_date": "Wed, 04 Nov 2026 16:23:27 GMT",
+        "last_modified": "Wed, 04 Nov 2026 07:33:42 GMT",
+        "pinned_body_equal": true
+      }
+    ],
+    "raw_source_policy": "Raw bodies remain in an external temporary cache only;existing repository pins and earlier records are not replaced."
+  },
+  "native_test": "tests/official_live_trace_test.cpp",
+  "excluded_comparisons": [
+    "identities,true models and fake masks of new items",
+    "server RNG/local seed equivalence",
+    "backend player-array order and grant schedule",
+    "originating slot of either244 presentation",
+    "unobserved CPU inventory and replacements",
+    "the standalone external-probe hand count/GF against the whole UI endpoint",
+    "the uncaptured previous GF9 death cause"
+  ],
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 18,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_native_projection_covered_completed_witnesses": 0,
+  "cumulative_native_projection_covered_completed_witnesses": 15,
+  "new_record_only_completed_witnesses": 1,
+  "cumulative_record_only_completed_witnesses": 3,
+  "new_native_redraw_component_probe_variants": 72,
+  "native_public_projection_variants": 1080,
+  "native_separate_routing_probes": 72,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

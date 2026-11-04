@@ -353,6 +353,62 @@ std::size_t verify_prayer_devil_retry_projection(std::span<const std::uint64_t> 
     }
     return probes;
 }
+std::size_t verify_redraw_component_projection(std::span<const std::uint64_t> seeds){
+    constexpr std::string_view label="training-apocalypse-gf11-pot-pluto-hat-redraw-component";
+    constexpr ItemToken old_used226=retained_miracle_token,old_used214=retained_miracle_token+1;
+    check(find_card(178)->defense==14&&find_card(271)->atk==2&&find_card(271)->element==Element::darkness,
+        label,"catalog independently predicts DEF14 blocking the supplied Pluto Dark2 frame");
+    std::size_t probes=0;
+    for(auto count:{std::size_t{1},std::size_t{9},std::size_t{18}})for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){
+        SnapshotState scene;scene.gf=11;scene.tiebreak_gf=1;
+        PlayerState cpu;cpu.id=cpu_id;cpu.hp=5;cpu.mp=4;cpu.cp=20;cpu.guardian=Guardian::pluto;
+        PlayerState viewer;viewer.id=viewer_id;viewer.hp=38;viewer.mp=0;viewer.cp=20;
+        viewer.items={{attack_token,178,{},false},{old_used226,226,{},true},{old_used214,214,{},true}};
+        for(std::size_t i=0;viewer.items.size()<9;++i)viewer.items.push_back({i,unused_filler(profile,i),{},false});
+        for(std::size_t i=0;i<count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
+        scene.players={std::move(cpu),std::move(viewer)};
+        MatchConfig config;config.initial_hand=0;config.include_fate=true;config.external_grants=true;config.max_decisions=16;
+        Match match(config);match.load_scene(std::move(scene),viewer_id,seed);
+        const auto roundtrip=[&]{Match restored(config);restored.restore(match.snapshot());check(restored.snapshot()==match.snapshot(),label,"the synthetic component checkpoint replays without injecting missing reservations");};
+        // The observed jar action and automatic move selection are not replayed
+        // or seed-fit. This external271 starts with the observed physical hand,
+        // but cannot carry the jar's already reserved gift from the real action.
+        const GuardianAction incoming{cpu_id,271,viewer_id};
+        check(match.guardian_legal(incoming),label,"the identified Pluto frame can be supplied without fitting its selector");
+        (void)match.guardian_step(incoming);roundtrip();
+        const auto next=match.snapshot().next_token;
+        const Command hat{viewer_id,CommandKind::defend,{attack_token},{}};
+        check(match.legal(hat),label,"the observed single178 is eligible against Dark2 at MP0");(void)match.step(hat);
+        const auto& owner=by_role(match,viewer_id);
+        check(resources(owner)==Resources{38,0,20}&&resources(by_role(match,cpu_id))==Resources{5,4,20}
+            &&owner.curses==std::vector<Curse>{Curse::dream}
+            &&std::none_of(owner.items.begin(),owner.items.end(),[](const auto& item){return item.token==old_used226||item.token==old_used214||item.used;}),
+            label,"the compared component blocks damage, installs Dream and removes both old retained copies");
+        // H8/all-unused/contiguous fresh tokens are the CURRENT immediate-redraw
+        // hypothesis (nine real copies minus the consumed hat), not a captured
+        // official eight-ordinary-items checkpoint. A transient244 could belong
+        // to replacement or to a deferred grant; the live frames do not decide.
+        check(owner.items.size()==8&&match.snapshot().redraws==1&&match.snapshot().redrawn_items==8
+            &&std::all_of(owner.items.begin(),owner.items.end(),[&](const auto& item){return item.token>=next&&!item.used;})
+            &&match.snapshot().phase==MatchPhase::grant&&!match.snapshot().actor&&match.snapshot().pending_grant==viewer_id
+            &&match.snapshot().gifts==std::vector<std::uint32_t>{0,1},
+            label,"local immediate replacement excludes its sole hat reservation; no jar reservation is fabricated");roundtrip();
+        // Separate conditional resource checks: these identified244 payloads do
+        // not establish whether they originated in replacement or deferred work.
+        // Stop before a normal gift; neither local H9/GF11 nor the omitted jar
+        // debt is equated with the actual final H10/GF12 CPU-main checkpoint.
+        (void)match.grant_step({viewer_id,244,Resource::cp,{}});roundtrip();
+        check(resources(by_role(match,viewer_id))==Resources{38,0,30},label,"explicit observed CP244 adds ten without changing HP or MP");
+        (void)match.grant_step({viewer_id,244,Resource::mp,{}});roundtrip();
+        check(resources(by_role(match,viewer_id))==Resources{38,10,30}
+            &&resources(by_role(match,cpu_id))==Resources{5,4,20}
+            &&by_role(match,viewer_id).curses==std::vector<Curse>{Curse::dream}
+            &&match.snapshot().phase==MatchPhase::grant&&match.snapshot().pending_grant==viewer_id,
+            label,"explicit observed MP244 gives the matching resource arithmetic without asserting the full grant schedule");
+        ++probes;
+    }
+    return probes;
+}
 std::size_t verify_self_reflection_routing(){
     constexpr std::string_view label="training-apocalypse-gf2-self-reflection-sword-no-response";
     constexpr std::array<CardId,1> models{{38}};
@@ -404,6 +460,8 @@ int main(){
     projections+=verify_apocalypse_public_bodies(seeds);
     projections+=verify_prayer_devil_retry_projection(seeds);
     const auto routing_probes=verify_self_reflection_routing();
+    const auto redraw_components=verify_redraw_component_projection(seeds);
     std::cout<<"Official live transition projection passed ("<<cases.size()+6<<" public witness, "<<projections
-        <<" synthetic completions; "<<routing_probes<<" separate routing-only probes; hidden hands and server RNG not reconstructed).\n";
+        <<" synthetic completions; "<<routing_probes<<" separate routing-only probes; "<<redraw_components
+        <<" separate redraw-component probes; hidden hands and server RNG not reconstructed).\n";
 }
