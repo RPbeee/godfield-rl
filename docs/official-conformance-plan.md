@@ -1897,3 +1897,24 @@ gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resourc
 | choice/chance driver | 9人100scene | `5615713826154359954` |
 
 自己攻撃のdecision数と処理時点が変わるため、以前のrulesetのgameplay checksumが一致することは要件にしない。旧pins・旧oracle・過去のベンチ表を上書きせず、今回の値を別世代として記録する。一般のserver schedule/selector、178終末一新・94＋232・互換外Dream・一般Earth/Moonは引き続き主要残件である。
+
+## v53：Dark自己終局と反射剣の追加応答除去
+
+[新しい観測記録](../data/official-v2/live-transition-witnesses-v53.json)には、終末なしG.F.6の81自己使用から本人HP9→0・CPU勝利・G.F.6維持・手札9→8を確認した完了遷移1件と、終末1で38自己使用後に追加の本人defend無しでG.F.4へ進んだ経路観測1件を分けて保存した。公開資源・終局を照合する完了遷移は累計4件、経路のみは別1件、full wire traceは0件である。
+
+反射剣38の後には授与とCPUの別手番が入っており、そのイベントを取得できていない。本人の最終HP30やCPU HP55を38単独の効果goldenにしない。反例として使うのは、本人defendを必須にしていた旧経路である。主動作で使用した38の反射能力を自動発動する処理も加えない。
+
+修正は明示self・先頭weapons・必中・非Wideというv48条件を保ち、先頭abilityをnoneまたはreflect_weaponへ広げた。対局ruleset49 / Snapshot49 / view-v47、ABI2固定。C++定数・C getter・Python属性のself_attack_ruleは同じ範囲を示す。38以外の同abilityや追加材への限定一般化、他の特殊自己攻撃・redirect・counter・外部payloadの従来経路という境界を[実行器契約](official-execution-subset.md)に残す。
+
+nativeは4完了例×72通り＝288公開投影比較に、38の独立した72合成経路検査を追加する。38はexternal_grantsを使うローカルなbody後停止点を検査し、そのHP30・未実行授与・RNGを公式中間stateとは呼ばない。C API/Pythonにも38単品自己使用の消費1回・decision1・防御要求無し・追加defendの原子的拒否を追加した。native既存217関数、Python149メソッドはそれぞれ一意登録を確認した。
+
+focused Releaseは5/5件・7.64秒、ASan/UBSanは4/4件・15.24秒で通過した。全Release CTestも155/155件・38.79秒、全ASan/UBSan CTestも114/114件・362.05秒が通過。両ビルドはwarning/error0。旧pins・旧witness・旧版の検証表を上書きしていない。
+
+seed42の通常対局とchoice/chance driverについて、2人1,000局/scene・9人100局/sceneの両ビルド×1/4workers計16recordを照合し、4群全てで時間・速度・worker数以外の全fieldが一致した。実験規約が変わったため、v48以前のgameplay checksum一致を要件にしない。独立familyは最大2系統並行し、速度改善を主張する計測ではない。
+
+| 実行系 | 人数・件数 | Release/SAN・1/4workers共通checksum |
+| --- | --- | --- |
+| 通常対局 | 2人1,000局 | `3377087730564053909` |
+| 通常対局 | 9人100局 | `5284858347239428124` |
+| choice/chance driver | 2人1,000scene | `1577905839749268940` |
+| choice/chance driver | 9人100scene | `15970925910578989730` |

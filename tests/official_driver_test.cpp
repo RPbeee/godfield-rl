@@ -14,7 +14,7 @@ SnapshotState scene(std::initializer_list<CardId> own={},std::initializer_list<C
 Match match(SnapshotState state,MatchConfig config={},std::uint64_t seed=42){Match m(config);m.load_scene(std::move(state),0,seed);return m;}
 Command prayer(PlayerId actor=0){return {actor,CommandKind::pray,{},{}};}
 Command defense(PlayerId actor){return {actor,CommandKind::defend,{},{}};}
-void checkpoint(const Match& m){Match restored;restored.restore(m.snapshot());check(restored.snapshot()==m.snapshot(),"checkpoint preserves complete Match48 snapshot");}
+void checkpoint(const Match& m){Match restored;restored.restore(m.snapshot());check(restored.snapshot()==m.snapshot(),"checkpoint preserves complete Match49 snapshot");}
 MatchStep manual(Match& m,std::uint64_t& policy,std::uint64_t& chance){
     if(m.snapshot().phase==MatchPhase::grant)return m.grant_step(m.sample_grant(chance));
     const auto* actor=find_player(m.snapshot().state,*m.snapshot().actor);

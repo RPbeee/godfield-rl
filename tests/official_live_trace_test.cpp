@@ -28,9 +28,10 @@ struct LiveTransitionCase {
     std::size_t viewer_hand_count;
     std::optional<std::size_t> viewer_after_hand_count;
     bool unselected_defense7=false;
+    bool terminal=false;
 };
 constexpr std::array<CardId,0> no_models{};
-constexpr std::array<CardId,1> star_staff{{75}},power_halberd{{32}},ogre_helm{{150}};
+constexpr std::array<CardId,1> star_staff{{75}},power_halberd{{32}},ogre_helm{{150}},goodbye_sword{{81}};
 constexpr std::array<CardId,3> absorption_column{{45,124,34}};
 // A partial public witness: no server damage/RNG/hidden inventory is supplied to
 // the executor. The observations are checkpoints, not a whole-game replay.
@@ -40,7 +41,9 @@ constexpr std::array cases{
     LiveTransitionCase{"training2-gf4-self-power-halberd-no-response",4,5,
         {40,25,20},{37,10,20},{40,25,20},{28,10,20},viewer_id,viewer_id,cpu_id,power_halberd,no_models,9,0,{},9,{},true},
     LiveTransitionCase{"training2-gf5-absorption26-defense7",5,6,
-        {40,25,20},{28,10,20},{59,25,20},{9,10,20},cpu_id,viewer_id,viewer_id,absorption_column,ogre_helm,26,7,{},9,9}
+        {40,25,20},{28,10,20},{59,25,20},{9,10,20},cpu_id,viewer_id,viewer_id,absorption_column,ogre_helm,26,7,{},9,9},
+    LiveTransitionCase{"training2-gf6-self-dark-goodbye-sword-terminal",6,6,
+        {59,25,20},{9,10,20},{59,25,20},{0,10,20},viewer_id,viewer_id,viewer_id,goodbye_sword,no_models,4,0,Element::darkness,9,8,false,true}
 };
 void check(bool ok,std::string_view case_id,const char* message){
     if(!ok){std::cerr<<"FAIL live transition "<<case_id<<": "<<message<<'\n';std::exit(1);}
@@ -65,10 +68,19 @@ SnapshotState completion(const LiveTransitionCase& witness,std::size_t cpu_count
     // Only DEF7 and its nonuse were established for case2: this plain DEF7
     // surrogate does not assert the unselected inventory's exact model identity.
     if(witness.unselected_defense7)viewer.items.push_back({unused_defense_token,149,{},false});
+    if(witness.terminal){
+        // Eight model identities were read, including selected81. Only the ninth
+        // card's DEF5 was transcribed, so vary compatible DEF5 surrogates rather
+        // than invent an actor-side208/112 contradicting the observed hand.
+        constexpr std::array<CardId,7> known_remaining{{3,12,13,25,195,203,221}};
+        for(auto model:known_remaining)viewer.items.push_back({viewer.items.size(),model,{},false});
+        viewer.items.push_back({unused_defense_token,static_cast<CardId>(135+profile),{},false});
+    }
     for(std::size_t i=0;cpu.items.size()<cpu_count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
     for(std::size_t i=0;viewer.items.size()<witness.viewer_hand_count;++i)viewer.items.push_back({i,unused_filler(profile,i),{},false});
-    // No diseases/guardians were observed. Neither unknown copies nor the gift
-    // model can trigger passive208/112/209 on this nonlethal plain attack.
+    // No diseases/guardians were observed. The first three attacks are nonlethal;
+    // the fourth actor's known remaining hand has no208/112. Hidden CPU copies
+    // cannot intercept or revive the other player's self-directed damage.
     scene.players={std::move(cpu),std::move(viewer)};return scene;
 }
 void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu_count,unsigned profile){
@@ -97,10 +109,12 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
     if(witness.attacker==witness.target){
         check(match.snapshot().phase!=MatchPhase::response&&match.snapshot().queue.empty()&&match.snapshot().decisions==1,
             witness.id,"observed self attack resolves from one play without inventing a defense choice");
-        const auto& items=by_role(match,viewer_id).items;
-        check(std::any_of(items.begin(),items.end(),[](const auto& item){return item.token==unused_defense_token&&item.model==149&&!item.used;})
-            &&!match.legal({viewer_id,CommandKind::defend,{unused_defense_token},{}}),
-            witness.id,"available ordinary DEF7 remains unused and no self-response input is exposed");
+        if(witness.unselected_defense7){
+            const auto& items=by_role(match,viewer_id).items;
+            check(std::any_of(items.begin(),items.end(),[](const auto& item){return item.token==unused_defense_token&&item.model==149&&!item.used;})
+                &&!match.legal({viewer_id,CommandKind::defend,{unused_defense_token},{}}),
+                witness.id,"available ordinary DEF7 remains unused and no self-response input is exposed");
+        }
     }else{
         const auto& pending=match.snapshot();
         check(pending.phase==MatchPhase::response && pending.actor==viewer_id && pending.owner==witness.attacker
@@ -118,13 +132,64 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
     }
     check(resources(by_role(match,cpu_id))==witness.cpu_after && resources(by_role(match,viewer_id))==witness.viewer_after,
         witness.id,"computed resource result equals the actual public checkpoint");
-    check(match.snapshot().state.gf==witness.gf_after && match.snapshot().phase==MatchPhase::main
-        && match.snapshot().owner==witness.next_owner && match.snapshot().actor==witness.next_owner && !match.done(),
-        witness.id,"observed next main owner and GF are predicted");
+    if(witness.terminal){
+        check(match.snapshot().state.gf==witness.gf_after&&match.snapshot().phase==MatchPhase::finished
+            &&match.snapshot().terminated&&!match.snapshot().truncated&&!match.snapshot().actor
+            &&match.snapshot().winners==std::vector<PlayerId>{cpu_id}
+            &&match.snapshot().rewards==std::vector<double>{1.,-1.}
+            &&by_role(match,viewer_id).dead&&!by_role(match,cpu_id).dead,
+            witness.id,"one self Dark command predicts terminal CPU victory with GF unchanged");
+        check(match.snapshot().rng==seed&&std::all_of(match.snapshot().gifts.begin(),match.snapshot().gifts.end(),[](auto debt){return debt==0;})
+            &&std::none_of(by_role(match,viewer_id).items.begin(),by_role(match,viewer_id).items.end(),[](const auto& item){return item.token==attack_token;}),
+            witness.id,"selected81 is erased and natural termination cancels replacement without drawing");
+    }else check(match.snapshot().state.gf==witness.gf_after && match.snapshot().phase==MatchPhase::main
+            && match.snapshot().owner==witness.next_owner && match.snapshot().actor==witness.next_owner && !match.done(),
+            witness.id,"observed next main owner and GF are predicted");
     if(witness.viewer_after_hand_count)check(by_role(match,viewer_id).items.size()==*witness.viewer_after_hand_count,
         witness.id,"known viewer inventory count matches without comparing new gift models");
     // Excluded from assertions: CPU inventory/count, replacement models/tokens,
     // final RNG, real server IDs, and unobserved intermediate event ordering.
+}
+std::size_t verify_self_reflection_routing(){
+    constexpr std::string_view label="training-apocalypse-gf2-self-reflection-sword-no-response";
+    constexpr std::array<CardId,1> models{{38}};
+    constexpr std::array<ItemToken,2> unused_defenses{{unused_defense_token,unused_defense_token+1}};
+    check(attack_power(models)==10&&magic_cost(models)==0&&find_card(38)->ability==Ability::reflect_weapon,
+        label,"the selected reflection sword independently predicts a zero-cost10 self payload");
+    std::size_t probes=0;
+    for(auto count:{std::size_t{1},std::size_t{9},std::size_t{18}})for(unsigned profile=0;profile<3;++profile)
+        for(auto seed:{std::uint64_t{0},std::uint64_t{1},std::uint64_t{2},std::uint64_t{42},std::uint64_t{123},std::uint64_t{20261104},
+            std::uint64_t{0x9e3779b97f4a7c15ULL},std::numeric_limits<std::uint64_t>::max()}){
+            SnapshotState scene;scene.gf=2;scene.tiebreak_gf=1;
+            PlayerState cpu;cpu.id=cpu_id;cpu.hp=50;cpu.mp=10;cpu.cp=20;
+            PlayerState viewer;viewer.id=viewer_id;viewer.hp=40;viewer.mp=10;viewer.cp=20;
+            viewer.items={{attack_token,38,{},false},{unused_defense_token,135,{},false},{unused_defense_token+1,20,{},false}};
+            for(std::size_t i=0;viewer.items.size()<9;++i)viewer.items.push_back({i,unused_filler(profile,i),{},false});
+            for(std::size_t i=0;i<count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
+            scene.players={std::move(cpu),std::move(viewer)};
+            MatchConfig config;config.initial_hand=0;config.external_grants=true;config.max_decisions=16;
+            Match match(config);match.load_scene(std::move(scene),viewer_id,seed);
+            const Command play{viewer_id,CommandKind::play,{attack_token},viewer_id};
+            check(match.legal(play),label,"observed single reflection sword self selection is legal");
+            (void)match.step(play);
+            // The live UI advanced without a defense choice, but its grant and
+            // subsequent CPU action were not captured. This grant pause is a
+            // local test boundary, NOT a claim that the actual UI stopped here.
+            const auto& snapshot=match.snapshot();const auto& remaining=by_role(match,viewer_id).items;
+            check(snapshot.phase==MatchPhase::grant&&!snapshot.actor&&snapshot.pending_grant==viewer_id
+                &&snapshot.decisions==1&&snapshot.queue.empty()&&!match.done()&&snapshot.state.gf==2
+                &&resources(by_role(match,viewer_id))==Resources{30,10,20}
+                &&resources(by_role(match,cpu_id))==Resources{50,10,20},
+                label,"one self play reaches deferred gift processing without requiring a defense command");
+            check(remaining.size()==8&&std::none_of(remaining.begin(),remaining.end(),[](const auto& item){return item.token==attack_token;})
+                &&std::all_of(unused_defenses.begin(),unused_defenses.end(),
+                    [&](auto token){return std::any_of(remaining.begin(),remaining.end(),[&](const auto& item){return item.token==token&&!item.used;});})
+                &&snapshot.rng==seed&&!match.legal({viewer_id,CommandKind::defend,{unused_defense_token},{}}),
+                label,"reflection sword is consumed, both available defenses remain unused and no grant draw is invented");
+            Match restored(config);restored.restore(snapshot);check(restored.snapshot()==snapshot,label,"self reflection grant journal roundtrips");
+            ++probes;
+        }
+    return probes;
 }
 }
 int main(){
@@ -132,6 +197,7 @@ int main(){
     std::size_t projections=0;
     for(const auto& witness:cases)for(auto count:{witness.attacker==cpu_id?witness.attack_models.size():std::size_t{1},std::size_t{9},std::size_t{18}})
         for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){verify(witness,seed,count,profile);++projections;}
+    const auto routing_probes=verify_self_reflection_routing();
     std::cout<<"Official live transition projection passed ("<<cases.size()<<" public witness, "<<projections
-        <<" synthetic completions; hidden hands and server RNG not reconstructed).\n";
+        <<" synthetic completions; "<<routing_probes<<" separate routing-only probes; hidden hands and server RNG not reconstructed).\n";
 }

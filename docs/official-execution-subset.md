@@ -2944,3 +2944,39 @@ experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-hit-rat
 [既存native回帰](../tests/official_match_test.cpp) に、32自己攻撃と未選択DEF7、1decision/cutoff前body・未実行補充の取消、208救済、自己死亡から112の二人分の応答FIFOと各snapshot/restore、遅いtoken枯渇の全rollback、grant中断後のsnapshot/restoreと被害の二重適用防止、Wideの敵roster維持、特殊自己武器の旧response経路を追加した。pendingのgrant／死亡／autoへ進んだ場合も、元commandと既存anchor/journalから同じ分岐を再生する。新しい手動空防御や専用journal型は追加していない。
 
 3件は公開資源・確定操作の部分witnessであり、全server event traceや一般の手番・抽選・死亡規約への適合証明ではない。過去版の数値とv10/v16の検証訂正、legacy37を保持し、学習器や学習済みモデルは追加していない。
+
+## 対局v49（作業世代v53）：Dark自己死亡と反射剣のrouting
+
+`official-execution-subset-v49` / Snapshot49 / `official-execution-view-v47` へ進めた。Snapshotは旧1〜48を拒否し、Match ABI2の構造体幅・phase・opcodeは維持する。既定236/499、任意設定237/500の配布範囲も変えない。前節のv48は、その時点の観測と限定規約として保持する。
+
+[追加の実対局記録](../data/official-v2/live-transition-witnesses-v53.json) は、資源・終局まで比較できるDark81の1件と、追加防御選択の有無だけを確定した反射剣38の1件を分ける。[v52の3件](../data/official-v2/live-transition-witnesses-v52.json)と合わせ、**完了した公開遷移witnessは累計4件、routing-only観測は別に1件**である。wire IDや全server event列は取得しておらず、表示名・数値を台帳モデルへ対応付けている。
+
+### 完了遷移：81のDark自己攻撃
+
+終末なしG.F.6、本人HP9/MP10/CP20、CPU HP59/MP25/CP20から、本人が81「さよならの剣」・Dark ATK4を本人へ確定した。追加の本人defend操作なしでHP0となり、CPU勝利が表示された。G.F.6とCPU資源・本人MP/CPは維持し、本人手札は9→8、81消失、補充は観測しなかった。
+
+事前の9枚には208/112が無いことを確認しており、この例は正Dark残余による自己死亡・終局と、その時点で次G.F.や補充へ進まなかった公開結果を支持する。208救済や112を所持する場合の優先順まで確認したものではない。nativeの固定seat報酬値も、画面から読んだ値ではなく既存のローカル契約である。これはv48の普通武器・他属性への限定一般化に、81の実例を追加するものである。
+
+### routing-only：38の自己使用
+
+終末1のG.F.2、本人HP40/MP10/CP20、CPU HP50/MP10/CP20から、38「反射剣」・無属性ATK10を本人へ確定した。未選択のDEF5が表示されていた。追加の本人defend操作なしで進み、次に取得できたG.F.4本人mainでは本人HP30/MP10/CP20、CPU HP55/MP10/CP20、38消失を確認した。
+
+この間の授与・悪魔とCPUのG.F.3行動を記録できていないため、本人HP30を38単独の完全なbody goldenとは扱わない。CPUのHP増加5を特定の回復カードへ対応付けず、通常grantを受けたとも推定しない。確定した反例は、主動作38の自己使用に別の本人応答を必須として待つ旧routingに対するものである。
+
+### 限定した本体変更
+
+v48の明示self target・非chance・非Wide・先頭weapons条件を保ち、許容する先頭abilityだけを`none`から **`none`または`reflect_weapon`** へ広げる。通常の費用・消費後にDEF0で解決し、元のplayを1 accepted decisionとする。主動作で使った反射剣が自身の攻撃を自動反射する処理は加えない。反射能力は防御に選択された反応品としての役割と区別する。
+
+```text
+experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route
+```
+
+上記はv49の`self_attack_rule`としてheader・既存C getter・Python属性・observeへ同期する。38以外の同ability武器や合法な追加材への適用は、今回の単品38からの限定一般化を含む。吸収・同被害・状態付与・58・14・94・MC等の他特殊基底、redirect後の自己reflection/bounce、counter、guardian／payloadの別入口は旧経路を維持する。v48の明示target条件と、既存death/tick/gift/cutoffへの接合という限定も引き継ぎ、そのschedule全体を今回実測できたとは主張しない。
+
+### 公開比較とローカル境界の検証
+
+[公開遷移のnative比較](../tests/official_live_trace_test.cpp) は4件に対する**288回の公開投影比較**と、38についての**72回の独立した合成routing probe**を分ける。288件の新しい公式対局を観測したという意味ではない。38のprobeでは`external_grants=True`の合成sceneを使い、予測した自己body後のローカルgrant phaseへ停止して、defend要求が無いこと、未選択防具の非消費、元攻撃の1回消費、snapshot/restoreを検査する。
+
+その停止点のHP30・未実行grant・RNGはC++規約の検査値であり、公式UIから取得した中間stateではない。後続grantを都合よく選んでG.F.4/CPU HP55へ合わせる比較も行わない。Darkの4→致死、普通32の9被害、吸収列の残余19は台帳と選択列から独立計算し、受信damageをエンジンへ注入して一致させない。
+
+C++・C API・Pythonにも、ローカルな38自己使用で追加defendを作らないことと、消費・本体・grant継続の境界を検査する。これらのAPI回帰と合成probeを、完了した公式公開遷移4件やrouting-only1件と混同しない。未転記在庫・補充品・server seedを復元せず、過去版の検証値とv10/v16訂正、legacy37を保持する。学習器・学習済みモデルは追加していない。

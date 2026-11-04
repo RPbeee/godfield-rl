@@ -2034,3 +2034,13 @@ gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resourc
 公開clientの `fu/aT/fF` は自己targetをsource側へ表示し、独立した反対側response paneを設けない。この経路と追加応答なしの実観測に合わせ、実行器ruleset48・Snapshot48・`official-execution-view-v46` は、**通常mainの明示自己targetで、baseが武器・abilityなし・hitRate0・Wideなし**の列だけをDEF0で即時解決する。普通自己攻撃を通すために架空のdefendを追加しない。公開 `self_attack_rule` getter/属性とobserve metadataに限定条件を明示し、特殊自己攻撃・反射・bounce・counter等の既存応答経路は維持する。Match ABI2と構造体幅は変更しない。
 
 この非致死32の観測では、公式server内部の即時処理と自動空応答の区別はつかない。致死・補充・守護神・反射・特殊base等の順序は引き続き明示したローカル規約であり、実行器全体・全公式ルールとの同等性をこの公開投影3件から主張しない。
+
+## v53：闇の自己使用と反射剣の応答routing
+
+[追加記録](../data/official-v2/live-transition-witnesses-v53.json) は、前版の対局を続けた81さよならの剣の完了遷移と、終末GF1の別対局での38反射剣のrouting観測を区別する。**新規完了1件・routingのみ1件、累計完了4件・routingのみ1件・完全なserver event列0件**である。旧3件・v52の時点で未完了だった区間・旧pinsは過去の証拠として保持する。
+
+GF6、本人HP9/MP10/CP20・CPU59/25/20で、本人が81（闇ATK4）を自分へ使用した。追加応答操作なしに本人HP0・CPU勝利となり、GF6と他資源は不変、本人手札9→8・81消費・補充なしを確認した。これは闇の正残余によるHP0と自然終局の公開投影に比較できる。本人の9コピーに208/112は含まれず、それらがある場合の救済・死後攻撃順序やnative報酬値をこの観測から確定しない。
+
+38（反射剣、無属性ATK10）は、GF2で本人40/10/20・CPU50/10/20から本人が自己使用し、追加の本人defend操作なしでGF4の本人mainへ進んだ。必須の自己応答待機とは整合しない一方、途中の補充・悪魔とCPU行動が未取得である。後の本人30/10/20・CPU55/10/20はroutingの到達点であり、38単独の完全な資源遷移goldenにはしない。nativeの合成sceneで予測したpost-body HP30・grant pause・RNGを、公式UIで観測した中間状態と呼ばず、後のCPU55に合わせたgrantを入力して一致を作らない。
+
+この追加routingに合わせ、実行器ruleset49・Snapshot49・`official-execution-view-v47` は新 `self_attack_rule` を `weapon-base-ability-none-or-reflect-weapon-hit-rate0-no-wide` とする。通常mainの明示自己targetに限り、武器baseのabilityなし、またはreflectWeaponをDEF0で即時解決する。これ以外の特殊自己base・反射後frame・bounce・counterの既存応答経路は維持し、Match ABI2と構造体幅は変更しない。公式server内部で即時処理したか自動空応答したかは引き続き未確定で、未取得の補充や全公式ルールへの同等性を主張しない。

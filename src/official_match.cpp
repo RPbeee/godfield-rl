@@ -1227,10 +1227,12 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
-            && base.category == Category::weapons && base.ability == Ability::none && !base.hit_rate && !has_wide(models)) {
-            // A live ordinary self-attack completed without a separate defense
-            // command. Keep this route narrow; redirected and special payloads
-            // retain their existing response schedules.
+            && base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon)
+            && !base.hit_rate && !has_wide(models)) {
+            // Live ordinary and reflection-sword self plays advanced without
+            // a separate defense command. ReflectWeapon is a defense role;
+            // using it as the attack base does not reflect its own payload.
+            // Other special bases and redirected frames keep their old routes.
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
             resolve(s, original, 0); completed = true;
         } else if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
@@ -2028,7 +2030,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v46\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v47\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

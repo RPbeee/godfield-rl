@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "observed_on_jst": "2026-11-04",
+  "url": "https://godfield.net/",
+  "method": "Firefox native UI accessibility text and screenshots. No injected browser code, backend request replay or full wire capture.",
+  "prior_record": "live-transition-witnesses-v52.json",
+  "privacy": "Viewer and CPU are roles; names, user IDs, credentials, session URLs and request bodies are omitted. Native role IDs and tokens are local test values.",
+  "model_provenance": "Displayed names and facts are mapped to cards.json; IDs are not captured wire IDs.",
+  "cases": [
+    {
+      "id": "training2-gf6-self-dark-goodbye-sword-terminal",
+      "session": {"mode": "training", "players": 2, "apocalypse": null, "continuation_of_v52_session": true},
+      "before": {
+        "gf": 6,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn,81 selected and viewer chosen as target",
+        "cpu": {"hp": 59, "mp": 25, "cp": 20},
+        "viewer": {"hp": 9, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9,
+        "viewer_named_models": [3, 12, 13, 25, 81, 195, 203, 221],
+        "viewer_other_copy": {"model": null, "displayed_defense": 5},
+        "viewer_has_208_or_112": false,
+        "cpu_hand_count": null,
+        "guardian_or_curse_indicator_shown": false,
+        "attack_models": [81],
+        "attack_display": {"power": 4, "element": "darkness"}
+      },
+      "confirmed_choice": {"actor": "viewer", "kind": "play", "models": [81], "target": "viewer"},
+      "additional_viewer_response_chosen": false,
+      "after": {
+        "gf": 6,
+        "checkpoint": "finished battle with victory displayed for CPU",
+        "cpu": {"hp": 59, "mp": 25, "cp": 20},
+        "viewer": {"hp": 0, "mp": 10, "cp": 20},
+        "winner": "cpu",
+        "viewer_visible_hand_count": 8,
+        "model81_removed": true,
+        "replacement_observed": false
+      },
+      "projection": "Compute positive Dark4 with zero defense from the selected card; compare viewer HP0, CPU victory, unchanged GF/resources and no replacement. Use one play only, without an invented self-defend command. The other DEF5 model was not identified, and no particular hidden CPU inventory is reconstructed.",
+      "limits": "No208/112 were present in the viewer's accounted nine copies. This example does not establish revival or posthumous ordering when those items are present. Native reward encoding is a local contract, not a value read from the UI."
+    }
+  ],
+  "routing_observations": [
+    {
+      "id": "training-apocalypse-gf2-self-reflection-sword-no-response",
+      "session": {"mode": "training", "players": 2, "apocalypse": 1},
+      "before": {
+        "gf": 2,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn,38 selected and viewer chosen as target",
+        "cpu": {"hp": 50, "mp": 10, "cp": 20},
+        "viewer": {"hp": 40, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9,
+        "unselected_defenses_available": [5],
+        "guardian_or_curse_indicator_shown": false,
+        "attack_models": [38],
+        "attack_display": {"power": 10, "element": null},
+        "displayed_ability": "reflect neutral weapons"
+      },
+      "confirmed_choice": {"actor": "viewer", "kind": "play", "models": [38], "target": "viewer"},
+      "additional_viewer_response_chosen": false,
+      "later_checkpoint": {
+        "gf": 4,
+        "owner": "viewer",
+        "actor": "viewer",
+        "cpu": {"hp": 55, "mp": 10, "cp": 20},
+        "viewer": {"hp": 30, "mp": 10, "cp": 20},
+        "model38_removed": true
+      },
+      "established": "The self-target main use of38 completed and play progressed to GF4 without a further viewer defense choice. This contradicts a mandatory self-response wait for that main use.",
+      "not_established": "The replenishment/devil events and CPU's intervening turn were not captured. Neither a specific recovery card nor a normal grant outcome is inferred. The endpoint HP30 is consistent with ATK10 but is not a complete isolated resource-transition golden for38.",
+      "native_probe_boundary": "Synthetic external_grants=True pauses immediately after the predicted self body at the local grant phase. Assert no ordinary self-response, zero defensive consumption and resumable state. The135 DEF5 surrogate and20 DEF7 are synthetic defensive copies; the live checkpoint did not identify the DEF5 copy or directly transcribe a second DEF7 tooltip. The grant pause, HP30 at that pause, and exact post-body RNG are local test expectations; that intermediate checkpoint was not captured from the official UI. Do not supply a fitted grant action to force a match with later GF4/CPU55."
+    }
+  ],
+  "inconclusive_sessions": [
+    "An intervening no-apocalypse training session was ended after GF2. The CPU's initial HP40-to45 action was not captured and is not used as a recovery golden."
+  ],
+  "native_test": "tests/official_live_trace_test.cpp",
+  "native_inventory_policy": "Unselected, untranscribed copies are replaced by legal surrogates only to probe the compared projection; these variations are not claims about actual hidden cards or full UI replay.",
+  "new_completed_public_transition_witnesses": 1,
+  "new_routing_only_observations": 1,
+  "cumulative_completed_public_transition_witnesses": 4,
+  "cumulative_routing_only_observations": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

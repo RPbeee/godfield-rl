@@ -107,8 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v48"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v49"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v46")
+        self.assertEqual(own["schema"], "official-execution-view-v47")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -168,6 +168,25 @@ class MatchTests(unittest.TestCase):
         self.assertIsNone(match.observe()["pending"])
         players = match.observe()["board"]["players"]
         self.assertEqual([p["status"]["hp"] for p in players], [98, 99])
+
+    def test_explicit_self_reflection_weapon_finishes_without_defense(self):
+        # A synthetic routing fixture; later live CPU/grant actions are not reconstructed.
+        game = self.match(config=Config(initial_hand=0))
+        raw = {"gf": 2, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 38}]},
+            {"id": 77, "hp": 50, "mp": 10, "cp": 20}]}
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, seed=0)
+        command = Command(0, "play", (0,), 0)
+        self.assertTrue(game.legal(command)); result = game.step(command)
+        self.assertEqual((result.phase, result.actor, result.owner, result.decisions), ("main", 77, 77, 1))
+        view = game.observe()
+        self.assertIsNone(view["pending"]); self.assertEqual(view["self_attack_rule"], game.self_attack_rule)
+        self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"]) for p in view["board"]["players"]],
+                         [(30, 10, 20), (50, 10, 20)])
+        before, status = game.observe(0), game.status
+        extra = Command(0, "defend"); self.assertFalse(game.legal(extra))
+        with self.assertRaises(InvalidMatchError): game.step(extra)
+        self.assertEqual((game.observe(0), game.status), (before, status))
 
     def test_block_pool_and_retained_wall_response(self):
         added = {42, 50, 55, 56, 165, 171, 177, 179, 233}
@@ -312,7 +331,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v46")
+        self.assertEqual(event["schema"], "official-execution-view-v47")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))

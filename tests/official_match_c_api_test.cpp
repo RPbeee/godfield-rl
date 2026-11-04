@@ -57,9 +57,10 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v48"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v48 scope");
-    check(std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v49"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v49 scope");
+    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route"
+        && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -73,6 +74,34 @@ int main() {
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
+    // One explicit self-target38 command completes without a synthetic defend.
+    // This synthetic routing check does not reconstruct the live game's later CPU/grant actions.
+    {
+        gfo_match* self = nullptr; gfo_state* scene = nullptr; gfo_match_status outcome{};
+        check(gfo_match_create(nullptr, players.data(), 2, 0, &self) == 0, "self reflection-weapon create");
+        gfo_state_meta meta{}; meta.gf = 2;
+        std::array<gfo_state_player, 2> people{}; people[0].id = 0; people[1].id = 77;
+        for (auto& person : people) { person.hp = 40; person.mp = 10; person.cp = 20; }
+        people[1].hp = 50; people[0].item_count = 1; people[1].item_offset = 1;
+        gfo_state_item sword{}; sword.token = 0; sword.model = 38;
+        check(gfo_state_create(&meta, people.data(), people.size(), &sword, 1, nullptr, 0, &scene) == 0
+            && gfo_match_load_scene(self, scene, 0, 0, &outcome) == 0, "self reflection-weapon typed scene");
+        gfo_state_destroy(scene);
+        gfo_match_command use{}; use.item_count = 1; use.items[0] = 0; use.has_target = 1; use.target = 0;
+        uint8_t allowed = 0;
+        check(gfo_match_legal(self, &use, &allowed) == 0 && allowed
+            && gfo_match_step(self, &use, &outcome) == 0 && outcome.phase == 0 && outcome.actor == 77
+            && outcome.decisions == 1 && observe(self).find("\"pending\":null") != std::string::npos
+            && observe(self).find("\"hp\":30,\"mp\":10,\"cp\":20") != std::string::npos
+            && observe(self).find("\"hp\":50,\"mp\":10,\"cp\":20") != std::string::npos,
+            "self reflection-weapon applies raw10 in one main command without a response");
+        const auto view = observe(self); const auto saved = outcome;
+        gfo_match_command extra{}; extra.kind = 1;
+        check(gfo_match_legal(self, &extra, &allowed) == 0 && !allowed
+            && gfo_match_step(self, &extra, &outcome) == -2 && equal(outcome, saved) && observe(self) == view,
+            "extra self-defense is rejected without changing completed state");
+        gfo_match_destroy(self);
+    }
     gfo_match* a = nullptr; gfo_match* b = nullptr;
     check(gfo_match_create(nullptr, players.data(), 2, 42, &a) == 0 && a, "create");
     check(gfo_match_create(nullptr, players.data(), 2, 42, &b) == 0 && b, "create replay");
@@ -292,7 +321,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v46\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v47\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

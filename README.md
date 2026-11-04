@@ -248,6 +248,8 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 
 続くv52では、[公式CPU戦の公開遷移3件](data/official-v2/live-transition-witnesses-v52.json)を取得し、通常武器による明示自己攻撃を、防御入力を待たずDEF0・1commandで解決するよう修正しました。エンジンは `official-execution-subset-v48` / Snapshot48 / view-v46、Match ABI2です。対象は先頭が通常武器・能力なし・確率なし・Wideなしのmain playに限定し、C++/C/Pythonの `self_attack_rule` で範囲を公開します。光3の空防御、自己32の9damage、吸収26にDEF7という3例を、カードから事前計算するnativeテストで照合します。未転記の手札を変えた216通りの局面でも比較部分の一致を検査し、実際の隠れた手札・補充・server乱数を再現したとは扱いません。
 
+v53では[闇属性での自己死亡と反射剣の自己使用](data/official-v2/live-transition-witnesses-v53.json)を確認し、明示自己武器の経路を `ability=none` または `reflect_weapon` へ広げました。現行は **`official-execution-subset-v49` / Snapshot49 / view-v47**、Match ABI2です。完了した公開遷移は累計4件、反射剣の追加応答不要という経路観測は別に1件です。反射剣の補充・CPU次行動は未転記のため、その最終資源を単独の効果goldenとは扱いません。nativeは公開4件の288投影比較と、独立した72経路検査を分けて実行します。
+
 ## 公式データによる限定対局実行器
 
 [official_match.hpp](include/godfield/official_match.hpp) の `godfield::official::Match` は、

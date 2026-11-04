@@ -240,3 +240,11 @@ Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだっ�
 光ATK3の75へ空応答して本人HP40→37/GF2、本人の32自己攻撃でHP37→28/GF5（追加の本人応答操作なし）、CPUの `[45,124,34]` のATK26へ `[150]` のDEF7で応答して本人HP28→9・CPU40→59/GF6を確認した。最後の差19は台帳の合成・防御・吸収から計算する値であり、server damage値を実行器へ入力した結果ではない。
 
 公開clientのfu/aT/fFで自己targetに独立した反対側response paneを作らない経路と整合するため、実行器をruleset48/Snapshot48/view-v46へ更新した。新 `self_attack_rule` の範囲は通常mainの明示自己target・武器base・abilityなし・非確率・非Wideだけで、DEF0即時解決とする。特殊base・反射・bounce等は既存経路を維持する。公式server内部の即時解決と自動空応答は観測から区別できず、致死・特殊効果の順序や公式完全同等性をこの3件から主張しない。詳細は[現行ルールのv52節](../../docs/official-current-rules.md#v52公開対局の完了遷移と通常自己攻撃)を参照。
+
+## v53：Dark自己攻撃の完了例と反射剣のrouting証拠
+
+[追加の対局証跡](live-transition-witnesses-v53.json) は、81さよならの剣の自己使用による**完了遷移1件**と、38反射剣の自己使用についての**routingのみ1件**を分けて保存する。v52と合計した完了公開遷移は4件、routingのみは1件、完全なserver event列の取得は0件。v51/v52の記録・旧pinsは変更しない。
+
+81は闇ATK4を本人へ1回使用し、追加の本人応答なしにHP9→0、CPU勝利でGF6のまま終局した。本人手札9→8、81消費・補充なしを確認した（本人208/112なし）。38は終末GF1の別対局で本人が1回自己使用し、追加defendなしに次の本人mainへ進んだ。ただし補充・悪魔・CPUの途中行動は未取得で、後のGF4/本人HP30/CPU55を38単独の資源goldenにはしない。
+
+実行器をruleset49/Snapshot49/`official-execution-view-v47`へ更新し、`self_attack_rule` のbase条件を `ability-none-or-reflect-weapon` に限定して拡張した。通常main・明示自己target・武器・hitRate0・WideなしをDEF0で即時解決し、他のspecial baseや反射後frame・bounce・counterは既存経路を維持する。Match ABI2は固定。内部即時処理と自動空応答、未観測grantや死亡特殊順序、公式完全同等性をこれらの画面証拠から主張しない。
