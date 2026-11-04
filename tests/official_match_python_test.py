@@ -107,8 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-or-miracle-base-ability-none;hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v50"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v51"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v48")
+        self.assertEqual(own["schema"], "official-execution-view-v49")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -207,6 +207,31 @@ class MatchTests(unittest.TestCase):
         extra = Command(0, "defend"); self.assertFalse(game.legal(extra))
         with self.assertRaises(InvalidMatchError): game.step(extra)
         self.assertEqual((game.observe(0), game.status), (before, status))
+
+    def test_explicit_self_special_attack_bodies_finish_in_one_decision(self):
+        # Client self-pane routing plus the existing experimental body contract;
+        # these are local regression expectations, not new live server witnesses.
+        for model, hp, mp in ((14, 34, 10), (27, 40, 10), (45, 40, 10),
+                              (53, 12, 10), (58, 20, 0), (216, 40, 0)):
+            with self.subTest(model=model):
+                game = self.match(config=Config(initial_hand=0))
+                raw = {"gf": 1, "players": [
+                    {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": model}]},
+                    {"id": 77, "hp": 40, "mp": 10, "cp": 20}]}
+                with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, seed=0)
+                command = Command(0, "play", (0,), 0)
+                self.assertTrue(game.legal(command)); result = game.step(command)
+                self.assertEqual((result.phase, result.actor, result.owner, result.decisions), ("main", 77, 77, 1))
+                view = game.observe(0); self.assertIsNone(view["pending"])
+                self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"]) for p in view["board"]["players"]],
+                                 [(hp, mp, 20), (40, 10, 20)])
+                old_copy = [i for i in view["board"]["hand"] if i["token"] == 0]
+                self.assertEqual(len(old_copy), int(model == 216))
+                if old_copy: self.assertEqual((old_copy[0]["face"], old_copy[0]["used"]), (216, True))
+                extra = Command(0, "defend"); before, status = view, game.status
+                self.assertFalse(game.legal(extra))
+                with self.assertRaises(InvalidMatchError): game.step(extra)
+                self.assertEqual((game.observe(0), game.status), (before, status))
 
     def test_block_pool_and_retained_wall_response(self):
         added = {42, 50, 55, 56, 165, 171, 177, 179, 233}
@@ -351,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v48")
+        self.assertEqual(event["schema"], "official-execution-view-v49")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -632,7 +657,8 @@ class MatchTests(unittest.TestCase):
             own = hand(effect, 0); self.assertIn(27, own)
             effect.step(Command(0, "play", (own[27],), target))
             self.assertEqual(effect.observe()["damage_effect_rule"], rule)
-            effect.step(Command(target, "defend")); self.assertEqual(hp(effect), expected)
+            if target != 0: effect.step(Command(target, "defend"))
+            self.assertEqual(hp(effect), expected)
             if initial_hp == 3: self.assertEqual(effect.status.winners, (0,))
         match.reset(1121); own, other = hand(match, 0), hand(match, 1)
         self.assertIn(176, other)
@@ -645,12 +671,12 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(hp(match), [40, 40])
         self.assertEqual((match.observe()["pending"]["source"], match.observe()["pending"]["target"]), (1, 0))
         match.step(Command(0, "defend")); self.assertEqual(hp(match), [33, 47])
-        # Self-heal and target damage net to zero, but body damage7 still creates counter14.
+        # Explicit self-heal and target damage net to zero without selecting a defense or counter.
         match.reset(1094); own = hand(match, 0)
         self.assertTrue({27, 184} <= own.keys())
-        match.step(Command(0, "play", (own[27],), 0)); match.step(Command(0, "defend", (own[184],)))
-        self.assertEqual(hp(match), [40, 40]); self.assertEqual(match.observe()["pending"]["power"], 14)
-        match.step(Command(0, "defend")); self.assertEqual(hp(match), [26, 40])
+        match.step(Command(0, "play", (own[27],), 0))
+        self.assertEqual(hp(match), [40, 40]); self.assertIsNone(match.observe()["pending"])
+        self.assertIn(own[184], {i["token"] for i in match.observe(0)["board"]["hand"]})
         # The chance absorber keeps its ability through hit/miss handling.
         for seed, expected in ((2, [43, 37]), (214, [40, 40])):
             match.reset(seed); token = hand(match, 0)[98]
@@ -687,15 +713,24 @@ class MatchTests(unittest.TestCase):
         for initial_hp, target, expected in ((40, 1, [26, 26]), (40, 0, [12, 40]), (20, 0, [0, 20])):
             effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=79)
             token = hand(effect, 0)[53]
-            effect.step(Command(0, "play", (token,), target)); effect.step(Command(target, "defend"))
+            effect.step(Command(0, "play", (token,), target))
+            if target != 0: effect.step(Command(target, "defend"))
             self.assertEqual(hp(effect), expected)
             if initial_hp == 20: self.assertEqual(effect.status.winners, (1,))
         match.reset(4115); own = hand(match, 0)
         self.assertTrue({53, 184} <= own.keys())
-        match.step(Command(0, "play", (own[53],), 0)); match.step(Command(0, "defend", (own[184],)))
-        self.assertEqual(hp(match), [12, 40])
-        self.assertEqual(match.observe()["pending"]["power"], 28)  # Target14, not net28 doubled.
-        match.step(Command(0, "defend")); self.assertEqual(match.status.winners, (1,))
+        match.step(Command(0, "play", (own[53],), 0))
+        self.assertEqual(hp(match), [12, 40]); self.assertIsNone(match.observe()["pending"])
+        self.assertIn(own[184], {i["token"] for i in match.observe(0)["board"]["hand"]})
+        # A real foreign response still creates the counter from target-stage loss.
+        counter = self.match(config=Config(initial_hand=0))
+        raw = {"players": [
+            {"id": 0, "hp": 40, "mp": 0, "cp": 20, "items": [{"id": 0, "modelId": 53}]},
+            {"id": 1, "hp": 40, "mp": 0, "cp": 20, "items": [{"id": 1, "modelId": 184}]}]}
+        with OfficialState(raw, library=LIBRARY) as scene: counter.load_scene(scene, 0, seed=0)
+        counter.step(Command(0, "play", (0,), 1)); counter.step(Command(1, "defend", (1,)))
+        self.assertEqual(hp(counter), [26, 26]); self.assertEqual(counter.observe()["pending"]["power"], 28)
+        counter.step(Command(0, "defend")); self.assertEqual(counter.status.winners, (1,))
 
     def test_flash_response_limit_and_free_main_cure(self):
         match = self.match(config=Config(initial_hand=18, initial_mp=0), seed=1292501)

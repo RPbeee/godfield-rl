@@ -255,3 +255,11 @@ Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだっ�
 [追加記録](live-transition-witnesses-v54.json)に、大木213の初回自己使用、鎖ガマ19への空防御、使用済み大木の後の自己使用という3完了遷移を保存した。累計は7完了遷移と別枠のrouting-only 1件、full server event traceは0件。途中のG.F.3自己使用は次のCPU行動が欠けるため不完全区間として分離する。新しい補充品の未同定modelやCPUの未観測行動は補わない。
 
 対局ruleset50 / Snapshot50 / view-v48は、大木で確認した追加防御不要の経路を、能力なし・hitRate0・非Wideの通常main自己攻撃奇跡へ限定して一般化する。MP消費・同一使用済みコピーの保持・各使用時の補充は既存処理を使い、gift抽選を観測結果に合わせる変更はない。既存pins・旧witness・保存oracle・Match ABI2は保持する。
+
+## v55：特殊自己攻撃のclient照合
+
+[oracle](../../scripts/official_self_attack_oracle.cjs) / [report](self-attack-client-v55.json) は、選択・送信76ケースと独立した受信routing65ケースを実client関数で比較する。14/27/45/58/53/216の自己選択と、条件付きself pane/main activationを確認したが、submit→server→frameの連続取得ではなく、serverの特殊body順・二回攻撃の区切りは未証明である。実対局は完了7件・routing-only1件・full wire0件のまま。
+
+本体ruleset51/Snapshot51/view-v49は、この6種・4familyを既存bodyのまま限定self経路へ追加する。14のfresh2body・消費/課金1回・自然終局/owner実死亡での打切り・cutoff/gift接合等は実験規約とし、ABI2は固定する。[契約の詳細](../../docs/official-execution-subset.md)と[現行ルールv55](../../docs/official-current-rules.md)を参照。過去の応答経路の記述は歴史として残す。
+
+reportは79,743bytes、SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81ad567ae71e8e643c`、`--check`でbyte一致する。別公開GETのJS/JAは本文SHA・ETagがpinと同一で、Last-Modifiedのみ11月4日07:33:42 GMTへ進んでいた。取得metadataをreportに保存し、rawソース本文・旧pinsは更新していない。

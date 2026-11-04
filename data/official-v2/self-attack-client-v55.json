@@ -1,0 +1,4029 @@
+{
+  "schema_version": 1,
+  "title": "Actual public-client special self-selection and independently supplied received-frame routing v55",
+  "public_get_review": {
+    "kind": "Separate public GET review, not a network operation performed by this offline oracle.",
+    "assets": [
+      {
+        "url": "https://godfield.net/main.dart.js",
+        "retrieved_at_utc": "2026-11-04T11:38:03.984751+00:00",
+        "status": "200",
+        "curl_exit": 0,
+        "stderr": "",
+        "bytes": 440420,
+        "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+        "equal_pin": true,
+        "validators": {
+          "date": "Wed, 04 Nov 2026 11:38:04 GMT",
+          "etag": "\"eee0fd31f9de4c2975db90e00685294056d09407308ba3e0249dbd40b3c47998\"",
+          "last-modified": "Wed, 04 Nov 2026 07:33:42 GMT"
+        }
+      },
+      {
+        "url": "https://godfield.net/i18n/ja.json",
+        "retrieved_at_utc": "2026-11-04T11:38:03.988192+00:00",
+        "status": "200",
+        "curl_exit": 0,
+        "stderr": "",
+        "bytes": 49240,
+        "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+        "equal_pin": true,
+        "validators": {
+          "date": "Wed, 04 Nov 2026 11:38:04 GMT",
+          "etag": "\"603e2c27b9ce82df18db251881d9731c5409d4a179d5d8cf4ed8b00d10f9289b\"",
+          "last-modified": "Wed, 04 Nov 2026 07:33:42 GMT"
+        }
+      }
+    ],
+    "interpretation": "Both complete decoded bodies and ETags match the official-v2 pin. Last-Modified advanced again;this alone does not establish a source or rules change."
+  },
+  "source": "https://godfield.net/main.dart.js",
+  "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+  "cards_sha256": "8e465e2d296a2dd039d6e3b6e22956447c1fc4a5572a31e2597cdf20c551dc2a",
+  "ja": {
+    "source": "https://godfield.net/i18n/ja.json",
+    "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02"
+  },
+  "helper_sha256": {
+    "append": "6843fa0629fc5a89f85b9e9b934c60b09908cb3f6c86d7bcc400a712d7dc8753",
+    "selection": "3144784f95abdb6b28170a4b9149de719c88cea28c191d73c916faa55cac85b8",
+    "selected_target": "c7e9dcc6c728ad7ebdc5ee88bcb228c097486abb61eb4dde6f9428cd2df14df3",
+    "submit": "1c49f49bf1aa42e931935bafe4a589918a557863e23cb8232769740f67f73048",
+    "frame": "48e78d1eab61ea3d655c0e4b916ae199648863bf1fa774060bb818c65370f38f",
+    "clear_frame": "ea05a199b674229d0a8c9c6453c0c66e1c57fa86cd20f052041497992feaaf45",
+    "received_target": "68588ec755897dea5eee712a5decc2c312eb119a6a3072fc76f51ebc3816d7e1",
+    "activation": "cdbeb63e31eca727c1a87027cdb3b1dc94be9f957176af908287aa2fe11c8d0e"
+  },
+  "reused_factory": {
+    "path": "scripts/official_active_attack_oracle.cjs",
+    "sha256": "118f2e4414adde5062eef22be62228eaf656aa53cdb2ef736be430febfbbdc65",
+    "prefix_sha256": "05ae5669e9f8bf9a3da2e96c8083e270bde122c4abc027c80cb83fa96e8a165d",
+    "scope": "Factory declarations only, before old case generation;actual helpers run in a new pinned VM."
+  },
+  "methods": [
+    "actual jO.eu main append and aN.gkM",
+    "actual jO.aT selected self/foreign target",
+    "actual jS.$0 through first await, with captured submit-command RPC",
+    "actual p6 decode,fs.fu/aa,fv.aT and fv.fF on separately supplied received frames",
+    "actual h8 roster and fF alive-target si1 activation"
+  ],
+  "facts": [
+    {
+      "id": 6,
+      "imageName": "bronze-club",
+      "category": "weapons",
+      "atk": 1,
+      "price": 1,
+      "giftRate": 3,
+      "name": "銅のこん棒"
+    },
+    {
+      "id": 32,
+      "imageName": "power-halberd",
+      "category": "weapons",
+      "atk": 9,
+      "price": 3,
+      "giftRate": 7,
+      "name": "パワーハルベルト"
+    },
+    {
+      "id": 75,
+      "imageName": "star-staff",
+      "category": "weapons",
+      "element": "light",
+      "atk": 3,
+      "price": 3,
+      "giftRate": 1,
+      "name": "スタースタッフ"
+    },
+    {
+      "id": 213,
+      "imageName": "big-tree",
+      "category": "miracles",
+      "element": "wood",
+      "atk": 6,
+      "cost": 3,
+      "giftRate": 1,
+      "name": "＜大木＞"
+    },
+    {
+      "id": 14,
+      "imageName": "saw-boom-boom",
+      "category": "weapons",
+      "atk": 3,
+      "ability": "attackTwice",
+      "price": 10,
+      "giftRate": 1,
+      "name": "のこぶんぶん"
+    },
+    {
+      "id": 27,
+      "imageName": "ghost-sword",
+      "category": "weapons",
+      "atk": 7,
+      "ability": "absorbHP",
+      "price": 10,
+      "giftRate": 1,
+      "name": "ゴーストソード"
+    },
+    {
+      "id": 45,
+      "imageName": "real-ghost-sword",
+      "category": "weapons",
+      "atk": 12,
+      "ability": "absorbHP",
+      "price": 15,
+      "giftRate": 1,
+      "name": "リアルゴーストソード"
+    },
+    {
+      "id": 58,
+      "imageName": "magical-stick",
+      "category": "weapons",
+      "ability": "atkBy2xMP",
+      "price": 10,
+      "giftRate": 1,
+      "name": "マジカルステッキ"
+    },
+    {
+      "id": 53,
+      "imageName": "evil-broadsword",
+      "category": "weapons",
+      "atk": 14,
+      "ability": "dealSameDamage",
+      "price": 1,
+      "giftRate": 1,
+      "name": "邪神の大剣"
+    },
+    {
+      "id": 216,
+      "imageName": "absorption",
+      "category": "miracles",
+      "element": "light",
+      "atk": 10,
+      "ability": "absorbHP",
+      "cost": 10,
+      "giftRate": 1,
+      "name": "＜吸収＞"
+    }
+  ],
+  "localized_description": {
+    "attackTwice": "二回攻撃する",
+    "absorbHP": "HPを吸収する",
+    "atkBy2xMP": "攻{MP×2}",
+    "consumeAllMP": "MPをすべて消費する",
+    "dealSameDamage": "使用者に同じダメージ"
+  },
+  "counts": {
+    "selection_cases": 76,
+    "captured_submit": 54,
+    "append_rejected": 12,
+    "mp_alerts": 10,
+    "received_routing_cases": 65,
+    "received_self": 33,
+    "received_foreign": 32
+  },
+  "selection_and_submit": [
+    {
+      "models": [
+        6
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 6,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        6
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 6,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        6
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 6,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        6
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 6,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        32
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 32,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        32
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 32,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        32
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 32,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        32
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 32,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        75
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 75,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        75
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 75,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        75
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 75,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        75
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 75,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        213
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 213,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 3,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        213
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 213,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 3,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        213
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 213,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 3,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        213
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 213,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 3,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        45
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 45,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        45
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 45,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        45
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 45,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        45
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 45,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 10,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        216
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 10,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        216
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14,
+        12
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14,
+        12
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14,
+        12
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        14,
+        12
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 14,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27,
+        231
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        27,
+        231
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        27,
+        231
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        27,
+        231
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 27,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 6,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231,
+        204
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1,
+            2
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231,
+        204
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1,
+            2
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231,
+        204
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1,
+            2
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        58,
+        231,
+        204
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 58,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1,
+            2
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53,
+        232
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 5,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        53,
+        232
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 5,
+      "alert": "miracles",
+      "captured_rpc": null,
+      "target_retained": true
+    },
+    {
+      "models": [
+        53,
+        232
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 5,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        53,
+        232
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 53,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 5,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216,
+        204
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216,
+        204
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216,
+        204
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 0
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216,
+        204
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 204,
+          "allowed": true
+        }
+      ],
+      "selection_accepted": true,
+      "composed_mp_cost": 0,
+      "alert": null,
+      "captured_rpc": {
+        "method": "submit-command",
+        "flag": true,
+        "command": {
+          "itemIds": [
+            0,
+            1
+          ],
+          "targetPlayerId": 7
+        }
+      },
+      "target_retained": true
+    },
+    {
+      "models": [
+        216,
+        231
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 16,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        231
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 16,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        231
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 16,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        231
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 231,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 16,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        232
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 15,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        232
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 15,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        232
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 15,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        232
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 232,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 15,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        12
+      ],
+      "mp": 0,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        12
+      ],
+      "mp": 0,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        12
+      ],
+      "mp": 99,
+      "target": 0,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": null
+    },
+    {
+      "models": [
+        216,
+        12
+      ],
+      "mp": 99,
+      "target": 7,
+      "append": [
+        {
+          "model": 216,
+          "allowed": true
+        },
+        {
+          "model": 12,
+          "allowed": false
+        }
+      ],
+      "selection_accepted": false,
+      "composed_mp_cost": 10,
+      "alert": null,
+      "captured_rpc": null
+    }
+  ],
+  "independent_received_routing": [
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          6
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          6
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          6
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          6
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          32
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          32
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          32
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          32
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          75
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          75
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          75
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          75
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          213
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          213
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          213
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          213
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          45
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          45
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          45
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          45
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14,
+          12
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14,
+          12
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14,
+          12
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          14,
+          12
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27,
+          231
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27,
+          231
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27,
+          231
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          27,
+          231
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231,
+          204
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231,
+          204
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231,
+          204
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          58,
+          231,
+          204
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 34
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53,
+          232
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53,
+          232
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53,
+          232
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          53,
+          232
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216,
+          204
+        ],
+        "targetPlayerId": 0,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": 0,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216,
+          204
+        ],
+        "targetPlayerId": 0,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 0,
+      "panes_before_activation": {
+        "a": null,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": null,
+        "b": 0
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216,
+          204
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "panes_after_activation": {
+        "a": 0,
+        "b": 7
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 0,
+        "itemModelIds": [
+          216,
+          204
+        ],
+        "targetPlayerId": 7,
+        "reversed": true,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": 0
+      },
+      "command_response": true,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": []
+    },
+    {
+      "supplied_received_frame": {
+        "playerId": 7,
+        "itemModelIds": [
+          14
+        ],
+        "targetPlayerId": 7,
+        "reversed": false,
+        "atk": 0
+      },
+      "viewer": 7,
+      "panes_before_activation": {
+        "a": 7,
+        "b": null
+      },
+      "panes_after_activation": {
+        "a": 7,
+        "b": null
+      },
+      "command_response": false,
+      "activation": [
+        "viewer-active"
+      ],
+      "alive_click_targets": [
+        0,
+        7
+      ]
+    }
+  ],
+  "conclusions": [
+    "14/27/45/58/53/216 single cards are selectable as ordinary main cards;the actual submit preflight preserves explicitly selected self IDs and physical itemIds when composed MP is affordable. 216 has its normal10MP cost;58 itself has no fixed MP fee in this preflight.",
+    "The submitted target binding does not contain a special-card self rejection. Ordinary controls and the special candidates follow the same inspected main-selection/submit path. This does not execute a server acceptance path.",
+    "For independently supplied nonempty single frames with source==target,fv.aT highlights the source pane without creating the opposite pane;actual fv.fF chooses main activation,not a separate response command. The inspected routing has no card-ability branch. Reversed orientation and player7 self follow the same law.",
+    "Foreign frames preserve the opposite target pane and activate response mode,including every tested special base and legal compound. No claim is made that the server actually delivers a particular supplied frame.",
+    "The two report sections are independent probes,not an observed submit-to-server-to-frame trace. The all-enemy compound example records client selection/frame behavior only;it does not resolve the corresponding server target roster."
+  ],
+  "live_evidence_boundary": {
+    "record": "data/official-v2/live-transition-witnesses-v54.json",
+    "completed_public_transition_witnesses": 7,
+    "routing_only_observations": 1,
+    "captured_full_server_event_traces": 0,
+    "new_live_trials_in_this_oracle": 0
+  },
+  "limitations": [
+    "The backend RPC,DOM/sound/widgets and Future scheduler are stubbed;source selection and pane/activation helpers execute unchanged. No authentication,network,application startup or Match executor runs.",
+    "14 two-hit framing and inter-hit defense/counter/gift/death order,absorption source healing stage,58 actual MP consumption stage,53 source/target damage order and216 actual effect timing are not established.",
+    "This supports client-selectable self targets and the conditional routing of a supplied received frame. It does not prove authoritative server self-attack rules,immediate versus automatic-empty resolution,or general simulator equivalence.",
+    "No special self-body execution or damage was measured by this oracle. Existing live completed witnesses remain7;any engine extension to special bases is an explicit limited generalization,not new measured server body evidence.",
+    "The separately supplied58 atk34 is a display input,not a proof that a server computed34 from a particular MP value. Future raw frames,repeat segmentation,selector outcomes and hidden inventories are not reconstructed."
+  ],
+  "network_or_application_startup": false,
+  "generator": "node scripts/official_self_attack_oracle.cjs --client /path/to/main.dart.js [--check]"
+}

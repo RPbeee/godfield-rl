@@ -1227,16 +1227,23 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
-            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon))
-                || (base.category == Category::miracles && base.ability == Ability::none))
+            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon
+                    || base.ability == Ability::absorb_hp || base.ability == Ability::attack_twice
+                    || base.ability == Ability::atk_by2x_mp || base.ability == Ability::deal_same_damage))
+                || (base.category == Category::miracles && (base.ability == Ability::none || base.ability == Ability::absorb_hp)))
             && !base.hit_rate && !has_wide(models)) {
-            // Live ordinary weapon, reflection-sword and ordinary miracle self
-            // plays advanced without a separate defense command. Shared launch
-            // payment/consumption retains miracles once. ReflectWeapon remains
-            // a defense role, not an automatic reflection of its own payload.
-            // Other special bases and redirected frames keep their old routes.
+            // Extend the observed self-play routing to this explicit allowlist;
+            // special body arithmetic remains the existing experimental rule.
+            // Pay/consume once and keep the original launch payload even after
+            // MP changes or revival. Redirects and external entries stay separate.
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
-            resolve(s, original, 0); completed = true;
+            const unsigned hits = base.ability == Ability::attack_twice ? 2 : 1;
+            for (unsigned hit = 0; hit < hits; ++hit) {
+                const auto fresh = original;
+                resolve(s, fresh, 0);
+                if (outcome(s.state).terminal || s.state.players[seat].dead) break;
+            }
+            completed = true;
         } else if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
             auto& batch = *s.batch;
             require(batch.rng == launch_rng, "launch journal lost its pre-draw anchor");
@@ -2032,7 +2039,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v48\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v49\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

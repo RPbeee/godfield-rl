@@ -18,12 +18,20 @@ Match fixture(SnapshotState s,MatchConfig config={}){Match m(config);m.load_scen
 Command play(PlayerId actor,std::initializer_list<ItemToken> tokens,PlayerId target){return {actor,CommandKind::play,std::vector<ItemToken>(tokens),target};}
 Command defend(PlayerId actor,std::initializer_list<ItemToken> tokens={}){return {actor,CommandKind::defend,std::vector<ItemToken>(tokens),{}};}
 Command pray(PlayerId actor){return {actor,CommandKind::pray,{},{}};}
+Match redirected_self_fixture(CardId model,CardId response,int hp=40){
+    for(std::uint64_t seed=0;seed<64;++seed){
+        auto state=scene({model},{21,response});state.players[1].hp=hp;
+        Match game;game.load_scene(state,0,seed);game.step(play(0,{0},7));game.step(defend(7,{0}));
+        if(game.snapshot().actor==7&&game.snapshot().queue[0].source==7&&game.snapshot().queue[0].target==7)return game;
+    }
+    check(false,"bounded bounce fixture reaches a redirected self recipient");return Match{};
+}
 void roundtrip(const Match& m){Match copy(m.snapshot().config);copy.restore(m.snapshot());check(copy.snapshot()==m.snapshot(),"full execution snapshot including frame, owner, gifts, RNG and outcomes resumes exactly");}
 void reject(Match& m,const Command& command){const auto before=m.snapshot();check(!m.legal(command)&&m.snapshot()==before,"legality query rejects without mutation");bool threw=false;try{(void)m.step(command);}catch(const MatchError&){threw=true;}check(threw&&m.snapshot()==before,"invalid/unsupported command transactional across resources, RNG and frames");}
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v50"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v51"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v48\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v49\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -386,22 +394,23 @@ void mp_refill_extends_retained_redirect_budget(){
 void absorption_stages_reflection_and_retention(){
     const auto ghost=image("ghost-sword"),real=image("real-ghost-sword"),vine=image("vine-shoot"),spell=image("absorption"),saturn=image("saturn-ring");
     for(auto id:{ghost,real}){auto state=scene({id},{});state.players[0].hp=40;state.players[1].hp=2;auto m=fixture(state);m.step(play(0,{0},7));check(m.snapshot().state.players[0].hp==40,"absorption side effect does not run at launch");m.step(defend(7));check(m.snapshot().state.players[0].hp==40+find_card(id)->atk&&m.snapshot().state.players[1].hp==0&&m.snapshot().terminated,"overkill absorption credits whole positive remainder before clipping target HP loss");roundtrip(m);}
-    auto selfstate=scene({ghost},{});selfstate.players[0].hp=95;auto self=fixture(selfstate);self.step(play(0,{0},0));self.step(defend(0));check(self.snapshot().state.players[0].hp==92,"self absorption runs95 to99 healing then99 to92 damage, not net cancellation before cap");roundtrip(self);
-    auto net=fixture(scene({ghost,saturn},{}));net.step(play(0,{0},0));net.step(defend(0,{1}));check(net.snapshot().state.players[0].hp==40&&net.snapshot().queue[0].is_counter&&net.snapshot().queue[0].power==14&&net.snapshot().queue[0].ability==Ability::counter2x_atk,"self absorption net HP zero still creates2x7 counter from target-damage stage only");roundtrip(net);net.step(defend(0));check(net.snapshot().state.players[0].hp==26,"derived counter never inherits parent's absorption ability");roundtrip(net);
+    auto selfstate=scene({ghost},{});selfstate.players[0].hp=95;auto self=fixture(selfstate);self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==92&&self.snapshot().decisions==1&&self.snapshot().owner==7,"self absorption runs95 to99 healing then99 to92 damage in one command");roundtrip(self);
+    auto net=redirected_self_fixture(ghost,saturn);net.step(defend(7,{1}));check(net.snapshot().state.players[1].hp==40&&net.snapshot().queue[0].is_counter&&net.snapshot().queue[0].power==14&&net.snapshot().queue[0].ability==Ability::counter2x_atk,"redirected self absorption net HP zero still creates2x7 counter from target-damage stage only");roundtrip(net);net.step(defend(7));check(net.snapshot().state.players[1].hp==26,"derived counter never inherits parent's absorption ability");roundtrip(net);
     auto blocked=fixture(scene({ghost},{image("aqua-shoes"),image("god-shield")}));blocked.step(play(0,{0},7));blocked.step(defend(7,{1}));check(blocked.snapshot().state.players[0].hp==40&&blocked.snapshot().state.players[1].hp==40,"zero positive remainder gives no absorption healing");roundtrip(blocked);
     auto reflectstate=scene({ghost},{image("reflection-sword")});reflectstate.players[0].hp=30;reflectstate.players[1].hp=79;auto reflected=fixture(reflectstate);reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));check(reflected.snapshot().state.players[0].hp==30&&reflected.snapshot().state.players[1].hp==79&&reflected.snapshot().queue[0].ability==Ability::absorb_hp,"reflection continuation never fires damage side effect before final body");roundtrip(reflected);reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==23&&reflected.snapshot().state.players[1].hp==86,"absorption credits current reflected source rather than immutable original owner");roundtrip(reflected);
     for(const auto trial:{std::pair<std::uint64_t,bool>{27,true},{123,false}}){auto state=scene({vine},{});state.players[0].hp=50;Match m;m.load_scene(state,0,trial.first);m.step(chance_play(0,{0}));if(trial.second)m.step(defend(7));check(m.snapshot().state.players[0].hp==(trial.second?53:50)&&m.snapshot().state.players[1].hp==(trial.second?37:40)&&m.snapshot().chance_rolls==1&&m.snapshot().chance_hits==static_cast<unsigned>(trial.second),"vine75 percent miss has no side effect while hit resolves exactly one absorption");roundtrip(m);}
     auto vine_state=scene({vine},{image("rainbow-curtain"),image("super-mirror")});vine_state.players[0].hp=50;vine_state.players[1].hp=80;Match filtered;filtered.load_scene(vine_state,0,27);filtered.step(chance_play(0,{0}));filtered.step(defend(7,{0,1}));const auto rng=filtered.snapshot().rng;check(!filtered.snapshot().queue[0].element&&filtered.snapshot().queue[0].hit_rate==75&&filtered.snapshot().state.players[1].hp==80,"vine filter/reflection preserves hit proof and defers healing");roundtrip(filtered);filtered.step(defend(0));check(filtered.snapshot().state.players[0].hp==47&&filtered.snapshot().state.players[1].hp==83&&filtered.snapshot().chance_rolls==1&&filtered.snapshot().rng!=rng,"filtered reflected vine resolves unchanged3 power, with only eventual gifts consuming later RNG");roundtrip(filtered);
     auto magic=scene({spell},{image("moonlight-helm")});auto m=fixture(magic);m.step(play(0,{0},7));m.step(defend(7,{0}));check(m.snapshot().state.players[0].mp==0&&m.snapshot().state.players[0].items[0].used,"absorption miracle retains original token and pays10 once across reflection");roundtrip(m);m.step(defend(0));check(m.snapshot().state.players[0].hp==30&&m.snapshot().state.players[1].hp==50,"reflected Light absorption heals current source and damages current target once");roundtrip(m);
     auto free_state=scene({spell,image("spiritual-doll")},{image("angel-knife")});free_state.players[0].mp=0;auto free=fixture(free_state);free.step(play(0,{0,1},7));free.step(defend(7,{0}));check(free.snapshot().state.players[0].mp==0&&free.snapshot().state.players[0].items[0].used&&free.snapshot().state.players[0].hp==40&&free.snapshot().state.players[1].hp==40,"FREE retained absorption may be blocked with both healing and damage canceled");roundtrip(free);
-    auto again_state=scene({spell},{image("smile-dew")});again_state.players[0].mp=20;auto again=fixture(again_state);again.step(play(0,{0},0));again.step(defend(0));again.step(play(7,{0},7));again.step(play(0,{0},0));again.step(defend(0));check(again.snapshot().state.players[0].mp==0&&again.snapshot().state.players[0].hp==40&&std::count_if(again.snapshot().state.players[0].items.begin(),again.snapshot().state.players[0].items.end(),[&](auto& i){return i.token==0&&i.model==spell&&i.used;})==1,"same retained absorption token pays10 on each real turn while self stages preserve uncapped HP");roundtrip(again);
+    auto again_state=scene({spell},{image("smile-dew")});again_state.players[0].mp=20;auto again=fixture(again_state);again.step(play(0,{0},0));again.step(play(7,{0},7));again.step(play(0,{0},0));check(again.snapshot().state.players[0].mp==0&&again.snapshot().state.players[0].hp==40&&std::count_if(again.snapshot().state.players[0].items.begin(),again.snapshot().state.players[0].items.end(),[&](auto& i){return i.token==0&&i.model==spell&&i.used;})==1,"same retained absorption token pays10 on each real turn while self stages preserve uncapped HP");roundtrip(again);
 }
 
 void same_damage_stages_deaths_and_journal(){
-    const auto evil=image("evil-broadsword"),saturn=image("saturn-ring");auto self=fixture(scene({evil,saturn},{}));self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==40,"self-damage weapon has no launch-time HP debit");self.step(defend(0,{1}));check(self.snapshot().state.players[0].hp==12&&self.snapshot().queue[0].power==28&&self.snapshot().queue[0].is_counter,"53 self alias applies40 to26 source then26 to12 target and counter uses14 rather than28 HP loss");roundtrip(self);self.step(defend(0));check(self.snapshot().state.players[0].dead&&self.snapshot().state.players[1].hp==40&&self.snapshot().winners==std::vector<PlayerId>{7},"counter generated from53 does not inherit same-damage side effect");roundtrip(self);
+    const auto evil=image("evil-broadsword"),saturn=image("saturn-ring");auto self=fixture(scene({evil,saturn},{}));self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==12&&self.snapshot().counter_created==0&&self.snapshot().decisions==1&&self.snapshot().owner==7,"53 direct self alias applies40 to26 to12 without selecting an unrequested counter");reject(self,defend(0,{1}));roundtrip(self);
+    auto alias=redirected_self_fixture(evil,saturn);alias.step(defend(7,{1}));check(alias.snapshot().state.players[1].hp==12&&alias.snapshot().queue[0].power==28&&alias.snapshot().queue[0].is_counter,"redirected53 self alias counter uses14 rather than28 total HP loss");roundtrip(alias);alias.step(defend(7));check(alias.snapshot().state.players[1].dead&&alias.snapshot().state.players[0].hp==40&&alias.snapshot().winners==std::vector<PlayerId>{0},"counter generated from53 does not inherit same-damage side effect");roundtrip(alias);
     auto both=scene({evil},{});both.players[0].hp=both.players[1].hp=5;auto draw=fixture(both);draw.step(play(0,{0},7));draw.step(defend(7));check(draw.snapshot().terminated&&!draw.snapshot().truncated&&draw.snapshot().state.players[0].dead&&draw.snapshot().state.players[1].dead&&draw.snapshot().winners.empty()&&draw.snapshot().rewards==std::vector<double>{0,0},"source-side death never suppresses target-stage damage and simultaneous deaths produce fixed-seat draw");roundtrip(draw);
     auto three=scene({evil},{saturn});three.players[0].hp=5;three.players.push_back(player(9));auto deadsource=fixture(three);deadsource.step(play(0,{0},7));deadsource.step(defend(7,{0}));check(deadsource.snapshot().state.players[0].dead&&deadsource.snapshot().state.players[1].hp==26&&deadsource.snapshot().counter_created==1&&deadsource.snapshot().counter_started==0&&deadsource.snapshot().owner==7&&!deadsource.snapshot().terminated,"surviving target creates counter after original source dies, then dead-target skip cancels it and next surviving owner advances");roundtrip(deadsource);
-    auto clipped=scene({evil,saturn},{});clipped.players[0].hp=10;auto zero=fixture(clipped);zero.step(play(0,{0},0));zero.step(defend(0,{1}));check(zero.snapshot().state.players[0].hp==0&&zero.snapshot().counter_created==0,"source stage may exhaust alias HP before target stage; zero target-stage loss creates no counter");roundtrip(zero);
+    auto zero=redirected_self_fixture(evil,saturn,10);zero.step(defend(7,{1}));check(zero.snapshot().state.players[1].hp==0&&zero.snapshot().counter_created==0,"source stage may exhaust redirected alias HP before target stage; zero target-stage loss creates no counter");roundtrip(zero);
     auto reflected=fixture(scene({evil},{image("reflection-sword")}));reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));check(reflected.snapshot().state.players[0].hp==40&&reflected.snapshot().state.players[1].hp==40,"53 side effects wait through physical reflection");reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==26&&reflected.snapshot().state.players[1].hp==26,"reflected53 applies to current source then current target exactly once");roundtrip(reflected);
     auto pending=fixture(scene({image("ghost-sword")},{}));pending.step(play(0,{0},7));const auto exact=pending.snapshot();for(int error=0;error<9;++error){auto bad=exact;if(error==0)bad.queue[0].ability=Ability::deal_same_damage;if(error==1)bad.queue[0].models[0]=image("real-ghost-sword");if(error==2)bad.queue[0].power=12;if(error==3)bad.queue[0].element=Element::darkness;if(error==4)++bad.state.players[0].hp;if(error==5)--bad.state.players[1].hp;if(error==6)bad.queue[0].origin=7;if(error==7)++bad.queue[0].amount;if(error==8)bad.batch->responses.push_back(defend(7));bool rejected=false;try{pending.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==exact,"full action replay rejects side-effect identity, composition, stage HP and history forgery atomically");}
     check(pending.observe(0).find(damage_effect_rule)!=std::string::npos,"view declares current-source side effects and target-stage counter basis as local contract");auto late=exact;late.state.update_count=max_wire_integer;late.batch->initial_state.update_count=max_wire_integer-(late.decisions-late.batch->decisions);pending.restore(late);const auto before=pending.snapshot();bool rejected=false;try{pending.step(defend(7));}catch(const MatchError&){rejected=true;}check(rejected&&pending.snapshot()==before,"late update failure rolls back source healing, target damage, counters, journal, gifts and RNG");
@@ -541,7 +550,7 @@ void mana_weapon_immutable_power_and_payment(){
     auto boosted=fixture(zero_state);boosted.step(play(0,{0,1},7));check(boosted.snapshot().queue[0].power==2&&boosted.snapshot().state.players[0].mp==0,"zero-MP weapon still adds ordinary boost after zero base");boosted.step(defend(7));roundtrip(boosted);
     auto poor=scene({stick,aura,doll},{});poor.players[0].mp=5;auto free=fixture(poor);reject(free,play(0,{0,1},7));free.step(play(0,{0,1,2},7));check(free.snapshot().queue[0].power==20&&free.snapshot().state.players[0].mp==0&&free.snapshot().state.players[0].items[0].used,"complete FREE pair permits otherwise unaffordable Aura and preserves all five MP in doubled base before burning it");roundtrip(free);
     auto reflection=scene({stick},{image("reflection-sword")});reflection.players[1].mp=99;auto back=fixture(reflection);back.step(play(0,{0},7));back.step(defend(7,{0}));check(back.snapshot().queue[0].power==20&&back.snapshot().state.players[0].mp==0&&back.snapshot().state.players[1].mp==99,"reflected stick preserves original paid power instead of recomputing from current source99MP or original source0MP");roundtrip(back);back.step(defend(0));check(back.snapshot().state.players[0].hp==20,"reflected original20 power resolves once");roundtrip(back);
-    auto gain=fixture(scene({stick,image("neptune-ring")},{}));gain.step(play(0,{0},0));gain.step(defend(0,{1}));check(gain.snapshot().state.players[0].hp==20&&gain.snapshot().state.players[0].mp==0&&gain.snapshot().queue[0].is_counter&&gain.snapshot().queue[0].power==0&&gain.snapshot().queue[0].amount==40,"spent mana weapon generates independent MP counter without inheriting dynamic weapon base");roundtrip(gain);gain.step(defend(0));check(gain.snapshot().state.players[0].mp==40&&gain.snapshot().state.players[0].hp==20&&!gain.snapshot().batch&&gain.snapshot().decisions==3,"post-body MP refund does not replay or recompute original mana attack");roundtrip(gain);
+    auto gain=fixture(scene({stick},{image("neptune-ring")}));gain.step(play(0,{0},7));gain.step(defend(7,{0}));check(gain.snapshot().state.players[1].hp==20&&gain.snapshot().state.players[0].mp==0&&gain.snapshot().queue[0].is_counter&&gain.snapshot().queue[0].power==0&&gain.snapshot().queue[0].amount==40,"spent mana weapon generates independent MP counter without inheriting dynamic weapon base");roundtrip(gain);gain.step(defend(7));check(gain.snapshot().state.players[1].mp==50&&gain.snapshot().state.players[1].hp==20&&!gain.snapshot().batch&&gain.snapshot().decisions==3,"post-body MP refund does not replay or recompute original mana attack");roundtrip(gain);
 }
 
 void twice_weapon_fresh_frames_costs_and_order(){
@@ -549,7 +558,7 @@ void twice_weapon_fresh_frames_costs_and_order(){
     auto colored=fixture(scene({saw,image("wand-of-mystic-water")},{image("rainbow-curtain"),image("aqua-shoes")}));colored.step(play(0,{0,1},7));colored.step(defend(7,{0,1}));check(colored.snapshot().state.players[1].hp==33&&colored.snapshot().queue[0].power==8&&colored.snapshot().queue[0].element==Element::water&&colored.snapshot().queue[0].redirects.empty(),"second hit restores original Water8 after first hit filter/DEF1 reduced only its own payload");roundtrip(colored);colored.step(defend(7));check(colored.snapshot().state.players[1].hp==25,"fresh second8 payload is applied separately");roundtrip(colored);
     auto reflected=fixture(scene({saw},{image("reflection-sword")}));reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==37&&reflected.snapshot().actor==7&&reflected.snapshot().queue[0].source==0&&reflected.snapshot().queue[0].target==7&&reflected.snapshot().queue[0].power==3&&reflected.snapshot().queue[0].redirects.empty(),"second hit returns to original source/target after first redirected hit resolves");roundtrip(reflected);reflected.step(defend(7));check(reflected.snapshot().state.players[1].hp==37,"each target receives exactly its own final3 body");roundtrip(reflected);
     auto wallstate=scene({saw,image("aura")},{image("wall")});wallstate.players[0].mp=6;wallstate.players[1].mp=12;auto wall=fixture(wallstate);wall.step(play(0,{0,1},7));wall.step(defend(7,{0}));check(wall.snapshot().queue[0].power==6&&wall.snapshot().state.players[0].mp==0&&wall.snapshot().state.players[1].mp==6&&wall.snapshot().state.players[0].items[0].used,"Aura is paid and retained once while each Wall response pays independently");roundtrip(wall);wall.step(defend(7,{0}));check(wall.snapshot().state.players[0].mp==0&&wall.snapshot().state.players[1].mp==0&&wall.snapshot().state.players[0].hp==40&&wall.snapshot().state.players[1].hp==40&&wall.snapshot().state.players[0].items.size()==3&&wall.snapshot().state.players[1].items.size()==3,"two retained Walls cancel separate hits and request two gifts without reusing main MC cost");roundtrip(wall);
-    auto mpstate=scene({saw,image("aura"),image("neptune-ring")},{});mpstate.players[0].mp=12;auto mp=fixture(mpstate);mp.step(play(0,{0,1},0));mp.step(defend(0,{2}));check(mp.snapshot().queue[0].is_counter&&mp.snapshot().queue[0].amount==12,"first hit counter FIFO starts before second initial hit");mp.step(defend(0));check(!mp.snapshot().queue[0].is_counter&&mp.snapshot().queue[0].power==6&&mp.snapshot().state.players[0].mp==18,"MP recovery between hits does not change immutable power or pay original Aura twice");roundtrip(mp);mp.step(defend(0));check(mp.snapshot().state.players[0].hp==28&&mp.snapshot().state.players[0].mp==18,"fresh second body follows completed counter with original6 power");roundtrip(mp);
+    auto mpstate=scene({saw,image("aura"),image("neptune-ring")},{38});mpstate.players[0].mp=12;auto mp=fixture(mpstate);mp.step(play(0,{0,1},7));mp.step(defend(7,{0}));mp.step(defend(0,{2}));check(mp.snapshot().queue[0].is_counter&&mp.snapshot().queue[0].amount==12,"reflected first hit counter FIFO starts before second initial hit");mp.step(defend(0));check(!mp.snapshot().queue[0].is_counter&&mp.snapshot().queue[0].power==6&&mp.snapshot().state.players[0].mp==18,"MP recovery between hits does not change immutable power or pay original Aura twice");roundtrip(mp);mp.step(defend(7));check(mp.snapshot().state.players[0].hp==34&&mp.snapshot().state.players[1].hp==34&&mp.snapshot().state.players[0].mp==18,"fresh second body returns to original target after the counter with original6 power");roundtrip(mp);
 }
 
 void twice_death_cutoff_and_mana_journal(){
@@ -1044,12 +1053,16 @@ void fever_mask_full_defense_copies_and_append_boundaries(){
 void fever_mask_prefix_fall_body_counter_and_self_alias(){
     auto st=scene({45},{168,184,208});st.players[1].curses={Curse::heaven};auto normal=fixture(st);normal.step(play(0,{0},7));normal.step(defend(7,{0,1}));
     check(normal.snapshot().state.players[1].hp==10&&normal.snapshot().state.players[0].hp==42&&normal.snapshot().counter_created==0&&normal.snapshot().revivals==1,"nonalias prefix fall is excluded from target body loss and counter basis while source absorbs the positive remainder");roundtrip(normal);
-    auto state=scene({45,168,184,208},{});state.players[0].curses={Curse::heaven};Match self;self.load_scene(state,0,0);self.step(play(0,{0},0));self.step(defend(0,{1,2}));
-    check(self.snapshot().phase==MatchPhase::response&&self.snapshot().queue[0].is_counter&&self.snapshot().queue[0].power==4&&self.snapshot().state.players[0].hp==10
-        &&self.snapshot().revivals==1&&!self.snapshot().last_tick,"selfalias prefix0 then absorb2 then actual targetloss2 legitimately creates counter4 after whole-body rescue");roundtrip(self);
-    const auto exact=self.snapshot();for(int error=0;error<5;++error){auto bad=exact;if(error==0)bad.batch->responses[0].items={2};if(error==1)bad.batch->initial_state.players[0].curses={Curse::fever};
-        if(error==2)bad.state.players[0].hp=9;if(error==3)bad.state.players[0].curses={Curse::fever};if(error==4)bad.queue[0].power=0;bool rejected=false;try{self.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&self.snapshot()==exact,"journal replay includes self-curse prefix, temporary HP0, source-heal alias and derived counter basis");}
-    self.step(defend(0));check(self.snapshot().state.players[0].hp==11&&self.snapshot().last_tick&&self.snapshot().last_tick->before==Curse::heaven,"only after counter completion does original owner's Heaven tick heal five");roundtrip(self);
+    auto state=scene({45},{21,168,184,208});state.players[0].curses={Curse::cold};state.players[1].curses={Curse::heaven};Match self;bool found=false;
+    for(std::uint64_t seed=0;seed<64&&!found;++seed){Match candidate;candidate.load_scene(state,0,seed);candidate.step(play(0,{0},7));candidate.step(defend(7,{0}));
+        if(candidate.snapshot().actor==7&&candidate.snapshot().queue[0].source==7){self=std::move(candidate);found=true;}}
+    check(found,"prefix alias fixture reaches a bounced self response without an explicit main self-defense");self.step(defend(7,{1,2}));
+    check(self.snapshot().phase==MatchPhase::response&&self.snapshot().queue[0].is_counter&&self.snapshot().queue[0].power==4&&self.snapshot().state.players[1].hp==10
+        &&self.snapshot().revivals==1&&!self.snapshot().last_tick,"redirected selfalias prefix0 then absorb2 then targetloss2 creates counter4 after whole-body rescue");roundtrip(self);
+    const auto exact=self.snapshot();for(int error=0;error<5;++error){auto bad=exact;if(error==0)bad.batch->responses[1].items={2};if(error==1)bad.batch->initial_state.players[1].curses={Curse::fever};
+        if(error==2)bad.state.players[1].hp=9;if(error==3)bad.state.players[1].curses={Curse::fever};if(error==4)bad.queue[0].power=0;bool rejected=false;try{self.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&self.snapshot()==exact,"journal replay includes self-curse prefix, temporary HP0, source-heal alias and derived counter basis");}
+    self.step(defend(7));check(self.snapshot().state.players[1].hp==6&&self.snapshot().last_tick&&self.snapshot().last_tick->owner==0
+        &&self.snapshot().last_tick->before==Curse::cold,"only after the alias counter completes does the distinct original owner tick");roundtrip(self);
 }
 
 void heaven_herb_mp_first_reflection_rescue_and_cutoff(){
@@ -1742,7 +1755,7 @@ void guardian_departure_actual_stages_and_event_time_visibility(){
     bool historical=false;for(std::uint64_t seed=0;seed<4096&&!historical;++seed){auto state=scene({53},{});for(auto& p:state.players)p.hp=p.mp=p.cp=99;state.players[0].guardian=Guardian::mars;state.players[1].guardian=Guardian::neptune;state.players[1].curses={Curse::fog};Match m;m.load_scene(state,0,seed);m.step(play(0,{0},7));m.step(defend(7));if(m.snapshot().state.players[0].guardian!=Guardian::none||m.snapshot().last_auto_guardians.size()!=1||m.snapshot().last_auto_guardians[0].model!=275)continue;historical=true;
         check(m.snapshot().state.players[1].curses.empty()&&m.snapshot().last_guardian_changes[0].hidden_viewers==2&&m.observe(7).find("\"last_guardian_changes\":[]")!=std::string::npos,"later automatic cure of the viewer's Fog never discloses an earlier hidden departure");roundtrip(m);}
     check(historical,"seed sweep witnesses departure hidden at event time followed by same-action Fog cure");
-    auto self=scene({27},{});self.players[0].hp=20;self.players[0].guardian=Guardian::mars;auto alias=fixture(self);alias.step(play(0,{0},0));alias.step(defend(0));check(alias.snapshot().state.players[0].hp==20&&alias.snapshot().guardian_departure_rolls==1,"self absorption net HP0 still has a positive target loss stage for retirement");roundtrip(alias);
+    auto self=scene({27},{});self.players[0].hp=20;self.players[0].guardian=Guardian::mars;auto alias=fixture(self);alias.step(play(0,{0},0));check(alias.snapshot().state.players[0].hp==20&&alias.snapshot().guardian_departure_rolls==1&&alias.snapshot().decisions==1,"self absorption net HP0 still has a positive target loss stage for retirement");roundtrip(alias);
     for(std::uint64_t seed=0;seed<16;++seed){auto state=scene({202},{});state.players[0].guardian=Guardian::mars;Match m;m.load_scene(state,0,seed);m.step(play(0,{0},0));check(m.snapshot().guardian_departure_rolls==(m.snapshot().state.players[0].hp<40?1u:0u),"negative random202 is direct HP loss while its healing outcome never rolls departure");roundtrip(m);}
     auto debt=scene();debt.players[0].guardian=Guardian::venus;debt.players[1].guardian=Guardian::mars;debt.players[1].cp=debt.players[1].mp=0;auto fine=fixture(debt);fine.guardian_step({0,282,7});fine.step(defend(7));check(fine.snapshot().state.players[1].hp==37&&fine.snapshot().guardian_departure_rolls==0&&fine.snapshot().guardian_opportunities==0,"CP debt does not roll departure, and external activation has no automatic follow-up");roundtrip(fine);
     auto sick=scene();sick.players[0].guardian=Guardian::mars;sick.players[0].curses={Curse::cold};auto tick=fixture(sick);tick.step(pray(0));check(tick.snapshot().last_tick&&tick.snapshot().guardian_departure_rolls==0,"disease tick loss never rolls departure");roundtrip(tick);
@@ -3016,7 +3029,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==50&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==51&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3026,7 +3039,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v48")!=std::string::npos
+    check(view.find("official-execution-view-v49")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3061,7 +3074,7 @@ void ordinary_self_attack_completion_and_resume(){
     resume.grant_step({0,0,{},{}});check(resume.snapshot().phase==MatchPhase::main&&resume.snapshot().owner==7
         &&resume.snapshot().state.players[0].hp==28&&resume.snapshot().state.gf==5,
         "grant continuation resumes the self-hit journal without applying damage twice");roundtrip(resume);
-    auto special=fixture(scene({27},{}));special.step(play(0,{0},0));
+    auto special=fixture(scene({39},{}));special.step(play(0,{0},0));
     check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0,
         "unobserved special self weapons retain their existing scoped response route");
     auto wide=fixture(scene({32,232},{}));wide.step(play(0,{0,1},0));
@@ -3118,10 +3131,115 @@ void ordinary_self_miracles_cost_retention_and_resume(){
         "foreign ordinary miracle still offers the target a real response");roundtrip(foreign);
 }
 
+void special_self_body_alias_cost_and_passives(){
+    for(CardId id:{CardId{27},CardId{45},CardId{216}}){
+        auto state=scene({id,184},{});state.players[0].hp=95;state.players[0].mp=20;
+        auto game=fixture(state);game.step(play(0,{0},0));
+        check(game.snapshot().state.players[0].hp==99-find_card(id)->atk
+            &&game.snapshot().state.players[0].mp==20-find_card(id)->cost
+            &&game.snapshot().decisions==1&&game.snapshot().owner==7&&game.snapshot().counter_created==0,
+            "self absorption credits before capped alias damage and never selects an available counter");
+        check(std::any_of(game.snapshot().state.players[0].items.begin(),game.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==184;}),
+            "unused self counter is physically retained");roundtrip(game);
+    }
+    auto free_state=scene({216,204},{});free_state.players[0].mp=0;auto free=fixture(free_state);
+    free.step(play(0,{0,1},0));check(free.snapshot().state.players[0].hp==40&&free.snapshot().state.players[0].mp==0
+        &&free.snapshot().decisions==1&&std::any_of(free.snapshot().state.players[0].items.begin(),free.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==0&&item.model==216&&item.used;})
+        &&std::none_of(free.snapshot().state.players[0].items.begin(),free.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1;}),
+        "self216 adjacent FREE waives cost, consumes FREE and retains the same miracle");roundtrip(free);
+    auto low=scene({53,208,208,184},{});low.players[0].hp=5;auto saved=fixture(low);saved.step(play(0,{0},0));
+    check(saved.snapshot().revivals==1&&saved.snapshot().state.players[0].hp==10&&saved.snapshot().counter_created==0
+        &&saved.snapshot().decisions==1&&std::any_of(saved.snapshot().state.players[0].items.begin(),saved.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==2&&item.model==208;})
+        &&std::none_of(saved.snapshot().state.players[0].items.begin(),saved.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1;}),
+        "53 source and target alias stages finish before one208 hook, leaving the second copy unused");roundtrip(saved);
+    for(int mp:{0,1,99}){
+        auto state=scene({58,187},{});state.players[0].hp=99;state.players[0].mp=mp;
+        MatchConfig cap;cap.max_decisions=1;auto game=fixture(state,cap);const auto rng=game.snapshot().rng;
+        game.step(play(0,{0},0));check(game.snapshot().state.players[0].hp==std::max(0,99-2*mp)
+            &&game.snapshot().state.players[0].mp==0&&game.snapshot().decisions==1&&game.snapshot().counter_created==0
+            &&game.snapshot().rng==rng&&game.snapshot().terminated==(mp==99)&&game.snapshot().truncated==(mp!=99),
+            "58 self MP0/1/99 uses immutable prepayment power once and natural death precedes cutoff");roundtrip(game);
+    }
+    auto mana_state=scene({58,231,204},{});mana_state.players[0].mp=5;auto mana=fixture(mana_state);
+    reject(mana,play(0,{0,1},0));mana.step(play(0,{0,1,2},0));
+    check(mana.snapshot().state.players[0].hp==20&&mana.snapshot().state.players[0].mp==0&&mana.snapshot().decisions==1
+        &&std::any_of(mana.snapshot().state.players[0].items.begin(),mana.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==231&&item.used;}),
+        "58 self computes Aura after the final FREE cost, then burns the five launch MP once");roundtrip(mana);
+}
+
+void special_self_repeat_two_bodies_death_and_grants(){
+    for(bool free:{false,true}){
+        auto state=scene({14,231,204},{});state.players[0].mp=6;
+        MatchConfig cap;cap.max_decisions=1;auto game=fixture(state,cap);const auto rng=game.snapshot().rng;
+        const Command command=free?play(0,{0,1,2},0):play(0,{0,1},0);game.step(command);
+        check(game.snapshot().truncated&&game.snapshot().decisions==1&&game.snapshot().state.players[0].hp==28
+            &&game.snapshot().state.players[0].mp==(free?6:0)&&game.snapshot().rng==rng
+            &&std::any_of(game.snapshot().state.players[0].items.begin(),game.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==231&&item.used;})
+            &&game.snapshot().gifts==std::vector<std::uint32_t>{0,0},
+            "14 self executes two fresh6 bodies inside one command before cutoff, paying and retaining Aura only once");roundtrip(game);
+    }
+    auto revival=scene({14,203,208,208},{});revival.tiebreak_gf=0;revival.players[0].hp=1;
+    MatchConfig deferred;deferred.external_grants=true;auto twice=fixture(revival,deferred);const auto rng=twice.snapshot().rng;
+    twice.step(play(0,{0,1},0));check(twice.snapshot().phase==MatchPhase::grant&&twice.snapshot().pending_grant==0
+        &&twice.snapshot().state.players[0].hp==10&&twice.snapshot().revivals==2&&twice.snapshot().decisions==1
+        &&twice.snapshot().state.players[0].items.empty()&&twice.snapshot().gifts[0]==4&&twice.snapshot().rng==rng,
+        "two lethal13 self bodies revive separately and defer two consumed-card and two revival gifts");roundtrip(twice);
+    for(unsigned i=0;i<4;++i){twice.grant_step({0,0,{},{}});roundtrip(twice);}
+    check(twice.snapshot().phase==MatchPhase::main&&twice.snapshot().owner==7&&twice.snapshot().state.gf==1
+        &&twice.snapshot().revivals==2&&twice.snapshot().state.players[0].hp==10&&twice.snapshot().state.players[0].items.size()==4,
+        "grant resume never repeats either14 body or revival and advances GF only once");
+    auto dying=scene({14,112},{});dying.players[0].hp=2;dying.players.push_back(player(9));
+    for(std::size_t i=1;i<dying.players.size();++i){dying.players[i].hp=99;dying.players[i].curses={Curse::darkcloud};}
+    auto posthumous=fixture(dying);posthumous.step(play(0,{0},0));
+    check(posthumous.snapshot().state.players[0].dead&&posthumous.snapshot().decisions==1&&posthumous.snapshot().actor==7
+        &&posthumous.snapshot().queue[0].is_death&&posthumous.snapshot().queue[0].power==30
+        &&posthumous.snapshot().death_created==2&&posthumous.snapshot().counter_created==0,
+        "first14 self death cancels the second original body but starts genuine dead-source112 FIFO");roundtrip(posthumous);
+    posthumous.step(defend(7));roundtrip(posthumous);posthumous.step(defend(9));roundtrip(posthumous);
+    check(posthumous.snapshot().phase==MatchPhase::main&&posthumous.snapshot().owner==7
+        &&posthumous.snapshot().state.players[1].hp==69&&posthumous.snapshot().state.players[2].hp==69
+        &&posthumous.snapshot().death_started==2&&posthumous.snapshot().gifts[0]==0,
+        "112 responses finish before owner advance and never resurrect the canceled second14 body");
+    auto duel=scene({14},{});duel.players[0].hp=2;MatchConfig one;one.max_decisions=1;auto natural=fixture(duel,one);
+    natural.step(play(0,{0},0));check(natural.snapshot().terminated&&!natural.snapshot().truncated
+        &&natural.snapshot().decisions==1&&natural.snapshot().winners==std::vector<PlayerId>{7},
+        "first self hit natural death wins over both a second body and command cutoff");roundtrip(natural);
+}
+
+void special_self_journal_resume_and_late_failure_atomicity(){
+    for(CardId model:{CardId{27},CardId{45},CardId{216},CardId{53},CardId{58},CardId{14}}){
+        auto state=scene({model},{});state.players[0].hp=95;state.players[0].mp=20;
+        state.players[0].items[0].token=max_wire_integer;auto atomic=fixture(state);const auto exact=atomic.snapshot();bool failed=false;
+        try{atomic.step(play(0,{max_wire_integer},0));}catch(const MatchError&){failed=true;}
+        check(failed&&atomic.snapshot()==exact,"late special-self gift exhaustion rolls back every body, payment, retention and launch counter");
+        state.players[0].items[0].token=0;state.update_count=max_wire_integer;auto update=fixture(state);const auto before=update.snapshot();failed=false;
+        try{update.step(play(0,{0},0));}catch(const MatchError&){failed=true;}
+        check(failed&&update.snapshot()==before,"late special-self update exhaustion rolls back all bodies before committing the decision");
+        state.update_count=0;state.tiebreak_gf=0;MatchConfig cap;cap.external_grants=true;auto pending=fixture(state,cap);
+        pending.step(play(0,{0},0));check(pending.snapshot().phase==MatchPhase::grant&&pending.snapshot().pending_grant==0
+            &&pending.snapshot().decisions==1&&pending.snapshot().queue.empty(),"special-self action pauses only for its deferred grant, never a synthetic defense");roundtrip(pending);
+        const auto saved=pending.snapshot();
+        for(unsigned error=0;error<4;++error){auto bad=saved;
+            if(error==0)--bad.state.players[0].hp;
+            if(error==1)++bad.state.players[0].mp;
+            if(error==2)++bad.grant_proof->initial_state.players[0].mp;
+            if(error==3)bad.grant_proof->responses.push_back(defend(0));
+            bool rejected=false;try{pending.restore(bad);}catch(const MatchError&){rejected=true;}
+            check(rejected&&pending.snapshot()==saved,"whole grant replay rejects special-self HP/payment/anchor/response forgery atomically");
+        }
+        pending.grant_step({0,0,{},{}});check(pending.snapshot().phase==MatchPhase::main&&pending.snapshot().owner==7
+            &&pending.snapshot().state.players[0].hp==saved.state.players[0].hp&&pending.snapshot().state.players[0].mp==saved.state.players[0].mp,
+            "special-self grant continuation never repeats a body or MP charge");roundtrip(pending);
+    }
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),218> tests{{
+    const std::array<void(*)(),221> tests{{
+        special_self_body_alias_cost_and_passives,
+        special_self_repeat_two_bodies_death_and_grants,
+        special_self_journal_resume_and_late_failure_atomicity,
         ordinary_self_miracles_cost_retention_and_resume,
         ordinary_self_attack_completion_and_resume,
         automatic_payload_independent_bigint_stage_vectors,

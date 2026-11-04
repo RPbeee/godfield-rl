@@ -1935,3 +1935,21 @@ main/driverの2人1,000件・9人100件をRelease/ASan、1worker/4workersで計1
 全Release CTestは155/155件・170.16秒で通過した。Python150ケースもこの全suiteに含む。Release/ASanビルドのwarning/errorは0件。実行時間は環境と並行実行の影響を含み、速度改善値として使わない。旧pins・旧witness・保存oracle・legacy37を上書きしていない。
 
 全ASan/UBSan CTestも114/114件・1,210.23秒で通過した。今回は全suiteを各ビルド内で逐次実行しており、過去の並行suite実行時間との速度比較には使わない。
+
+
+## v55：特殊main自己攻撃のclient経路と限定一般化
+
+[実client生成器](../scripts/official_self_attack_oracle.cjs)と[保存report](../data/official-v2/self-attack-client-v55.json)は、main選択・自己target・捕捉した送信と、別入力の単一受信frameのpane/activationを分離して照合する。入力した受信frameを、捕捉した送信に対してserverが生成したtraceとは呼ばない。新しい完了実対局観測は0、累計7完了例・独立routing-only1例・full wire trace0件を維持する。ブラウザ操作接続は再初期化後もhost/native pipeエラーで、権限要求や公式のコマンド拒否を示す結果ではなかった。
+
+対局ruleset51 / Snapshot51 / view-v49は、通常mainの明示自己target・hitRate0・非Wideについて、27/45/216の吸収、14の二回、58のMP威力、53の同被害を既存実験bodyで直接解決する。単発selfの効果順は従来のresolveを変えず、14だけ同じ起動payloadからfresh bodyを2回実行する。支払・消費・accepted decisionは各1回、各body後の自然終局または本人actual deathで残りを取り消す。208・112・死亡FIFO・補充・cutoffは既存の機構へ接続し、特殊selfの未観測の内部順を公式事実へ格上げしない。全死亡・補充scheduleの確定は残件である。
+
+旧main自己防御で作っていた反撃の算術検査は、敵への起動から反射／bounceを通る実際のresponse境界へ移す。明示自己mainへ未選択防具の自動効果を加えず、redirect/counter/guardian等の別入口を一括して変更しない。旧snapshot1〜50を拒否し、Match ABI2・catalog/state ABI1・旧pins・旧witness・legacy37は維持する。
+
+
+nativeは新3群を含む221関数、Pythonは151メソッドを各1回登録した。新native群は6基底の自己body・吸収cap/保持/FREE・53全body後の208・58起動MP0/1/99・14の二回/途中蘇生/死亡112/FIFO・cutoff・外部grantからの再開・late token/update失敗・proof改竄を検査する。完了済みmainのrestoreは過去bodyの履歴証明ではなく、grant停止点ではanchorからの全再実行一致を検査する。
+
+main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計16record比較し、時間・worker以外の全fieldが一致した。checksumはmain2人 `16866981254746083985`、main9人 `2959968806296183525`、driver2人 `11467765941077267296`、driver9人 `16171709013863546710`。これはローカルの再現性検査で、公式乱数同等性や版間速度比較ではない。client生成器の `--check` も再取得JSでbyte一致を確認した。
+
+全Release CTestは155/155件・113.35秒で通過した。Python151ケースを含む。変更した公式エンジン関連のASan/UBSan検査は `^official_` を対象とし、前版で通過した未変更のlegacy環境全体は再実行しない。両ビルドはwarning/error0件。suite時間は並行実行環境の値であり、速度比較には使わない。
+
+ASan/UBSanの公式関連37/37件も229.92秒で通過した。native221群・C API・driver・公開遷移の既存504比較と72routing検査、公式関連サンプラー／表示／台帳の検査を含む。特殊selfの新しい実対局遷移数は0件のままである。

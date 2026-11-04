@@ -3000,3 +3000,23 @@ experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-refl
 各castで既存の上限内giftを予約する規約は変更していない。公開clientの `jS.$0`→`fH.ed` はMCを保持し、初回used化だけでなく再利用時も空slotを作れる処理を持つ。ここから「usedなら以後補充なし」へ変更しない。一方、178即時一新や終末悪魔を含む全server補充scheduleは未確認のままである。他の特殊base、chance、Wide、反射後frame、bounce、counter、guardian/payloadの別入口は既存経路を維持する。
 
 native218群とPython150ケースが今回の限定境界と従来の規約を検査する。213の橋ケースはMP3の単一支払い、HP6減少、同tokenのused保持、余分defendの拒否と失敗時不変を扱う。これらのローカル境界検査や合成在庫変種を、公式完全同等性・未観測のgift内容・内部event順の証明には使わない。
+
+## 対局v51（作業世代v55）：特殊自己攻撃の選択と受信routing
+
+[実client oracle](../scripts/official_self_attack_oracle.cjs) と [固定report](../data/official-v2/self-attack-client-v55.json) を追加した。reportは79,743bytes、SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81ad567ae71e8e643c`。`--check` は保存byte列と照合する。選択・送信76ケース（54件のRPC sink到達、12件のappend拒否、10件のMP警告）と、別入力の受信routing65ケース（self33/foreign32）を別sectionで記録する。
+
+実 `jO.eu/aT` と `jS.$0` の最初のawaitまでを実行し、14/27/45/58/53/216はMP条件を満たせばself targetを保持して送信することを確認した。独立に与えたframeへ実 `p6`→`fu/aa`→`fv.aT/fF` を実行すると、selfは反対paneを作らずmain側を活性化し、foreignは応答側を活性化する。普通カードとの比較、reverse方向、player7の自己選択、合法合成/FREE/MP不足も含む。送信からserverを経てそのframeが返った一連のtraceではない。
+
+本体は `official-execution-subset-v51` / Snapshot51 / `official-execution-view-v49` とする。通常main・明示self・hitRate0・非Wideという条件を維持し、新たに**吸収27/45/216、二回攻撃14、MP武器58、同被害53の6種・4family**をDEF0即時経路へ加えた。効果bodyは既存の実験規約を再利用する。吸収の現在source先行heal、53のsource→target損失、58の完成列MC費用を差し引いたlaunch MP基準と全MP支払い、216のMC保持・通常費用を、今回新しくserverで実測したと呼ばない。
+
+14は元のlaunch payloadから各bodyをfreshに作り、消費・課金は1回、play全体で1decisionとする。各body後の自然終局またはownerの実死亡で残りを止め、208救済後に生存するownerは継続し得る。cutoff・死亡/救済・gift予約と破棄は既存の完了位置へ接続する。これらの2body境界、自然終局・実死亡・cutoff優先順もローカル実験規約であり、公開clientのpane構造だけでは確定しない。反射後frame・bounce・counter・chance・Wide・その他状態付与base・guardian/payloadの別入口は従来経路を維持する。
+
+header/C getter/Python属性/observeが共有する新ruleは次のとおり。Match ABI2、構造体幅、phase/opcodeは不変で、Snapshot旧1〜50は拒否する。
+
+```text
+experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route
+```
+
+新しい実対局の完了例はこのoracleでは追加していない。[v54まで](../data/official-v2/live-transition-witnesses-v54.json)の**完了公開遷移7件・routing-only1件・full wire取得0件**を維持する。serverが特殊selfにどのframe列を生成するか、14の二回をどこで区切るか、内部即時処理と自動空応答、各効果順・補充・乱数は未確認である。旧版の逐次応答規約は履歴として残し、この拡張を公式server完全同等性の証明とはしない。
+
+reportには別の公開GET確認も固定metadataとして記録した。2026年11月4日11:38 UTC、JS440,420bytesとJA49,240bytesは全本文SHA/ETagが既存v2 pinに一致した。Last-Modifiedは `Wed, 04 Nov 2026 07:33:42 GMT` へ進んだが、本文差やルール更新を意味しない。GETはoffline oracleとは別の取得で、raw本文はrepoへ複製せず、既存pins/oracleを変更していない。

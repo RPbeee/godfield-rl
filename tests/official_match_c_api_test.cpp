@@ -21,6 +21,34 @@ std::string observe(gfo_match* match, uint8_t own = 1, uint64_t id = 0) {
     return {bytes.data() + 1};
 }
 gfo_match_status status(gfo_match* match) { gfo_match_status s{}; check(gfo_match_get_status(match, &s) == 0, "status"); return s; }
+
+// A foreign physical attack bounced back onto the defender keeps the explicit
+// redirected-self response route. All setup and transitions cross the C ABI.
+gfo_match* redirected_alias_fixture(uint16_t model) {
+    gfo_match_config config{};config.max_decisions=128;config.hand_limit=18;
+    config.initial_hp=40;
+    std::array<gfo_match_player,2> setup{};setup[0].id=0;setup[1].id=77;
+    for(uint64_t seed=0;seed<64;++seed) {
+        gfo_match* game=nullptr;gfo_state* state=nullptr;gfo_match_status result{};
+        check(gfo_match_create(&config,setup.data(),setup.size(),0,&game)==0,"redirected alias match create");
+        gfo_state_meta meta{};
+        std::array<gfo_state_player,2> players{};players[0].id=0;players[1].id=77;
+        for(auto& player:players)player.hp=40;
+        players[0].item_count=1;players[1].item_offset=1;players[1].item_count=2;
+        std::array<gfo_state_item,3> items{};
+        items[0].token=0;items[0].model=model;items[1].token=0;items[1].model=21;items[2].token=1;items[2].model=184;
+        check(gfo_state_create(&meta,players.data(),players.size(),items.data(),items.size(),nullptr,0,&state)==0
+            &&gfo_match_load_scene(game,state,0,seed,&result)==0,"redirected alias typed scene");
+        gfo_state_destroy(state);
+        gfo_match_command attack{};attack.item_count=1;attack.items[0]=0;attack.has_target=1;attack.target=77;
+        gfo_match_command bounce{};bounce.actor=77;bounce.kind=1;bounce.item_count=1;bounce.items[0]=0;
+        check(gfo_match_step(game,&attack,&result)==0&&gfo_match_step(game,&bounce,&result)==0,"foreign launch and physical bounce");
+        if(result.phase==1&&result.has_actor&&result.actor==77
+            &&observe(game,0,0).find("\"origin\":0,\"source\":77,\"target\":77")!=std::string::npos)return game;
+        gfo_match_destroy(game);
+    }
+    check(false,"bounded bounce fixture reaches an aliased defender");return nullptr;
+}
 }
 int main() {
     std::size_t fixed_query_probes = 0;
@@ -57,9 +85,9 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v50"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v50 scope");
-    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-or-miracle-base-ability-none;hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v51"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v51 scope");
+    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -128,6 +156,38 @@ int main() {
         check(gfo_match_legal(self, &extra, &allowed) == 0 && !allowed
             && gfo_match_step(self, &extra, &outcome) == -2 && equal(outcome, saved) && observe(self) == view,
             "extra plain-miracle self-defense rejected atomically after completion");
+        gfo_match_destroy(self);
+    }
+    // Source-checked routing, with special-body arithmetic kept as a local contract.
+    for (const auto example : std::array<std::array<int, 3>, 6>{{
+            {{14, 34, 10}}, {{27, 40, 10}}, {{45, 40, 10}},
+            {{53, 12, 10}}, {{58, 20, 0}}, {{216, 40, 0}}}}) {
+        gfo_match* self = nullptr; gfo_state* scene = nullptr; gfo_match_status result{};
+        check(gfo_match_create(nullptr, players.data(), 2, 0, &self) == 0, "special self create");
+        gfo_state_meta meta{}; meta.gf = 1;
+        std::array<gfo_state_player, 2> people{}; people[0].id = 0; people[1].id = 77;
+        for (auto& person : people) { person.hp = 40; person.mp = 10; person.cp = 20; }
+        people[0].item_count = 1; people[1].item_offset = 1;
+        gfo_state_item item{}; item.model = static_cast<uint16_t>(example[0]);
+        check(gfo_state_create(&meta, people.data(), 2, &item, 1, nullptr, 0, &scene) == 0
+            && gfo_match_load_scene(self, scene, 0, 0, &result) == 0, "special self scene");
+        gfo_state_destroy(scene);
+        gfo_match_command command{}; command.item_count = 1; command.items[0] = 0;
+        command.has_target = 1; command.target = 0;
+        check(gfo_match_step(self, &command, &result) == 0 && result.phase == 0
+            && result.owner == 77 && result.actor == 77 && result.decisions == 1,
+            "special self completes all bodies within one accepted decision");
+        const auto view = observe(self); const auto saved = result;
+        check(view.find("\"pending\":null") != std::string::npos
+            && view.find("\"hp\":" + std::to_string(example[1]) + ",\"mp\":" + std::to_string(example[2]) + ",\"cp\":20") != std::string::npos
+            && view.find("\"hp\":40,\"mp\":10,\"cp\":20") != std::string::npos,
+            "special self preserves existing special arithmetic and launch MP");
+        if (example[0] == 216) check(view.find("\"token\":0,\"face\":216,\"reference\":216,\"disguised\":false,\"used\":true") != std::string::npos,
+            "self absorption miracle retains its used physical token");
+        gfo_match_command extra{}; extra.kind = 1; uint8_t allowed = 1;
+        check(gfo_match_legal(self, &extra, &allowed) == 0 && !allowed
+            && gfo_match_step(self, &extra, &result) == -2 && equal(result, saved) && observe(self) == view,
+            "extra special self defense rejected atomically");
         gfo_match_destroy(self);
     }
     gfo_match* a = nullptr; gfo_match* b = nullptr;
@@ -349,7 +409,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v48\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v49\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -666,9 +726,9 @@ int main() {
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 98; effect_attack.target = 0; effect_pass.actor = 0;
     check(gfo_match_create(&cfg, players.data(), 2, 1121, &effect_match) == 0
-        && gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_pass, &result) == 0
+        && gfo_match_step(effect_match, &effect_attack, &result) == 0 && result.phase == 0 && result.decisions == 1
         && observe(effect_match).find("\"hp\":92,\"mp\":0") != std::string::npos,
-        "source-target alias heals to99 then takes raw7");
+        "immediate source-target alias heals to99 then takes raw7 without defense");
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 40; effect_attack.target = 77; effect_pass.actor = 77;
     check(gfo_match_create(&cfg, players.data(), 2, 1121, &effect_match) == 0, "zero-remainder absorption create");
@@ -677,17 +737,18 @@ int main() {
     check(gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_defense, &result) == 0
         && observe(effect_match).find("\"hp\":47") == std::string::npos && result.phase == 0, "zero remainder does not heal source");
     gfo_match_destroy(effect_match);
-    fixture.reset(setup, 1094); effect_attack.items[0] = receipt_token(0, 27); effect_attack.target = 0;
-    effect_defense.actor = 0; effect_defense.items[0] = receipt_token(0, 184); effect_pass.actor = 0;
-    check(gfo_match_create(&cfg, players.data(), 2, 1094, &effect_match) == 0
-        && gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_defense, &result) == 0
-        && result.phase == 1 && result.actor == 0, "aliased absorption creates target-stage counter despite net HP0 change");
+    effect_match = redirected_alias_fixture(27);
+    effect_defense.actor = 77; effect_defense.items[0] = 1; effect_pass.actor = 77;
+    check(gfo_match_step(effect_match, &effect_defense, &result) == 0
+        && result.phase == 1 && result.actor == 77, "redirected aliased absorption creates target-stage counter despite net HP0 change");
     const auto absorption_counter = observe(effect_match, 0, 0);
-    check(absorption_counter.find("\"power\":14") != std::string::npos && absorption_counter.find("\"hp\":40,\"mp\":0") != std::string::npos,
-        "counter basis is target-stage7 rather than net0");
-    check(gfo_match_step(effect_match, &effect_pass, &result) == 0 && observe(effect_match).find("\"hp\":26,\"mp\":0") != std::string::npos,
+    check(absorption_counter.find("\"power\":14") != std::string::npos
+        && absorption_counter.find("\"id\":77,\"name\":\"\",\"team\":0,\"dead\":false,\"fogged\":false,\"status\":{\"hp\":40,\"mp\":0") != std::string::npos,
+        "redirected counter basis is target-stage7 rather than net0");
+    check(gfo_match_step(effect_match, &effect_pass, &result) == 0
+        && observe(effect_match).find("\"id\":77,\"name\":\"\",\"team\":0,\"dead\":false,\"fogged\":false,\"status\":{\"hp\":26,\"mp\":0") != std::string::npos,
         "counter does not inherit absorption ability");
-    gfo_match_destroy(effect_match);
+    gfo_match_destroy(effect_match); effect_pass.actor = 0;
     fixture.reset(setup, 9249); effect_attack.target = 77; effect_attack.item_count = 2;
     effect_attack.items[0] = receipt_token(0, 216); effect_attack.items[1] = receipt_token(0, 204);
     effect_defense.actor = 77; effect_defense.items[0] = receipt_token(1, 39);
@@ -726,16 +787,18 @@ int main() {
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && result.phase == 0 && result.decisions == 1
         && observe(effect_match).find("\"hp\":43") == std::string::npos, "missed chance absorption has no source effect");
     gfo_match_destroy(effect_match);
-    fixture.reset(setup, 4115); effect_attack.has_target = 1; effect_attack.target = 0; effect_attack.items[0] = receipt_token(0, 53);
-    effect_defense.actor = 0; effect_defense.items[0] = receipt_token(0, 184); effect_pass.actor = 0;
-    check(gfo_match_create(&cfg, players.data(), 2, 4115, &effect_match) == 0
-        && gfo_match_step(effect_match, &effect_attack, &result) == 0 && gfo_match_step(effect_match, &effect_defense, &result) == 0
-        && result.phase == 1 && observe(effect_match).find("\"hp\":12,\"mp\":0") != std::string::npos
+    effect_match = redirected_alias_fixture(53);
+    effect_defense.actor = 77; effect_defense.items[0] = 1; effect_pass.actor = 77;
+    check(gfo_match_step(effect_match, &effect_defense, &result) == 0
+        && result.phase == 1 && result.actor == 77
+        && observe(effect_match).find("\"id\":77,\"name\":\"\",\"team\":0,\"dead\":false,\"fogged\":false,\"status\":{\"hp\":12,\"mp\":0") != std::string::npos
         && observe(effect_match).find("\"power\":28") != std::string::npos,
-        "self damage subtracts raw14 twice, but counter doubles only target-stage14");
-    check(gfo_match_step(effect_match, &effect_pass, &result) == 0 && result.terminated && result.winner_count == 1 && result.winners[0] == 77,
-        "derived counter has no inherited self-damage side effect");
-    gfo_match_destroy(effect_match);
+        "redirected self damage subtracts raw14 twice, but counter doubles only target-stage14");
+    check(gfo_match_step(effect_match, &effect_pass, &result) == 0 && result.terminated
+        && result.winner_count == 1 && result.winners[0] == 0
+        && observe(effect_match).find("\"id\":0,\"name\":\"\",\"team\":0,\"dead\":false,\"fogged\":false,\"status\":{\"hp\":40,\"mp\":0") != std::string::npos,
+        "derived counter kills the aliased defender while original attacker stays unharmed");
+    gfo_match_destroy(effect_match); effect_pass.actor = 0;
     // Flash restrictions and curing cross the opaque ABI, including atomic failure.
     fixture.reset(setup, 1292501); cfg.initial_hp = 40; cfg.initial_mp = cfg.initial_cp = 0;
     check(gfo_match_create(&cfg, players.data(), 2, 1292501, &effect_match) == 0

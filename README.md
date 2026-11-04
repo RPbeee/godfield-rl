@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v50` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v51` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -2920,3 +2920,12 @@ with OfficialState(raw) as state, ActiveDisplay(state) as initial:
 対局を `official-execution-subset-v50` / Snapshot50 / view-v48へ更新した。通常mainの明示自己targetで、能力なし・hitRate0の攻撃奇跡もDEF0・1decisionで解決する。MPの支払い・奇跡の保持・各使用時の補充は既存処理を使う。大木の実例から同条件の8種へ限定して一般化し、その他の特殊自己攻撃・確率攻撃・redirect等の経路は維持する。Match ABI2の幅・opcodeは変えない。公式の全遷移・特殊効果の順序・乱数分布の同等性は未確定である。
 
 検証はRelease全155/155件、ASan/UBSan全114/114件が通過。native218群・Python150ケースを含み、新しい3観測を加えた7件の公開投影504比較と別枠72経路検査を行った。main/driverのRelease/ASan・1/4worker再現性比較16recordも、時間・worker以外の全fieldが一致した。
+
+
+## v55：特殊自己攻撃の選択・表示経路と実験実行規約
+
+公開clientの実関数で、自己使用の選択・送信と、単一受信frameの自己target表示を分けて照合した。[生成器](scripts/official_self_attack_oracle.cjs) / [保存report](data/official-v2/self-attack-client-v55.json)を参照。これらはserverからそのframeが生成されることや、効果計算・死亡・補充の内部順を証明するものではない。新しい完了実対局観測は0件で、累計7完了例と別枠routing-only1例を維持する。
+
+対局ruleset51 / Snapshot51 / view-v49は、通常mainの明示自己target・hitRate0・Wideなしに限り、吸収27/45/216、二回攻撃14、MP武器58、同被害53を追加のdefendなしで進める。既存の実験的なbody算術を使い、費用と消費は1回。14は起動時の同じ威力・属性で2回処理し、自然終局か本人の実死亡で残りを打ち切る。58は支払い前に固定した威力を使い、53は1body内の二段減算を保つ。反射・跳ね返し後のframe、敵対象、他の特殊selfは従来の経路を使う。Match ABI2の幅・opcodeは維持する。これら特殊selfの効果順は引き続き公式での実対局確認が必要である。
+
+検証は全Release155/155件と、ASan/UBSanの公式関連37/37件が通過した。native221群・Python151ケース、client oracleの76＋65ケース、main/driverの16record再現性比較も通過。公式serverの効果順や乱数同等性を示す数値ではない。

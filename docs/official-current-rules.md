@@ -2056,3 +2056,13 @@ GF6、本人HP9/MP10/CP20・CPU59/25/20で、本人が81（闇ATK4）を自分�
 実行器はruleset50・Snapshot50・`official-execution-view-v48` とし、`self_attack_rule` のbase条件を `weapon-base-ability-none-or-reflect-weapon-or-miracle-base-ability-none;hit-rate0-no-wide` へ更新した。通常main・明示自己target・非chance・非Wideに限り、通常奇跡210/211/212/213/214/215/217/218もDEF0で即時解決する。8種全ての実UI照合ではなく、213の事実を含む限定一般化である。費用は完成列から1回計算し、MCは同tokenをused保持する。Match ABI2と構造体幅は固定し、他特殊base・chance・Wide・redirect・counter等の既存応答経路は変更しない。
 
 公開clientの `jS.$0`→`fH.ed` では、MCの初回保持後だけでなく再利用時にも空slotを作れる。実行器の「各castで既存上限内giftを予約する」規約は維持し、今回used MCの再使用を補充なしへ変更していない。この選択/表示経路は178の一新・終末悪魔・全配布のserver scheduleまで証明しない。native218群・Python150ケースによる本体/橋の検査と、公開完了遷移7件を分け、完全公式同等性や未取得の内部順序を主張しない。
+
+## v55：特殊自己攻撃の公開選択と条件付き受信routing
+
+[新oracle](../scripts/official_self_attack_oracle.cjs) / [report](../data/official-v2/self-attack-client-v55.json) は、実clientの選択・送信76ケースと、独立した受信frameのrouting65ケースを記録する。前者は実 `jO.eu/aT`→`jS.$0` のRPC直前までを走らせ、54件をローカルsinkで捕捉した。後者は実 `p6`→`fu/aa`→`fv.aT/fF` によりself33例・foreign32例を比較する。DOM/音/Future/RPCにはstubを用い、server遷移を実行しない。
+
+14/27/45/58/53/216は、MPを満たした単品の自己targetを通常カード同様に保持して送信できる。別に供給したself frameでは反対側paneを新設せずmain側を活性化し、foreign frameでは応答側へ進む。これは「そのframeが届いた場合」の公開描画/activation規則であって、serverが同じframe列を返す証明ではない。新しい実対局witnessは増やさず、完了7件・routing-only1件・full wire0件を維持する。
+
+実行器ruleset51・Snapshot51・`official-execution-view-v49` は、明示自己target・非chance・非Wideの通常mainに限定して、吸収27/45/216、二回14、MP武器58、同被害53の4familyをDEF0即時解決へ追加した。既存bodyのheal/damage順、MP支払い・used保持・gift規約はそのまま使う。14は消費/課金1回・1decisionで元launchからfreshな2bodyを順に解決し、自然終局または実際のowner死亡で打ち切る。208救済後の生存継続やcutoffとの接合を含め、この効果scheduleはローカル一般化であり今回のserver実測ではない。反射後frame・bounce・counter・chance/Wide・その他特殊base等の既存経路は変えず、ABI2・構造体幅も固定する。新 `self_attack_rule` の全文は[対局v51節](official-execution-subset.md)とheaderを参照。
+
+reportは79,743bytes / SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81ad567ae71e8e643c` で、`--check` により再現する。別途の公式公開GETではJS440,420bytes・JA49,240bytesの本文SHAとETagがpinと一致し、Last-Modifiedだけ2026年11月4日07:33:42 GMTへ更新されていた。本文のルール差やserver同等性を意味せず、旧pins・旧report・歴史記述は保持する。
