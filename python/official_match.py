@@ -417,15 +417,16 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
             for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
+        self.self_attack_rule = lib.gfo_match_self_attack_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v47"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v48"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21

@@ -1874,3 +1874,26 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+## v52：公開遷移3件と対局v48の照合
+
+[機械可読witness](../data/official-v2/live-transition-witnesses-v52.json) と [UI観測記録](official-live-observations.md) に、公式CPU修行の公開checkpoint3件を保存した。光3空防御、32の無属性9自己攻撃、吸収26にDEF7という入力から、C++が各資源・次owner/GFを事前計算する。実際のdamageをエンジンへ渡すfixtureではない。3件目の公開結果19から中間heal/damage順まで確定したとは扱わない。
+
+2件目では、本人に未選択のDEF7がある状態でも、32を本人へ使うplayだけでHP37→28・次のCPU手番へ進んだ。対局エンジンはこの普通武器の明示自己targetに不要なresponseを要求していたため、限定したDEF0・1command解決へ変更した。`official-execution-subset-v48` / Snapshot48 / view-v46とし、Match ABI2の幅を維持して `self_attack_rule` getter・属性・observe fieldを公開する。32以外の普通属性・追加材への適用には限定一般化が含まれ、特殊self/redirect/counter/guardian/payloadの経路は今回変更しない。
+
+[新native test](../tests/official_live_trace_test.cpp) は3件×CPU在庫長3通り×未選択品3profile×任意seed8通り＝216投影を検査する。これは結果に影響しない在庫差替えの検査であり、実在手札を再構成した216公式対局ではない。特にself32後のCPU1枚のprobeは、その後に観測した3枚攻撃までの全観測を再現するものではない。比較はその次行動前の資源/GF/ownerに限る。
+
+既存native回帰は217関数を一意登録し、新しいself経路のcutoff・208救済・遅いgift token枯渇rollback・grant中断のsnapshot/restore再開・Wide境界・特殊baseの旧responseも検査する。C/Pythonには通常selfの追加defend拒否とgetter整合を追加した。これらのlocalな死亡/補充/tick順の回帰は、今回の非致死実観測とは別の検証である。
+
+最終ソースのRelease CTestは **155/155件、32.36秒** で通過した。 ASan/UBSanの全CTestも **114/114件、365.20秒** で通過した。Python Matchは148ケースを通過し、C11公開ヘッダのConfig24/Command184/Choice208/Status248と新getter宣言も構文検査を通過した。Release/SANのビルドはwarning/error0。 その後、通常自己攻撃による死亡から112の応答FIFOへ入るsnapshot/restore回帰を追加し、当該native全217関数をRelease/SANで再実行して各1/1件（0.57/12.86秒）が通過した。本体コードの追加変更はない。
+
+次の行列はseed42、2人1,000局/scene・9人100局/sceneについて、両ビルドの各1/4workers計16recordを比較したもの。4群それぞれで時間・速度・worker数以外の全fieldが一致した。独立familyは最大2系統並行、速度の比較・改善主張には使わない。
+
+| 実行系 | 人数・件数 | Release/SAN・1/4workers共通checksum |
+| --- | --- | --- |
+| 通常対局 | 2人1,000局 | `17012641369213081577` |
+| 通常対局 | 9人100局 | `14587398145354569665` |
+| choice/chance driver | 2人1,000scene | `1562149086175909460` |
+| choice/chance driver | 9人100scene | `5615713826154359954` |
+
+自己攻撃のdecision数と処理時点が変わるため、以前のrulesetのgameplay checksumが一致することは要件にしない。旧pins・旧oracle・過去のベンチ表を上書きせず、今回の値を別世代として記録する。一般のserver schedule/selector、178終末一新・94＋232・互換外Dream・一般Earth/Moonは引き続き主要残件である。

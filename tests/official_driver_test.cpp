@@ -14,7 +14,7 @@ SnapshotState scene(std::initializer_list<CardId> own={},std::initializer_list<C
 Match match(SnapshotState state,MatchConfig config={},std::uint64_t seed=42){Match m(config);m.load_scene(std::move(state),0,seed);return m;}
 Command prayer(PlayerId actor=0){return {actor,CommandKind::pray,{},{}};}
 Command defense(PlayerId actor){return {actor,CommandKind::defend,{},{}};}
-void checkpoint(const Match& m){Match restored;restored.restore(m.snapshot());check(restored.snapshot()==m.snapshot(),"checkpoint preserves complete Match47 snapshot");}
+void checkpoint(const Match& m){Match restored;restored.restore(m.snapshot());check(restored.snapshot()==m.snapshot(),"checkpoint preserves complete Match48 snapshot");}
 MatchStep manual(Match& m,std::uint64_t& policy,std::uint64_t& chance){
     if(m.snapshot().phase==MatchPhase::grant)return m.grant_step(m.sample_grant(chance));
     const auto* actor=find_player(m.snapshot().state,*m.snapshot().actor);
@@ -108,7 +108,7 @@ void snapshot_plus_streams_resumes_across_mixed_routes(){
     auto a=match(state,cfg);std::uint64_t policy=0,chance=0x445dad76252c0cfdULL;
     while(!a.done()){const auto saved=a.snapshot();auto resumed_policy=policy,resumed_chance=chance;Match resumed;resumed.restore(saved);
         check(a.rollout_step(policy,chance)==resumed.rollout_step(resumed_policy,resumed_chance)&&a.snapshot()==resumed.snapshot()&&policy==resumed_policy&&chance==resumed_chance,"Match snapshot plus two streams reproduces each mixed driver boundary");}
-    check(a.snapshot().config==cfg&&a.snapshot().version==47,"additive driver preserves existing snapshot/config schema");
+    check(a.snapshot().config==cfg&&a.snapshot().version==match_snapshot_version,"additive driver preserves existing snapshot/config schema");
 }
 }
 int main(){

@@ -2908,3 +2908,39 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+## 対局v48（作業世代v52）：実対局の公開遷移と普通武器の自己攻撃
+
+本節のv48は対局rulesetの世代であり、先行する作業世代v48のread-only先頭攻撃投影とは別である。`official-execution-subset-v48` / Snapshot48 / `official-execution-view-v46` へ更新した。Snapshotは旧1〜47を拒否する。Match C ABI2の既存構造体幅・phase・opcodeは維持し、`gfo_match_self_attack_rule()` とPython `Match.self_attack_rule` を追加した。通常配布は既定236モデル/重み499、任意設定の237/500のままである。
+
+[実対局の公開遷移witness](../data/official-v2/live-transition-witnesses-v52.json) は、2026-11-04の2人CPU修行・終末なしで、操作前後を確認できた3件を記録する。ブラウザの表示・操作による有限の観測であり、wireやbackend event列を取得したものではない。モデルIDは表示名・数値から台帳へ対応付け、native fixtureのCPU0／本人7と物理tokenはローカルに定めたものを使う。
+
+| 公開checkpointと確定した操作 | 次に確認した公開checkpoint | 照合範囲 |
+| --- | --- | --- |
+| G.F.1、CPUの75・光ATK3に本人が空防御 | G.F.2本人main、本人HP40→37。両者MP10/CP20、CPU HP40を維持 | 台帳から光3と空防御を計算した資源・次owner/GF |
+| G.F.4、本人HP37から32・無属性ATK9を本人へ確定。追加の本人応答操作なし | G.F.5 CPU側へ進み、本人HP28/MP10/CP20、CPU HP40/MP25/CP20 | 通常自己攻撃の9被害と追加防御選択が不要だったこと |
+| G.F.5、CPUの45＋124＋34・無属性ATK26に本人が150・DEF7を使用 | G.F.6本人main、CPU HP40→59、本人HP28→9。MP/CPは維持 | 台帳の12＋5＋9−7＝19と吸収後の公開資源 |
+
+2件目の後には、CPUの次の物理攻撃45＋124＋34が表示されていたが、その攻撃は本人の応答前だった。そこで見えた本人HP28へ、その後の26攻撃の被害を混ぜない。自己攻撃時には未選択のDEF7が表示されていたが、そのcheckpointでの個体ID・モデルIDは転記していない。3件目で使用した150を、その時点の未選択品と断定して逆補完しない。
+
+観測が直接支持するのは、32単品の非致死自己攻撃が、本人による別の防御選択を要求せず9被害で進んだ範囲である。サーバー内部で即時解決したのか、自動的な空防御を挟んだのかは区別できていない。clientの自己target時にopposite paneを作らない経路とも整合するが、その表示構造だけからサーバーの処理順を確定したものではない。
+
+### 限定した自己攻撃の実行規約
+
+通常mainの`play`で、明示targetが本人であり、実先頭モデルが`category=weapons`、`ability=none`、`hit_rate=0`、完成列にWide232を含まない場合、通常のMP支払・選択品消費後にDEF0でbodyを解決する。追加のdefend commandやdecisionを作らず、元のplayを1 accepted decisionとして完了する。省略targetを自己指定と解釈する変更ではない。既存の通常列として合法な追加材は同じ条件内で処理する。
+
+この条件を満たす他の普通武器・属性・追加材への適用は、32の単一観測からの**限定一般化を含む実験規約**である。共有のordinary executorへ渡された明示的な混乱commandにも、同じbody条件を適用する。MC基底、chance、Wide、danger94、二回攻撃14などの特殊基底、自己reflection/bounce、counter、guardian／payloadの別入口は、従来の応答／即時処理経路を維持する。
+
+```text
+experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route
+```
+
+この文字列はheaderの`self_attack_rule`と一致し、observeにも公開する。解決後は既存の208救済・死亡112、自然終局/cutoff、後続FIFO、owner病気tick、auto guardian、補充、次owner/GFのpumpへ接続する。これらの死亡・tick・gift・cutoff順は既存ローカル契約を引き継ぐもので、今回の非致死3例で実測確認できたと主張しない。
+
+### 検証の範囲
+
+[公開遷移のnative比較](../tests/official_live_trace_test.cpp) は、公開された攻撃列と防御列からC++が威力・残余・資源を計算し、記録されたcheckpointと比べる。受信damage19等を直接エンジンへ注入して一致させない。未転記の本人手札と非公開CPU在庫は合法なsurrogateへ置き換えた複数fixtureとし、その実在内容・補充品・token・server RNGを再構成したとは扱わない。G.F.2→4の未観測の防御/回復や、G.F.6の未完了操作は比較対象へ加えない。
+
+[既存native回帰](../tests/official_match_test.cpp) に、32自己攻撃と未選択DEF7、1decision/cutoff前body・未実行補充の取消、208救済、自己死亡から112の二人分の応答FIFOと各snapshot/restore、遅いtoken枯渇の全rollback、grant中断後のsnapshot/restoreと被害の二重適用防止、Wideの敵roster維持、特殊自己武器の旧response経路を追加した。pendingのgrant／死亡／autoへ進んだ場合も、元commandと既存anchor/journalから同じ分岐を再生する。新しい手動空防御や専用journal型は追加していない。
+
+3件は公開資源・確定操作の部分witnessであり、全server event traceや一般の手番・抽選・死亡規約への適合証明ではない。過去版の数値とv10/v16の検証訂正、legacy37を保持し、学習器や学習済みモデルは追加していない。

@@ -275,6 +275,7 @@ const char* gfo_match_choice_rule(void) { return official::choice_rule; }
 const char* gfo_match_driver_rule(void) { return official::driver_rule; }
 const char* gfo_match_ruleset(void) { return official::match_ruleset; }
 const char* gfo_match_scope(void) { return official::match_scope; }
+const char* gfo_match_self_attack_rule(void) { return official::self_attack_rule; }
 int gfo_match_catalog_count(void) { int n = 0; for (const auto& c : official::catalog()) n += official::match_supported(c.id); return n; }
 int gfo_match_gift_weight(void) { return official::match_gift_weight(); }
 int gfo_match_supported(uint16_t model) { return official::match_supported(model); }

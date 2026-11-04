@@ -232,3 +232,11 @@ gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resourc
 [取得検証record](live-review-v51.json) は2026年11月4日05:39 JSTに、公式HTML・main.dart.js・日本語/英語JSONを公開GETで再取得した証跡である。全4件HTTP200。JS・JA・ENの本文SHA256とbyte列は既存証拠に完全一致し、JAの全296行も省略fieldを保持したまま `id=index+1` で `cards.json` と一致した。正重量237モデル・配布重み500、公開client/台帳で観測されたルール差は0。公式backendの抽選・進行まで照合した結果ではない。
 
 Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだった。HTMLだけは初期取得cache比でFirebase import3本が12.17.1から13.1.0へ変わっていた。この比較元は版付きv2のHTML pinではなく、外部Firebase本文の挙動も未検証である。recordにURL・取得UTC時刻・本文size/SHA・HTTP validators・比較範囲を保存し、rawソース全文・一時pathへの依存を含めていない。既存pins・生成物・ルール・保存oracleは更新していない。
+
+## v52：完了した公開対局遷移の照合
+
+[対局証跡](live-transition-witnesses-v52.json) は、公式サイトの2人CPU修行で確認した**完了済み公開遷移3件、取得した完全なserver event列0件**を記録する。モデルIDは表示名・値から本台帳へ対応付け、未知の手札・補充品・乱数は補完していない。v51の部分観測はその時点の履歴として保持する。操作できなかった問題は `A.ut` のheight300とtop55の取り違えを解消して先へ進めたもので、公式の送信拒否を示す事実ではない。
+
+光ATK3の75へ空応答して本人HP40→37/GF2、本人の32自己攻撃でHP37→28/GF5（追加の本人応答操作なし）、CPUの `[45,124,34]` のATK26へ `[150]` のDEF7で応答して本人HP28→9・CPU40→59/GF6を確認した。最後の差19は台帳の合成・防御・吸収から計算する値であり、server damage値を実行器へ入力した結果ではない。
+
+公開clientのfu/aT/fFで自己targetに独立した反対側response paneを作らない経路と整合するため、実行器をruleset48/Snapshot48/view-v46へ更新した。新 `self_attack_rule` の範囲は通常mainの明示自己target・武器base・abilityなし・非確率・非Wideだけで、DEF0即時解決とする。特殊base・反射・bounce等は既存経路を維持する。公式server内部の即時解決と自動空応答は観測から区別できず、致死・特殊効果の順序や公式完全同等性をこの3件から主張しない。詳細は[現行ルールのv52節](../../docs/official-current-rules.md#v52公開対局の完了遷移と通常自己攻撃)を参照。

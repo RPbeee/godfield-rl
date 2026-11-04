@@ -244,7 +244,9 @@ C ABI合成4,878ケース、native境界/非干渉、48seedの各stepのsnapshot
 この節の検証時点では公式対局traceは未取得で、公開clientから権威的serverの全実行器が得られたわけではありません。
 対局シミュレーターとしての公式完全対応は未達です。
 
-2026-11-04には[公式サイトの実閲覧とCPU修行](docs/official-live-observations.md)を追加しました。JS・JA・ENと台帳296件は既存資料に一致し、初期資源・本人手札を2局面で観測しました。完了済みの対局遷移はまだ取得できていません。[最新の主要残件表](docs/official-spec-gap.md)には、178の終末補充、94＋232、Dream全候補、Earth/Moon一般処理を整理しています。現行の互換制限では、Dreamを持つ受取人への237種poolの通常授与時の偽装率は設計期待値32.1%で、教典の50%に未達です。今回の更新は出典・観測・差分の整理で、C++エンジンはv47のままです。
+2026-11-04のv51では[公式サイトの実閲覧とCPU修行](docs/official-live-observations.md)を追加しました。JS・JA・ENと台帳296件は既存資料に一致し、この時点では初期資源・本人手札の2局面までの観測でした。[最新の主要残件表](docs/official-spec-gap.md)には、178の終末補充、94＋232、Dream全候補、Earth/Moon一般処理を整理しています。現行の互換制限では、Dreamを持つ受取人への237種poolの通常授与時の偽装率は設計期待値32.1%で、教典の50%に未達です。
+
+続くv52では、[公式CPU戦の公開遷移3件](data/official-v2/live-transition-witnesses-v52.json)を取得し、通常武器による明示自己攻撃を、防御入力を待たずDEF0・1commandで解決するよう修正しました。エンジンは `official-execution-subset-v48` / Snapshot48 / view-v46、Match ABI2です。対象は先頭が通常武器・能力なし・確率なし・Wideなしのmain playに限定し、C++/C/Pythonの `self_attack_rule` で範囲を公開します。光3の空防御、自己32の9damage、吸収26にDEF7という3例を、カードから事前計算するnativeテストで照合します。未転記の手札を変えた216通りの局面でも比較部分の一致を検査し、実際の隠れた手札・補充・server乱数を再現したとは扱いません。
 
 ## 公式データによる限定対局実行器
 

@@ -2018,3 +2018,19 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+## v52：公開対局の完了遷移と通常自己攻撃
+
+[公開対局証跡](../data/official-v2/live-transition-witnesses-v52.json) は2026年11月4日の公式2人CPU修行・終末なしで得た画面上の結果である。完了済み公開遷移は3件、取得した完全なserver event列は0件。表示名・合成順・値を固定台帳へ対応付け、未確認のCPU手札・本人の未転記品・補充品・token・server RNGは復元しない。v51の部分観測は履歴として保持し、今回の完了例と数え分ける。操作問題は `A.ut` のheight300とtop55の取り違えを修正して解消したもので、以前の操作失敗を公式の受理条件の根拠にはしない。
+
+| 確認した操作 | 完了後の公開資源・手番 |
+| --- | --- |
+| CPUの75スタースタッフ、光ATK3へ本人が空応答 | 本人HP40→37、MP10/CP20保持。GF2で本人main |
+| GF4で本人が32を本人へATK9として使用。追加の本人応答操作なし | 本人HP37→28、MP10/CP20保持。GF5でCPUの次攻撃を受信。その次攻撃は未解決なので、このHP差へ加算しない |
+| GF5でCPUの `[45,124,34]`（12+5+9=26）へ本人が `[150]`（DEF7）で応答 | 残余19により本人HP28→9、CPUの吸収で40→59。MP/CP保持、GF6で本人main |
+
+台帳から合成値と防御値を計算して結果を比較し、server由来damage19を本体へ注入していない。GF2〜4のCPU防御・MP回復操作は未確認なのでgoldenへ含めず、GF6で選択した後の未完了操作も4件目には数えない。画面に守護神・災い表示は無かったが、未観測の内部event順まで確定したものではない。吸収の終点からhealとdamageの内部順を証明したとも扱わない。
+
+公開clientの `fu/aT/fF` は自己targetをsource側へ表示し、独立した反対側response paneを設けない。この経路と追加応答なしの実観測に合わせ、実行器ruleset48・Snapshot48・`official-execution-view-v46` は、**通常mainの明示自己targetで、baseが武器・abilityなし・hitRate0・Wideなし**の列だけをDEF0で即時解決する。普通自己攻撃を通すために架空のdefendを追加しない。公開 `self_attack_rule` getter/属性とobserve metadataに限定条件を明示し、特殊自己攻撃・反射・bounce・counter等の既存応答経路は維持する。Match ABI2と構造体幅は変更しない。
+
+この非致死32の観測では、公式server内部の即時処理と自動空応答の区別はつかない。致死・補充・守護神・反射・特殊base等の順序は引き続き明示したローカル規約であり、実行器全体・全公式ルールとの同等性をこの公開投影3件から主張しない。

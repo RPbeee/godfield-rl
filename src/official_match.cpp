@@ -1226,6 +1226,13 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
+        } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
+            && base.category == Category::weapons && base.ability == Ability::none && !base.hit_rate && !has_wide(models)) {
+            // A live ordinary self-attack completed without a separate defense
+            // command. Keep this route narrow; redirected and special payloads
+            // retain their existing response schedules.
+            change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
+            resolve(s, original, 0); completed = true;
         } else if (find_card(models.front())->hit_rate || damaging(original) || original.target != s.owner) {
             auto& batch = *s.batch;
             require(batch.rng == launch_rng, "launch journal lost its pre-draw anchor");
@@ -2021,7 +2028,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v45\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v46\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -2037,6 +2044,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"mana_weapon_rule\":\""; out += mana_weapon_rule;
     out += "\",\"repeat_attack_rule\":\""; out += repeat_attack_rule;
     out += "\",\"wide_attack_rule\":\""; out += wide_attack_rule;
+    out += "\",\"self_attack_rule\":\""; out += self_attack_rule;
     out += "\",\"random_hp_rule\":\""; out += random_hp_rule;
     out += "\",\"revival_rule\":\""; out += revival_rule;
     out += "\",\"danger_rule\":\""; out += danger_rule;

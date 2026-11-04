@@ -57,8 +57,9 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v47"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v47 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v48"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v48 scope");
+    check(std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
     for (auto id : {42, 50, 55, 56, 165, 171, 177, 179, 233}) check(gfo_match_supported(id), "added block membership");
@@ -291,7 +292,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v45\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v46\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -557,22 +558,32 @@ int main() {
         && observe(resource_match).find("\"hp\":38,\"mp\":0,\"cp\":0") != std::string::npos,
         "reflected CP payment follows current endpoints");
     gfo_match_destroy(resource_match);
-    // Source/target aliasing does not cancel debt or resurrect an HP0 creditor.
+    // Explicit ordinary self-attack resolves immediately, so held counters cannot be selected.
     fixture.reset(setup, 14656); got_attack = false; got_cp_counter = false;
     for (const auto& item : fixture.snapshot().state.players[0].items) {
         if (item.model == 6) { weapon_token = item.token; got_attack = true; }
         if (item.model == 188) { resource_token = item.token; got_cp_counter = true; }
     }
     cfg.initial_hp = 2;
-    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 14656, &resource_match) == 0, "public reset alias/death fixture");
+    check(got_attack && got_cp_counter && gfo_match_create(&cfg, players.data(), 2, 14656, &resource_match) == 0, "public reset immediate self-attack fixture");
     attack.items[0] = weapon_token; attack.target = 0; resource_defense.actor = 0; resource_defense.items[0] = resource_token;
-    check(gfo_match_step(resource_match, &attack, &result) == 0 && gfo_match_step(resource_match, &resource_defense, &result) == 0
-        && result.phase == 1 && result.actor == 0, "self attack emits aliased CP response while source alive");
-    accept.actor = 0;
-    check(gfo_match_step(resource_match, &accept, &result) == 0 && result.terminated && result.winner_count == 1 && result.winners[0] == 77
-        && result.rewards[0] == -1 && result.rewards[1] == 1
-        && observe(resource_match).find("\"hp\":0,\"mp\":0,\"cp\":1") != std::string::npos,
-        "debit then credit preserves aliased HP0 death and fixed-seat rewards");
+    check(gfo_match_step(resource_match, &attack, &result) == 0 && result.phase == 0 && result.actor == 77
+        && result.decisions == 1 && !result.terminated
+        && observe(resource_match).find("\"hp\":1,\"mp\":0,\"cp\":0") != std::string::npos
+        && observe(resource_match).find("\"pending\":null") != std::string::npos
+        && observe(resource_match).find("\"self_attack_rule\":\"" + std::string(gfo_match_self_attack_rule()) + "\"") != std::string::npos,
+        "ordinary self attack applies raw1 without a defense or CP-counter decision");
+    const auto immediate_view = observe(resource_match); const auto immediate_status = result;
+    check(gfo_match_legal(resource_match, &resource_defense, &legal) == 0 && !legal
+        && gfo_match_step(resource_match, &resource_defense, &result) == -2 && equal(result, immediate_status)
+        && observe(resource_match) == immediate_view, "obsolete self-defense rejected atomically after immediate completion");
+    gfo_match_destroy(resource_match);
+    cfg.initial_hp = 1;
+    check(gfo_match_create(&cfg, players.data(), 2, 14656, &resource_match) == 0
+        && gfo_match_step(resource_match, &attack, &result) == 0 && result.terminated && result.decisions == 1
+        && result.winner_count == 1 && result.winners[0] == 77 && result.rewards[0] == -1 && result.rewards[1] == 1
+        && observe(resource_match).find("\"hp\":0,\"mp\":0,\"cp\":0") != std::string::npos,
+        "lethal ordinary self attack ends naturally without a response or CP credit");
     gfo_match_destroy(resource_match);
     // Damage effects use current source, full raw remainder and ordered clamps.
     const auto receipt_token = [&](std::size_t seat, official::CardId model) {

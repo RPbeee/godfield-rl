@@ -107,7 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.ruleset, "official-execution-subset-v47"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v48"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -115,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v45")
+        self.assertEqual(own["schema"], "official-execution-view-v46")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -311,7 +312,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v45")
+        self.assertEqual(event["schema"], "official-execution-view-v46")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -556,16 +557,20 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((pending["origin"], pending["source"], pending["target"], pending["amount"]), (1, 0, 1, 1))
         reflected.step(Command(1, "defend"))
         self.assertEqual(stats(reflected, "cp"), [1, 0]); self.assertEqual(stats(reflected, "hp"), [40, 38])
-        # Aliased source==target still debits first; later credit cannot undo HP0.
-        for hp in (40, 2):
+        # Ordinary explicit self-attacks now finish with DEF0 and no counter window.
+        for hp in (40, 2, 1):
             alias = self.match(config=Config(initial_hand=18, initial_hp=hp, initial_mp=0, initial_cp=0), seed=14656)
             own = hand(alias, 0)
-            alias.step(Command(0, "play", (own[6],), 0)); alias.step(Command(0, "defend", (own[188],)))
-            pending = alias.observe()["pending"]
-            self.assertEqual((pending["source"], pending["target"], pending["amount"]), (0, 0, 1))
-            result = alias.step(Command(0, "defend"))
-            self.assertEqual(stats(alias, "cp"), [1, 0]); self.assertEqual(stats(alias, "hp"), [hp - 2, hp])
-            if hp == 2:
+            result = alias.step(Command(0, "play", (own[6],), 0))
+            self.assertEqual(stats(alias, "cp"), [0, 0]); self.assertEqual(stats(alias, "hp"), [hp - 1, hp])
+            self.assertEqual(result.decisions, 1); self.assertIsNone(alias.observe()["pending"])
+            self.assertEqual(alias.observe()["self_attack_rule"], alias.self_attack_rule)
+            before, status = alias.observe(0), alias.status
+            obsolete_response = Command(0, "defend", (own[188],))
+            self.assertFalse(alias.legal(obsolete_response))
+            with self.assertRaises(InvalidMatchError): alias.step(obsolete_response)
+            self.assertEqual((alias.observe(0), alias.status), (before, status))
+            if hp == 1:
                 self.assertTrue(result.terminated); self.assertEqual((result.winners, result.rewards), ((1,), (-1, 1)))
                 self.assertTrue(alias.observe()["board"]["players"][0]["dead"])
             else:

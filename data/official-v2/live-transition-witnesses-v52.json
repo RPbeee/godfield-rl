@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "observed_on_jst": "2026-11-04",
+  "url": "https://godfield.net/",
+  "method": "Firefox native UI accessibility text and screenshots; no browser script injection, backend request replay or server damage injection into Match.",
+  "session": {"mode": "training", "players": 2, "apocalypse": null, "human_opponents": 0},
+  "identity_policy": "viewer and CPU are roles. Native fixtures map CPU to0 and viewer to7 with arbitrary local physical tokens. These IDs are not claimed to be server IDs.",
+  "provenance_policy": "Model IDs are mappings from displayed names, ordered cards and facts to official-v2/cards.json. No raw game response or backend event trace was captured. The separate v51 public fetch does not pin this browser's response bytes.",
+  "private_data_policy": "No player names, user IDs, credentials, session URLs or request bodies are stored.",
+  "observed_guardians_and_curses": "No guardian or curse indicator was shown for either role at the recorded checkpoints.",
+  "cases": [
+    {
+      "id": "training2-gf1-star-staff-empty-defense",
+      "before": {
+        "gf": 1,
+        "checkpoint": "CPU's received attack, before the viewer's response",
+        "owner": "cpu",
+        "actor": "viewer",
+        "cpu": {"hp": 40, "mp": 10, "cp": 20},
+        "viewer": {"hp": 40, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9,
+        "cpu_hand_count": null,
+        "attack_models": [75],
+        "attack_display": {"power": 3, "element": "light"}
+      },
+      "confirmed_choice": {"actor": "viewer", "kind": "defend", "models": []},
+      "after": {
+        "gf": 2,
+        "checkpoint": "viewer main turn",
+        "owner": "viewer",
+        "actor": "viewer",
+        "cpu": {"hp": 40, "mp": 10, "cp": 20},
+        "viewer": {"hp": 37, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9
+      },
+      "projection": "Replay the publicly revealed75 launch in a synthetic initial scene, independently compute Light3 and the zero-card response, then compare public resources, GF and next owner. The actual CPU inventory and replenishment are not reconstructed."
+    },
+    {
+      "id": "training2-gf4-self-power-halberd-no-response",
+      "before": {
+        "gf": 4,
+        "checkpoint": "viewer main turn, single32 selected and viewer chosen as target",
+        "owner": "viewer",
+        "actor": "viewer",
+        "cpu": {"hp": 40, "mp": 25, "cp": 20},
+        "viewer": {"hp": 37, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9,
+        "cpu_hand_count": null,
+        "attack_models": [32],
+        "attack_display": {"power": 9, "element": null},
+        "unselected_defense_available": 7,
+        "unselected_defense_model_id_at_this_checkpoint": null
+      },
+      "confirmed_choice": {"actor": "viewer", "kind": "play", "models": [32], "target": "viewer"},
+      "additional_viewer_response_chosen": false,
+      "after": {
+        "gf": 5,
+        "checkpoint": "CPU's subsequent received physical attack26, before any viewer response to that new attack",
+        "owner": "cpu",
+        "cpu": {"hp": 40, "mp": 25, "cp": 20},
+        "viewer": {"hp": 28, "mp": 10, "cp": 20},
+        "subsequent_attack_models": [45, 124, 34],
+        "subsequent_attack_unresolved": true
+      },
+      "projection": "Compare the state predicted immediately after the viewer's one self-target play and before the CPU's subsequent launch. That later publicly revealed physical launch has zero MP cost and was still unresolved, so its damage is not part of the observed HP37-to28 change. Do not insert a synthetic viewer defend command to make the old executor pass.",
+      "interpretation_limit": "The observed client requires no extra defense choice here. Internal server immediate resolution versus automatically supplied empty defense was not distinguished. The ordinary32 nonlethal example does not independently establish lethal, replacement, guardian, reflected or special-base ordering."
+    },
+    {
+      "id": "training2-gf5-absorption26-defense7",
+      "before": {
+        "gf": 5,
+        "checkpoint": "CPU's received attack, viewer selected one DEF7 card",
+        "owner": "cpu",
+        "actor": "viewer",
+        "cpu": {"hp": 40, "mp": 25, "cp": 20},
+        "viewer": {"hp": 28, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9,
+        "cpu_hand_count": null,
+        "attack_models": [45, 124, 34],
+        "attack_display": {"power": 26, "element": null},
+        "response_models": [150],
+        "response_display": {"defense": 7}
+      },
+      "confirmed_choice": {"actor": "viewer", "kind": "defend", "models": [150]},
+      "after": {
+        "gf": 6,
+        "checkpoint": "viewer main turn",
+        "owner": "viewer",
+        "actor": "viewer",
+        "cpu": {"hp": 59, "mp": 25, "cp": 20},
+        "viewer": {"hp": 9, "mp": 10, "cp": 20},
+        "viewer_visible_hand_count": 9
+      },
+      "projection": "Compute ordered ATK12+5+9 and ordinary DEF7 from cards, then absorption and resource clipping. Compare the resulting CPU59/viewer9 without supplying server damage19 to the executor. No assertion about the intermediate heal-versus-damage event order is made from these endpoints."
+    }
+  ],
+  "inconclusive_intervals": [
+    {
+      "gf_before": 2,
+      "gf_after": 4,
+      "description": "Viewer launched hatchet16 at CPU; CPU defense and its following MP-gain action were not captured. CPU MP10-to25 and unchanged HP were visible only after both actions. This interval is not a transition golden and is not used to infer a defense model or recovery card."
+    },
+    {
+      "gf": 6,
+      "description": "Viewer selected Punch for another possible self test, but the computer-use window became unavailable before a target and completed command were verified. No fourth transition is counted."
+    }
+  ],
+  "excluded_comparisons": ["hidden CPU hands and their sizes", "untranscribed viewer card identities", "new gift models or tokens", "server RNG and local seed equivalence", "full backend event order", "rating", "unobserved deaths or special self-attack behavior"],
+  "native_test": "tests/official_live_trace_test.cpp",
+  "synthetic_inventory_policy": "Native variations replace unselected, untranscribed inventories with legal surrogate copies to test independence of the compared projection. They are not claimed to reconstruct the actual visible art or hidden hand.",
+  "completed_public_transition_witnesses": 3,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

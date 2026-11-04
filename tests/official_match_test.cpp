@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v47"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v48"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -53,8 +53,8 @@ void weapon_frames_colors_owner_and_fixed_rewards(){
     auto light=fixture(scene({elemental(Category::weapons,Element::light)},{elemental(Category::armor,Element::light)}));light.step(play(0,{0},7));reject(light,defend(7,{0}));light.step(defend(7));roundtrip(light);
     auto dark=fixture(scene({elemental(Category::weapons,Element::darkness)},{}));dark.step(play(0,{0},7));const auto killed=dark.step(defend(7));
     check(killed.terminated&&!killed.truncated&&killed.winners==std::vector<PlayerId>{0}&&killed.rewards==std::vector<double>{1,-1}&&dark.snapshot().state.players[1].dead,"positive Dark residual ends local match with fixed-seat rewards");roundtrip(dark);
-    auto self=fixture(scene({image("bronze-club")},{}));auto s=self.snapshot().state;s.players[0].hp=1;self.load_scene(s,0,88);self.step(play(0,{0},0));check(self.snapshot().actor==0&&self.snapshot().phase==MatchPhase::response,"self attack also creates explicit defender response in experimental contract");const auto suicide=self.step(defend(0));
-    check(suicide.terminated&&suicide.winners==std::vector<PlayerId>{7}&&suicide.rewards==std::vector<double>{-1,1},"self attack after own response preserves fixed-seat rewards instead of actor sign");roundtrip(self);
+    auto self=fixture(scene({image("bronze-club")},{}));auto s=self.snapshot().state;s.players[0].hp=1;self.load_scene(s,0,88);const auto suicide=self.step(play(0,{0},0));check(self.snapshot().decisions==1&&self.snapshot().queue.empty(),"ordinary explicit self attack resolves without a defense decision");
+    check(suicide.terminated&&suicide.winners==std::vector<PlayerId>{7}&&suicide.rewards==std::vector<double>{-1,1},"ordinary self attack preserves fixed-seat rewards without a response");roundtrip(self);
     SnapshotState team;team.players={player(0,{image("bronze-club")},Team::one),player(7,{},Team::one),player(9,{},Team::two)};team.players[2].hp=1;
     auto alliance=fixture(team);alliance.step(play(0,{0},9));const auto win=alliance.step(defend(9));check(win.terminated&&win.winners==std::vector<PlayerId>{0,7}&&win.rewards==std::vector<double>{1,1,-1},"last enemy death yields complete winner team, not first-alive candidate helper");roundtrip(alliance);
     SnapshotState nine;for(unsigned i=0;i<9;++i)nine.players.push_back(player(100+i,i==0?std::initializer_list<CardId>{image("bronze-club")}:std::initializer_list<CardId>{}));nine.players[1].dead=true;nine.players[1].hp=0;
@@ -100,7 +100,7 @@ void reflection_filter_and_immutable_origin(){
     colored.step(defend(0,{1}));check(!colored.snapshot().queue[0].element,"neutralized attribute survives repeated reflection");colored.step(defend(7));roundtrip(colored);
     auto dark=fixture(scene({elemental(Category::weapons,Element::darkness)},{mirror}));dark.step(play(0,{0},7));dark.step(defend(7,{0}));check(dark.snapshot().queue[0].element==Element::darkness,"universal reflection preserves Dark attribute");const auto death=dark.step(defend(0));check(death.terminated&&death.winners==std::vector<PlayerId>{7},"reflected Dark kills current recipient and rewards fixed seats");roundtrip(dark);
     auto neutral_dark=fixture(scene({elemental(Category::weapons,Element::darkness)},{curtain}));neutral_dark.step(play(0,{0},7));const auto dark_raw=neutral_dark.snapshot().queue[0].power;neutral_dark.step(defend(7,{0}));check(!neutral_dark.done()&&neutral_dark.snapshot().state.players[1].hp==40-dark_raw,"filter removes Dark execution rather than only adding zero DEF");roundtrip(neutral_dark);
-    auto self=fixture(scene({image("bronze-club"),sword},{}));self.step(play(0,{0},0));self.step(defend(0,{1}));check(self.snapshot().actor==0&&self.snapshot().queue[0].source==0&&self.snapshot().queue[0].target==0&&self.snapshot().owner==0,"self reflection remains an explicit local response even with identical endpoints");roundtrip(self);self.step(defend(0));check(self.snapshot().state.players[0].hp==39,"self reflection applies original payload exactly once");
+    auto self=fixture(scene({image("bronze-club"),sword},{}));self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==39&&self.snapshot().owner==7&&self.snapshot().queue.empty(),"ordinary self attack resolves once without offering reflection");reject(self,defend(0,{1}));check(std::any_of(self.snapshot().state.players[0].items.begin(),self.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1;}),"unselected reflection item is retained");roundtrip(self);
     for(const auto id:{moon,image("moonlight-helm"),image("moonlight-shield"),image("moonlight-armor"),mirror}){auto spell=fixture(scene({image("spring")},{id}));spell.step(play(0,{0},7));const auto before=spell.snapshot();spell.step(defend(7,{0}));check(spell.snapshot().state.players[0].mp==3&&spell.snapshot().state.players[1].mp==10&&spell.snapshot().queue[0].models==before.queue[0].models&&spell.snapshot().queue[0].tokens==before.queue[0].tokens,"magic reflection costs no MP and does not acquire/recast original retained miracle");roundtrip(spell);spell.step(defend(0));check(spell.snapshot().state.players[0].hp==50&&spell.snapshot().state.players[1].hp==40,"reflected utility affects final target only");roundtrip(spell);}
     auto mismatch=fixture(scene({image("spring")},{sword}));mismatch.step(play(0,{0},7));reject(mismatch,defend(7,{0}));
     SnapshotState nine;for(unsigned i=0;i<9;++i)nine.players.push_back(player(100+i,i==0?std::initializer_list<CardId>{image("bronze-club")}:i==8?std::initializer_list<CardId>{sword}:std::initializer_list<CardId>{},static_cast<Team>(i%5)));
@@ -194,7 +194,7 @@ void blocking_roles_retention_and_reflection(){
         canceled.step(defend(7,{0}));check(canceled.snapshot().state.players[0].hp==40&&canceled.snapshot().state.players[1].hp==40&&canceled.snapshot().state.players[1].cp==98&&canceled.snapshot().state.players[0].mp==paid,"magic block cancels Fire/Dark/Light damage and CP recovery without refunding declared cost");roundtrip(canceled);}
     auto ordering=fixture(scene({image("bronze-club")},{image("aqua-shoes"),curtain,wall}));ordering.step(play(0,{0},7));reject(ordering,defend(7,{0,2}));reject(ordering,defend(7,{0,1,2}));reject(ordering,defend(7,{2,0}));
     auto suffix=fixture(scene({image("spring")},{image("angel-knife"),image("aqua-shoes")}));suffix.step(play(0,{0},7));reject(suffix,defend(7,{0,1}));
-    auto selfstate=scene({image("bronze-club"),wall},{});selfstate.players[0].mp=6;auto self=fixture(selfstate);self.step(play(0,{0},0));self.step(defend(0,{1}));check(self.snapshot().state.players[0].hp==40&&self.snapshot().state.players[0].mp==0&&self.snapshot().state.players[0].items[0].used&&self.snapshot().owner==7,"exactly6MP Wall cancels self weapon and retains itself through actual next turn");roundtrip(self);
+    auto selfstate=scene({image("bronze-club"),wall},{});selfstate.players[0].mp=6;auto self=fixture(selfstate);self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==39&&self.snapshot().state.players[0].mp==6&&self.snapshot().state.players[0].items[0].token==1&&!self.snapshot().state.players[0].items[0].used&&self.snapshot().owner==7,"ordinary self weapon offers no Wall response and consumes no defensive MP");reject(self,defend(0,{1}));roundtrip(self);
     SnapshotState nine;for(unsigned i=0;i<9;++i)nine.players.push_back(player(100+i,i==0?std::initializer_list<CardId>{image("bronze-club"),sword}:i==8?std::initializer_list<CardId>{sword,wall}:std::initializer_list<CardId>{},static_cast<Team>(i%5)));
     nine.players[8].mp=6;Match team;team.load_scene(nine,100,99);team.step(play(100,{0},108));team.step(defend(108,{0}));roundtrip(team);team.step(defend(100,{1}));roundtrip(team);
     const auto pending=team.snapshot();auto fake=pending;fake.queue[0].redirects[0].models[0]=wall;fake.queue[0].redirects[0].tokens[0]=1;fake.state.players[8].items[0].used=true;bool invalid_ledger=false;try{team.restore(fake);}catch(const MatchError&){invalid_ledger=true;}
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v45\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v46\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -331,7 +331,7 @@ void counter_damage_fifo_and_reactions(){
     for(bool saturn_first:{false,true}){Match m;m.load_scene(scene({image("bronze-club")},{mars,saturn}),0,27);m.step(play(0,{0},7));m.step(saturn_first?defend(7,{1,0}):defend(7,{0,1}));check(m.snapshot().counter_created==2&&m.snapshot().counters.size()==1&&m.snapshot().queue[0].models==std::vector<CardId>{saturn_first?saturn:mars}&&m.snapshot().counters[0].models==std::vector<CardId>{saturn_first?mars:saturn}&&m.snapshot().counter_rolls==(saturn_first?0u:1u),"counter FIFO follows selected physical order and Mars rolls only at its actual start");roundtrip(m);m.step(defend(0));roundtrip(m);m.step(defend(0));check(m.snapshot().state.players[0].hp==37&&m.snapshot().state.players[1].hp==39&&m.snapshot().counter_rolls==1&&m.snapshot().counter_hits==1,"mixed counter order preserves each payload and one independent Mars hit roll");roundtrip(m);}
     auto recursive=scene({image("bronze-club"),curtain,saturn},{mars,saturn});Match fifo;fifo.load_scene(recursive,0,27);fifo.step(play(0,{0},7));fifo.step(defend(7,{0,1}));fifo.step(defend(0,{1,2}));check(fifo.snapshot().queue[0].origin==7&&fifo.snapshot().queue[0].power==2&&fifo.snapshot().counters.size()==1&&fifo.snapshot().counters[0].origin==0&&fifo.snapshot().counters[0].target==7&&fifo.snapshot().counter_created==3,"child counter is appended behind already-reserved sibling rather than depth-first execution");roundtrip(fifo);fifo.step(defend(0));roundtrip(fifo);fifo.step(defend(7));check(fifo.snapshot().state.players[0].hp==37&&fifo.snapshot().state.players[1].hp==37&&fifo.snapshot().owner==7,"counter-on-counter FIFO completes before turn advance");roundtrip(fifo);
     auto typed=fixture(scene({image("bronze-club"),curtain,image("reflection-sword"),image("moonlight-axe"),image("wall"),image("turbulence"),image("bouncing-sword"),mirror},{saturn}));typed.step(play(0,{0},7));typed.step(defend(7,{0}));reject(typed,defend(0,{1,2}));for(ItemToken token:{3u,4u,5u,6u})reject(typed,defend(0,{token}));typed.step(defend(0,{7}));check(typed.snapshot().queue[0].is_counter&&typed.snapshot().queue[0].origin==7&&typed.snapshot().queue[0].source==0&&typed.snapshot().queue[0].target==7&&typed.snapshot().queue[0].category==Category::armor&&typed.snapshot().queue[0].power==2,"only universal reflection redirects counter while immutable counter origin/category/power survive");roundtrip(typed);typed.step(defend(7));check(typed.snapshot().state.players[1].hp==37,"reflected counter affects new target once");roundtrip(typed);
-    auto self=fixture(scene({image("bronze-club"),saturn},{}));self.step(play(0,{0},0));self.step(defend(0,{1}));check(self.snapshot().queue[0].is_counter&&self.snapshot().actor==0&&self.snapshot().queue[0].origin==0&&self.snapshot().queue[0].target==0,"self-hit survivor can create explicit self counter");roundtrip(self);self.step(defend(0));check(self.snapshot().state.players[0].hp==37&&self.snapshot().owner==7,"self original and counter damage apply sequentially before next turn");roundtrip(self);
+    auto self=fixture(scene({image("bronze-club"),saturn},{}));self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==39&&self.snapshot().counter_created==0&&self.snapshot().queue.empty()&&self.snapshot().owner==7,"unselected Saturn does not counter an ordinary automatic self hit");reject(self,defend(0,{1}));roundtrip(self);
 }
 
 void counter_chance_death_journal_and_atomicity(){
@@ -1087,7 +1087,9 @@ void fog_launch_targets_singleton_team_repeat_and_rng(){
         if(error==6)bad.rng^=1;if(error==7)bad.batch->rng^=1;if(error==8)bad.batch->targets[0]=7;if(error==9)bad.last_fog->models.clear();
         bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"Fog record and RNG are verified by full pending replay");}
     for(PlayerId target:{0u,9u}){Match direct;direct.load_scene(state,0,0);direct.step(play(0,{0},target));
-        check(direct.snapshot().actor==target&&direct.snapshot().rng==0&&!direct.snapshot().last_fog,"Fog leaves explicit self and allied hints unchanged without a draw");roundtrip(direct);}
+        if(target==0)check(direct.snapshot().phase==MatchPhase::main&&direct.snapshot().state.players[0].hp==39
+            &&direct.snapshot().rng==draw&&!direct.snapshot().last_fog,"Fog does not redirect the automatic self hit; only its normal replacement draws");
+        else check(direct.snapshot().actor==target&&direct.snapshot().rng==0&&!direct.snapshot().last_fog,"Fog leaves allied hints unchanged without a targeting draw");roundtrip(direct);}
     auto single=scene({6},{});single.players[0].curses={Curse::fog};Match singleton;singleton.load_scene(single,0,0);singleton.step(play(0,{0},7));
     check(singleton.snapshot().rng==draw&&singleton.snapshot().last_fog==FogTarget{0,7,7,{6}},"Fog singleton enemy still consumes one launch draw");roundtrip(singleton);
     state.players[0].items[0].model=14;Match repeat;repeat.load_scene(state,0,0);repeat.step(play(0,{0},7));
@@ -3010,10 +3012,66 @@ void automatic_payload_independent_bigint_stage_vectors(){
             &&m.snapshot().state.players[1].guardian==static_cast<Guardian>(2)&&m.snapshot().state.players[2].guardian==static_cast<Guardian>(5),"independent BigInt two-source self summon vectors preserve selected original guardian and eight exact draws");roundtrip(m);}
 }
 
+
+void ordinary_self_attack_completion_and_resume(){
+    check(match_snapshot_version==48&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+        "self-attack contract is versioned separately from ABI layouts");
+    auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
+    auto direct=fixture(state);direct.step(play(0,{0},0));
+    check(direct.snapshot().state.players[0].hp==28&&direct.snapshot().state.players[0].mp==10
+        &&direct.snapshot().state.players[0].cp==20&&direct.snapshot().decisions==1&&direct.snapshot().owner==7
+        &&direct.snapshot().phase==MatchPhase::main&&direct.snapshot().state.gf==5
+        &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
+        "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
+    const auto view=direct.observe(0);
+    check(view.find("official-execution-view-v46")!=std::string::npos
+        &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
+        "public view exposes the limited self-attack rule");
+    MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
+    cutoff.step(play(0,{0},0));
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==28
+        &&cutoff.snapshot().state.players[0].items.size()==1&&cutoff.snapshot().state.players[0].items[0].token==1
+        &&cutoff.snapshot().rng==initial_rng,"self body precedes cutoff while unperformed gifts consume no RNG");roundtrip(cutoff);
+    auto revival=scene({32,208},{});revival.players[0].hp=5;auto saved=fixture(revival);
+    saved.step(play(0,{0},0));check(saved.snapshot().state.players[0].hp==10&&saved.snapshot().revivals==1
+        &&saved.snapshot().owner==7&&saved.snapshot().decisions==1,"ordinary self death enters the existing revival hook once");roundtrip(saved);
+    auto dying=scene({32,112},{});dying.players.push_back(player(9));dying.players[0].hp=5;
+    for(std::size_t i=1;i<dying.players.size();++i){dying.players[i].hp=99;dying.players[i].curses={Curse::darkcloud};}
+    auto posthumous=fixture(dying);posthumous.step(play(0,{0},0));
+    check(posthumous.snapshot().state.players[0].dead&&posthumous.snapshot().decisions==1
+        &&posthumous.snapshot().phase==MatchPhase::response&&posthumous.snapshot().actor==7
+        &&posthumous.snapshot().queue[0].is_death&&posthumous.snapshot().queue[0].source==0,
+        "ordinary self death proceeds directly to the first external112 response");roundtrip(posthumous);
+    posthumous.step(defend(7));check(posthumous.snapshot().actor==9&&posthumous.snapshot().state.players[1].hp==69,
+        "self-death112 continues its enemy FIFO after the first response");roundtrip(posthumous);
+    posthumous.step(defend(9));check(posthumous.snapshot().phase==MatchPhase::main&&posthumous.snapshot().owner==7
+        &&posthumous.snapshot().state.players[2].hp==69&&posthumous.snapshot().gifts[0]==0,
+        "self-death journal completes112 and cancels the dead owner's replacement");roundtrip(posthumous);
+    auto exhausted=state;exhausted.players[0].items[0].token=9007199254740991ULL;
+    auto atomic=fixture(exhausted);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{9007199254740991ULL},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late self replacement allocation failure rolls back HP, inventory, journal and RNG");
+    MatchConfig deferred;deferred.external_grants=true;auto pending=state;pending.tiebreak_gf=0;
+    auto resume=fixture(pending,deferred);resume.step(play(0,{0},0));
+    check(resume.snapshot().phase==MatchPhase::grant&&resume.snapshot().pending_grant==0
+        &&resume.snapshot().state.players[0].hp==28&&resume.snapshot().decisions==1,
+        "self completion reaches the existing external grant phase without a defense decision");roundtrip(resume);
+    resume.grant_step({0,0,{},{}});check(resume.snapshot().phase==MatchPhase::main&&resume.snapshot().owner==7
+        &&resume.snapshot().state.players[0].hp==28&&resume.snapshot().state.gf==5,
+        "grant continuation resumes the self-hit journal without applying damage twice");roundtrip(resume);
+    auto special=fixture(scene({27},{}));special.step(play(0,{0},0));
+    check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0,
+        "unobserved special self weapons retain their existing scoped response route");
+    auto wide=fixture(scene({32,232},{}));wide.step(play(0,{0,1},0));
+    check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
+        "Wide continues to use its enemy roster even with a self target hint");roundtrip(wide);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),216> tests{{
+    const std::array<void(*)(),217> tests{{
+        ordinary_self_attack_completion_and_resume,
         automatic_payload_independent_bigint_stage_vectors,
         automatic_payload_opt_in_and_unchanged_external_helper,
         automatic_payload_all_bases_and_other_guardians_parity,

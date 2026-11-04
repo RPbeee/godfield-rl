@@ -4,13 +4,13 @@
 
 ## 現時点の主要残件（2026-11-04）
 
-対局エンジンは `official-execution-subset-v47` / Snapshot47。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentで、対局の効果・抽選・進行規約を拡張するものではない。
+対局エンジンは `official-execution-subset-v48` / Snapshot48 / view-v46。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52では、通常main武器の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)も追加したが、完了済み遷移goldenは0件であり、下表の優先1を解消してはいない。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[光3空防御・普通武器自己攻撃・吸収26対DEF7の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)を取得した。各資源と次手番をカードから予測して照合するが、full wire traceは0件であり、下表の一般的な進行順・selectorは引き続き未確認である。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移golden | clientの算術・表示oracleとローカル対局の回帰はある。公式対局で通常被害、208／112の死亡・終局順、病気tick／補充／守護神の順を観測し、エンジンが事前計算した結果と照合する。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 公開checkpoint3件を照合し、通常自己武器の不要な防御待ちを修正した。次は208／112の死亡・終局順、病気tick／補充／守護神の順を観測する。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の終末grant接続 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。178の即時一新はその継続処理を通らない。旧手札の破棄、Dream、各授与、未解決bodyへの復帰順を確認してから接続する。取引の直接配送を授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
 | 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |

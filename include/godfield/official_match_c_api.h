@@ -81,6 +81,7 @@ const char* gfo_match_choice_rule(void);
 const char* gfo_match_driver_rule(void);
 const char* gfo_match_ruleset(void);
 const char* gfo_match_scope(void);
+const char* gfo_match_self_attack_rule(void);
 int gfo_match_catalog_count(void);
 int gfo_match_gift_weight(void);
 int gfo_match_supported(uint16_t model);
