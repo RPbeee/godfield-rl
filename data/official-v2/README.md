@@ -272,3 +272,14 @@ reportは79,743bytes、SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81a
 自己売却は両者40/10/20と手札9を保ちG.F.1→2、空防御は本人40→38・G.F.2→3、46自己使用は追加defendなしで本人38→26・MP10/CP20・CPU40/10/20・手札9を保ちG.F.3→4まで記録した。自己売却後の補充46は後のtooltipで同定したが、engineのgift outcomeに指定しない。4/26の観測総数と、新giftの寄与を除く元コピー消費・配送のnative検査を分け、未知の攻13補充も補完しない。server token・隠れた在庫・中間CP順は未取得である。
 
 本体ruleset52 / Snapshot52 / view-v50は、通常main・明示自己target・hitRate0・非Wideの武器baseへcut_costを追加する。現台帳で増えるのは46のみで、143/163/173の防具や204雑貨へbase条件を広げない。単品46実測から合成列へは、既存の完成列MP費用・隣接FREE・保持・消費を使う限定一般化である。Match ABI2と旧pins・旧witnessを維持し、v55特殊6種の未実測bodyや94＋Wide・178終末grantの未対応範囲は変更しない。[実行規約](../../docs/official-execution-subset.md)と[一次記録の説明](../../docs/official-current-rules.md)を参照。
+
+
+## v57：終末中の夢・取引・悪魔後の再授与
+
+[対局記録](live-transition-witnesses-v57.json)に、他者売却・無4への空防御・夢222・石けん206・46＋見かけ231と悪魔・CPU購入と悪魔・祈りと悪魔の7完了例を追加した。累計17完了例・独立routing-only1例・full wire trace0件。記録日は2026年11月5日、個々のcapture timestampは未保存のため観測日は11月4〜5日の範囲とする。
+
+nativeには先の4例と祈りの5例を追加し、累計15例1080公開投影＋別枠72routingを検査する。46＋231とCPU購入の複合2例は、未取得のCPU在庫・補充を補わず観測記録のみとする。先4例の通常補充は合成completion、祈りの241→通常0は結果を外部入力した比較であり、実serverの配布や抽選の再現とは呼ばない。
+
+祈り例ではHP50→30、手札8→9を確認し、悪魔後にも神器授与が続いた。石けんでused222を除去しても本人のDreamは残った。新しい品の真偽・model、受取人をまたぐ画面順とbackend順の対応は確定しない。本体ruleset52 / Snapshot52 / view-v50、Match ABI2・台帳pins・旧記録は維持し、178終末grant・94＋Wide・互換外Dreamの未対応範囲を広げない。
+
+記録は26,716bytes、SHA256 `a68dcef535c1918888c104c6d4638e8047d83dfb0edda3743a05cb2d4b917a4a`。件数・native対象ID・ローカル参照リンクを照合し、未同定の品や日時を補完していないことを確認した。

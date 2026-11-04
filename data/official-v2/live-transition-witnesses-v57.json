@@ -1,0 +1,843 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": null,
+  "observed_date_range_jst": [
+    "2026-11-04",
+    "2026-11-05"
+  ],
+  "observation_timestamp_note": "Exact per-frame local capture times were not transcribed;observations are assigned only to the recorded local date range. No exact date or midnight-crossing time is inferred for an individual case.",
+  "url": "https://godfield.net/",
+  "method": "Firefox native accessibility text and consecutive frame/screenshot capture. Changed-frame screenshots were reviewed to distinguish real hand cards,green placeholders,transient devil sprites and hover details. No injected browser code,backend request replay or full wire capture.",
+  "prior_record": "live-transition-witnesses-v56.json",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse": 1,
+    "cpu_first": true,
+    "new_session": true
+  },
+  "privacy": "Viewer and CPU are roles. Names,user IDs,credentials,session URLs and request bodies are omitted. Native role IDs,physical tokens,input seat order and completion gifts are local test values,not captured server values.",
+  "model_provenance": "Displayed names/facts are mapped to cards.json. 206 was received before viewer Dream;46 is also a known pre-Dream item. Dream-era face231 does not expose its true model or fake status. Unidentified initial gold trade and later pink trade-like cards retain null IDs. Only the selected Buy display in GF7 is identified as5.",
+  "hand_count_policy": "Counts describe actual visible inventory copies and exclude hover details,composed attack cards,green placeholders and transient devil sprites. E/F/G endpoint counts9/8/9 were directly rechecked from saved screenshots. CPU hidden hand counts are not inferred.",
+  "cases": [
+    {
+      "id": "training-apocalypse-gf1-foreign-sale-staff",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 1,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "actor": "viewer",
+        "source_displayed_models": [
+          4,
+          46
+        ],
+        "merchandise_display": {
+          "model": 46,
+          "power": 12,
+          "price": 20
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": []
+      },
+      "source_observation": {
+        "actor": "cpu",
+        "kind": "sell",
+        "displayed_models": [
+          4,
+          46
+        ],
+        "target": "viewer",
+        "cpu_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "checkpoint": "viewer main after the sale",
+        "delivered_displayed_model": 46
+      },
+      "observed_sequence": [
+        "CPU offered4 sell with46 spiritual staff priced20.",
+        "Viewer chose an empty defense.",
+        "CPU CP20 to40 and viewer CP20 to0;viewer received46.",
+        "GF2 viewer main with ten displayed copies."
+      ],
+      "projection": "Compute the merchandise price20 from46 and compare CPU CP+20,viewer CP-20,unchanged HP/MP,delivery and viewer hand9 to10,next GF/owner. Native unseen CPU completion gifts are local projection inputs,not observed official outcomes.",
+      "limits": "CPU replacement contents and normal/devil classification were not captured. No named devil animation or other public resource change was observed in this action;that absence does not prove a normal grant. Physical server tokens and hidden CPU hand size are unknown."
+    },
+    {
+      "id": "training-apocalypse-gf2-spiked-belt-empty-defense",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 2,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "source_displayed_models": [
+          17
+        ],
+        "attack_display": {
+          "power": 4,
+          "element": null,
+          "defense_when_used_as_defense": 2,
+          "price": 3
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          17
+        ],
+        "target": "cpu"
+      },
+      "cpu_response_observation": {
+        "displayed_defense_models": [],
+        "defense": 0,
+        "wire_command_captured": false
+      },
+      "after": {
+        "gf": 3,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 10,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "cpu",
+        "checkpoint": "CPU main before the next launch"
+      },
+      "replacement_observation": {
+        "displayed_model": 206,
+        "identified_at": "GF4 tooltip,before using the item",
+        "received_before_viewer_dream": true,
+        "identity_compared_by_native_fixture": false
+      },
+      "projection": "Compute neutral ATK4 from17 and the displayed zero defense,then compare CPU HP40 to36,unchanged other public resources,the source-copy consumption and viewer hand count10,next GF/owner. The CPU empty defense is normalized from its visible response,not a captured wire command.",
+      "limits": "The exact17 physical token and replacement206 identity are not fitted to native RNG. The observed public endpoint does not identify every replenishment outcome."
+    },
+    {
+      "id": "training-apocalypse-gf3-dream-empty-defense",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 3,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 10,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "source_displayed_models": [
+          222
+        ],
+        "source_display": {
+          "curse": "dream",
+          "mp_cost": 6,
+          "element": "wood"
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": []
+      },
+      "source_observation": {
+        "actor": "cpu",
+        "kind": "play",
+        "displayed_models": [
+          222
+        ],
+        "target": "viewer",
+        "wire_command_captured": false
+      },
+      "observed_sequence": [
+        "CPU222 Dream launch displayed MP10 to4.",
+        "Viewer chose empty defense.",
+        "Viewer Dream was added and GF4 viewer main appeared.",
+        "The used-miracle panel immediately before the following soap play showed CPU222 once and viewer zero."
+      ],
+      "after": {
+        "gf": 4,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "cpu_used_miracle_panel_count": 1,
+        "cpu_used_miracle_panel_models": [
+          222
+        ],
+        "viewer_used_miracle_panel_count": 0
+      },
+      "projection": "Compute cost6 and Dream addition from222,then compare CPU MP10 to4,unchanged HP/CP and viewer MP,viewer Dream,unchanged viewer hand10,next GF/owner and the directly read used222 display.",
+      "limits": "CPU grant contents and normal/devil classification are unknown. This example does not measure Dream gift probability,truth-to-face selection or fake compatibility."
+    },
+    {
+      "id": "training-apocalypse-gf4-soap-removes-dream",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 4,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "selected_model": 206,
+        "selected_model_truth": "206 was received before Dream and identified by tooltip",
+        "cpu_used_miracle_panel_count": 1,
+        "cpu_used_miracle_panel_models": [
+          222
+        ],
+        "viewer_used_miracle_panel_count": 0
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          206
+        ],
+        "target": "cpu"
+      },
+      "cpu_response_observation": {
+        "displayed_defense_models": [],
+        "wire_command_captured": false
+      },
+      "observed_sequence": [
+        "True206 goddess soap was used toward CPU.",
+        "CPU presented empty defense.",
+        "A removal presentation displayed222 Dream.",
+        "GF5 CPU main appeared;viewer206 had been consumed and a replacement face appeared."
+      ],
+      "after": {
+        "gf": 5,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "cpu",
+        "viewer_curses": [
+          "dream"
+        ],
+        "cpu_used_miracle_panel_rechecked": false
+      },
+      "known_removal_projection": {
+        "before_known_used_count": 1,
+        "displayed_removed_models": [
+          222
+        ],
+        "remaining_known_used_count": 0,
+        "remaining_count_is_direct_panel_read": false
+      },
+      "replacement_observation": {
+        "visible_model": 231,
+        "identified_at": "GF6 composition tooltip",
+        "true_model": null,
+        "is_disguised": null,
+        "normal_or_devil_classification": null,
+        "identity_compared_by_native_fixture": false
+      },
+      "projection": "Use known pre-Dream206 against the one directly observed used222 copy. Compare the removal presentation,unchanged public resources and viewer Dream,consumed source copy,total hand10 and next GF/owner. A remaining known-used count0 is a logical known-removal projection,not a post-action panel reread. Native replacement identities and masks are excluded.",
+      "limits": "The replacement face231 under Dream does not expose its true model or establish disguise. No random model is supplied to force a native mask or selector match. The subsequent CPU action was missed and is separately recorded as an incomplete interval."
+    },
+    {
+      "id": "training-apocalypse-gf6-staff-aura-fairy-trickster",
+      "native_projection_covered": false,
+      "observation_scope": "completed public compound transition with chance presentations;not added to the native public-transition fixture",
+      "before": {
+        "gf": 6,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 41,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "source_known_true_models": [
+          46
+        ],
+        "source_visible_models": [
+          46,
+          231
+        ],
+        "visible231_true_model": null,
+        "visible231_is_disguised": null,
+        "preview": {
+          "power": 24,
+          "element": null,
+          "mp_cost": 6
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          46,
+          231
+        ],
+        "target": "cpu"
+      },
+      "cpu_response_observation": {
+        "displayed_defense_models": [
+          170,
+          113
+        ],
+        "catalog_defense_parts": [
+          11,
+          1
+        ],
+        "displayed_defense": 12,
+        "wire_command_captured": false
+      },
+      "observed_sequence": [
+        {
+          "stage": "launch",
+          "viewer_mp_before": 10,
+          "viewer_mp_after": 4,
+          "displayed_models": [
+            46,
+            231
+          ],
+          "different_true_model_reveal_observed": false
+        },
+        {
+          "stage": "body",
+          "displayed_damage": 12,
+          "viewer": {
+            "hp": 40,
+            "mp": 4,
+            "cp": 0
+          },
+          "cpu": {
+            "hp": 29,
+            "mp": 4,
+            "cp": 40
+          }
+        },
+        {
+          "stage": "viewer devil presentation",
+          "displayed_model": 244,
+          "displayed_hp_recovery": 10,
+          "viewer": {
+            "hp": 50,
+            "mp": 4,
+            "cp": 0
+          },
+          "cpu": {
+            "hp": 29,
+            "mp": 4,
+            "cp": 40
+          }
+        },
+        {
+          "stage": "viewer devil presentation",
+          "displayed_model": 243,
+          "displayed_removed_items": [
+            {
+              "visible_model": 135,
+              "displayed_defense": 5
+            },
+            {
+              "visible_model": 231,
+              "used": true
+            }
+          ],
+          "viewer": {
+            "hp": 50,
+            "mp": 4,
+            "cp": 0
+          },
+          "cpu": {
+            "hp": 29,
+            "mp": 4,
+            "cp": 40
+          }
+        },
+        {
+          "stage": "cpu devil presentation",
+          "displayed_model": 244,
+          "displayed_hp_recovery": 10,
+          "viewer": {
+            "hp": 50,
+            "mp": 4,
+            "cp": 0
+          },
+          "cpu": {
+            "hp": 39,
+            "mp": 4,
+            "cp": 40
+          }
+        }
+      ],
+      "hand_evidence": {
+        "after_viewer244": "a green placeholder,transient244 sprite and used Aura display were visible",
+        "after_viewer243": {
+          "real_copies": 7,
+          "placeholder_count": 2,
+          "real_copy_groups": "one unidentified gold trade card and six armors"
+        },
+        "gf7_final": {
+          "real_copies": 9,
+          "real_copy_groups": "the prior seven plus two pink trade-like cards",
+          "new_pink_card_count": 2,
+          "new_pink_face_ids": [
+            null,
+            null
+          ],
+          "new_pink_true_models": [
+            null,
+            null
+          ],
+          "used_aura_display_present": false
+        },
+        "hover_or_transient_sprites_counted_as_physical_copies": false
+      },
+      "after": {
+        "gf": 7,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 50,
+          "mp": 4,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 39,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 9,
+        "actor": "cpu",
+        "viewer_curses": [
+          "dream"
+        ],
+        "checkpoint": "CPU main before the next launch"
+      },
+      "projection_boundary": "The public body is consistent with ordinary visible231 composition:ATK24 minus DEF12 gives damage12 and cost6. A conditional endpoint projection may take the named devil presentations as inputs. This record does not establish a generated global grant sequence and is not counted among native-covered witnesses.",
+      "limits": "True231 and same-model disguise cannot be distinguished because no different true-model reveal was observed. The two new pink faces were not tooltip-identified;they are not asserted model5. The initial gold trade card is also unidentified. Final hand counts alone do not rule out retry or compensation alternatives. CPU hidden normal gift counts/types,backend player-array order and unseen selector draws are not reconstructed."
+    },
+    {
+      "id": "training-apocalypse-gf7-buy-and-devils",
+      "native_projection_covered": false,
+      "observation_scope": "completed public buy and chance presentations;not added to the native public-transition fixture",
+      "before": {
+        "gf": 7,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 50,
+          "mp": 4,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 39,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 9,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_visible_hand_groups": {
+          "unidentified_gold_trade": 1,
+          "unidentified_pink_trade_like": 2,
+          "armors": 6
+        },
+        "source_displayed_models": [
+          5
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": []
+      },
+      "source_observation": {
+        "actor": "cpu",
+        "kind": "buy",
+        "displayed_models": [
+          5
+        ],
+        "target": "viewer",
+        "wire_command_captured": false
+      },
+      "observed_sequence": [
+        {
+          "stage": "buy selection",
+          "selected_displayed_model": 5,
+          "displayed_price": 5,
+          "viewer_pink_card_count_before": 2,
+          "viewer_pink_card_count_after": 1,
+          "unidentified_gold_trade_still_present": true
+        },
+        {
+          "stage": "payment",
+          "viewer": {
+            "hp": 50,
+            "mp": 4,
+            "cp": 5
+          },
+          "cpu": {
+            "hp": 39,
+            "mp": 4,
+            "cp": 35
+          }
+        },
+        {
+          "stage": "cpu devil presentation",
+          "displayed_model": 241,
+          "displayed_damage": 20,
+          "viewer": {
+            "hp": 50,
+            "mp": 4,
+            "cp": 5
+          },
+          "cpu": {
+            "hp": 19,
+            "mp": 4,
+            "cp": 35
+          }
+        },
+        {
+          "stage": "cpu devil presentation",
+          "displayed_model": 243,
+          "displayed_removed_models": [
+            84,
+            231
+          ],
+          "removed84_catalog_facts": {
+            "element": "stone",
+            "power": 5,
+            "plus_atk": true,
+            "price": 10
+          }
+        }
+      ],
+      "after": {
+        "gf": 8,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 50,
+          "mp": 4,
+          "cp": 5
+        },
+        "cpu": {
+          "hp": 19,
+          "mp": 4,
+          "cp": 35
+        },
+        "viewer_visible_hand_count": 8,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_visible_hand_groups": {
+          "unidentified_gold_trade": 1,
+          "unidentified_pink_trade_like": 1,
+          "armors": 6
+        },
+        "viewer_armor_displayed_defenses": [
+          1,
+          2,
+          7,
+          8,
+          10,
+          11
+        ]
+      },
+      "projection_boundary": "Record the displayed selected Buy5 price5 and public payment,then the named devil damage/removal presentations. The selected price is not fitted by seed. This compound chance observation is not counted among native-covered witnesses.",
+      "limits": "The initial gold trade is unidentified and was not the selected pink card. Neither the gold card nor both prior pink cards are asserted model5. The selected display does not establish a fake3-to-true5 transition or incompatible disguise. The removed84/231 prior ownership,truth/fake status and acquisition times,CPU hidden inventory and unshown grant outcomes remain unknown."
+    },
+    {
+      "id": "training-apocalypse-gf8-pray-middle-devil-retry",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 8,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 50,
+          "mp": 4,
+          "cp": 5
+        },
+        "cpu": {
+          "hp": 19,
+          "mp": 4,
+          "cp": 35
+        },
+        "viewer_visible_hand_count": 8,
+        "actor": "viewer",
+        "viewer_curses": [
+          "dream"
+        ],
+        "viewer_visible_hand_groups": {
+          "unidentified_gold_trade": 1,
+          "unidentified_pink_trade_like": 1,
+          "armors": 6
+        },
+        "viewer_visible_weapon_count": 0
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "pray",
+        "displayed_models": []
+      },
+      "observed_sequence": [
+        {
+          "stage": "viewer devil presentation",
+          "displayed_model": 241,
+          "displayed_damage": 20,
+          "viewer": {
+            "hp": 30,
+            "mp": 4,
+            "cp": 5
+          },
+          "cpu": {
+            "hp": 19,
+            "mp": 4,
+            "cp": 35
+          }
+        },
+        {
+          "stage": "subsequent item arrival",
+          "new_displayed_copy_count": 1,
+          "new_item_visual": "gold pendant-like image",
+          "visible_model": null,
+          "true_model": null,
+          "is_disguised": null
+        }
+      ],
+      "after": {
+        "gf": 9,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 30,
+          "mp": 4,
+          "cp": 5
+        },
+        "cpu": {
+          "hp": 19,
+          "mp": 4,
+          "cp": 35
+        },
+        "viewer_visible_hand_count": 9,
+        "actor": "cpu",
+        "viewer_curses": [
+          "dream"
+        ],
+        "checkpoint": "CPU main before the next launch"
+      },
+      "projection": "From the visible weapon-free main state,one accepted prayer is followed by displayed241 damage20 and one item arrival. Compare viewer HP50 to30,unchanged other resources,Dream,hand8 to9,next GF/owner. Named devil241 is an observed chance input;the subsequent gift identity/mask is not fitted. This supports a retry/replenishment continuation after a devil presentation without requiring a second viewer pray command.",
+      "limits": "The new pendant-like image has no tooltip identity and remains unknown. This single continuation does not prove the full official grant distribution,all retry cases or backend event schedule."
+    }
+  ],
+  "legality_observations": [
+    {
+      "id": "training-apocalypse-gf2-pray-refused-visible-weapons",
+      "gf": 2,
+      "owner": "viewer",
+      "viewer": {
+        "hp": 40,
+        "mp": 10,
+        "cp": 0
+      },
+      "cpu": {
+        "hp": 40,
+        "mp": 10,
+        "cp": 40
+      },
+      "viewer_visible_hand_count": 10,
+      "visible_weapon_models": [
+        17,
+        46
+      ],
+      "attempted_choice": {
+        "actor": "viewer",
+        "kind": "pray",
+        "displayed_models": []
+      },
+      "ui_toast": "武器を所持していると祈れない",
+      "accepted": false,
+      "gf_and_public_resources_changed": false,
+      "counts_as_completed_transition": false,
+      "limits": "The visible UI refusal is not a captured server rejection. It confirms the visible-weapon prayer condition in this state;it does not expose hidden true models under Dream."
+    }
+  ],
+  "incomplete_intervals": [
+    {
+      "id": "training-apocalypse-gf5-cpu-action-not-captured",
+      "before": {
+        "gf": 5,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 36,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "viewer_curses": [
+          "dream"
+        ]
+      },
+      "later_checkpoint": {
+        "gf": 6,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 0
+        },
+        "cpu": {
+          "hp": 41,
+          "mp": 4,
+          "cp": 40
+        },
+        "viewer_visible_hand_count": 10,
+        "viewer_curses": [
+          "dream"
+        ]
+      },
+      "limits": "The intervening CPU action/card and possible gift presentations were missed. CPU HP36 to41 is recorded without inferring a healing card,normal grant or particular devil. This interval is not counted as a completed transition witness."
+    }
+  ],
+  "display_order_observations": [
+    {
+      "id": "training-apocalypse-gf6-devil-presentation-order",
+      "case": "training-apocalypse-gf6-staff-aura-fairy-trickster",
+      "observed_global_presentation_order": [
+        {
+          "role": "viewer",
+          "model": 244
+        },
+        {
+          "role": "viewer",
+          "model": 243
+        },
+        {
+          "role": "cpu",
+          "model": 244
+        }
+      ],
+      "visible_roster_order": [
+        "cpu",
+        "viewer"
+      ],
+      "scope": "UI presentation order only. Backend player-array order,grant priority and local lowest-input-seat ordering are not established. A native per-target conditional endpoint projection would not prove a match of the global grant schedule."
+    }
+  ],
+  "native_test": "tests/official_live_trace_test.cpp",
+  "native_projection_policy": "New A/B/C/D/G are projected with existing local bodies and explicit observed chance inputs where needed. Unseen CPU completion gifts are local synthetic normal completions only,not assertions about official normal outcomes. Gift models,masks and selectors are not fitted. E/F are completed public observations retained outside the native fixture because their compound chance and hidden inventory boundaries are not fully projected.",
+  "excluded_comparisons": [
+    "server RNG/local seed equivalence",
+    "unseen CPU gift count,type or normal/devil classification",
+    "Dream-era231 true model and fake status",
+    "unidentified gold trade and untooltiped pink card IDs",
+    "unidentified pendant-like gift identity and mask",
+    "backend player-array order or global grant priority",
+    "GF5 missing CPU action",
+    "physical server tokens",
+    "uncaptured backend event order"
+  ],
+  "new_completed_public_transition_witnesses": 7,
+  "new_routing_only_observations": 0,
+  "cumulative_completed_public_transition_witnesses": 17,
+  "cumulative_routing_only_observations": 1,
+  "new_native_projection_covered_completed_witnesses": 5,
+  "cumulative_native_projection_covered_completed_witnesses": 15,
+  "new_record_only_completed_witnesses": 2,
+  "native_public_projection_variants": 1080,
+  "native_separate_routing_probes": 72,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

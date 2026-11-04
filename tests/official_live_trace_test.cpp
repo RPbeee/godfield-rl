@@ -228,6 +228,131 @@ std::size_t verify_self_sale_projection(std::span<const std::uint64_t> seeds){
     }
     return probes;
 }
+std::size_t verify_apocalypse_public_bodies(std::span<const std::uint64_t> seeds){
+    constexpr std::array<std::string_view,4> labels{{
+        "training-apocalypse-gf1-foreign-sale-staff",
+        "training-apocalypse-gf2-spiked-belt-empty-defense",
+        "training-apocalypse-gf3-dream-empty-defense",
+        "training-apocalypse-gf4-soap-removes-dream"}};
+    std::size_t probes=0;
+    for(unsigned kind=0;kind<labels.size();++kind)for(auto count:{kind==0?std::size_t{2}:std::size_t{1},std::size_t{9},std::size_t{18}})
+        for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){
+            const auto label=labels[kind];SnapshotState scene;scene.gf=kind+1;scene.tiebreak_gf=1;
+            PlayerState cpu;cpu.id=cpu_id;cpu.hp=kind>=2?36:40;cpu.mp=kind==3?4:10;cpu.cp=kind?40:20;
+            PlayerState viewer;viewer.id=viewer_id;viewer.cp=kind?0:20;
+            const auto viewer_count=kind?10u:9u;
+            if(kind==0){cpu.items={{attack_token,4,{},false},{attack_token+1,46,{},false}};viewer.items={{unused_defense_token,17,{},false}};}
+            if(kind==1)viewer.items={{attack_token,17,{},false},{unused_defense_token,46,{},false}};
+            if(kind==2)cpu.items={{attack_token,222,{},false}};
+            if(kind==3){cpu.items={{retained_miracle_token,222,{},true}};viewer.items={{attack_token,206,{},false}};viewer.curses={Curse::dream};}
+            for(std::size_t i=0;cpu.items.size()<count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
+            for(std::size_t i=0;viewer.items.size()<viewer_count;++i)viewer.items.push_back({i,unused_filler(profile,i),{},false});
+            scene.players={std::move(cpu),std::move(viewer)};
+            // The real post-apocalypse CPU grants were hidden. Default normal
+            // grants here are only a local projection probe, not a claim about
+            // an observed grant outcome, devil selector or server retry order.
+            MatchConfig config;config.initial_hand=0;config.include_fate=true;config.max_decisions=16;
+            Match match(config);const auto source=kind==0||kind==2?cpu_id:viewer_id;
+            const auto target=source==cpu_id?viewer_id:cpu_id;match.load_scene(std::move(scene),source,seed);
+            if(kind==1){
+                const auto before=match.snapshot();const Command prayer{viewer_id,CommandKind::pray,{},{}};
+                check(!match.legal(prayer)&&match.snapshot()==before,label,"the independently observed prayer rejection follows from owned weapons17 and46");
+                bool rejected=false;try{(void)match.step(prayer);}catch(const MatchError&){rejected=true;}
+                check(rejected&&match.snapshot()==before,label,"rejected prayer changes no resources, GF, inventory or accepted decision count");
+            }
+            const std::vector<CardId> models=kind==0?std::vector<CardId>{4,46}:std::vector<CardId>{static_cast<CardId>(kind==1?17:kind==2?222:206)};
+            if(kind==0)check(find_card(46)->price==20&&magic_cost(models)==0,label,"foreign sale uses merchandise price20 with zero operation MP fee");
+            if(kind==1)check(attack_power(models)==4&&!attack_element(models)&&magic_cost(models)==0,label,"catalog predicts neutral spiked-belt4 independently of received damage");
+            if(kind==2)check(find_card(222)->curse==Curse::dream&&magic_cost(models)==6,label,"catalog predicts Dream payload and six MP charge");
+            if(kind==3)check(find_card(206)->ability==Ability::remove_used_miracles,label,"soap selects used copies rather than clearing their installed curses");
+            const Command launch{source,kind==0?CommandKind::sell:CommandKind::play,
+                kind==0?std::vector<ItemToken>{attack_token,attack_token+1}:std::vector<ItemToken>{attack_token},target};
+            check(match.legal(launch),label,"observed foreign selection is legal");(void)match.step(launch);
+            check(match.snapshot().phase==MatchPhase::response&&match.snapshot().actor==target
+                &&match.snapshot().owner==source&&match.snapshot().state.gf==kind+1&&match.snapshot().decisions==1
+                &&match.snapshot().queue.size()==1&&match.snapshot().queue[0].models==models,
+                label,"the observed target receives the selected unresolved body before its empty response");
+            {Match copy(config);copy.restore(match.snapshot());check(copy.snapshot()==match.snapshot(),label,"pending projection resumes from its full launch journal");}
+            const Command empty{target,CommandKind::defend,{},{}};
+            check(match.legal(empty),label,"observed empty defense is legal");(void)match.step(empty);
+            const auto& snapshot=match.snapshot();const auto& own=by_role(match,viewer_id);const auto& enemy=by_role(match,cpu_id);
+            check(resources(own)==Resources{40,10,0}&&resources(enemy)==Resources{kind==0?40:36,kind<2?10:4,40}
+                &&snapshot.phase==MatchPhase::main&&snapshot.owner==target&&snapshot.actor==target
+                &&snapshot.state.gf==kind+2&&snapshot.decisions==2&&snapshot.queue.empty()&&!match.done()
+                &&own.items.size()==10,label,"computed public resources, ten viewer copies and next main checkpoint match");
+            check(own.curses==(kind>=2?std::vector<Curse>{Curse::dream}:std::vector<Curse>{})
+                &&enemy.curses.empty()&&std::none_of(own.items.begin(),own.items.end(),[](const auto& item){return item.used;}),
+                label,"Dream installation persists independently of the used-miracle inventory");
+            if(kind==0)check(snapshot.last_sale&&snapshot.last_sale->model==46&&snapshot.last_sale->price==20
+                &&snapshot.last_sale->source==cpu_id&&snapshot.last_sale->target==viewer_id
+                &&std::any_of(own.items.begin(),own.items.end(),[](const auto& item){return item.model==46&&!item.used;}),
+                label,"foreign sale delivers the known46 copy while CP20 transfers to the seller");
+            if(kind==1)check(std::none_of(own.items.begin(),own.items.end(),[](const auto& item){return item.token==attack_token;})
+                &&std::any_of(own.items.begin(),own.items.end(),[](const auto& item){return item.token==unused_defense_token&&item.model==46;}),
+                label,"selected17 is consumed and the existing46 remains without fitting the new gift206");
+            if(kind==2)check(std::count_if(enemy.items.begin(),enemy.items.end(),[](const auto& item){return item.used;})==1
+                &&std::any_of(enemy.items.begin(),enemy.items.end(),[](const auto& item){return item.token==attack_token&&item.model==222&&item.used;}),
+                label,"CPU retains precisely the used222 copy after the six MP spell");
+            if(kind==3)check(snapshot.last_removal&&snapshot.last_removal->model==206
+                &&snapshot.last_removal->removed_models==std::vector<CardId>{222}
+                &&std::none_of(enemy.items.begin(),enemy.items.end(),[](const auto& item){return item.used||item.token==retained_miracle_token;})
+                &&std::none_of(own.items.begin(),own.items.end(),[](const auto& item){return item.token==attack_token;}),
+                label,"soap consumes its original copy and removes only the sole used222, leaving viewer Dream installed");
+            // Gift206 and the later visible Aura231 were observed separately;
+            // no replacement identity, fake/true decision or server RNG is fit.
+            // In particular Dream gift masking here remains a local policy.
+            {Match copy(config);copy.restore(snapshot);check(copy.snapshot()==snapshot,label,"completed public projection has a valid immutable checkpoint");}
+            ++probes;
+        }
+    return probes;
+}
+std::size_t verify_prayer_devil_retry_projection(std::span<const std::uint64_t> seeds){
+    constexpr std::string_view label="training-apocalypse-gf8-pray-middle-devil-retry";
+    check(find_card(241)->ability_value==20,label,"catalog independently gives the observed middle-devil HP loss");
+    std::size_t probes=0;
+    for(auto count:{std::size_t{1},std::size_t{9},std::size_t{18}})for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){
+        SnapshotState scene;scene.gf=8;scene.tiebreak_gf=1;
+        PlayerState cpu;cpu.id=cpu_id;cpu.hp=19;cpu.mp=4;cpu.cp=35;
+        PlayerState viewer;viewer.id=viewer_id;viewer.hp=50;viewer.mp=4;viewer.cp=5;viewer.curses={Curse::dream};
+        for(std::size_t i=0;viewer.items.size()<8;++i){
+            const auto model=profile==0?CardId{135}:unused_filler(profile,i);
+            if(find_card(model)->category!=Category::weapons)viewer.items.push_back({i,model,{},false});
+        }
+        for(std::size_t i=0;i<count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
+        scene.players={std::move(cpu),std::move(viewer)};
+        MatchConfig config;config.initial_hand=0;config.include_fate=true;config.external_grants=true;config.max_decisions=16;
+        Match match(config);match.load_scene(std::move(scene),viewer_id,seed);
+        const auto roundtrip=[&]{Match restored(config);restored.restore(match.snapshot());check(restored.snapshot()==match.snapshot(),label,"prayer and each grant resolution retain a replayable checkpoint");};
+        const Command prayer{viewer_id,CommandKind::pray,{},{}};
+        check(match.legal(prayer),label,"the observed prayer is accepted with eight nonweapon copies");(void)match.step(prayer);
+        check(match.snapshot().phase==MatchPhase::grant&&!match.snapshot().actor&&match.snapshot().pending_grant==viewer_id
+            &&resources(by_role(match,viewer_id))==Resources{50,4,5}&&by_role(match,viewer_id).items.size()==8
+            &&match.snapshot().state.gf==8&&match.snapshot().decisions==1,
+            label,"prayer reserves one grant before any explicitly supplied outcome");roundtrip();
+        //241 is observed; the final artifact model and its Dream appearance are
+        // not. Supply only the identified devil then ordinary-grant0, never a
+        // fitted normal model, fake face, chance seed or devil selector.
+        const GrantAction devil{viewer_id,241,{},{}};
+        check(match.grant_legal(devil),label,"identified middle devil is a valid explicit grant outcome");(void)match.grant_step(devil);
+        check(match.snapshot().phase==MatchPhase::grant&&!match.snapshot().actor&&match.snapshot().pending_grant==viewer_id
+            &&resources(by_role(match,viewer_id))==Resources{30,4,5}&&by_role(match,viewer_id).items.size()==8
+            &&match.snapshot().state.gf==8&&match.snapshot().last_grant&&match.snapshot().last_grant->model==241,
+            label,"middle devil removes twenty HP while the unresolved artifact grant remains pending");roundtrip();
+        (void)match.grant_step({viewer_id,0,{},{}});
+        const auto& snapshot=match.snapshot();const auto& own=by_role(match,viewer_id);
+        check(snapshot.phase==MatchPhase::main&&snapshot.owner==cpu_id&&snapshot.actor==cpu_id&&snapshot.state.gf==9&&!match.done()
+            &&resources(own)==Resources{30,4,5}&&resources(by_role(match,cpu_id))==Resources{19,4,35}
+            &&own.curses==std::vector<Curse>{Curse::dream}&&own.items.size()==9
+            &&snapshot.grant_resolutions==2&&snapshot.grant_devils==1&&snapshot.grant_artifacts==1,
+            label,"devil then artifact retry predicts the observed HP30, nine copies, persistent Dream and GF9 CPU main");
+        // Native grants are separate bounded decisions; the UI witness records
+        // one player prayer. This count and the local grant pauses are not
+        // claimed server decision counts or captured intermediate UI phases.
+        check(snapshot.decisions==3,label,"one prayer and two explicit grant resolutions use the local decision contract");roundtrip();
+        ++probes;
+    }
+    return probes;
+}
 std::size_t verify_self_reflection_routing(){
     constexpr std::string_view label="training-apocalypse-gf2-self-reflection-sword-no-response";
     constexpr std::array<CardId,1> models{{38}};
@@ -276,7 +401,9 @@ int main(){
     for(const auto& witness:cases)for(auto count:{witness.attacker==cpu_id?witness.attack_models.size():std::size_t{1},std::size_t{9},std::size_t{18}})
         for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){verify(witness,seed,count,profile);++projections;}
     projections+=verify_self_sale_projection(seeds);
+    projections+=verify_apocalypse_public_bodies(seeds);
+    projections+=verify_prayer_devil_retry_projection(seeds);
     const auto routing_probes=verify_self_reflection_routing();
-    std::cout<<"Official live transition projection passed ("<<cases.size()+1<<" public witness, "<<projections
+    std::cout<<"Official live transition projection passed ("<<cases.size()+6<<" public witness, "<<projections
         <<" synthetic completions; "<<routing_probes<<" separate routing-only probes; hidden hands and server RNG not reconstructed).\n";
 }

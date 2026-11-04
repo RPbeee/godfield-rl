@@ -125,10 +125,10 @@ fixtureはevidence level、取得物hash、mode、人数・teams、viewer、事�
 物理反射6種と属性消去189を加えたv2の139モデル・配布重み319を経て、
 遮断9種を加えたv3の148モデル・配布重み328を経て、FREE5種・setter2種・倍化231を加えた
 156モデル・配布重み337を経て、跳ね返し8種を加えたv5の164モデル・配布重み351を経て、単純確率攻撃21種を加えたv6の185モデル・配布重み372を経て、攻撃反撃181/184を加えたv7の187モデル・配布重み374を経て、資源反撃187/188を加えたv8の189モデル・配布重み376を経て、HP吸収/同被害5種を加えたv9の194モデル・配布重み381を経て、閃光付与/反撃/解除7種を加えたv10の201モデル・配布重み404を経て、暗雲付与/反撃3種を加えたv11の204モデル・配布重み407を経て、除去2種を加えたv12の206モデル・配布重み409を経て、MP武器58/二回攻撃14を加えたv13の208モデル・配布重み411を経て、全敵化232を加えたv14の209モデル・配布重み412を経て、HP増減202を加えたv15の210モデル・配布重み414を経て、自動復活208を加えたv16の211モデル・配布重み415を経て、杵94/臼209を加えたv17の213モデル・配布重み417を経て、v18で両替3を加えた214モデル・配布重み437を経て、v19で同じプールのまま除去結果を公開し、v20で売却4を加えた215モデル/重み457を経て、v21で購入5を加えた216モデル/重み477を経て、v22で病気4状態/付与6種を加えた222モデル/重み483を経て、v23で168/198を加えた224モデル/重み485を経て、v24でFog4種と観測/対象選択を加えた228モデル/重み489を経て、v25で112を加えた229モデル/重み490を経て、取引配送overflowとFogのforeign SELLを扱う `official-execution-subset-v26` へ進め、v27で規約を変えずにofficial-v2へ同期した。
-現行は `official-execution-subset-v47`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
+現行は `official-execution-subset-v52`。既定236モデル/重み499、`include_fate=True` なら通常配布237モデル/重み500を使う。
 201/239召喚・canonical42自動行動、限定Earth120/Moon26のopt-in自動payload、外部現象9種と295専用shuffle、
 Fate/悪魔の外部入力と専用ローカルsampler、終末閾値/ささげる、予約補充phase4までを実験規約で扱う。
-Snapshot47、`official-execution-view-v45`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
+Snapshot52、`official-execution-view-v50`、Match ABI2・Config24/Command184/Status248 byte、phase0〜4が現行契約である。
 C Configのbyte6は `external_grants`、byte7は `include_fate`、byte20は `local_guardian_payloads` の独立したstrict boolで、byte21〜23は0を要求する。
 2〜9人/チームで通常行動・確率batchから応答、反射/跳ね返し連鎖・遮断、効果適用、
 死亡、補充、次の生存者へ進む実験用対局を実行する。固定座席の報酬、自然終局/打ち切り、
@@ -151,7 +151,7 @@ MP増加奇跡は現行台帳に無く、categoryで判定する一般predicate�
 ＜壁＞単品は初回/再使用ともMP6、初回はused保持し、補充は空き次第で1または0。v4は直後FREEによる費用0も許可する。
 blockは現在payload全取消の終端応答とし、reflection ledgerへ保持しない。各選択の消費・費用・予約を処理後、
 未終局/未打切りの場合だけまとめて配布して元ownerから巡回する。この全体順はclientのblock演出だけで証明できず、実験規約である。
-v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたview-v5、v8はresource_counter_ruleを加えたview-v6、v9はdamage_effect_ruleを加えたview-v7、v10はflash_ruleを加えたview-v8、v11はdarkcloud_ruleと現在forced_hitを加えたview-v9、v12はremoval_ruleを加えたview-v10、v13はmana_weapon_rule/repeat_attack_ruleを加えたview-v11、v14はwide_attack_ruleとrepeat規約更新を加えたview-v12、v15はrandom_hp_ruleを加えたview-v13、v16はrevival_ruleを加えたview-v14、v17はdanger_ruleと実行済launchのlast_dangerを加えたview-v15、v18はexchange_ruleを加えたview-v16、v19はremoval_event_ruleとlast_removalを加えたview-v17、v20はsell_ruleとlast_saleを加えたview-v18、v21はbuy_rule/purchase/last_purchaseと確認phaseを加えたview-v19、v22はdisease_ruleとboardの病気状態を加えたview-v20、v23はdisease_item_ruleを加えたview-v21、v24はfog_ruleとforced_hitのviewer別null化を加えたview-v22、v25はdeath_rule/pending.deathを加えたview-v23、v26は取引overflow_modelと規約を加えたofficial-execution-view-v24、v27は静的出典3fieldを加えたofficial-execution-view-v25とした。現行v47のviewは前述のofficial-execution-view-v45である。v18のMatch C ABIはtyped allocation追加のため2へ進め、catalog/state ABI1は維持する。
+v3/v4の公開JSONはofficial-execution-view-v2、v5は跳ね返し件数/規約を加えたview-v3、v6は現在命中率とchance_ruleを加えたview-v4、v7はpending.counterとcounter_ruleを加えたview-v5、v8はresource_counter_ruleを加えたview-v6、v9はdamage_effect_ruleを加えたview-v7、v10はflash_ruleを加えたview-v8、v11はdarkcloud_ruleと現在forced_hitを加えたview-v9、v12はremoval_ruleを加えたview-v10、v13はmana_weapon_rule/repeat_attack_ruleを加えたview-v11、v14はwide_attack_ruleとrepeat規約更新を加えたview-v12、v15はrandom_hp_ruleを加えたview-v13、v16はrevival_ruleを加えたview-v14、v17はdanger_ruleと実行済launchのlast_dangerを加えたview-v15、v18はexchange_ruleを加えたview-v16、v19はremoval_event_ruleとlast_removalを加えたview-v17、v20はsell_ruleとlast_saleを加えたview-v18、v21はbuy_rule/purchase/last_purchaseと確認phaseを加えたview-v19、v22はdisease_ruleとboardの病気状態を加えたview-v20、v23はdisease_item_ruleを加えたview-v21、v24はfog_ruleとforced_hitのviewer別null化を加えたview-v22、v25はdeath_rule/pending.deathを加えたview-v23、v26は取引overflow_modelと規約を加えたofficial-execution-view-v24、v27は静的出典3fieldを加えたofficial-execution-view-v25とした。現行v52のviewは前述のofficial-execution-view-v50である。v18のMatch C ABIはtyped allocation追加のため2へ進め、catalog/state ABI1は維持する。
 
 v4の無料化は各MCの即後FREEペア全てを免除し、MP不足prefixではなく完成列の最終費用を検証する。
 壁→FREEは全選択を消費/used保持する契約で、旧版の未消費suffixは採らない。
@@ -1969,3 +1969,19 @@ nativeは新1群を含む222関数、Pythonは151メソッドを各1回登録し
 全Release CTestは155/155件・41.99秒、ASan/UBSanの重点4件（official_match、official_live_trace、official_match_c_api、official_driver）は4/4件・34.89秒で通過した。両ビルドはwarning/error0。未変更の旧環境を含む全ASan suiteを今回再実行したとは呼ばない。過去の全suite通過記録はその時点の履歴として残す。
 
 main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計16record比較し、時間・worker以外の全fieldが一致した。checksumはmain2人 `8683080092853518022`、main9人 `429222971013924689`、driver2人 `17221520816642828748`、driver9人 `16247101765229435314`。これはローカル再現性の比較で、公式の乱数・配布モデルの一致や版間速度向上を主張しない。
+
+## v57：観測17件とnative比較15件の区別
+
+[v57公開観測記録](../data/official-v2/live-transition-witnesses-v57.json)は、SELL4＋46、17への空防御、222のDream付与、206のused奇跡除去、46＋オーラ・購入の複合grant、祈りからの241と通常品を加える。記録日は2026-11-05で、個別captureは2026-11-04〜05の範囲に限り特定できる。対局ruleset52 / Snapshot52 / view-v50、既定236/499・任意237/500、Match ABI2を維持し、本体の進行・grant順序を変更しない。
+
+完了公開観測は従来10件から17件、full wire traceは0件、独立routing-only観測は1件である。ただし46＋オーラ・購入の2件を単一効果のgoldenへ数えない。nativeへ追加するのは先4件＋祈り例の5件で、累計15件×72変種＝1,080公開投影比較と独立72routing検査になる。合成在庫やseedの変種数は公式対局数と分ける。以前の累計10件・720比較はv56時点の履歴として保持する。
+
+売却・17・222・206の4例では操作列から価格20、ATK4、MP6、used222除去を計算し、対応する公開資源・手札・Dream持続と比較する。206で除いたused222は発動済みのDreamを解除しない。未観測の補充modelやCPU在庫は補完せず、テストを完了するnormal fallbackがあってもlocal completionに限定する。全server event列やselectorへの適合とは数えない。
+
+祈り例ではDream中の本人が表示上武器なしで祈り、HP50→241の20被害→HP30→通常品受領、手札8→9、G.F.8→9を連続確認した。nativeでは元の予約1slotを悪魔後も保持し、通常品で1回埋める既存規約を比較する。観測していない通常品の正体をseedから合わせず、祈り・悪魔・通常授与の名目と実資源を分ける。この例を243の盗難補償や、reset/redrawにも同じ経路がある証拠へ広げない。
+
+46＋オーラ例のendpointは46＋231のpower24−DEF12、MP6支払と後続244/243列に整合するが、未観測CPU普通giftをnormalと仮定した完全再生へ置き換えない。購入例のBUY5とchance列も非公開在庫を伴う。両例のrecipient間順序は、画面のCPU先・本人後という表示順とbackend player array順を同一視せずに保持する。先にCPU244と仮のnormal fallbackを処理して同じ終点を作れても、観測されたevent順に一致したgoldenにはならない。最終手札数から243追加補償の有無を一意に確定することも避ける。
+
+今回の顔231は異なる真モデルへのrevealが確認されず、保存画像のicon比較だけでDream互換外と断定しない。178一新途中grant、94＋Wide、Dream全分布・不適合入力、一般Earth/Moon、公式の死亡/手番/補充scheduleという主要gapを維持する。旧pins、旧観測・oracle、過去の検証値と訂正、legacy37を変更せず、学習器を追加しない。
+
+変更した `godfield_official_live_trace_tests` をReleaseとASan/UBSanでビルドし、CTest `^official_live_trace$` は各1/1件が通過した（Release0.31秒、SAN0.76秒total）。両方で15例1080投影＋72routingを確認し、両ビルドのwarning/errorは0件。今回はテストと記録のみを変更し、本体・C/Python API・legacyを含む全suiteやベンチマークを再実行したとは呼ばない。

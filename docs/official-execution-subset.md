@@ -3043,3 +3043,18 @@ experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect
 nativeの自己売却比較は、選択した元4コピーの消費、未選択4の保持、26の配送を新giftと分けて調べる。実画面の4/26総数を、任意seedで新gift4/26が出た場合まで直接一致させない。46自己使用も選択した元コピーの消費と総手札数を比べ、新giftのモデル寄与を除く。実gift46をengineへ指定してRNGを合わせたり、未知の攻13を補完したりしない。本人以外の在庫やlocal tokenも実server値とは扱わない。
 
 反射後frame・bounce・counter・敵対象・chance/Wide・他特殊base・guardian/payloadは従来経路を維持する。94＋Wideと178の終末grant接続には今回新しい確証を得ておらず、現行の未対応範囲を広げない。内部即時解決と自動空応答、一般の死亡・補充schedule、公式serverとの完全同等性は引き続き未確定である。
+
+
+## 作業世代v57：終末中の公開遷移と外部chance比較（対局v52維持）
+
+[追加の実対局記録](../data/official-v2/live-transition-witnesses-v57.json)は、終末G.F.1・2人CPU修行の新7完了例を保存する。累計17完了例と別枠routing-only1例に対し、nativeの効果・資源投影へ追加するのは他者売却、無4攻撃、Dream付与、石けんによる使用済み222除去、祈りと241後の通常授与の5例である。旧10例と合わせた15例×72変種＝1080投影、従来72routingを別々に数える。複合的な46＋見かけ231とCPU購入の2例は未観測のCPU手札・補充を補わず、記録のみとする。
+
+本体の算術・scheduleは変更せず、`official-execution-subset-v52` / Snapshot52 / `official-execution-view-v50` / Match ABI2を維持する。台帳・配布pool・Dream互換クラス・既存API幅やopcode・旧pinsも変更しない。
+
+売却の価格20は商品46から計算し、CPUのCP20→40・本人20→0と本人への配送を比較する。無4は17から計算する。222はMP6支払い、Dream付与とusedコピー保持を比較する。206はDream付与前に受け取った実品で、CPUの既知のused222を除去しても本人へ既に付与されたDreamを解除しない。usedパネルの「1」は206前に直接確認した値で、除去後のパネルを再度開いた記録はない。nativeの除去後used0は、既知の1枚と除去表示に対する局所予測である。
+
+先の4例は、終末の未観測CPU補充を通常と置く合成completionで、比較可能な資源・本人枚数・既知コピー・次mainを検査する。通常completionを公式のgrant結果と扱わず、補充品のidentityやDreamのfake判定を比較しない。seedや未転記在庫の変更も、公式hidden stateの復元ではない。
+
+祈り例では本人50/4/5Dream・G.F.8・手札8から始め、武器のないsurrogate在庫で祈りを受理する。`external_grants=True` のphase4へ到達後、観測した241を外部chanceとして入力すると本人HP30になり、同じ未充足授与が残る。通常結果0を入力すると1枚を加えて手札9・G.F.9 CPU mainへ進む。通常品のmodel/fakeとserver RNGは比較しない。これは指定した結果に対する効果・継続の照合であり、helperが241を引く確率やserverの抽選分布を検証するものではない。各checkpointのsnapshot/restoreも合成状態の契約として検査する。
+
+複合例の本人244→243→CPU244という画面順を、内部の全受取人順に対応付けない。現実装のinput seat優先を変更する根拠にはしない。祈り単独でも悪魔後に通常神器を受け取ったため、これを243の追加補償giftと仮定する必要はない。一新178の即時redrawと終末grant接続、94＋Wide、互換外Dreamおよび全gift経路のserver順は引き続き残件である。

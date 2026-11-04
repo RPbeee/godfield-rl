@@ -2,19 +2,23 @@
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-## 現時点の主要残件（2026-11-04）
+<a id="現時点の主要残件2026-11-04"></a>
+
+## 現時点の主要残件（2026-11-05）
 
 対局エンジンは `official-execution-subset-v52` / Snapshot52 / view-v50。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[v52の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)と、[v53のDark自己死亡1件・反射剣の経路観測1件](../data/official-v2/live-transition-witnesses-v53.json)を取得した。さらに[v54の大木自己使用・鎖ガマ空防御・使用済み大木の再使用3件](../data/official-v2/live-transition-witnesses-v54.json)を確認した。[v56の自己売却・石2空防御・46自己使用3件](../data/official-v2/live-transition-witnesses-v56.json)を加え、資源・終局を照合する完了遷移は累計10件、反射剣の追加防御不要という経路だけの観測は別に1件。full wire traceは0件で、一般的な進行順・selectorは引き続き未確認である。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[v52の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)と、[v53のDark自己死亡1件・反射剣の経路観測1件](../data/official-v2/live-transition-witnesses-v53.json)を取得した。さらに[v54の大木自己使用・鎖ガマ空防御・使用済み大木の再使用3件](../data/official-v2/live-transition-witnesses-v54.json)を確認した。[v56の自己売却・石2空防御・46自己使用3件](../data/official-v2/live-transition-witnesses-v56.json)に続き、[v57の売買・Dream・悪魔授与等7件](../data/official-v2/live-transition-witnesses-v57.json)を記録し、完了した公開観測は累計17件、反射剣の追加防御不要という経路だけの観測は別に1件となった。17件すべてを単一効果の独立goldenと数えるものではなく、nativeへ投影するのは15件、複合chance/非公開在庫を含む46＋オーラ・購入の2件は未追加である。nativeの15×72＝1,080比較と72routing検査は、実対局の観測件数とは別の合成fixture数。full wire traceは0件で、一般的な進行順・selectorは引き続き未確認である。v57の記録日は2026-11-05、個々の取得は2026-11-04〜05の範囲で、正確なcapture時刻は取得していない。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移goldenの拡充 | 完了遷移10件と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 完了公開観測17件（native投影15件、46＋オーラ・購入の複合2件は未追加）と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡・精霊の杖46の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。特殊6種は公開client経路から既存bodyを使う限定一般化を加えたが、その自己効果順・二回攻撃の区切りは未実測。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の終末grant接続 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。178の即時一新はその継続処理を通らない。旧手札の破棄、Dream、各授与、未解決bodyへの復帰順を確認してから接続する。取引の直接配送を授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
 | 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |
 | 5 | Earth／Moonの一般処理 | canonical42、明示payload、Earth120／Moon26のローカル選出と任意設定の自動発動はある。全カテゴリのwrapper・混合列・公式候補分布は未対応。教典のEarth四カテゴリ／Moon奇跡という範囲だけから、選出や実行順を補わない |
+
+v57の祈り例では、武器を表示上持たないDream中の本人が祈り、HP50→241の20被害→HP30→通常品受領で手札8→9、G.F.8→9を連続確認した。元の1slotを悪魔後に通常品で満たすlocal retry規約を支持する例だが、243による盗難に追加補償giftが付く証拠ではない。46＋オーラ例の手札の変化とused231消失と残placeholder数も、原授与のretryと盗難補償を一意に区別しない。visible rosterのCPU先・本人後という配置をbackend player array順と同一視せず、recipient間の授与順を今回変更しない。Dream中の顔231やpink/gold iconだけから互換外fakeを断定せず、今回のDream全分布の反例とは数えない。
 
 Dreamの公開説明の「授与時50%」と、現実装の**候補がある品だけ50%**は異なる。[既定236種の互換クラス報告](../data/official-v2/dream-compatibility-v32.json)ではeligible146種・重み321、singleton90種・重み178である。207を加える任意237種ではeligibleは変わらず、singleton91種・重み179となる。[現在のgift処理](../src/official_match.cpp)はsingletonにcoin抽選もmaskも付けないため、Dreamを持つ受取人への通常配布1回で、giftRateの重み付き配布とcoinを理想的な独立抽選として計算すると、maskの設計上の期待確率は `321/500 × 0.5 = 32.1%`、既定poolでは `321/499 × 0.5 ≈ 32.1643%` となる。これはこの配布条件での計算値であり、全seedに対する厳密率、実対局全体の計測値・上限、公式の候補分布を表さない。同一modelへのmask等を足して50%へ合わせることも、公式挙動の確認にはならない。
 
@@ -2211,3 +2215,17 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+## v57：終末の授与と完了観測の区分
+
+[v57公開観測記録](../data/official-v2/live-transition-witnesses-v57.json)は新たに7件を加える。記録日は2026-11-05、captureは2026-11-04〜05の範囲で正確な個別時刻は未取得。対局本体はruleset52 / Snapshot52 / view-v50、配布pool・ABI・grant順序を含めruntimeを変更していない。累計は完了公開観測17件・独立routing-only1件・full wire trace0件である。
+
+先4件は、A: CPUのSELL4＋46・価格20を本人が空応答してCP20→0/CPU CP20→40・手札9→10、B: 本人の17・ATK4にCPUが空防御してCPU HP40→36、C: CPUの222に本人が空応答してDream付与・CPU MP10→4・used222、D: 本人の真206でCPUのused222を除去しても既に付いた本人Dreamは維持、という比較である。Bで受け取った206の真値は後のtooltipで確認した。Dは持続状態を既使用の発動品と一緒に巻き戻さない例であり、206を一般のcurse解除へ読み替えない。
+
+祈り例はG.F.8の本人HP50/MP4/CP5・手札8・表示上武器なしからの祈り。241の20被害でHP30、その後の通常cardで手札9、G.F.9 CPUmainを連続取得した。通常品のmodelやtokenは特定せず、1つの予約slotが悪魔後にも残って埋まるという既存retry契約を比較する。悪魔確率25%や各selectorの分布を、この1例で測定したとは扱わない。
+
+46＋オーラ例では46＋顔231のpreview/使用列、DEF12、source MP6支払とCPUへの12被害、両recipientの244HP効果、本人の243による135とused231の消失、残placeholderと後続2copyが見えた。購入例のBUY5/価格5と悪魔列も記録したが、両例は複合chance・非公開在庫を含むためnative goldenへ追加していない。特定の未観測CPU giftをnormal0と置いて終点へ合わせることや、表示rosterをbackend順とみなすことを避ける。243の追加補償2枚でも終点が一致する別仮説等を、最終枚数だけで排除したとはしない。
+
+[公開遷移native比較](../tests/official_live_trace_test.cpp)へは先4件＋祈り例の5件を加え、累計15件×72変種＝1,080公開投影比較、別枠72routing検査とする。これは15件の公開比較を合成在庫・seedへ展開した数で、1,080局を公式で観測したものではない。A〜Dの未観測の通常補充分はlocal completionであり、公式にnormalが選出されたという主張ではない。祈り例は観測した通常品到着という区分だけを指定し、そのmodelを乱数へfitしない。
+
+今回のface/icon比較ではDream互換外の実体を確認していない。178の途中一新とgrantの接続、94＋Wideの優先順、Dream全候補/実体不適合入力、一般Earth/Moonとserver scheduleは引き続き残件である。過去版の件数・検証値・v10/v16訂正とlegacy37を保持し、学習器は追加していない。
