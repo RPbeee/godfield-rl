@@ -1918,3 +1918,20 @@ seed42の通常対局とchoice/chance driverについて、2人1,000局/scene・
 | 通常対局 | 9人100局 | `5284858347239428124` |
 | choice/chance driver | 2人1,000scene | `1577905839749268940` |
 | choice/chance driver | 9人100scene | `15970925910578989730` |
+
+
+## v54：大木の自己使用と保持奇跡の再使用
+
+[v54観測記録](../data/official-v2/live-transition-witnesses-v54.json)に、213大木の自己使用、19鎖ガマへの空防御、使用済み213の後の自己使用という完了遷移3件を追加した。累計7完了例・独立routing-only 1件・full wire trace0件。G.F.3の別の再使用はCPUの次行動を取り逃したため、不完全区間として分離する。CP/MP変化を逆算して未観測のCPU両替を決めたり、新しいDEF2の由来を決めたりしない。
+
+同じ213のused表示を保持しながらMP3を払い、追加の本人defend無しで木6を受け、補充で表示枚数が1つ増えることを初回・後の再使用で確認した。本体は能力なし・hitRate0・非Wideの通常main自己攻撃奇跡を、既存の支払い・消費・保持処理とDEF0 bodyへ接続する。大木以外の同条件7種へは限定一般化であり、8種すべてのlive観測とは呼ばない。補充は従来から各使用で予約しており、今回giftの分布・候補・予約数を変更していない。
+
+対局ruleset50 / Snapshot50 / view-v48、Match ABI2固定。native218群では8種×未使用/使用済み×FREE有無、Dark終局、cutoff、外部grantからの再開、late allocationの全snapshot rollback、敵対象のresponse維持を検査する。213base+Wide232は実clientの追加条件に反するため原子的拒否を検査し、合法な武器+Wideの既存回帰と区別する。C API/Pythonでも213自己使用1decision・MP支払い・同token保持・余分なdefendの原子的拒否を確認する。Pythonは150メソッド、nativeは218関数を各1回登録した。
+
+新3完了例を含む7×72＝504公開投影比較と、反射剣の別枠72経路検査を維持する。合成の未選択在庫・seed・tokenの変化は観測投影の非依存性を調べるもので、実手札の再構成やserver RNGの再現ではない。初回大木の比較点は次の鎖ガマが未解決の画面であり、後の再使用はCPUの次launch前を連続捕捉した。
+
+main/driverの2人1,000件・9人100件をRelease/ASan、1worker/4workersで計16record比較し、時間・worker以外の全fieldが一致した。checksumはmain2人 `2119345984215049797`、main9人 `8347905528679061107`、driver2人 `411534287975272152`、driver9人 `17637447469635151454`。これはローカル実行の再現性で、公式対局の乱数同等性や版間速度向上を主張しない。
+
+全Release CTestは155/155件・170.16秒で通過した。Python150ケースもこの全suiteに含む。Release/ASanビルドのwarning/errorは0件。実行時間は環境と並行実行の影響を含み、速度改善値として使わない。旧pins・旧witness・保存oracle・legacy37を上書きしていない。
+
+全ASan/UBSan CTestも114/114件・1,210.23秒で通過した。今回は全suiteを各ビルド内で逐次実行しており、過去の並行suite実行時間との速度比較には使わない。

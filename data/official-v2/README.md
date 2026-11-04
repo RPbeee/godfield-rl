@@ -248,3 +248,10 @@ Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだっ�
 81は闇ATK4を本人へ1回使用し、追加の本人応答なしにHP9→0、CPU勝利でGF6のまま終局した。本人手札9→8、81消費・補充なしを確認した（本人208/112なし）。38は終末GF1の別対局で本人が1回自己使用し、追加defendなしに次の本人mainへ進んだ。ただし補充・悪魔・CPUの途中行動は未取得で、後のGF4/本人HP30/CPU55を38単独の資源goldenにはしない。
 
 実行器をruleset49/Snapshot49/`official-execution-view-v47`へ更新し、`self_attack_rule` のbase条件を `ability-none-or-reflect-weapon` に限定して拡張した。通常main・明示自己target・武器・hitRate0・WideなしをDEF0で即時解決し、他のspecial baseや反射後frame・bounce・counterは既存経路を維持する。Match ABI2は固定。内部即時処理と自動空応答、未観測grantや死亡特殊順序、公式完全同等性をこれらの画面証拠から主張しない。
+
+
+## v54：能力なし攻撃奇跡の自己使用
+
+[追加記録](live-transition-witnesses-v54.json)に、大木213の初回自己使用、鎖ガマ19への空防御、使用済み大木の後の自己使用という3完了遷移を保存した。累計は7完了遷移と別枠のrouting-only 1件、full server event traceは0件。途中のG.F.3自己使用は次のCPU行動が欠けるため不完全区間として分離する。新しい補充品の未同定modelやCPUの未観測行動は補わない。
+
+対局ruleset50 / Snapshot50 / view-v48は、大木で確認した追加防御不要の経路を、能力なし・hitRate0・非Wideの通常main自己攻撃奇跡へ限定して一般化する。MP消費・同一使用済みコピーの保持・各使用時の補充は既存処理を使い、gift抽選を観測結果に合わせる変更はない。既存pins・旧witness・保存oracle・Match ABI2は保持する。

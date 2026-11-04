@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "observed_on_jst": "2026-11-04",
+  "url": "https://godfield.net/",
+  "method": "Firefox native UI accessibility text and screenshots, including consecutive frame/accessibility captures. No injected browser code, backend request replay or full wire capture.",
+  "prior_record": "live-transition-witnesses-v53.json",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse": null
+  },
+  "privacy": "Viewer and CPU are roles. Names, user IDs, credentials, session URLs and request bodies are omitted. Native role IDs and physical tokens are local test values, not captured server IDs.",
+  "model_provenance": "Displayed names and facts are mapped to official-v2/cards.json:213 is big-tree (Wood ATK6,cost3),19 is kusarigama (neutral ATK5). The newly received gift models were not identified and remain null.",
+  "hand_count_policy": "viewer_visible_hand_count counts the reported displayed item copies including the retained used213 copy. The first post-cast10 consists of9 upper-row cards plus213 marked used in a second row. The used-miracle panel is recorded separately; a retained copy is not counted twice.",
+  "observed_guardians_and_curses": "No guardian or curse indicator was shown for either role at the recorded checkpoints.",
+  "cases": [
+    {
+      "id": "training-gf1-self-great-tree-no-response",
+      "before": {
+        "gf": 1,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn,unused213 selected and viewer chosen as target",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "cpu_hand_count": null,
+        "selected_model": 213,
+        "selected_copy_used": false,
+        "attack_models": [
+          213
+        ],
+        "attack_display": {
+          "power": 6,
+          "element": "wood",
+          "mp_cost": 3
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "models": [
+          213
+        ],
+        "target": "viewer"
+      },
+      "additional_viewer_response_chosen": false,
+      "observed_intermediate_sequence": [
+        "viewer MP10 to7",
+        "damage6 displayed",
+        "viewer HP40 to34"
+      ],
+      "after": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "viewer",
+        "checkpoint": "CPU's next19 neutral ATK5 has launched and is unresolved, before the viewer's response",
+        "viewer": {
+          "hp": 34,
+          "mp": 7,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 10,
+        "viewer_top_row_card_count": 9,
+        "retained_model": 213,
+        "retained_copy_used": true,
+        "retained213_copy_count": 1,
+        "viewer_used_miracle_panel_count": 1,
+        "cpu_used_miracle_panel_count": 0,
+        "subsequent_attack_models": [
+          19
+        ],
+        "subsequent_attack_display": {
+          "power": 5,
+          "element": null
+        },
+        "subsequent_attack_unresolved": true
+      },
+      "gift_observation": {
+        "received": true,
+        "model": null,
+        "display": {
+          "power": 8,
+          "element": "darkness",
+          "hit_rate": 75
+        },
+        "count": 1
+      },
+      "projection": "Independently compose single213, pay its3 MP once, retain its used copy and resolve the6 self damage without a synthetic defend command. Compare the public resources, retained badge, total displayed copies and next GF/owner. Exclude the still-unresolved19 attack damage.",
+      "limits": "The received gift model and physical token are not identified. The CPU hand is hidden. No backend event sequence or server RNG is captured; the observed MP-before-damage presentation does not establish every internal server stage."
+    },
+    {
+      "id": "training-gf2-kusarigama-empty-defense",
+      "before": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "viewer",
+        "checkpoint": "CPU's19 neutral ATK5 before the viewer's empty defense",
+        "viewer": {
+          "hp": 34,
+          "mp": 7,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 10,
+        "retained_model": 213,
+        "retained_copy_used": true,
+        "retained213_copy_count": 1,
+        "attack_models": [
+          19
+        ],
+        "attack_display": {
+          "power": 5,
+          "element": null
+        },
+        "cpu_hand_count": null
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "models": []
+      },
+      "after": {
+        "gf": 3,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn",
+        "viewer": {
+          "hp": 29,
+          "mp": 7,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 10,
+        "retained_model": 213,
+        "retained_copy_used": true,
+        "retained213_copy_count": 1
+      },
+      "projection": "Compute neutral ATK5 and zero defense from19, then compare viewer HP34 to29, unchanged MP/CP, unchanged retained213 and displayed hand count, and next GF/owner.",
+      "limits": "No inference about the CPU replacement item, hidden inventory or random draws is made."
+    },
+    {
+      "id": "training-gf5-reused-self-great-tree-no-response",
+      "before": {
+        "gf": 5,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn,already-used213 selected again and viewer chosen as target",
+        "viewer": {
+          "hp": 23,
+          "mp": 4,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 30,
+          "mp": 30,
+          "cp": 10
+        },
+        "viewer_visible_hand_count": 11,
+        "cpu_hand_count": null,
+        "selected_model": 213,
+        "selected_copy_used": true,
+        "retained213_copy_count": 1,
+        "cpu_used_miracle_panel_count": null,
+        "attack_models": [
+          213
+        ],
+        "attack_display": {
+          "power": 6,
+          "element": "wood",
+          "mp_cost": 3
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "models": [
+          213
+        ],
+        "target": "viewer"
+      },
+      "additional_viewer_response_chosen": false,
+      "capture": "A consecutive45-frame/accessibility loop followed this one accepted play through the next CPU-main checkpoint before its next attack launch.",
+      "observed_intermediate_sequence": [
+        "viewer MP4 to1",
+        "damage6 displayed",
+        "viewer HP23 to17",
+        "new ATK4 item received",
+        "GF6 CPU main before next launch"
+      ],
+      "after": {
+        "gf": 6,
+        "owner": "cpu",
+        "checkpoint": "CPU main before its next attack launch",
+        "viewer": {
+          "hp": 17,
+          "mp": 1,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 30,
+          "mp": 30,
+          "cp": 10
+        },
+        "viewer_visible_hand_count": 12,
+        "retained_model": 213,
+        "retained_copy_used": true,
+        "retained213_copy_count": 1,
+        "cpu_used_miracle_panel_count": null,
+        "next_cpu_attack_launched": false
+      },
+      "gift_observation": {
+        "received": true,
+        "model": null,
+        "display": {
+          "power": 4
+        },
+        "count": 1
+      },
+      "projection": "Compute the already-used213 cast cost3 and Wood damage6 from the card, without an inserted viewer defense. Compare MP4 to1, HP23 to17, the same single used213 display, one extra displayed copy and next GF/owner. This is a complete reuse checkpoint comparison independent of the incomplete GF3 interval.",
+      "limits": "The new ATK4 gift is not mapped to a model or physical token. The same retained display does not expose server token identity. CPU used-miracle count after its unrecorded GF4 action remains unknown."
+    }
+  ],
+  "incomplete_intervals": [
+    {
+      "id": "training-gf3-second-self-great-tree-incomplete",
+      "before": {
+        "gf": 3,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 29,
+          "mp": 7,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 10,
+        "selected_model": 213,
+        "selected_copy_used": true
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "models": [
+          213
+        ],
+        "target": "viewer"
+      },
+      "additional_viewer_response_chosen": false,
+      "captured_during_gf3": {
+        "viewer": {
+          "hp": 23,
+          "mp": 4,
+          "cp": 20
+        },
+        "displayed_damage": 6
+      },
+      "later_checkpoint": {
+        "gf": 5,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 23,
+          "mp": 4,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 30,
+          "mp": 30,
+          "cp": 10
+        },
+        "viewer_visible_hand_count": 11,
+        "retained213_copy_count": 1,
+        "newly_visible_card_model": null,
+        "newly_visible_card_display": {
+          "defense": 2
+        }
+      },
+      "limitation": "A capture gap includes the CPU's GF4 action and possible gifts. This interval is not a complete transition golden. The DEF2 card is not attributed conclusively to the GF3 reuse; no exchange, recovery card, CPU-used count or other intervening action is inferred from the resource endpoints."
+    }
+  ],
+  "native_test": "tests/official_live_trace_test.cpp",
+  "excluded_comparisons": [
+    "unidentified gift models and tokens",
+    "server token identity of retained213",
+    "hidden CPU hand and its size",
+    "CPU GF4 action or used count inferred from resource changes",
+    "server RNG/local seed equivalence",
+    "uncaptured backend event order"
+  ],
+  "new_completed_public_transition_witnesses": 3,
+  "new_routing_only_observations": 0,
+  "cumulative_completed_public_transition_witnesses": 7,
+  "cumulative_routing_only_observations": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

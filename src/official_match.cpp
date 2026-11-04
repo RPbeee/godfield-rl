@@ -1227,11 +1227,13 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
-            && base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon)
+            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon))
+                || (base.category == Category::miracles && base.ability == Ability::none))
             && !base.hit_rate && !has_wide(models)) {
-            // Live ordinary and reflection-sword self plays advanced without
-            // a separate defense command. ReflectWeapon is a defense role;
-            // using it as the attack base does not reflect its own payload.
+            // Live ordinary weapon, reflection-sword and ordinary miracle self
+            // plays advanced without a separate defense command. Shared launch
+            // payment/consumption retains miracles once. ReflectWeapon remains
+            // a defense role, not an automatic reflection of its own payload.
             // Other special bases and redirected frames keep their old routes.
             change_resource(s.state.players[seat], Resource::mp, -play_cost); consume_launch();
             resolve(s, original, 0); completed = true;
@@ -2030,7 +2032,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v47\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v48\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

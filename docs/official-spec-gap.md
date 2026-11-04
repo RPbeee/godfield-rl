@@ -4,13 +4,13 @@
 
 ## 現時点の主要残件（2026-11-04）
 
-対局エンジンは `official-execution-subset-v49` / Snapshot49 / view-v47。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜53では、通常main武器と反射剣の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。
+対局エンジンは `official-execution-subset-v50` / Snapshot50 / view-v48。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
-[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[v52の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)と、[v53のDark自己死亡1件・反射剣の経路観測1件](../data/official-v2/live-transition-witnesses-v53.json)を取得した。資源・終局を照合する完了遷移は累計4件、反射剣の追加防御不要という経路だけの観測は別に1件。full wire traceは0件で、一般的な進行順・selectorは引き続き未確認である。
+[実ブラウザの教典・CPU修行観測](official-live-observations.md)に続き、[v52の公開遷移3件](../data/official-v2/live-transition-witnesses-v52.json)と、[v53のDark自己死亡1件・反射剣の経路観測1件](../data/official-v2/live-transition-witnesses-v53.json)を取得した。さらに[v54の大木自己使用・鎖ガマ空防御・使用済み大木の再使用3件](../data/official-v2/live-transition-witnesses-v54.json)を確認した。資源・終局を照合する完了遷移は累計7件、反射剣の追加防御不要という経路だけの観測は別に1件。full wire traceは0件で、一般的な進行順・selectorは引き続き未確認である。
 
 | 優先 | 主要残件 | 現在できること／次に確かめること |
 | --- | --- | --- |
-| 1 | 公式の実遷移goldenの拡充 | 完了遷移4件と独立の経路観測1件を取得し、通常武器・反射剣の自己使用で不要な防御待ちを修正した。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
+| 1 | 公式の実遷移goldenの拡充 | 完了遷移7件と独立の経路観測1件を取得し、通常武器・反射剣・能力なし必中攻撃奇跡の自己使用で不要な防御待ちを修正した。大木のMP支払い・保持・再使用時の補充も確認した。Dark自己死亡の終局は確認したが、208／112の優先順、病気tick／補充／守護神の順は未確認。受信damageをそのまま注入した一致や、server乱数とローカルseedの同一視で代用しない |
 | 2 | 178の終末grant接続 | 予約補充のphase4・悪魔5種・ローカルhelperは実装済み。178の即時一新はその継続処理を通らない。旧手札の破棄、Dream、各授与、未解決bodyへの復帰順を確認してから接続する。取引の直接配送を授与へ自動的に読み替えない |
 | 3 | 94＋Wide232 | 公開clientの選択列は許すが、エンジンはこの組合せを明示unsupportedとする。臼所持者と全敵化の優先関係、対象固定・臼消費・反応順を公式の具体例で確認する |
 | 4 | Dreamの全候補と実体不適合入力 | 現実装は見かけの選択互換を保つ9field同値クラスに限定する。全授与への50%適用、互換外のfake、見かけ合法／実体不適合時の費用・効果・保持は未対応または未確認。選択前に真値を見て拒否する情報oracleで穴を埋めない |

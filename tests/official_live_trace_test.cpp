@@ -13,6 +13,7 @@ using namespace godfield::official;
 constexpr PlayerId cpu_id=0,viewer_id=7; // Local role mapping, not asserted server IDs.
 constexpr ItemToken attack_token=1000; // Arbitrary local physical token, not a model ID.
 constexpr ItemToken defense_token=2000,unused_defense_token=3000;
+constexpr ItemToken retained_miracle_token=4000;
 struct Resources {
     std::int64_t hp,mp,cp;
     bool operator==(const Resources&) const = default;
@@ -29,9 +30,12 @@ struct LiveTransitionCase {
     std::optional<std::size_t> viewer_after_hand_count;
     bool unselected_defense7=false;
     bool terminal=false;
+    std::int64_t displayed_mp_cost=0;
+    bool initial_used213=false;
+    bool cpu_used_count_unknown=false;
 };
 constexpr std::array<CardId,0> no_models{};
-constexpr std::array<CardId,1> star_staff{{75}},power_halberd{{32}},ogre_helm{{150}},goodbye_sword{{81}};
+constexpr std::array<CardId,1> star_staff{{75}},power_halberd{{32}},ogre_helm{{150}},goodbye_sword{{81}},great_tree{{213}},kusarigama{{19}};
 constexpr std::array<CardId,3> absorption_column{{45,124,34}};
 // A partial public witness: no server damage/RNG/hidden inventory is supplied to
 // the executor. The observations are checkpoints, not a whole-game replay.
@@ -43,7 +47,13 @@ constexpr std::array cases{
     LiveTransitionCase{"training2-gf5-absorption26-defense7",5,6,
         {40,25,20},{28,10,20},{59,25,20},{9,10,20},cpu_id,viewer_id,viewer_id,absorption_column,ogre_helm,26,7,{},9,9},
     LiveTransitionCase{"training2-gf6-self-dark-goodbye-sword-terminal",6,6,
-        {59,25,20},{9,10,20},{59,25,20},{0,10,20},viewer_id,viewer_id,viewer_id,goodbye_sword,no_models,4,0,Element::darkness,9,8,false,true}
+        {59,25,20},{9,10,20},{59,25,20},{0,10,20},viewer_id,viewer_id,viewer_id,goodbye_sword,no_models,4,0,Element::darkness,9,8,false,true},
+    LiveTransitionCase{"training-gf1-self-great-tree-no-response",1,2,
+        {40,10,20},{40,10,20},{40,10,20},{34,7,20},viewer_id,viewer_id,cpu_id,great_tree,no_models,6,0,Element::wood,9,10,false,false,3},
+    LiveTransitionCase{"training-gf2-kusarigama-empty-defense",2,3,
+        {40,10,20},{34,7,20},{40,10,20},{29,7,20},cpu_id,viewer_id,viewer_id,kusarigama,no_models,5,0,{},10,10,false,false,0,true},
+    LiveTransitionCase{"training-gf5-reused-self-great-tree-no-response",5,6,
+        {30,30,10},{23,4,20},{30,30,10},{17,1,20},viewer_id,viewer_id,cpu_id,great_tree,no_models,6,0,Element::wood,11,12,false,false,3,true,true}
 };
 void check(bool ok,std::string_view case_id,const char* message){
     if(!ok){std::cerr<<"FAIL live transition "<<case_id<<": "<<message<<'\n';std::exit(1);}
@@ -65,6 +75,11 @@ SnapshotState completion(const LiveTransitionCase& witness,std::size_t cpu_count
     auto& attacker=witness.attacker==cpu_id?cpu:viewer;
     for(std::size_t i=0;i<witness.attack_models.size();++i)attacker.items.push_back({attack_token+i,witness.attack_models[i],{},false});
     for(std::size_t i=0;i<witness.defense_models.size();++i)viewer.items.push_back({defense_token+i,witness.defense_models[i],{},false});
+    if(witness.initial_used213){
+        const auto retained=std::find_if(viewer.items.begin(),viewer.items.end(),[](const auto& item){return item.model==213;});
+        if(retained!=viewer.items.end())retained->used=true;
+        else viewer.items.push_back({retained_miracle_token,213,{},true});
+    }
     // Only DEF7 and its nonuse were established for case2: this plain DEF7
     // surrogate does not assert the unselected inventory's exact model identity.
     if(witness.unselected_defense7)viewer.items.push_back({unused_defense_token,149,{},false});
@@ -78,14 +93,14 @@ SnapshotState completion(const LiveTransitionCase& witness,std::size_t cpu_count
     }
     for(std::size_t i=0;cpu.items.size()<cpu_count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
     for(std::size_t i=0;viewer.items.size()<witness.viewer_hand_count;++i)viewer.items.push_back({i,unused_filler(profile,i),{},false});
-    // No diseases/guardians were observed. The first three attacks are nonlethal;
+    // No diseases/guardians were observed. All except the Dark attack are nonlethal;
     // the fourth actor's known remaining hand has no208/112. Hidden CPU copies
     // cannot intercept or revive the other player's self-directed damage.
     scene.players={std::move(cpu),std::move(viewer)};return scene;
 }
 void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu_count,unsigned profile){
     check(attack_power(witness.attack_models)==witness.displayed_power
-        &&attack_element(witness.attack_models)==witness.displayed_element &&magic_cost(witness.attack_models)==0,
+        &&attack_element(witness.attack_models)==witness.displayed_element &&magic_cost(witness.attack_models)==witness.displayed_mp_cost,
         witness.id,"public catalog independently predicts the observed ordered attack summary");
     std::vector<VisibleSelection> prefix;
     for(auto model:witness.attack_models){check(can_append_main(prefix,{model,false}),witness.id,"observed source column satisfies the client append predicate");prefix.push_back({model,false});}
@@ -99,6 +114,8 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
         witness.id,"armor124 and weapon34 are source ATK extras, not independently cast response abilities");
     MatchConfig config;config.initial_hand=0;config.include_fate=true;config.max_decisions=16;
     Match match(config);match.load_scene(completion(witness,cpu_count,profile),witness.attacker,seed);
+    if(witness.initial_used213)check(std::count_if(by_role(match,viewer_id).items.begin(),by_role(match,viewer_id).items.end(),
+        [](const auto& item){return item.used&&item.model==213;})==1,witness.id,"observed initial used213 is represented before the command");
     std::vector<ItemToken> attack_tokens,defense_tokens;
     for(std::size_t i=0;i<witness.attack_models.size();++i)attack_tokens.push_back(attack_token+i);
     for(std::size_t i=0;i<witness.defense_models.size();++i)defense_tokens.push_back(defense_token+i);
@@ -115,6 +132,10 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
                 &&!match.legal({viewer_id,CommandKind::defend,{unused_defense_token},{}}),
                 witness.id,"available ordinary DEF7 remains unused and no self-response input is exposed");
         }
+        // After the first213, the next CPU's zero-MP weapon was observed before
+        // its body and cannot change the compared projection. After the later
+        // reused213, CPU main itself was read. Neither case invents CPU defense
+        // or compares the unidentified new gift model.
     }else{
         const auto& pending=match.snapshot();
         check(pending.phase==MatchPhase::response && pending.actor==viewer_id && pending.owner==witness.attacker
@@ -132,6 +153,15 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
     }
     check(resources(by_role(match,cpu_id))==witness.cpu_after && resources(by_role(match,viewer_id))==witness.viewer_after,
         witness.id,"computed resource result equals the actual public checkpoint");
+    if(witness.attack_models.front()==213||witness.initial_used213){
+        const auto& items=by_role(match,viewer_id).items;
+        const auto retained_token=witness.attack_models.front()==213?attack_token:retained_miracle_token;
+        check(std::any_of(items.begin(),items.end(),[&](const auto& item){return item.token==retained_token&&item.model==213&&item.used;})
+            &&std::count_if(items.begin(),items.end(),[](const auto& item){return item.used;})==1,
+            witness.id,"the same physical213 stays retained with exactly one used miracle");
+        if(!witness.cpu_used_count_unknown)check(std::none_of(by_role(match,cpu_id).items.begin(),by_role(match,cpu_id).items.end(),[](const auto& item){return item.used;}),
+            witness.id,"the observed CPU used-miracle pane remains empty");
+    }
     if(witness.terminal){
         check(match.snapshot().state.gf==witness.gf_after&&match.snapshot().phase==MatchPhase::finished
             &&match.snapshot().terminated&&!match.snapshot().truncated&&!match.snapshot().actor

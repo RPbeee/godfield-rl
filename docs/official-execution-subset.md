@@ -2980,3 +2980,23 @@ experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-refl
 その停止点のHP30・未実行grant・RNGはC++規約の検査値であり、公式UIから取得した中間stateではない。後続grantを都合よく選んでG.F.4/CPU HP55へ合わせる比較も行わない。Darkの4→致死、普通32の9被害、吸収列の残余19は台帳と選択列から独立計算し、受信damageをエンジンへ注入して一致させない。
 
 C++・C API・Pythonにも、ローカルな38自己使用で追加defendを作らないことと、消費・本体・grant継続の境界を検査する。これらのAPI回帰と合成probeを、完了した公式公開遷移4件やrouting-only1件と混同しない。未転記在庫・補充品・server seedを復元せず、過去版の検証値とv10/v16訂正、legacy37を保持する。学習器・学習済みモデルは追加していない。
+
+## 対局v50（作業世代v54）：通常奇跡の自己使用
+
+[追加の実対局記録](../data/official-v2/live-transition-witnesses-v54.json) は新しい完了公開遷移3件を加える。累計は**完了7件・routing-only1件・完全なserver event列0件**。公開投影の504比較（7件×72の合成在庫変種）と、別区分の72routing probeを、公式対局の新規観測数と混同しない。前版の記録・規約・検証履歴は書き換えない。
+
+今回の213＜大木＞は、G.F.1の本人40/10/20・CPU40/10/20から本人へ使用した。MP10→7の表示、6被害、追加の本人defendなしでG.F.2のCPU鎖ガマ・ATK5の未解決攻撃へ進み、本人34/7/20・CPU40/10/20を確認した。この次の攻撃はまだ解決しておらず、6被害へ含めない。表示された結果から内部即時処理と自動空応答の違いまでは確定しない。初回cast後は本人の表示品9→10、used213が1コピー残り、補充品のモデルは未同定である。
+
+続く鎖ガマ19への空応答は本人HP34→29・MP7/CP20と表示品10を保ち、G.F.3の本人mainへ進んだ。もう1件はG.F.5の既使用213を本人23/4/20・CPU30/30/10から再使用し、MP4→1、HP23→17、新品1個の表示、表示品11→12、used213は1コピーのまま、CPU次攻撃前のG.F.6まで連続取得した。表示上の同じ保持品を再利用したことと補充数は比較できるが、server token同一性と新品モデルは未取得である。G.F.3〜5の別の再使用とCPU行動をまたぐ不完全区間は、この3件へ数えない。
+
+`official-execution-subset-v50` / Snapshot50 / `official-execution-view-v48` は、明示self target・hitRate0・Wideなしの通常mainについて、既存の武器base（abilityなし／reflectWeapon）に**奇跡base・abilityなし**を追加した。対象となる通常奇跡は210/211/212/213/214/215/217/218の8種で、213の実観測からの限定一般化を含む。各モデルを公式UIで全て実測したとの主張ではない。通常の完成列費用を1回払い、同じMC tokenをusedで保持し、DEF0で解決して元playを1decisionとする。
+
+`self_attack_rule` は以下の値をheader・C getter・Python属性・observeへ共有する。Match ABI2・構造体幅・phase・opcodeは維持し、Snapshot旧1〜49は拒否する。
+
+```text
+experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-or-reflect-weapon-or-miracle-base-ability-none;hit-rate0-no-wide;immediate-zero-defense-one-decision;other-self-specials-and-redirects-keep-existing-response-route
+```
+
+各castで既存の上限内giftを予約する規約は変更していない。公開clientの `jS.$0`→`fH.ed` はMCを保持し、初回used化だけでなく再利用時も空slotを作れる処理を持つ。ここから「usedなら以後補充なし」へ変更しない。一方、178即時一新や終末悪魔を含む全server補充scheduleは未確認のままである。他の特殊base、chance、Wide、反射後frame、bounce、counter、guardian/payloadの別入口は既存経路を維持する。
+
+native218群とPython150ケースが今回の限定境界と従来の規約を検査する。213の橋ケースはMP3の単一支払い、HP6減少、同tokenのused保持、余分defendの拒否と失敗時不変を扱う。これらのローカル境界検査や合成在庫変種を、公式完全同等性・未観測のgift内容・内部event順の証明には使わない。

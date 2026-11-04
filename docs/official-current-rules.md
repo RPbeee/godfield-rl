@@ -2044,3 +2044,15 @@ GF6、本人HP9/MP10/CP20・CPU59/25/20で、本人が81（闇ATK4）を自分�
 38（反射剣、無属性ATK10）は、GF2で本人40/10/20・CPU50/10/20から本人が自己使用し、追加の本人defend操作なしでGF4の本人mainへ進んだ。必須の自己応答待機とは整合しない一方、途中の補充・悪魔とCPU行動が未取得である。後の本人30/10/20・CPU55/10/20はroutingの到達点であり、38単独の完全な資源遷移goldenにはしない。nativeの合成sceneで予測したpost-body HP30・grant pause・RNGを、公式UIで観測した中間状態と呼ばず、後のCPU55に合わせたgrantを入力して一致を作らない。
 
 この追加routingに合わせ、実行器ruleset49・Snapshot49・`official-execution-view-v47` は新 `self_attack_rule` を `weapon-base-ability-none-or-reflect-weapon-hit-rate0-no-wide` とする。通常mainの明示自己targetに限り、武器baseのabilityなし、またはreflectWeaponをDEF0で即時解決する。これ以外の特殊自己base・反射後frame・bounce・counterの既存応答経路は維持し、Match ABI2と構造体幅は変更しない。公式server内部で即時処理したか自動空応答したかは引き続き未確定で、未取得の補充や全公式ルールへの同等性を主張しない。
+
+## v54：通常奇跡の自己使用とcastごとの補充
+
+[追加記録](../data/official-v2/live-transition-witnesses-v54.json) は完了公開遷移を新たに3件追加し、累計は**完了7件・routing-only1件・full wire取得0件**となる。nativeの公開投影504比較は7件それぞれの合成在庫変種72通りで、別の72routing probeとともに公式の新規試行数とは区別する。旧版の記録・規約・検証数値はその時点の履歴として残す。
+
+213＜大木＞・木ATK6/MP3を、G.F.1で本人40/10/20・CPU40/10/20から本人へ使用した。MP7の先行表示後に6被害となり、追加defendなしでG.F.2のCPU鎖ガマATK5への応答待ちに進んだ。本人34/7/20・CPU40/10/20を比較し、その未解決の次攻撃はHP差へ含めない。サーバー内部の即時処理と自動空応答は区別できない。本人の表示品は9→10、used213が1コピー残った。
+
+残る新規完了2件は、19への空応答（本人34→29、MP7/CP20・表示品10維持、G.F.3）と、G.F.5の既使用213再使用である。後者は本人23/4/20・CPU30/30/10からMP4→1、HP23→17、新品1個の表示で手札11→12、used213表示1コピーを保ち、CPUの次攻撃前G.F.6へ進んだ。補充品のモデル・物理tokenは未同定で、保持表示の継続をserver tokenの捕捉とは扱わない。途中G.F.3〜5の別区間はCPU行動が未取得なので完了goldenから除外する。
+
+実行器はruleset50・Snapshot50・`official-execution-view-v48` とし、`self_attack_rule` のbase条件を `weapon-base-ability-none-or-reflect-weapon-or-miracle-base-ability-none;hit-rate0-no-wide` へ更新した。通常main・明示自己target・非chance・非Wideに限り、通常奇跡210/211/212/213/214/215/217/218もDEF0で即時解決する。8種全ての実UI照合ではなく、213の事実を含む限定一般化である。費用は完成列から1回計算し、MCは同tokenをused保持する。Match ABI2と構造体幅は固定し、他特殊base・chance・Wide・redirect・counter等の既存応答経路は変更しない。
+
+公開clientの `jS.$0`→`fH.ed` では、MCの初回保持後だけでなく再利用時にも空slotを作れる。実行器の「各castで既存上限内giftを予約する」規約は維持し、今回used MCの再使用を補充なしへ変更していない。この選択/表示経路は178の一新・終末悪魔・全配布のserver scheduleまで証明しない。native218群・Python150ケースによる本体/橋の検査と、公開完了遷移7件を分け、完全公式同等性や未取得の内部順序を主張しない。

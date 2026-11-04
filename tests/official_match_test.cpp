@@ -23,7 +23,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v49"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v50"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -260,7 +260,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v47\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v48\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3016,7 +3016,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==49&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==50&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3026,7 +3026,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v47")!=std::string::npos
+    check(view.find("official-execution-view-v48")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3069,10 +3069,60 @@ void ordinary_self_attack_completion_and_resume(){
         "Wide continues to use its enemy roster even with a self target hint");roundtrip(wide);
 }
 
+
+void ordinary_self_miracles_cost_retention_and_resume(){
+    std::size_t models=0;
+    for(const auto& card:catalog())if(card.category==Category::miracles&&card.ability==Ability::none&&!card.hit_rate){
+        ++models;
+        for(bool already_used:{false,true})for(bool free:{false,true}){
+            auto state=scene({card.id},{});state.gf=17;state.players[0].hp=state.players[0].mp=99;
+            state.players[0].items[0].used=already_used;
+            std::vector<CardId> column{card.id};Command command=play(0,{0},0);
+            if(free){state.players[0].items.push_back({1,46,{},false});column.push_back(46);command.items.push_back(1);}
+            const auto expected_mp=99-magic_cost(column),power=attack_power(column);
+            auto game=fixture(state);check(game.legal(command),"ordinary self MC and optional adjacent FREE are ready");game.step(command);
+            const auto& own=game.snapshot().state.players[0];
+            check(own.mp==expected_mp&&game.snapshot().decisions==1
+                &&std::any_of(own.items.begin(),own.items.end(),[&](const auto& item){return item.token==0&&item.model==card.id&&item.used;}),
+                "self MC pays once and keeps its original physical copy used, including repeat casts");
+            if(card.element==Element::darkness)check(game.done()&&own.hp==0&&own.items.size()==1,
+                "self Dark miracle retains its used copy but cancels terminal replacement gifts");
+            else check(own.hp==99-power&&game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7
+                &&own.items.size()==(free?3u:2u),"ordinary self MC completes DEF0 body and existing replacement for every cast");
+            roundtrip(game);
+        }
+    }
+    check(models==8,"only eight ability-free nonchance miracle bases use the new route");
+    auto state=scene({213},{});state.gf=17;MatchConfig cutoff;cutoff.max_decisions=1;
+    auto stopped=fixture(state,cutoff);const auto initial_rng=stopped.snapshot().rng;stopped.step(play(0,{0},0));
+    check(stopped.snapshot().truncated&&stopped.snapshot().state.players[0].hp==34&&stopped.snapshot().state.players[0].mp==7
+        &&stopped.snapshot().state.players[0].items.size()==1&&stopped.snapshot().state.players[0].items[0].used
+        &&stopped.snapshot().rng==initial_rng,"self MC body and charge precede cutoff while replacement remains unexecuted");roundtrip(stopped);
+    state.tiebreak_gf=0;MatchConfig deferred;deferred.external_grants=true;auto pending=fixture(state,deferred);pending.step(play(0,{0},0));
+    check(pending.snapshot().phase==MatchPhase::grant&&pending.snapshot().state.players[0].hp==34
+        &&pending.snapshot().state.players[0].mp==7&&pending.snapshot().state.players[0].items[0].used,
+        "self MC reaches deferred gift after exactly one payment and body");roundtrip(pending);
+    pending.grant_step({0,0,{},{}});check(pending.snapshot().owner==7&&pending.snapshot().state.players[0].hp==34
+        &&pending.snapshot().state.players[0].mp==7&&pending.snapshot().state.players[0].items.size()==2,
+        "self MC grant resume replays neither damage nor payment");roundtrip(pending);
+    auto exhausted=scene({213},{});exhausted.players[0].items[0].token=9007199254740991ULL;auto atomic=fixture(exhausted);
+    const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{9007199254740991ULL},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late self MC allocation failure rolls back MP, HP, used marker, journal and RNG");
+    auto wide_state=scene({213,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);
+    const std::array<VisibleSelection,1> miracle_prefix{{{213,false}}};
+    check(!can_append_main(miracle_prefix,{232,false}),"Wide cannot be appended to a miracle base under the actual client predicate");
+    reject(wide,play(0,{0,1},0));roundtrip(wide);
+    auto foreign=fixture(scene({213},{}));foreign.step(play(0,{0},7));
+    check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7,
+        "foreign ordinary miracle still offers the target a real response");roundtrip(foreign);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),217> tests{{
+    const std::array<void(*)(),218> tests{{
+        ordinary_self_miracles_cost_retention_and_resume,
         ordinary_self_attack_completion_and_resume,
         automatic_payload_independent_bigint_stage_vectors,
         automatic_payload_opt_in_and_unchanged_external_helper,
