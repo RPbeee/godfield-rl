@@ -2123,3 +2123,9 @@ clientが受理するgameのfieldにはplayers/gf/tiebreakGF/attackTurnPlayerId/
 本人118＋142のDEF8に対するATK22の14被害、CPU243による191/206除去、本人68の通常受領と同じ受信id5での241→242、HP26→6→0、die→endGameを記録した。最終GF1・CPU勝利は、補充中の致死で次GFへ進まない現規約と整合する。CPU135/172は手札差分から分かる通常結果で、順は不明。新native比較は両順を試す条件付きcompletionであり、CPU内部retryや一般recipient順の証明へ広げない。
 
 最終本人はdead=true・HP0だが、実物8とmodel0/id0のempty1が残る。したがってempty表示からlive gift debtを自動生成できない。Pythonの明示 `ReceivedState` はこのcanonical emptyを元配列index付きmetadataへ分離し、実物を既存native投影で検証する。strict `OfficialState` / native ItemInstanceのmodel0拒否とMatchのpending scene制約は維持する。実行器本体はruleset53 / Snapshot53 / view-v51・ABI2のままで、補充や死亡規約を今回変更したものではない。
+
+## v61：受信した偽装と、ローカル抽選の分離
+
+既存clientのitem decoderはmodelId/fakeModelId/usedを別に持ち、選択はfake優先、受信use表示はactualへの翻面を行う。翻面だけでrawのfakeが消えるとは確定しない。この境界を保ち、新 `ArtifactGrantAction` は既知の互換actual/fakeまたは明示unmasked結果を外部chanceとして入力する。供給結果を生成する乱数や公式selectorの実装を得たという意味ではない。
+
+ruleset54 / Snapshot54 / view-v52で型付きgrant journalとC16 byteの独立入口を追加した。旧GrantAction/通常0/sampler、互換クラス内という実行閉包、配布・死亡scheduleは維持する。今回の探索で新しい公式Dream pairを確定していないため、完了観測の件数は増やさない。互換外を真値による事前拒否でごまかす方式や、同一modelへのmaskで50%へ合わせる変更も行っていない。

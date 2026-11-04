@@ -135,6 +135,92 @@ void explicit_ordinary_grant_interop() {
         gfo_match_destroy(game);
     }
 }
+
+void artifact_grant_bridge() {
+    namespace official = godfield::official;
+    check(gfo_match_artifact_grant_action_size()==16&&sizeof(gfo_match_artifact_grant_action)==16
+        &&offsetof(gfo_match_artifact_grant_action,model)==8&&offsetof(gfo_match_artifact_grant_action,fake_model)==10
+        &&offsetof(gfo_match_artifact_grant_action,reserved)==12&&gfo_match_grant_action_size()==32,
+        "new artifact16 layout leaves old grant32 layout unchanged");
+    std::size_t count=0;for(uint16_t model=0;model<=296;++model)count+=gfo_match_artifact_grant_supported(model)!=0;
+    check(count==237&&gfo_match_artifact_grant_supported(207)&&!gfo_match_artifact_grant_supported(0)
+        &&!gfo_match_artifact_grant_supported(240)&&std::string(gfo_match_artifact_grant_rule())==official::artifact_grant_rule,
+        "artifact static ordinary union and exact rule getter");
+    for(unsigned variant=0;variant<4;++variant) {
+        const bool dream=variant!=0, masked=variant==2, opted=variant==3;
+        gfo_match_config cfg{};cfg.initial_hp=40;cfg.initial_mp=10;cfg.initial_cp=20;cfg.hand_limit=18;
+        cfg.max_decisions=32;cfg.external_grants=1;cfg.include_fate=opted;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;gfo_match* game=nullptr;
+        check(gfo_match_create(&cfg,setup.data(),setup.size(),42,&game)==0,"artifact C match create");
+        std::array<gfo_state_player,2> people{};people[1].id=7;for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}
+        const uint8_t curse=static_cast<uint8_t>(official::Curse::dream);
+        if(dream){people[0].curse_count=1;people[1].curse_offset=1;}
+        gfo_state_meta meta{};meta.has_tiebreak=1;gfo_state* state=nullptr;gfo_match_status result{};
+        check(gfo_state_create(&meta,people.data(),people.size(),nullptr,0,dream?&curse:nullptr,dream?1:0,&state)==0
+            &&gfo_match_load_scene(game,state,0,42,&result)==0,"artifact C received board");
+        gfo_state_destroy(state);
+        official::MatchConfig nc;nc.initial_hand=0;nc.max_decisions=32;nc.external_grants=true;nc.include_fate=opted;
+        official::Match native(nc);official::SnapshotState ns;ns.tiebreak_gf=0;ns.players.resize(2);ns.players[1].id=7;
+        if(dream)ns.players[0].curses={official::Curse::dream};native.load_scene(ns,0,42);
+        gfo_match_command pray{};pray.kind=3;
+        check(gfo_match_step(game,&pray,&result)==0&&result.phase==4,"artifact waits at existing grant phase");
+        (void)native.step({0,official::CommandKind::pray,{},{}});
+        const auto before=observe(game,1,0), spectator_before=observe(game,0,0);const auto old_status=status(game);
+        gfo_match_artifact_grant_action supplied{};supplied.model=opted?207:23;supplied.fake_model=masked?16:0;
+        const auto old_input=supplied;
+        struct Guarded { uint64_t left;gfo_match_status value;uint64_t right; };
+        Guarded guarded{0x123456789abcdef0ULL,old_status,0xfedcba9876543210ULL};uint8_t marker=0xa5;
+        check(gfo_match_artifact_grant_legal(nullptr,&supplied,&marker)==-1
+            &&gfo_match_artifact_grant_legal(game,nullptr,&marker)==-1
+            &&gfo_match_artifact_grant_legal(game,&supplied,nullptr)==-1&&marker==0xa5
+            &&gfo_match_artifact_grant_step(nullptr,&supplied,&guarded.value)==-1
+            &&gfo_match_artifact_grant_step(game,nullptr,&guarded.value)==-1
+            &&gfo_match_artifact_grant_step(game,&supplied,nullptr)==-1&&equal(guarded.value,old_status),
+            "artifact NULL guards preserve outputs and pending world");
+        for(unsigned byte=0;byte<5;++byte){auto bad=supplied;if(byte<4)bad.reserved[byte]=1;else bad.target=official::max_wire_integer+1;
+            marker=0xa5;guarded.value=old_status;
+            check(gfo_match_artifact_grant_legal(game,&bad,&marker)==-2&&marker==0xa5
+                &&gfo_match_artifact_grant_step(game,&bad,&guarded.value)==-2&&equal(guarded.value,old_status)
+                &&observe(game,1,0)==before,"artifact strict reserved/ID fields are atomic");}
+        for(unsigned error=0;error<7;++error){auto bad=supplied;
+            if(error==0)bad.target=7;if(error==1){bad.model=0;bad.fake_model=0;}
+            if(error==2){bad.model=240;bad.fake_model=0;}if(error==3){bad.model=23;bad.fake_model=23;}
+            if(error==4){bad.model=23;bad.fake_model=231;}if(error==5){bad.model=207;bad.fake_model=16;}
+            if(error==6){bad.model=23;bad.fake_model=207;}
+            marker=0xa5;guarded.value=old_status;
+            check(gfo_match_artifact_grant_legal(game,&bad,&marker)==0&&!marker
+                &&gfo_match_artifact_grant_step(game,&bad,&guarded.value)<0&&equal(guarded.value,old_status)
+                &&observe(game,1,0)==before,"artifact semantic invalidity does not leak or partially resolve");}
+        if(!dream){auto no_dream=supplied;no_dream.fake_model=16;guarded.value=old_status;
+            check(gfo_match_artifact_grant_legal(game,&no_dream,&marker)==0&&!marker
+                &&gfo_match_artifact_grant_step(game,&no_dream,&guarded.value)<0&&equal(guarded.value,old_status),"supplied face requires Dream");}
+        if(!opted){auto no_pool=supplied;no_pool.model=207;no_pool.fake_model=0;guarded.value=old_status;
+            check(gfo_match_artifact_grant_legal(game,&no_pool,&marker)==0&&!marker
+                &&gfo_match_artifact_grant_step(game,&no_pool,&guarded.value)<0&&equal(guarded.value,old_status),"artifact207 requires configured gift pool");}
+        uint64_t chance=42;gfo_match_grant_action sampled{};
+        check(gfo_match_sample_grant(game,&chance,&sampled)==0&&(sampled.model==0||(sampled.model>=240&&sampled.model<=244))
+            &&observe(game,1,0)==before,"old local chance sampler still emits only0 or devils and is pure");
+        const auto before_native=native.snapshot();marker=0xa5;
+        check(gfo_match_artifact_grant_legal(game,&supplied,&marker)==0&&marker&&observe(game,0,0)==spectator_before,
+              "artifact legal query is pure");
+        check(gfo_match_artifact_grant_step(game,&supplied,&guarded.value)==0&&equal(supplied,old_input)
+            &&equal(guarded.value,status(game))&&guarded.left==0x123456789abcdef0ULL&&guarded.right==0xfedcba9876543210ULL,"artifact step writes full status while preserving input and canaries");
+        official::ArtifactGrantAction action;action.target=0;action.model=supplied.model;
+        if(masked)action.fake_model=16;(void)native.artifact_grant_step(action);
+        check(native.snapshot().rng==before_native.rng,"artifact input never draws a Dream coin, face or ordinary model");
+        const auto& item=native.snapshot().state.players[0].items.front();
+        check(item.token==before_native.next_token&&item.model==supplied.model&&!item.used
+            &&item.fake_model==(masked?std::optional<official::CardId>{16}:std::nullopt),"typed artifact receipt preserves exact requested presence");
+        official::Match restored;restored.restore(native.snapshot());
+        check(restored.snapshot()==native.snapshot()&&observe(game,0,0)==native.observe({})
+            &&observe(game,1,0)==native.observe(0)&&observe(game,1,7)==native.observe(7),"artifact full proof roundtrip and C/native viewer projections agree");
+        const auto public_view=observe(game,0,0);
+        check(public_view.find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos
+            &&public_view.find("\"fake_model\"")==std::string::npos&&public_view.find("\"token\"")==std::string::npos,
+            "artifact actual/face/presence are absent from the public grant notice");
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
     std::size_t fixed_query_probes = 0;
@@ -171,8 +257,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v53"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v53 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v54"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v54 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
@@ -495,7 +581,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v51\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v52\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2763,6 +2849,7 @@ int main() {
     check(gfo_match_legal(sacrifice_match,&sacrifice,&legal)==0&&legal&&gfo_match_step(sacrifice_match,&sacrifice,&result)==-2
         &&equal(result,late_sacrifice_status)&&observe(sacrifice_match,0,0)==late_sacrifice,"late sacrifice failure restores used state, copies, gifts and caller output");
     gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
+    artifact_grant_bridge();
     explicit_ordinary_grant_interop();
     check(gfo_match_grant_supported(0)&&gfo_match_grant_supported(6)&&gfo_match_grant_supported(207)
         &&!gfo_match_grant_supported(1)&&!gfo_match_grant_supported(245),"static grant capability includes ordinary IDs, with config and recipient checks deferred to legal");
@@ -2828,6 +2915,10 @@ int main() {
     check(gfo_match_grant_legal(grant_match,&late_explicit_grant,&legal)==0&&legal
         &&gfo_match_grant_step(grant_match,&late_explicit_grant,&result)==-2&&equal(result,late_grant_status)
         &&observe(grant_match,0,0)==late_grant,"numeric ordinary late failure preserves C output and pending state");
+    gfo_match_artifact_grant_action late_artifact{};late_artifact.model=23;result=late_grant_status;
+    check(gfo_match_artifact_grant_legal(grant_match,&late_artifact,&legal)==0&&legal
+        &&gfo_match_artifact_grant_step(grant_match,&late_artifact,&result)==-2&&equal(result,late_grant_status)
+        &&observe(grant_match,0,0)==late_grant,"artifact late update failure preserves C outputs and original pending proof");
     gfo_match_destroy(grant_match);grant_cfg.max_decisions=3;
     check(gfo_match_create(&grant_cfg,players.data(),2,0,&grant_match)==0,"bounded supplied devil retry create");
     load_grant_scene(0);check(gfo_match_step(grant_match,&grant_offer,&result)==0,"start bounded devil retry");

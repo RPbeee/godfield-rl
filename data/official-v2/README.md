@@ -324,3 +324,7 @@ CPU32＋51のATK22へ本人118＋142のDEF8で応答し、14被害と補充中�
 | `live-transition-witnesses-v60.json` | 11,395 | `78495d4fea76803d267639f1e20d95c852a8257a1dd604dc61e39e2ceebad726` |
 
 初期本文27,143bytes/終局本文23,365bytesのSHAと同一room参照、指定した匿名化だけでの全game値一致を独立確認した。誤って初期応答を再保存した一時ファイルは出典に含めない。
+
+## v61：Dream結果の明示入力（新witness追加なし）
+
+ruleset54 / Snapshot54 / view-v52の新 `ArtifactGrantAction` は、現互換クラス内actual/fakeまたは明示unmaskedを外部chanceで受け取る。新C16 byte型を追加するが、既存GrantAction32 byteとABI2・通常0/samplerを維持する。新たな公式Dream pairを今回確定していないため、台帳pins・過去witness・件数は変更しない。合成入力テストは完了観測22例・native対象19例へ加算しない。詳しい入力契約は[実行規約](../../docs/official-execution-subset.md)を参照。

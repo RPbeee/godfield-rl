@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v53"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v54"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v51\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v52\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -2381,7 +2381,7 @@ void grant_shape_and_pending_state_atomic_rollback(){
 }
 void grant_full_ordered_proof_tamper_and_next_action_prefix(){
     auto state=scene({199},{});state.tiebreak_gf=0;auto m=grant_fixture(state);m.step({0,CommandKind::sacrifice,{0},{}});m.grant_step({0,244,Resource::cp,{}});m.grant_step({0,244,Resource::mp,{}});const auto exact=m.snapshot();
-    for(unsigned error=0;error<16;++error){auto bad=exact;if(error==0)bad.pending_grant=7;if(error==1)bad.actor=0;if(error==2)bad.config.external_grants=false;if(error==3)bad.grant_proof.reset();if(error==4)bad.last_grant->model=0;if(error==5)bad.grant_proof->grants.pop_back();if(error==6)bad.grant_proof->grants[0].responses_before=1;if(error==7)bad.grant_proof->grants[0].action.target=7;if(error==8)bad.grant_proof->attack.kind=CommandKind::discard;if(error==9)bad.grant_proof->initial_state.tiebreak_gf.reset();if(error==10)++bad.grant_proof->initial_state.players[0].cp;if(error==11)bad.grant_artifacts=1;if(error==12)++bad.next_token;if(error==13)++bad.rng;if(error==14)++bad.gifts[0];if(error==15)bad.grant_proof->fate_action=FateAction{0,0,{290,{},{}},{}};
+    for(unsigned error=0;error<16;++error){auto bad=exact;if(error==0)bad.pending_grant=7;if(error==1)bad.actor=0;if(error==2)bad.config.external_grants=false;if(error==3)bad.grant_proof.reset();if(error==4)bad.last_grant->model=0;if(error==5)bad.grant_proof->grants.pop_back();if(error==6)bad.grant_proof->grants[0].responses_before=1;if(error==7)std::get<GrantAction>(bad.grant_proof->grants[0].action).target=7;if(error==8)bad.grant_proof->attack.kind=CommandKind::discard;if(error==9)bad.grant_proof->initial_state.tiebreak_gf.reset();if(error==10)++bad.grant_proof->initial_state.players[0].cp;if(error==11)bad.grant_artifacts=1;if(error==12)++bad.next_token;if(error==13)++bad.rng;if(error==14)++bad.gifts[0];if(error==15)bad.grant_proof->fate_action=FateAction{0,0,{290,{},{}},{}};
         bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&m.snapshot()==exact,"grant proof rejects changed stage, source, actor, choice order, counters and hidden continuation");}
     m.grant_step({0,0,{},{}});roundtrip(m);check(m.snapshot().grant_proof&&m.snapshot().phase==MatchPhase::main&&m.snapshot().grant_resolutions==3,"completed original action retains its grant journal");
     auto bad=m.snapshot();bad.last_grant->model=207;bool failed=false;try{m.restore(bad);}catch(const MatchError&){failed=true;}check(failed,"ordinary model cannot be smuggled into the private/public grant notice");
@@ -3029,7 +3029,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==53&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==54&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3039,7 +3039,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v51")!=std::string::npos
+    check(view.find("official-execution-view-v52")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3301,7 +3301,7 @@ void explicit_ordinary_grant_delivery_rng_and_config(){
                 &&done.rng==pending.rng&&done.next_token==pending.next_token+1&&done.grant_artifacts==1&&done.grant_devils==0
                 &&done.owner==7&&done.state.gf==1&&done.decisions==2&&done.revivals==0&&done.redraws==0&&done.guardian_summons==0,
                 "explicit normal delivery is fresh and unused, consumes no selector RNG and does not cast the item");
-            check(done.last_grant&&done.last_grant->model==0&&done.grant_proof->grants.back().action.model==model
+            check(done.last_grant&&done.last_grant->model==0&&std::get<GrantAction>(done.grant_proof->grants.back().action).model==model
                 &&game.observe(7).find("\"last_grant\":{\"target\":0,\"devil\":null,\"removed_models\":[]}")!=std::string::npos,
                 "ordinary actual model remains only in the private action journal, not its public grant notice");roundtrip(game);
         }
@@ -3325,7 +3325,7 @@ void explicit_ordinary_grant_atomicity_and_replay(){
         "explicit ordinary refuses Dream rather than guessing a disguise while normal0 remains supported");
     game.grant_step({0,161,{},{}});const auto saved=game.snapshot();
     for(unsigned error=0;error<4;++error){auto bad=saved;
-        if(error==0)bad.grant_proof->grants.back().action.model=162;
+        if(error==0)std::get<GrantAction>(bad.grant_proof->grants.back().action).model=162;
         if(error==1)bad.last_grant->model=161;
         if(error==2)bad.state.players[0].items[0].used=true;
         if(error==3)++bad.rng;
@@ -3345,10 +3345,84 @@ void explicit_ordinary_grant_atomicity_and_replay(){
         &&cutoff.snapshot().rng==rng&&cutoff.snapshot().state.gf==0,"explicit delivery body precedes cutoff without a chooser draw or GF advance");roundtrip(cutoff);
 }
 
+void artifact_grant_delivery_privacy_and_reveal(){
+    check(match_dream_compatible(29,54),"fixed ordinary weapon pair is in the existing nine-key compatibility class");
+    for(CardId id=0;id<=300;++id){const auto* card=find_card(id);check(match_artifact_grant_supported(id)==(card&&card->gift_rate>0),"artifact-only capability excludes sentinel and devils");}
+    for(bool dream:{false,true})for(bool masked:{false,true}){
+        if(masked&&!dream)continue;
+        auto state=scene({199},{});state.tiebreak_gf=0;if(dream)state.players[0].curses={Curse::dream};
+        auto game=grant_fixture(state,42,5);game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();
+        const ArtifactGrantAction action{0,29,masked?std::optional<CardId>{54}:std::nullopt};
+        check(game.artifact_grant_legal(action)&&game.snapshot()==pending,"artifact query validates without changing the pending checkpoint");
+        game.artifact_grant_step(action);const auto saved=game.snapshot();
+        check(saved.state.players[0].items==std::vector<ItemInstance>{{pending.next_token,29,action.fake_model,false}}
+            &&saved.rng==pending.rng&&saved.dream_rolls==pending.dream_rolls&&saved.dream_masks==pending.dream_masks
+            &&saved.grant_artifacts==1&&saved.grant_resolutions==1&&saved.grant_devils==0&&saved.next_token==pending.next_token+1
+            &&saved.decisions==2&&saved.state.gf==1&&saved.owner==7,"injected artifact is fresh unused with one debt and no local chooser or Dream statistics");
+        check(std::get<ArtifactGrantAction>(saved.grant_proof->grants.back().action)==action
+            &&saved.last_grant&&saved.last_grant->model==0&&saved.last_reveals.empty(),"private typed journal retains actual and optional face without a public reveal");
+        const auto own=project_view(saved.state,0);
+        check(own.hand.size()==1&&own.hand[0].face==(masked?54:29)&&own.hand[0].disguised==masked,"own fresh projection uses the supplied visible face");roundtrip(game);
+        if(masked){
+            auto alternate=grant_fixture(state,42,5);alternate.restore(pending);alternate.artifact_grant_step({0,26,54});
+            check(alternate.observe(7)==game.observe(7)&&alternate.observe({})==game.observe({})&&alternate.observe(0)==game.observe(0),
+                "same-face actual worlds do not leak actual models to any fresh policy view");
+            game.step(pray(7));game.artifact_grant_step({7,6,{}});game.step(play(0,{pending.next_token},0));
+            check(game.snapshot().truncated&&game.snapshot().state.players[0].hp==32&&game.snapshot().last_reveals.size()==1
+                &&game.snapshot().last_reveals[0].face==54&&game.snapshot().last_reveals[0].model==29,
+                "later accepted use reveals once and applies actual ATK8 rather than visible ATK15");roundtrip(game);
+        }
+    }
+}
+
+void artifact_grant_validation_journal_and_late_rollback(){
+    auto state=scene({199},{});state.tiebreak_gf=0;state.players[0].curses={Curse::dream};
+    auto game=grant_fixture(state);game.step({0,CommandKind::sacrifice,{0},{}});const auto pending=game.snapshot();
+    for(const auto& bad:std::vector<ArtifactGrantAction>{{7,29,54},{0,0,{}},{0,244,{}},{0,29,CardId{0}},{0,29,29},{0,29,161},{0,29,207},{0,207,6},{0,207,{}}}){
+        check(!game.artifact_grant_legal(bad),"artifact delivery rejects wrong recipient, unsupported or incompatible models and disabled207");
+        bool failed=false;try{game.artifact_grant_step(bad);}catch(const MatchError&){failed=true;}
+        check(failed&&game.snapshot()==pending,"invalid artifact preserves complete pending state");
+    }
+    auto plain=state;plain.players[0].curses.clear();auto no_dream=grant_fixture(plain);no_dream.step({0,CommandKind::sacrifice,{0},{}});
+    check(!no_dream.artifact_grant_legal({0,29,54}),"a compatible mask still requires recipient Dream");
+    MatchConfig config;config.external_grants=true;config.include_fate=true;Match fate(config);fate.load_scene(state,0,7);fate.step({0,CommandKind::sacrifice,{0},{}});
+    fate.artifact_grant_step({0,207,{}});check(fate.snapshot().state.players[0].items[0].model==207&&!fate.snapshot().state.players[0].items[0].fake_model,"opt-in207 can be supplied unmasked in Dream");roundtrip(fate);
+    game.artifact_grant_step({0,29,54});const auto saved=game.snapshot();
+    for(unsigned error=0;error<8;++error){auto bad=saved;
+        if(error==0)std::get<ArtifactGrantAction>(bad.grant_proof->grants[0].action).model=26;
+        if(error==1)std::get<ArtifactGrantAction>(bad.grant_proof->grants[0].action).fake_model.reset();
+        if(error==2)std::get<ArtifactGrantAction>(bad.grant_proof->grants[0].action).target=7;
+        if(error==3)bad.state.players[0].items[0].fake_model=7;
+        if(error==4)bad.state.players[0].items[0].used=true;
+        if(error==5)++bad.rng;
+        if(error==6){++bad.dream_rolls;++bad.dream_masks;}
+        if(error==7)bad.grant_proof->grants[0].action=GrantAction{0,29,{},{}};
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}
+        check(failed&&game.snapshot()==saved,"typed proof rejects changed actual, face, recipient, state, RNG, statistics or action type");
+    }
+    for(unsigned failure=0;failure<3;++failure){auto late=state;
+        if(failure==0)late.players[0].items[0].token=max_wire_integer;
+        if(failure==1)late.update_count=max_wire_integer-1;
+        if(failure==2)late.gf=max_wire_integer;
+        auto atomic=grant_fixture(late);atomic.step({0,CommandKind::sacrifice,{late.players[0].items[0].token},{}});const auto exact=atomic.snapshot();
+        check(atomic.artifact_grant_legal({0,29,54}),"artifact preflight does not predict late finite counters");
+        bool failed=false;try{atomic.artifact_grant_step({0,29,54});}catch(const MatchError&){failed=true;}
+        check(failed&&atomic.snapshot()==exact,"late artifact token/update/GF failure rolls back to the current pending grant");roundtrip(atomic);
+    }
+    auto cutoff=grant_fixture(state,7,2);cutoff.step({0,CommandKind::sacrifice,{0},{}});const auto rng=cutoff.snapshot().rng;cutoff.artifact_grant_step({0,29,54});
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].items.size()==1&&cutoff.snapshot().state.players[0].items[0].fake_model==54
+        &&cutoff.snapshot().state.gf==0&&cutoff.snapshot().rng==rng,"supplied masked artifact body precedes cutoff without RNG or GF advance");roundtrip(cutoff);
+    auto two=state;two.players[0].items.push_back({1,200,{},false});auto mixed=grant_fixture(two);mixed.step({0,CommandKind::sacrifice,{0,1},{}});
+    mixed.artifact_grant_step({0,29,54});check(mixed.snapshot().phase==MatchPhase::grant,"one injected artifact fills only one of two debts");roundtrip(mixed);
+    mixed.grant_step({0,0,{},{}});check(mixed.snapshot().grant_proof->grants.size()==2&&mixed.snapshot().grant_artifacts==2,"typed artifact and legacy random0 resolutions coexist in one replay journal");roundtrip(mixed);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),224> tests{{
+    const std::array<void(*)(),226> tests{{
+        artifact_grant_delivery_privacy_and_reveal,
+        artifact_grant_validation_journal_and_late_rollback,
         explicit_ordinary_grant_delivery_rng_and_config,
         explicit_ordinary_grant_atomicity_and_replay,
         cut_cost_weapon_self_body_payment_and_resume,

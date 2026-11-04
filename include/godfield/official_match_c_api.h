@@ -67,6 +67,12 @@ typedef struct gfo_match_devil_action {
     uint8_t resource, has_resource, removed_count, reserved[3];
 } gfo_match_devil_action;
 typedef gfo_match_devil_action gfo_match_grant_action;
+// Supplied ordinary artifact result; fake_model0 means no disguise.
+typedef struct gfo_match_artifact_grant_action {
+    uint64_t target;
+    uint16_t model, fake_model;
+    uint8_t reserved[4];
+} gfo_match_artifact_grant_action;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -111,6 +117,11 @@ size_t gfo_match_grant_action_size(void);
 // Static union:0,237 positive-gift IDs,240..244. Current pool/Dream checks are
 // performed by grant_legal/step;207 support here does not imply include_fate.
 int gfo_match_grant_supported(uint16_t model);
+size_t gfo_match_artifact_grant_action_size(void);
+// Static ordinary237 union; configuration and Dream/compatible-face conditions
+// are checked by legal/step. Neither actual model0 nor devils are artifacts.
+int gfo_match_artifact_grant_supported(uint16_t model);
+const char* gfo_match_artifact_grant_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -186,6 +197,11 @@ int gfo_match_devil_step(gfo_match* match, const gfo_match_devil_action* action,
 // have no resource/removed payload. Each resolution is one decision, not a selector.
 int gfo_match_grant_legal(const gfo_match* match, const gfo_match_grant_action* action, uint8_t* out);
 int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action, gfo_match_status* out);
+// No RNG: deliver one unused artifact with the supplied compatible disguise.
+// An absent disguise is accepted even for Dream recipients. Nonzero fake needs Dream
+// and the existing9field compatibility;207 requires include_fate and no fake.
+int gfo_match_artifact_grant_legal(const gfo_match* match, const gfo_match_artifact_grant_action* action, uint8_t* out);
+int gfo_match_artifact_grant_step(gfo_match* match, const gfo_match_artifact_grant_action* action, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

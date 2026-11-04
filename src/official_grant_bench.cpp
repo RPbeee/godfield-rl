@@ -254,7 +254,7 @@ int main(int argc,char** argv) { try {
                           && after.grant_artifacts==before.grant_artifacts+!action.model
                           && after.grant_devils==before.grant_devils+(action.model!=0),"grant choice did not charge exactly one decision/update/outcome");
                     check(after.last_grant==DevilEvent{action.target,action.model,removed},"grant body notice lost removed actual order");
-                    check(after.grant_proof && after.grant_proof->grants.back().action==action
+                    check(after.grant_proof && std::get<GrantAction>(after.grant_proof->grants.back().action)==action
                           && after.grant_proof->grants.back().responses_before==before.grant_proof->responses.size(),"accepted choice lost its response-prefix journal position");
                     if(!action.model) {
                         const auto* now=find_player(after.state,action.target);

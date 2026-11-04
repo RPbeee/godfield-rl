@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v53
+# 現行公式データによる限定実行器 v54
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v53` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v54` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3093,3 +3093,17 @@ replaceItemsの受信表示は悪魔itemを排除せず、popupは別のuseDevil
 本人HP26から、記録したCPU243の除去2個と通常135/172のcompletion、本人通常68、241、242を外部chanceで適用し、HP6→0・CPU勝利・GF1維持を比較する。CPU通常の取得順は未記録なので2順×8seedを試し、受信2checkpoint計32比較となる。各native境界の全snapshot/restore、明示通常3件の無RNGを検証する。nativeの6grant/3normal/3devil等は選んだcompletion内のcounterであり、server counterとの一致ではない。
 
 CPU243へ補償giftを増やさず終点と整合する一方、これだけで全授与経路の補償・retry・recipient順を確定しない。終局本人のempty1はnativeのlive gift0へ等置しない。`ReceivedState` は受信emptyを物理在庫から明示分離するread-only入口であり、emptyをdebtへ変換したり、pending checkpointをMatchへ暗黙loadしたりしない。ruleset53/Snapshot53/view-v51とABI、既存sampler・配布・死亡規約は維持する。
+
+## 対局v54（作業世代v61）：実モデルと見かけを指定する通常授与
+
+新 `ArtifactGrantAction{target, model, fake_model}` は、既存の終末・外部予約補充phase4で使う特権的なchance入力である。targetは現在のpending recipient、modelは設定中のpositive giftRateプールに含まれる通常モデルで、0/悪魔は受け付けない。207 actualは `include_fate=True` が必要で、fakeには使えない。fakeを指定する場合は受取人がDreamを持ち、actualとfakeが既存の9key互換を満たす必要がある。同一modelへのfake・互換外はunsupportedのままである。fake無しは、Dream中でも既知の非偽装結果を表す。
+
+`artifact_grant_legal` / `artifact_grant_step` は既存GrantActionと別入口である。通常0のweighted draw・Dream mask抽選、旧positive ordinaryのDream拒否、悪魔入力、sample_grantとdriverは変えない。新入口はgame/chance RNGを使わず、fresh token・unusedで1枚を配送して既存debt1を満たす。usedを入力するfieldはない。ローカル抽選実行数を表すdream_rolls/masksも増やさず、これらを現在の偽装在庫数と解釈しない。owner tickや自動守護神を繰り返さず、通常の1decision・cutoff・死亡中断規約を共有する。
+
+公開 `last_grant` は従来のtarget/devil:null/removed_modelsだけである。本人のhandはfaceとdisguisedを既存表示規約で投影し、actual/fakeを他者のviewや新たな公開通知へ足さない。供給したactual/fakeはprivate journalに型付きで保存し、元action/response列から同じexecutorで全snapshotを再生する。後の使用では既存のactual効果とrevealを使う。これは外部から与えた互換pairの条件付き実行で、公式のpair選出・率・互換外の費用やtarget規約の検証ではない。
+
+新C `gfo_match_artifact_grant_action` は16 byte（target offset0/model8/fake_model10/reserved12〜15）、fake0は不在、reservedは全0を要求する。size/supported/rule queryとlegal/stepを加え、Match ABI2と既存GrantAction32 byteを維持する。Pythonでは `ArtifactGrantAction(..., fake_model=None)` を使い、fake=0やboolは拒否する。static supported queryは237通常モデルのunionで、現在のpool/Dream/face合法性はprepare時に検査する。
+
+ruleset54 / Snapshot54 / `official-execution-view-v52` とし、旧snapshot1〜53は拒否する。grant journalのresolutionを旧GrantActionと新ArtifactGrantActionのvariantにしたため、C++のproof読取callerは型を確認して取得する。benchmarkの既存GrantAction比較も型取得へ同期しただけで、選択・抽選を変えない。reset・178即時redraw・取引配送・非終末補充への悪魔適用範囲は広げない。
+
+この版はRelease全156ターゲット、SAN重点8対象が通過した。検証の内訳と範囲は[適合計画v61](official-conformance-plan.md)へ記録する。合成の互換pairを公式Dreamの実測や分布一致へ加算せず、完了観測22件・native対象19件は維持する。

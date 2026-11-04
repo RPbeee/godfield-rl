@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v53` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v54` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -2972,3 +2972,9 @@ CPU修行で受信した連続4状態を[匿名化fixture](data/official-v2/wire
 公式CPU修行の開始から終局まで、連続する受信game更新2状態を[追加取得](data/official-v2/wire-game-updates-v60.json)しました。複合ATK22へ二枚DEF8で応答した後、悪魔241→242の連続被害で死亡し、G.F.1のまま終局する1完了例です。CPUの243による除去と、受信eventsに現れないCPU通常補充は別々に扱います。全内部イベントの取得を意味しません。
 
 Python `ReceivedState` は、公式データの `{id:0,modelId:0}` を空スロットとして分離し、実物だけを既存のC++状態投影へ渡す明示的な読み込み口です。元データと空スロット情報は検証専用に保持します。死亡後にも空スロットが残るため、補充の予約数へ読み替えません。既存 `OfficialState` の厳密検査とMatchの再開制約、ruleset53 / Snapshot53 / view-v51・ABIは維持します。
+
+## v61：Dreamの見かけを明示する補充API
+
+C++ / C / Pythonへ `ArtifactGrantAction(target, model, fake_model)` と `artifact_grant_step` を追加しました。予約補充phase4で、実モデルと、既存の互換範囲に入る見かけを外部chance結果として指定できます。見かけ無しはDream中でも明示的な非偽装です。ゲーム乱数・ローカルDream抽選統計を進めず、常にfresh tokenの未使用品を1枚与えます。
+
+ruleset54 / Snapshot54 / view-v52へ更新し、Match ABI2・既存GrantAction32 byteと通常0/samplerは維持しました。新C型は別の16 byteです。非互換Dream、公式の50%分布・選出、一新中の授与などは未対応・未確定のままです。今回の追加は条件付き再現の入口で、新しい公式完了観測は加算していません。

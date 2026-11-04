@@ -158,3 +158,9 @@ CPUの通常新2品135/id1・172/id4は最終手札の差分で同定したが�
 今回1例で累計22完了観測、独立routing-only1例となる。元の15例1080投影＋72routing＋72一新部分検証、v59の8再生32checkpointに、新しい2補充順×8seed・2checkpoint＝32比較を別に加える。公式の全内部処理traceは0のままで、完全な対局実装の証明ではない。[機械可読記録](../data/official-v2/live-transition-witnesses-v60.json)へ境界を固定する。
 
 操作メモとして、下段の「守8」表示へクリックした段階ではsubmit-commandが発行されず、応答ペイン内 `[865,420]` から確定した時にPOST200と状態更新を確認した。下段表示を独立した確定ボタンとみなさない。通信要求を自作・再送せず、応答本文だけを保存した。退出後はホーム復帰とNetwork Monitor閉鎖を確認した。
+
+## v61：Dream探索と比較件数の扱い
+
+CPU修行を3対局探索したが、新たなDreamのmodelId/fakeModelId pairを確定していない。未記録の単発経過や初期手札を、新しい完了witnessやfull比較へ加算しない。探索終了後はホームへ戻り、Network Monitor閉鎖を確認した。公式完了観測22件・native対象19件、独立routing1、完結した受信game列1対局分・全backendイベントtrace0を維持する。
+
+今回追加した `ArtifactGrantAction` の互換pair検証は合成fixtureによるローカル契約の比較である。公式の全Dream候補・50%分布・互換外実体の使用結果が確認できたという記録へ読み替えない。

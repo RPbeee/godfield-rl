@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <limits>
+#include <type_traits>
 #include <unordered_set>
 
 namespace godfield::official {
@@ -1276,23 +1277,43 @@ void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
         }
     } else devil_shape(s,action);
 }
+void prepare_artifact_grant(const MatchSnapshot& s, const ArtifactGrantAction& action) {
+    // Reuse only the ordinary sentinel's phase/debt checks, never its chooser.
+    prepare_grant(s,GrantAction{action.target,0,{},{}});
+    if (!match_artifact_grant_supported(action.model) || !gift_model_supported(action.model,s.config.include_fate))
+        unsupported("artifact grant model is outside the configured gift pool");
+    if (action.fake_model) {
+        const auto& recipient=s.state.players[index(s,action.target)];
+        if (!has_curse(recipient,Curse::dream) || !match_dream_compatible(action.model,*action.fake_model))
+            unsupported("artifact grant needs an existing compatible Dream face");
+    }
+}
+void deliver_artifact(MatchSnapshot& s, std::size_t seat, CardId model, std::optional<CardId> face = {}) {
+    auto& recipient=s.state.players[seat];
+    require(recipient.items.size()<s.config.hand_limit,"gift has no reserved display slot");
+    require(s.next_token<=max_wire_integer,"scoped item token exhausted");
+    recipient.items.push_back({s.next_token++,model,face,false});
+}
 void execute_grant(MatchSnapshot& s, const GrantAction& action) {
     prepare_grant(s,action); const auto seat=index(s,action.target);
     s.batch->grants.push_back({s.batch->responses.size(),action});
     s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
     if (!match_devil_supported(action.model)) {
         if (!action.model) gift(s,seat);
-        else {
-            auto& recipient=s.state.players[seat];
-            require(recipient.items.size()<s.config.hand_limit,"gift has no reserved display slot");
-            require(s.next_token<=max_wire_integer,"scoped item token exhausted");
-            recipient.items.push_back({s.next_token++,action.model,{},false});
-        }
+        else deliver_artifact(s,seat,action.model);
         --s.gifts[seat]; ++s.grant_artifacts; s.last_grant=DevilEvent{action.target,0,{}};
     } else {
         ++s.grant_devils; s.last_grant=apply_devil_body(s,action);
         if (s.state.players[seat].dead) s.gifts[seat]=0;
     }
+    complete_decision(s,true);
+}
+void execute_artifact_grant(MatchSnapshot& s, const ArtifactGrantAction& action) {
+    prepare_artifact_grant(s,action); const auto seat=index(s,action.target);
+    s.batch->grants.push_back({s.batch->responses.size(),action});
+    s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
+    deliver_artifact(s,seat,action.model,action.fake_model);
+    --s.gifts[seat]; ++s.grant_artifacts; s.last_grant=DevilEvent{action.target,0,{}};
     complete_decision(s,true);
 }
 void replay_launch(MatchSnapshot& replay,const ActionBatch& journal) {
@@ -1350,7 +1371,11 @@ void validate_snapshot(const MatchSnapshot& s) {
             && journal.responses.size()+journal.grants.size()==s.decisions-journal.decisions-1,"invalid original grant journal shape");
         for (const auto& player:journal.initial_state.players) require(player.items.size()<=s.config.hand_limit,"oversized grant anchor inventory");
         for (const auto& response:journal.responses) require(response.items.size()<=s.config.hand_limit,"oversized grant journal response");
-        for (const auto& entry:journal.grants) require(entry.action.removed.size()<=2 && entry.responses_before<=journal.responses.size(),"oversized grant resolution entry");
+        for (const auto& entry:journal.grants) {
+            require(entry.responses_before<=journal.responses.size(),"oversized grant resolution entry");
+            if (const auto* ordinary=std::get_if<GrantAction>(&entry.action))
+                require(ordinary->removed.size()<=2,"oversized grant resolution selection");
+        }
         if (journal.fate_action) { require(journal.fate_action->outcome.guardians.size()<=player_capacity,"oversized original fate array");
             if (journal.fate_action->shuffle) require(journal.fate_action->shuffle->order.size()<=player_capacity*visible_hand_capacity,"oversized original fate shuffle"); }
         if (journal.devil_action) require(journal.devil_action->removed.size()<=2,"oversized original devil selection");
@@ -1361,7 +1386,10 @@ void validate_snapshot(const MatchSnapshot& s) {
         for (const auto& entry:journal.grants) {
             require(entry.responses_before>=response_cursor,"grant journal response prefix moved backwards");
             while (response_cursor<entry.responses_before) execute(replay,journal.responses[response_cursor++]);
-            execute_grant(replay,entry.action);
+            std::visit([&](const auto& action) {
+                if constexpr (std::is_same_v<std::decay_t<decltype(action)>,GrantAction>) execute_grant(replay,action);
+                else execute_artifact_grant(replay,action);
+            },entry.action);
         }
         while (response_cursor<journal.responses.size()) execute(replay,journal.responses[response_cursor++]);
         require(replay.grant_proof && *replay.grant_proof==journal && replay==s,"grant journal does not reproduce the complete snapshot"); return;
@@ -1683,6 +1711,7 @@ bool match_supported(CardId id) noexcept {
             || c->ability == Ability::boost_hp_or_deal_damage || c->ability == Ability::revive
             || c->ability == Ability::danger || c->ability == Ability::attract_danger || c->ability == Ability::exchange || c->ability == Ability::sell || c->ability == Ability::buy);
 }
+bool match_artifact_grant_supported(CardId id) noexcept { return gift_model_supported(id,true); }
 bool match_grant_supported(CardId id) noexcept { return id==0 || match_devil_supported(id) || gift_model_supported(id,true); }
 bool match_devil_supported(CardId id) noexcept { return id>=240 && id<=244; }
 bool match_fate_supported(CardId id) noexcept { return id==207; }
@@ -1836,6 +1865,12 @@ bool Match::grant_legal(const GrantAction& action) const noexcept {
 }
 MatchStep Match::grant_step(const GrantAction& action) {
     auto next=data_; execute_grant(next,action); auto output=result(next); data_=std::move(next); return output;
+}
+bool Match::artifact_grant_legal(const ArtifactGrantAction& action) const noexcept {
+    try { prepare_artifact_grant(data_,action); return true; } catch (...) { return false; }
+}
+MatchStep Match::artifact_grant_step(const ArtifactGrantAction& action) {
+    auto next=data_; execute_artifact_grant(next,action); auto output=result(next); data_=std::move(next); return output;
 }
 bool Match::devil_legal(const DevilAction& action) const noexcept {
     try { prepare_devil(data_,action); return true; } catch (...) { return false; }
@@ -2051,7 +2086,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v51\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v52\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -2093,6 +2128,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"devil_rule\":\""; out += devil_rule;
     out += "\",\"apocalypse_rule\":\""; out += apocalypse_rule;
     out += "\",\"grant_rule\":\""; out += grant_rule;
+    out += "\",\"artifact_grant_rule\":\""; out += artifact_grant_rule;
     out += "\",\"grant_sampler_rule\":\""; out += grant_sampler_rule;
     out += "\",\"fate_pool_rule\":\""; out += fate_pool_rule;
     out += "\",\"fate_sampler_rule\":\""; out += fate_sampler_rule;

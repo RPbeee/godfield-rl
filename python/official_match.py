@@ -134,6 +134,17 @@ class GrantAction:
     removed: tuple[int, ...] = ()
 
 @dataclass(frozen=True)
+class ArtifactGrantAction:
+    """Privileged supplied ordinary artifact; None means explicitly unmasked.
+
+    A face requires Dream and the existing compatible class, never a selector.
+    Actual207 needs include_fate and cannot carry a face. No game RNG is used.
+    """
+    target: int
+    model: int
+    fake_model: int | None = None
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -194,6 +205,8 @@ class _ItemShuffleAction(c.Structure):
 class _FateAction(c.Structure):
     _fields_ = [("actor", c.c_uint64), ("token", c.c_uint64), ("outcome", _PhenomenonAction),
                 ("shuffle", _ItemShuffleAction), ("has_shuffle", c.c_uint8), ("reserved", c.c_uint8 * 7)]
+class _ArtifactGrantAction(c.Structure):
+    _fields_ = [("target", c.c_uint64), ("model", c.c_uint16), ("fake_model", c.c_uint16), ("reserved", c.c_uint8 * 4)]
 class _DevilAction(c.Structure):
     _fields_ = [("target", c.c_uint64), ("removed", c.c_uint64 * 2), ("model", c.c_uint16),
                 ("resource", c.c_uint8), ("has_resource", c.c_uint8), ("removed_count", c.c_uint8), ("reserved", c.c_uint8 * 3)]
@@ -310,6 +323,12 @@ def _devil_action(value): return _resource_action(value, DevilAction, 1)
 
 def _grant_action(value): return _resource_action(value, GrantAction, 0)
 
+def _artifact_grant_action(value):
+    if not isinstance(value, ArtifactGrantAction): raise InvalidMatchError("operation requires ArtifactGrantAction")
+    return _ArtifactGrantAction(target=_integer(value.target, "artifact recipient"),
+        model=_integer(value.model, "artifact model", 1, 65535),
+        fake_model=0 if value.fake_model is None else _integer(value.fake_model, "artifact face", 1, 65535))
+
 def _resource_action(value, record_type, minimum):
     if not isinstance(value, record_type): raise InvalidMatchError(f"operation requires {record_type.__name__}")
     encoded = _DevilAction(target=_integer(value.target, "recipient"), model=_integer(value.model, "model", minimum, 65535))
@@ -422,16 +441,17 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size"):
+            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
         self.self_attack_rule = lib.gfo_match_self_attack_rule().decode()
+        self.artifact_grant_rule = lib.gfo_match_artifact_grant_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v53"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v54"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.reserved_tail.offset != 21
@@ -457,7 +477,10 @@ class Match:
             or lib.gfo_match_devil_action_size() != c.sizeof(_DevilAction) or _DevilAction.removed.offset != 8
             or _DevilAction.model.offset != 24 or _DevilAction.resource.offset != 26
             or _DevilAction.has_resource.offset != 27 or _DevilAction.removed_count.offset != 28 or _DevilAction.reserved.offset != 29
-            or lib.gfo_match_grant_action_size() != c.sizeof(_DevilAction)):
+            or lib.gfo_match_grant_action_size() != c.sizeof(_DevilAction)
+            or lib.gfo_match_artifact_grant_action_size() != c.sizeof(_ArtifactGrantAction)
+            or c.sizeof(_ArtifactGrantAction) != 16 or _ArtifactGrantAction.model.offset != 8
+            or _ArtifactGrantAction.fake_model.offset != 10 or _ArtifactGrantAction.reserved.offset != 12):
             raise MatchError("unsupported match ABI/scope")
         lib.gfo_match_supported.argtypes = [c.c_uint16]; lib.gfo_match_supported.restype = c.c_int
         lib.gfo_match_gift_supported.argtypes = [c.c_void_p, c.c_uint16, c.POINTER(c.c_uint8)]
@@ -521,6 +544,12 @@ class Match:
         lib.gfo_match_grant_legal.restype = c.c_int
         lib.gfo_match_grant_step.argtypes = [c.c_void_p, c.POINTER(_DevilAction), c.POINTER(_Status)]
         lib.gfo_match_grant_step.restype = c.c_int
+        lib.gfo_match_artifact_grant_supported.argtypes = [c.c_uint16]; lib.gfo_match_artifact_grant_supported.restype = c.c_int
+        lib.gfo_match_artifact_grant_legal.argtypes = [c.c_void_p, c.POINTER(_ArtifactGrantAction), c.POINTER(c.c_uint8)]
+        lib.gfo_match_artifact_grant_legal.restype = c.c_int
+        lib.gfo_match_artifact_grant_step.argtypes = [c.c_void_p, c.POINTER(_ArtifactGrantAction), c.POINTER(_Status)]
+        lib.gfo_match_artifact_grant_step.restype = c.c_int
+
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
         lib.gfo_match_sample_confusion.restype = c.c_int
@@ -543,6 +572,7 @@ class Match:
         self.supported_devil_models = tuple(card.id for card in self._data if lib.gfo_match_devil_supported(card.id))
         # Static capability includes237 ordinary IDs; config and recipient conditions remain legal() checks.
         self.supported_grant_models = tuple(model for model in (0, *(card.id for card in self._data)) if lib.gfo_match_grant_supported(model))
+        self.supported_artifact_grant_models = tuple(card.id for card in self._data if lib.gfo_match_artifact_grant_supported(card.id))
         base_weight = lib.gfo_match_gift_weight()
         if (len(self.supported_models) != lib.gfo_match_catalog_count() or not self.supported_models
             or base_weight != sum(self._data.get_card(id).gift_rate for id in self.supported_models)):
@@ -714,6 +744,18 @@ class Match:
         """
         self._open(); encoded = _grant_action(action); result = _Status()
         _check(self._lib.gfo_match_grant_step(self._handle, c.byref(encoded), c.byref(result)))
+        return _decode_status(result)
+
+    def artifact_grant_legal(self, action):
+        """Validate one explicit ordinary result, including an explicit absent disguise."""
+        self._open(); encoded = _artifact_grant_action(action); result = c.c_uint8()
+        _check(self._lib.gfo_match_artifact_grant_legal(self._handle, c.byref(encoded), c.byref(result)))
+        return bool(result.value)
+
+    def artifact_grant_step(self, action):
+        """Fill one reserved debt without sampling a model or a Dream disguise."""
+        self._open(); encoded = _artifact_grant_action(action); result = _Status()
+        _check(self._lib.gfo_match_artifact_grant_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
 
     def step(self, command):

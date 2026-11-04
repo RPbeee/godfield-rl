@@ -6,7 +6,7 @@
 
 ## 現時点の主要残件（2026-11-05）
 
-対局エンジンは `official-execution-subset-v53` / Snapshot53 / view-v51。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
+対局エンジンは `official-execution-subset-v54` / Snapshot54 / view-v52。既定236種・重み499、`include_fate=True` で237種・重み500を扱う。作業世代v49のtyped choice／両乱数の原子的driver、v48の先頭攻撃投影、v50の増分表示APIは実装済みである。後二者は表示componentである。作業世代v52〜54では、通常main武器・反射剣・能力なし必中攻撃奇跡の明示自己攻撃をDEF0・1commandで解決する修正を対局本体へ加えた。v55では公開clientの選択・送信と受信self-paneを別々に照合し、吸収27/45/216・二回14・MP武器58・同被害53にも既存の効果計算を使う限定経路を追加した。これら6種の新しい完了実対局観測は取得しておらず、効果順や二回攻撃の区切りは実験規約を維持する。v56では46精霊の杖の自己使用を実測し、cutCost武器baseも同じ直接自己経路へ追加した。
 [今回の公開取得記録](../data/official-v2/live-review-v51.json)ではJS・JAの応答本文が既存pinと一致した。これは公開物の一致であり、権威的serverの実遷移・selectorとの一致を確認した結果ではない。
 [実ブラウザの教典・CPU修行観測](official-live-observations.md)から、v59まで21完了例と独立routing-only1例を取得した。[v60の二枚防御・補充中死亡](../data/official-v2/live-transition-witnesses-v60.json)を加えて累計22完了例となる。native比較対象は19例で、従来15×72＝1080投影、別枠72routing・72一新部分検証、v59の8再生32checkpoint、新v60の2補充順×8seed・2checkpoint＝32比較を区別する。複合chanceを含む従来3例は記録のみ。v60ではstartGameからendGameまで連続する受信game更新2状態を1対局分取得したが、CPU通常gift等はeventsから省略される。全backend内部イベントtraceは0で、受信列の完結と公式server全処理の取得を区別する。
 
@@ -2258,3 +2258,9 @@ ruleset53では設定中プール・非Dreamの通常授与を外部chance入力
 新 `ReceivedState` はcanonicalなid0/model0をempty metadataへ分離し、物理コピーだけを既存C++投影へ渡す。元rawとfiltered snapshot、元配列indexを保ち、viewには他者手札やempty情報を追加しない。旧strict constructorとnative ABIは変えず、Matchへの暗黙checkpoint変換も行わない。v59で必要だったfixture専用の手動filterに代わる明示入口である。
 
 終局のdead viewerにはempty1が残ったため、empty数＝未充足授与数という一般則は使えない。CPUの通常135/172は2順のcompletionで比較し、取得順を確定しない。新1例は既存の効果・予約補充・死亡時停止規約と比較するもので、178一新の授与・Dream全分布・94＋Wide等の主要残件は維持する。
+
+## v61：既知のDream結果を再現する入力
+
+新 `ArtifactGrantAction` は設定pool内actualと既存9key互換fakeを外部指定し、Dream中の明示unmasked結果も入力できる。新しいpairの候補や率を生成するselectorではなく、通常0・既存sample_grant・driver・mask分布は維持する。実物はfresh unused、配送時にgame RNGやローカルDream draw統計を増やさず、型付きprivate proofで再生する。C ABI2へ別16 byte型を追加し、既存32 byte型は変えない。
+
+これは条件付き再現能力の追加である。公式の互換外pairを今回新取得したものではなく、全50%適用や真値/見かけが異なるときの一般費用・効果処理は未確定のまま。公式完了観測22例・native対象19例を維持し、今回の合成入力テストを実測件数へ混ぜない。
