@@ -1953,3 +1953,19 @@ main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計1
 全Release CTestは155/155件・113.35秒で通過した。Python151ケースを含む。変更した公式エンジン関連のASan/UBSan検査は `^official_` を対象とし、前版で通過した未変更のlegacy環境全体は再実行しない。両ビルドはwarning/error0件。suite時間は並行実行環境の値であり、速度比較には使わない。
 
 ASan/UBSanの公式関連37/37件も229.92秒で通過した。native221群・C API・driver・公開遷移の既存504比較と72routing検査、公式関連サンプラー／表示／台帳の検査を含む。特殊selfの新しい実対局遷移数は0件のままである。
+
+
+## v56：実対局の46自己使用と自己売却の比較
+
+[v56記録](../data/official-v2/live-transition-witnesses-v56.json)は、自己SELL `[4,26]`、Stone69への空防御、cutCost46の自己使用という新しい完了遷移3件を加える。累計は10完了例・独立routing-only1例・full wire trace0件。G.F.1→2とG.F.3→4は連続した画面取得でCPU次launch前を捕捉し、途中の相手行動から資源を逆算した比較ではない。46は追加の本人defend無しでHP38→26・MP10/CP20維持、同カード消費と表示枚数9維持を確認した。
+
+本体はruleset52 / Snapshot52 / view-v50へ進め、weapons baseのcut_costを既存の通常main明示自己target・hitRate0・非Wide経路へ加える。固定台帳で新しく該当するのは46だけで、他カテゴリのcutCostは対象外。完成列のMP/威力/属性・保持・消費・gift算術や一般queue順は変えない。単品46実測からMC/FREE合成への適用は限定一般化であり、それら全列の新しい実対局照合と呼ばない。旧snapshot1〜51を拒否し、Match ABI2・構造体幅・opcodeは維持する。
+
+native公開比較は10件×72変種＝720と別枠72routing。新gift46を同定できても、任意seedにそのモデルを出させる比較は行わない。自己売却の元operation/product消費・spare保持・商品配送、46の選択token消費はローカルな物理コピー不変条件として確認し、合成giftの4/26/46寄与を既知copy投影へ含めない。server tokenが見えたとの主張でもない。価格3の自己授受の資源netを比較し、operation表示価格5を追加の費用へ読み替えない。
+
+
+nativeは新1群を含む222関数、Pythonは151メソッドを各1回登録した。46の単品自己使用と未選択DEF保持、Auraの通常費用／隣接FREE、MP不足、cutoff、外部grantのpause/resume、late token失敗の全snapshot rollback、敵対象／bounce後の応答維持を検査する。
+
+全Release CTestは155/155件・41.99秒、ASan/UBSanの重点4件（official_match、official_live_trace、official_match_c_api、official_driver）は4/4件・34.89秒で通過した。両ビルドはwarning/error0。未変更の旧環境を含む全ASan suiteを今回再実行したとは呼ばない。過去の全suite通過記録はその時点の履歴として残す。
+
+main/driverの2人1,000件・9人100件をRelease/ASan・1worker/4workersで計16record比較し、時間・worker以外の全fieldが一致した。checksumはmain2人 `8683080092853518022`、main9人 `429222971013924689`、driver2人 `17221520816642828748`、driver9人 `16247101765229435314`。これはローカル再現性の比較で、公式の乱数・配布モデルの一致や版間速度向上を主張しない。

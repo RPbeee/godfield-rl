@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v51` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v52` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -2929,3 +2929,14 @@ with OfficialState(raw) as state, ActiveDisplay(state) as initial:
 対局ruleset51 / Snapshot51 / view-v49は、通常mainの明示自己target・hitRate0・Wideなしに限り、吸収27/45/216、二回攻撃14、MP武器58、同被害53を追加のdefendなしで進める。既存の実験的なbody算術を使い、費用と消費は1回。14は起動時の同じ威力・属性で2回処理し、自然終局か本人の実死亡で残りを打ち切る。58は支払い前に固定した威力を使い、53は1body内の二段減算を保つ。反射・跳ね返し後のframe、敵対象、他の特殊selfは従来の経路を使う。Match ABI2の幅・opcodeは維持する。これら特殊selfの効果順は引き続き公式での実対局確認が必要である。
 
 検証は全Release155/155件と、ASan/UBSanの公式関連37/37件が通過した。native221群・Python151ケース、client oracleの76＋65ケース、main/driverの16record再現性比較も通過。公式serverの効果順や乱数同等性を示す数値ではない。
+
+
+## v56：精霊の杖の自己使用と自己売却の実対局照合
+
+[公式CPU修行の追加記録](data/official-v2/live-transition-witnesses-v56.json)に、売る4＋なぎなたクラシック26の自己売却、つるぎ焼き69（石2）への空防御、精霊の杖46の自己使用という3完了遷移を加えた。累計10完了例・別枠routing-only1例・full wire trace0件である。自己売却では両者のHP/MP/CPを保ち、手札9枚と商品26の再表示を確認した。46自己使用は追加defend無しでHP38→26、MP10/CP20維持、G.F.4のCPU次攻撃前まで捕捉した。
+
+対局ruleset52 / Snapshot52 / view-v50は、武器baseの `cut_cost` も明示自己target・hitRate0・非WideのDEF0即時処理へ含める。固定台帳でこの条件に入る新モデルは46だけであり、防具143/163/173や雑貨204へ主攻撃範囲を広げない。MP費用・奇跡の保持・消費・補充は既存処理を使う。46単品の観測から合成列への適用には限定一般化を含み、46baseだけで後続奇跡が全て無料になる規則は加えていない。Match ABI2は維持する。
+
+新しい補充モデルをローカルseedへ合わせず、nativeでは10例×72＝720公開投影と、別の72経路検査を行う。自己売却後の新gift46は後のtooltipで同定できたが、抽選一致の比較には使わない。元の選択コピーの消費・商品の配送・手札総数を、新giftのモデル寄与から分けて検査する。その他の特殊self6種の効果順、杵＋全体化、終末中の一新の順は、引き続き実対局の確認が必要である。
+
+検証はRelease全155/155件、ASan/UBSan重点4/4件が通過した。native222群・Python151ケースと720公開投影比較＋別枠72経路検査を含み、main/driverのRelease/ASan・1/4worker再現性比較16recordも一致した。

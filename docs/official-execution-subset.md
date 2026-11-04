@@ -3020,3 +3020,26 @@ experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect
 新しい実対局の完了例はこのoracleでは追加していない。[v54まで](../data/official-v2/live-transition-witnesses-v54.json)の**完了公開遷移7件・routing-only1件・full wire取得0件**を維持する。serverが特殊selfにどのframe列を生成するか、14の二回をどこで区切るか、内部即時処理と自動空応答、各効果順・補充・乱数は未確認である。旧版の逐次応答規約は履歴として残し、この拡張を公式server完全同等性の証明とはしない。
 
 reportには別の公開GET確認も固定metadataとして記録した。2026年11月4日11:38 UTC、JS440,420bytesとJA49,240bytesは全本文SHA/ETagが既存v2 pinに一致した。Last-Modifiedは `Wed, 04 Nov 2026 07:33:42 GMT` へ進んだが、本文差やルール更新を意味しない。GETはoffline oracleとは別の取得で、raw本文はrepoへ複製せず、既存pins/oracleを変更していない。
+
+
+## 対局v52（作業世代v56）：精霊の杖の自己使用と自己売却の完了例
+
+[v56の実対局記録](../data/official-v2/live-transition-witnesses-v56.json)に、終末なし・2人CPU修行の新しい完了公開遷移3件を追加した。累計は**完了10件・別枠のrouting-only1件・full server event列0件**となる。公式で実測した3操作と、nativeで各例の在庫・seedを変える720比較（10件×72変種）、従来の反射剣72routing probeは別の件数である。旧版の証跡・規約・検証値は履歴として維持する。
+
+G.F.1では両者40/10/20・本人手札9から、4「売る」＋26「なぎなたクラシック」（価格3）を本人へ使用した。追加の本人応答なしでG.F.2 CPU mainへ進み、両者のHP/MP/CPと本人手札9は維持、4の表示コピー数は2→1、26は1個のまま。補充の攻12はG.F.3のtooltipで46「精霊の杖」と同定した。自己売却の中間入出金順、26のserver物理token、資金不足や満杯時の挙動はこの例から確定しない。
+
+G.F.2のCPU69「つるぎ焼き」（石ATK2）に空応答すると、本人HP40→38・MP10/CP20、CPU40/10/20を保ち、G.F.3本人mainへ進んだ。続いて46（無属性ATK12・cutCost）を本人へ1回使用すると、追加defendなしで12被害、本人26/10/20・CPU40/10/20、G.F.4 CPU mainを次のlaunch前に連続取得した。46は手札から消え、新しい攻13が加わり、表示枚数は9を維持した。新しい攻13のモデルは未同定である。
+
+この46実測に合わせ、`official-execution-subset-v52` / Snapshot52 / `official-execution-view-v50` は、通常main・明示自己target・hitRate0・非Wideの既存条件のまま、武器baseの `cut_cost` をDEF0即時経路へ加えた。現台帳でこの条件に該当する追加モデルは46だけで、同じcutCostの143/163/173は防具、204は雑貨であり、この武器base拡張へ含めない。既存の費用・消費・補充処理を1回用い、playを1decisionとして完了する。
+
+46単品の非致死自己使用が実測の範囲である。46を先頭にしたMC/FREE等の合法完成列は、既存の合成計算・保持・消費を使う限定一般化とする。合成時のMPは従来の完成列費用で決まり、隣接FREEの無料化条件もそのまま適用する。46先頭という条件で全奇跡の費用を一律0へ変える処理は追加しない。これら合成列のserverでの費用・効果順や、致死・特殊効果順の新しい実測とは呼ばない。v55の特殊6種の自己bodyも引き続き未実測であり、今回の46とは区別する。
+
+header・C getter・Python属性・observeが共有するruleは次のとおり。Match ABI2・構造体幅・phase/opcodeは維持し、Snapshot旧1〜51は拒否する。
+
+```text
+experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route
+```
+
+nativeの自己売却比較は、選択した元4コピーの消費、未選択4の保持、26の配送を新giftと分けて調べる。実画面の4/26総数を、任意seedで新gift4/26が出た場合まで直接一致させない。46自己使用も選択した元コピーの消費と総手札数を比べ、新giftのモデル寄与を除く。実gift46をengineへ指定してRNGを合わせたり、未知の攻13を補完したりしない。本人以外の在庫やlocal tokenも実server値とは扱わない。
+
+反射後frame・bounce・counter・敵対象・chance/Wide・他特殊base・guardian/payloadは従来経路を維持する。94＋Wideと178の終末grant接続には今回新しい確証を得ておらず、現行の未対応範囲を広げない。内部即時解決と自動空応答、一般の死亡・補充schedule、公式serverとの完全同等性は引き続き未確定である。

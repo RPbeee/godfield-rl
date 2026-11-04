@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "observed_on_jst": "2026-11-04",
+  "url": "https://godfield.net/",
+  "method": "Firefox native UI accessibility text and screenshots, including consecutive frame/accessibility captures from each accepted action to the following main-turn checkpoint. No injected browser code, backend request replay or full wire capture.",
+  "prior_record": "live-transition-witnesses-v54.json",
+  "session": {
+    "mode": "training",
+    "players": 2,
+    "apocalypse": null,
+    "viewer_first": true,
+    "new_session": true
+  },
+  "privacy": "Viewer and CPU are roles. Names, user IDs, credentials, session URLs and request bodies are omitted. Native role IDs and physical tokens are synthetic test values, not captured server IDs.",
+  "model_provenance": "Displayed names and facts are mapped to official-v2/cards.json:4 sell,26 naginata-classic (neutral ATK7,price3),46 spiritual-staff (neutral ATK12,cutCost,price20),69 sword-ware (Stone ATK2,price2). The model46 received after the sale was identified by its tooltip on the later viewer turn. The later ATK13 gift is not identified.",
+  "hand_count_policy": "viewer_visible_hand_count counts displayed physical copies. The initial nine displayed copies consist of three trade cards,three weapons and three armors;two trade copies are model4 and one weapon is model26. Other initial models are not fully transcribed. No initial used miracle copy was displayed. The CPU hand and its count remain unknown. Counts exclude the composed action cards and duplicate hover-detail displays.",
+  "observed_guardians_and_curses": "No guardian or curse indicator was shown for either role at the recorded checkpoints.",
+  "cases": [
+    {
+      "id": "training-gf1-self-sale-naginata",
+      "before": {
+        "gf": 1,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn with4 followed by26 selected and viewer explicitly chosen as the sale target",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_model4_copy_count": 2,
+        "viewer_model26_copy_count": 1,
+        "viewer_used_miracle_count": 0,
+        "cpu_hand_count": null,
+        "selected_models": [
+          4,
+          26
+        ],
+        "operation_display": {
+          "model": 4,
+          "description": "sell one item",
+          "catalog_price": 5
+        },
+        "merchandise_display": {
+          "model": 26,
+          "power": 7,
+          "element": null,
+          "price": 3
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "sell",
+        "models": [
+          4,
+          26
+        ],
+        "target": "viewer"
+      },
+      "additional_viewer_response_chosen": false,
+      "observed_intermediate_sequence": [
+        "The selected4 and26 disappeared from the displayed hand during the sale presentation.",
+        "The sale display showed26 and its price3.",
+        "A26 copy appeared again in the displayed hand.",
+        "A new ATK12 item appeared before GF2;its model46 was identified by a later tooltip.",
+        "GF2 CPU main was captured before its next launch."
+      ],
+      "after": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "cpu",
+        "checkpoint": "CPU main before its next attack launch",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_model4_copy_count": 1,
+        "viewer_model26_copy_count": 1,
+        "next_cpu_attack_launched": false
+      },
+      "gift_observation": {
+        "received": true,
+        "count": 1,
+        "model": 46,
+        "identified_at": "viewer GF3 tooltip",
+        "display": {
+          "power": 12,
+          "ability": "cutCost",
+          "price": 20
+        },
+        "identity_compared_by_native_fixture": false
+      },
+      "projection": "Use the independently catalogued merchandise price3 for the self-sale body. Compare unchanged public HP/MP/CP,total nine displayed copies,and next GF/owner. The native inventory probe checks removal of the selected pre-existing4 copy,retention of the unselected4 copy and delivery of a26 copy separately from the random replacement. Observed total model counts are recorded above,but random new-gift contributions to4/26 counts are excluded from the native projection. The catalogue price5 of the operation card is not inserted as an additional MP/CP fee. Do not fit the replacement identity even though model46 was later identified.",
+      "limits": "The unchanged net CP does not reveal intermediate credit/debit order. This solvent self-sale does not establish debt payment or full-hand overflow behavior. The reappearing26 display does not expose a server physical token or prove transport identity. The new46 is not supplied as a fitted random draw to reproduce the endpoint."
+    },
+    {
+      "id": "training-gf2-stone-sword-ware-empty-defense",
+      "before": {
+        "gf": 2,
+        "owner": "cpu",
+        "actor": "viewer",
+        "checkpoint": "CPU69 sword-ware attack before the viewer empty defense",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_model4_copy_count": 1,
+        "viewer_model26_copy_count": 1,
+        "viewer_model46_copy_count": 1,
+        "attack_models": [
+          69
+        ],
+        "attack_display": {
+          "power": 2,
+          "element": "stone",
+          "price": 2
+        },
+        "cpu_hand_count": null
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "models": []
+      },
+      "observed_intermediate_sequence": [
+        "Damage2 was displayed.",
+        "Viewer HP40 changed to38.",
+        "GF3 viewer main was captured."
+      ],
+      "after": {
+        "gf": 3,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn",
+        "viewer": {
+          "hp": 38,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9
+      },
+      "projection": "Independently compute single69 as Stone ATK2 with zero defense. Compare viewer HP40 to38,unchanged MP/CP and CPU public resources,unchanged viewer displayed hand count,and next GF/owner. No viewer defensive item or replacement is supplied.",
+      "limits": "The CPU replacement item,hidden inventory and random draws are not reconstructed. Model69 is Stone as identified from its displayed name/icon and the pinned catalogue;this case is not a neutral-weapon witness."
+    },
+    {
+      "id": "training-gf3-self-spiritual-staff-no-response",
+      "before": {
+        "gf": 3,
+        "owner": "viewer",
+        "actor": "viewer",
+        "checkpoint": "viewer main turn with46 spiritual-staff selected and viewer explicitly chosen as target",
+        "viewer": {
+          "hp": 38,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_model46_copy_count": 1,
+        "cpu_hand_count": null,
+        "attack_models": [
+          46
+        ],
+        "attack_display": {
+          "power": 12,
+          "element": null,
+          "ability": "cutCost",
+          "price": 20,
+          "mp_cost": 0
+        }
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "models": [
+          46
+        ],
+        "target": "viewer"
+      },
+      "additional_viewer_response_chosen": false,
+      "observed_intermediate_sequence": [
+        "Damage12 was displayed.",
+        "Viewer HP38 changed to26 while MP10/CP20 remained displayed.",
+        "Model46 disappeared from the hand and a new ATK13 item appeared.",
+        "GF4 CPU main was captured before its next launch."
+      ],
+      "after": {
+        "gf": 4,
+        "owner": "cpu",
+        "actor": "cpu",
+        "checkpoint": "CPU main before its next attack launch",
+        "viewer": {
+          "hp": 26,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_visible_hand_count": 9,
+        "viewer_model46_copy_count": 0,
+        "next_cpu_attack_launched": false
+      },
+      "gift_observation": {
+        "received": true,
+        "count": 1,
+        "model": null,
+        "display": {
+          "power": 13
+        },
+        "identity_compared_by_native_fixture": false
+      },
+      "projection": "Independently compute single46 as neutral ATK12 with zero MP cost,then resolve the explicit self play without a synthetic defend command. Compare HP38 to26,unchanged MP/CP and CPU public resources,removal of the selected pre-existing46 copy,total displayed copies,and next GF/owner. The observed total46 count0 is recorded above;new randomly generated gift identities and their contributions to model counts are excluded from the native projection. Do not fit the unknown ATK13 gift model.",
+      "limits": "This is a nonlethal single46 self-use witness. It does not establish combined miracle cost ordering or lethal special-effect ordering. Internal immediate resolution and automatic empty response remain indistinguishable from this UI observation;the server event sequence and RNG are not captured."
+    }
+  ],
+  "native_test": "tests/official_live_trace_test.cpp",
+  "native_inventory_policy": "Unselected,untranscribed copies may be replaced by legal surrogates only to probe the compared public projection. These variations do not claim to reconstruct the actual hidden inventory. Local physical tokens are not asserted server tokens.",
+  "excluded_comparisons": [
+    "the identified46 replacement identity as a generated random outcome",
+    "the unidentified ATK13 replacement model and token",
+    "server identity of the redelivered26 copy",
+    "hidden CPU inventory and its size",
+    "uncaptured intermediate self-sale CP ordering",
+    "server RNG/local seed equivalence",
+    "uncaptured backend event order"
+  ],
+  "new_completed_public_transition_witnesses": 3,
+  "new_routing_only_observations": 0,
+  "cumulative_completed_public_transition_witnesses": 10,
+  "cumulative_routing_only_observations": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

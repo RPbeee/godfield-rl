@@ -263,3 +263,12 @@ Last-Modifiedは11月3日へ進んだが、JS/JAのETagと本文は同じだっ�
 本体ruleset51/Snapshot51/view-v49は、この6種・4familyを既存bodyのまま限定self経路へ追加する。14のfresh2body・消費/課金1回・自然終局/owner実死亡での打切り・cutoff/gift接合等は実験規約とし、ABI2は固定する。[契約の詳細](../../docs/official-execution-subset.md)と[現行ルールv55](../../docs/official-current-rules.md)を参照。過去の応答経路の記述は歴史として残す。
 
 reportは79,743bytes、SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81ad567ae71e8e643c`、`--check`でbyte一致する。別公開GETのJS/JAは本文SHA・ETagがpinと同一で、Last-Modifiedのみ11月4日07:33:42 GMTへ進んでいた。取得metadataをreportに保存し、rawソース本文・旧pinsは更新していない。
+
+
+## v56：精霊の杖自己使用と自己売却の公開遷移
+
+[対局記録](live-transition-witnesses-v56.json)に、4＋26の自己売却、69つるぎ焼き（石2）への空防御、46精霊の杖（無12、cutCost）の自己使用という完了3件を追加した。累計は完了公開遷移10件・別枠routing-only1件・full server event列0件。各例の合成72変種によるnative720比較と、従来の反射剣72routing probeを実測件数から分ける。
+
+自己売却は両者40/10/20と手札9を保ちG.F.1→2、空防御は本人40→38・G.F.2→3、46自己使用は追加defendなしで本人38→26・MP10/CP20・CPU40/10/20・手札9を保ちG.F.3→4まで記録した。自己売却後の補充46は後のtooltipで同定したが、engineのgift outcomeに指定しない。4/26の観測総数と、新giftの寄与を除く元コピー消費・配送のnative検査を分け、未知の攻13補充も補完しない。server token・隠れた在庫・中間CP順は未取得である。
+
+本体ruleset52 / Snapshot52 / view-v50は、通常main・明示自己target・hitRate0・非Wideの武器baseへcut_costを追加する。現台帳で増えるのは46のみで、143/163/173の防具や204雑貨へbase条件を広げない。単品46実測から合成列へは、既存の完成列MP費用・隣接FREE・保持・消費を使う限定一般化である。Match ABI2と旧pins・旧witnessを維持し、v55特殊6種の未実測bodyや94＋Wide・178終末grantの未対応範囲は変更しない。[実行規約](../../docs/official-execution-subset.md)と[一次記録の説明](../../docs/official-current-rules.md)を参照。

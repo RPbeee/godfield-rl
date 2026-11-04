@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v51"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v52"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v49\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v50\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3029,7 +3029,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==51&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==52&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3039,7 +3039,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v49")!=std::string::npos
+    check(view.find("official-execution-view-v50")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3233,10 +3233,63 @@ void special_self_journal_resume_and_late_failure_atomicity(){
     }
 }
 
+
+void cut_cost_weapon_self_body_payment_and_resume(){
+    auto state=scene({46,150,6,12,3,4,5,195,203},{});state.gf=3;state.players[0].hp=38;
+    auto direct=fixture(state);direct.step(play(0,{0},0));
+    const auto& done=direct.snapshot();
+    check(done.state.players[0].hp==26&&done.state.players[0].mp==10&&done.state.players[0].cp==20
+        &&done.state.players[1].hp==40&&done.state.players[1].mp==10&&done.state.players[1].cp==20
+        &&done.phase==MatchPhase::main&&done.owner==7&&done.state.gf==4&&done.decisions==1&&done.queue.empty()
+        &&done.state.players[0].items.size()==9&&done.next_token==10
+        &&std::none_of(done.state.players[0].items.begin(),done.state.players[0].items.end(),[](const auto& item){return item.token==0;})
+        &&std::any_of(done.state.players[0].items.begin(),done.state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==150&&!item.used;}),
+        "46 self uses ordinary ATK12 once without defense, consumes only the staff and replaces one slot");roundtrip(direct);
+    reject(direct,defend(0,{1}));
+    for(bool free:{false,true}){
+        auto composed=scene({46,231,204},{});auto game=fixture(composed);
+        game.step(free?play(0,{0,1,2},0):play(0,{0,1},0));
+        const auto& current=game.snapshot();
+        check(current.state.players[0].hp==16&&current.state.players[0].mp==(free?10:4)
+            &&current.decisions==1&&current.phase==MatchPhase::main&&current.owner==7
+            &&std::any_of(current.state.players[0].items.begin(),current.state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==231&&item.used;})
+            &&std::none_of(current.state.players[0].items.begin(),current.state.players[0].items.end(),[&](const auto& item){return item.token==0||(free&&item.token==2);}),
+            "46 base does not waive a later Aura; only its immediate FREE suffix waives6 while retaining Aura once");roundtrip(game);
+    }
+    auto unpaid=scene({46,231},{});unpaid.players[0].mp=0;auto poor=fixture(unpaid);reject(poor,play(0,{0,1},0));
+    MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto rng=cutoff.snapshot().rng;
+    cutoff.step(play(0,{0},0));check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==26
+        &&cutoff.snapshot().state.players[0].mp==10&&cutoff.snapshot().state.players[0].items.size()==8
+        &&cutoff.snapshot().rng==rng&&cutoff.snapshot().state.gf==3,
+        "46 self body precedes cutoff, cancelling deferred replacement without RNG or GF advance");roundtrip(cutoff);
+    auto pending_state=state;pending_state.tiebreak_gf=0;MatchConfig deferred;deferred.external_grants=true;
+    auto pending=fixture(pending_state,deferred);pending.step(play(0,{0},0));
+    check(pending.snapshot().phase==MatchPhase::grant&&pending.snapshot().pending_grant==0
+        &&pending.snapshot().state.players[0].hp==26&&pending.snapshot().gifts[0]==1
+        &&pending.snapshot().decisions==1&&pending.snapshot().queue.empty(),
+        "46 self completes its body before its one reserved grant and never requests self defense");roundtrip(pending);
+    pending.grant_step({0,0,{},{}});check(pending.snapshot().state.players[0].hp==26&&pending.snapshot().owner==7
+        &&pending.snapshot().state.gf==4&&pending.snapshot().state.players[0].items.size()==9,
+        "46 grant replay/resume cannot charge or damage twice");roundtrip(pending);
+    auto scarce=state;scarce.players[0].items[0].token=max_wire_integer;auto atomic=fixture(scarce);
+    const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{max_wire_integer},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late46 gift exhaustion rolls back body, payment, consumption and RNG");
+    auto foreign=fixture(scene({46},{150}));foreign.step(play(0,{0},7));
+    check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7&&foreign.snapshot().queue[0].power==12,
+        "46 enemy launch retains a separate defense response");roundtrip(foreign);
+    foreign.step(defend(7,{0}));check(foreign.snapshot().state.players[1].hp==35,"46 enemy defense still subtracts ordinary DEF7");roundtrip(foreign);
+    auto alias=redirected_self_fixture(46,150);check(alias.snapshot().phase==MatchPhase::response&&alias.snapshot().actor==7,
+        "bounced46 self alias keeps the redirected response route");
+    alias.step(defend(7,{1}));check(alias.snapshot().state.players[1].hp==35&&alias.snapshot().state.players[0].hp==40,
+        "redirected self46 can use DEF7 rather than being forced to zero defense");roundtrip(alias);
+}
+
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),221> tests{{
+    const std::array<void(*)(),222> tests{{
+        cut_cost_weapon_self_body_payment_and_resume,
         special_self_body_alias_cost_and_passives,
         special_self_repeat_two_bodies_death_and_grants,
         special_self_journal_resume_and_late_failure_atomicity,

@@ -36,6 +36,7 @@ struct LiveTransitionCase {
 };
 constexpr std::array<CardId,0> no_models{};
 constexpr std::array<CardId,1> star_staff{{75}},power_halberd{{32}},ogre_helm{{150}},goodbye_sword{{81}},great_tree{{213}},kusarigama{{19}};
+constexpr std::array<CardId,1> sword_ware{{69}},spiritual_staff{{46}};
 constexpr std::array<CardId,3> absorption_column{{45,124,34}};
 // A partial public witness: no server damage/RNG/hidden inventory is supplied to
 // the executor. The observations are checkpoints, not a whole-game replay.
@@ -53,7 +54,11 @@ constexpr std::array cases{
     LiveTransitionCase{"training-gf2-kusarigama-empty-defense",2,3,
         {40,10,20},{34,7,20},{40,10,20},{29,7,20},cpu_id,viewer_id,viewer_id,kusarigama,no_models,5,0,{},10,10,false,false,0,true},
     LiveTransitionCase{"training-gf5-reused-self-great-tree-no-response",5,6,
-        {30,30,10},{23,4,20},{30,30,10},{17,1,20},viewer_id,viewer_id,cpu_id,great_tree,no_models,6,0,Element::wood,11,12,false,false,3,true,true}
+        {30,30,10},{23,4,20},{30,30,10},{17,1,20},viewer_id,viewer_id,cpu_id,great_tree,no_models,6,0,Element::wood,11,12,false,false,3,true,true},
+    LiveTransitionCase{"training-gf2-stone-sword-ware-empty-defense",2,3,
+        {40,10,20},{40,10,20},{40,10,20},{38,10,20},cpu_id,viewer_id,viewer_id,sword_ware,no_models,2,0,Element::stone,9,9},
+    LiveTransitionCase{"training-gf3-self-spiritual-staff-no-response",3,4,
+        {40,10,20},{38,10,20},{40,10,20},{26,10,20},viewer_id,viewer_id,cpu_id,spiritual_staff,no_models,12,0,{},9,9}
 };
 void check(bool ok,std::string_view case_id,const char* message){
     if(!ok){std::cerr<<"FAIL live transition "<<case_id<<": "<<message<<'\n';std::exit(1);}
@@ -132,6 +137,8 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
                 &&!match.legal({viewer_id,CommandKind::defend,{unused_defense_token},{}}),
                 witness.id,"available ordinary DEF7 remains unused and no self-response input is exposed");
         }
+        if(witness.attack_models.front()==46)check(std::none_of(by_role(match,viewer_id).items.begin(),by_role(match,viewer_id).items.end(),
+            [](const auto& item){return item.token==attack_token;}),witness.id,"the selected46 copy is consumed without constraining its replacement model");
         // After the first213, the next CPU's zero-MP weapon was observed before
         // its body and cannot change the compared projection. After the later
         // reused213, CPU main itself was read. Neither case invents CPU defense
@@ -180,6 +187,47 @@ void verify(const LiveTransitionCase& witness,std::uint64_t seed,std::size_t cpu
     // Excluded from assertions: CPU inventory/count, replacement models/tokens,
     // final RNG, real server IDs, and unobserved intermediate event ordering.
 }
+std::size_t verify_self_sale_projection(std::span<const std::uint64_t> seeds){
+    constexpr std::string_view label="training-gf1-self-sale-naginata";
+    constexpr ItemToken operation=attack_token,spare_operation=attack_token+1,commodity=attack_token+2;
+    constexpr std::array<CardId,2> models{{4,26}};
+    const std::array<VisibleSelection,1> prefix{{{4,false}}};
+    check(can_append_main(prefix,{26,false})&&magic_cost(models)==0&&find_card(26)->price==3,
+        label,"public catalog predicts a zero-MP sale of the price3 commodity");
+    std::size_t probes=0;
+    for(auto count:{std::size_t{1},std::size_t{9},std::size_t{18}})for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){
+        SnapshotState scene;scene.gf=1;
+        PlayerState cpu;cpu.id=cpu_id;PlayerState viewer;viewer.id=viewer_id;
+        viewer.items={{operation,4,{},false},{spare_operation,4,{},false},{commodity,26,{},false}};
+        for(std::size_t i=0;viewer.items.size()<9;++i){const auto model=unused_filler(profile,i);if(model!=4&&model!=26)viewer.items.push_back({i,model,{},false});}
+        for(std::size_t i=0;i<count;++i)cpu.items.push_back({i,unused_filler(profile,i),{},false});
+        scene.players={std::move(cpu),std::move(viewer)};
+        MatchConfig config;config.initial_hand=0;config.include_fate=true;config.max_decisions=16;Match match(config);match.load_scene(std::move(scene),viewer_id,seed);
+        const auto receipt_token=match.snapshot().next_token;
+        const Command sale{viewer_id,CommandKind::sell,{operation,commodity},viewer_id};
+        check(match.legal(sale),label,"one owned SELL and the unused commodity accept the observed self target");
+        (void)match.step(sale);const auto& snapshot=match.snapshot();const auto& remaining=by_role(match,viewer_id).items;
+        check(snapshot.decisions==1&&snapshot.phase==MatchPhase::main&&snapshot.owner==cpu_id&&snapshot.actor==cpu_id
+            &&snapshot.state.gf==2&&snapshot.queue.empty()&&!match.done()
+            &&resources(by_role(match,viewer_id))==Resources{40,10,20}&&resources(by_role(match,cpu_id))==Resources{40,10,20}
+            &&remaining.size()==9,label,"one self sale predicts unchanged public resources and nine copies at GF2 CPU main");
+        check(snapshot.last_sale&&snapshot.last_sale->origin==viewer_id&&snapshot.last_sale->source==viewer_id
+            &&snapshot.last_sale->target==viewer_id&&snapshot.last_sale->model==26&&snapshot.last_sale->price==3,
+            label,"the sale resolves the price3 commodity with self debit and credit rather than an attack");
+        check(std::none_of(remaining.begin(),remaining.end(),[](const auto& item){return item.token==operation||item.token==commodity;})
+            &&std::any_of(remaining.begin(),remaining.end(),[](const auto& item){return item.token==spare_operation&&item.model==4&&!item.used;})
+            &&std::any_of(remaining.begin(),remaining.end(),[&](const auto& item){return item.token==receipt_token&&item.model==26&&!item.used;}),
+            label,"selected operation and original commodity are consumed while spare SELL and delivered26 remain");
+        // Actual UI totals were SELL2->1 and26 one->one, with a known gift46.
+        // Do not fit that gift: compare the known old/delivered copies separately
+        // from the new random gift, which may itself be4 or26 in this local run.
+        check(std::count_if(remaining.begin(),remaining.end(),[&](const auto& item){return item.token<=receipt_token&&item.model==4;})==1
+            &&std::count_if(remaining.begin(),remaining.end(),[&](const auto& item){return item.token<=receipt_token&&item.model==26;})==1,
+            label,"known-copy model counts match independently of the unconstrained replacement gift");
+        ++probes;
+    }
+    return probes;
+}
 std::size_t verify_self_reflection_routing(){
     constexpr std::string_view label="training-apocalypse-gf2-self-reflection-sword-no-response";
     constexpr std::array<CardId,1> models{{38}};
@@ -227,7 +275,8 @@ int main(){
     std::size_t projections=0;
     for(const auto& witness:cases)for(auto count:{witness.attacker==cpu_id?witness.attack_models.size():std::size_t{1},std::size_t{9},std::size_t{18}})
         for(unsigned profile=0;profile<3;++profile)for(auto seed:seeds){verify(witness,seed,count,profile);++projections;}
+    projections+=verify_self_sale_projection(seeds);
     const auto routing_probes=verify_self_reflection_routing();
-    std::cout<<"Official live transition projection passed ("<<cases.size()<<" public witness, "<<projections
+    std::cout<<"Official live transition projection passed ("<<cases.size()+1<<" public witness, "<<projections
         <<" synthetic completions; "<<routing_probes<<" separate routing-only probes; hidden hands and server RNG not reconstructed).\n";
 }

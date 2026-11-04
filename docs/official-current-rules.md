@@ -2066,3 +2066,16 @@ GF6、本人HP9/MP10/CP20・CPU59/25/20で、本人が81（闇ATK4）を自分�
 実行器ruleset51・Snapshot51・`official-execution-view-v49` は、明示自己target・非chance・非Wideの通常mainに限定して、吸収27/45/216、二回14、MP武器58、同被害53の4familyをDEF0即時解決へ追加した。既存bodyのheal/damage順、MP支払い・used保持・gift規約はそのまま使う。14は消費/課金1回・1decisionで元launchからfreshな2bodyを順に解決し、自然終局または実際のowner死亡で打ち切る。208救済後の生存継続やcutoffとの接合を含め、この効果scheduleはローカル一般化であり今回のserver実測ではない。反射後frame・bounce・counter・chance/Wide・その他特殊base等の既存経路は変えず、ABI2・構造体幅も固定する。新 `self_attack_rule` の全文は[対局v51節](official-execution-subset.md)とheaderを参照。
 
 reportは79,743bytes / SHA256 `d0ab012b0724c9e7a93f6cc16e09f728f5abdb4e5a3e0b81ad567ae71e8e643c` で、`--check` により再現する。別途の公式公開GETではJS440,420bytes・JA49,240bytesの本文SHAとETagがpinと一致し、Last-Modifiedだけ2026年11月4日07:33:42 GMTへ更新されていた。本文のルール差やserver同等性を意味せず、旧pins・旧report・歴史記述は保持する。
+
+
+## v56：自己売却・石2空防御・精霊の杖自己使用の実測
+
+[新記録](../data/official-v2/live-transition-witnesses-v56.json)は、終末なし2人CPU修行の完了公開遷移3件を保存する。累計は完了10件、別枠routing-only1件、full wire取得0件。nativeの720公開投影比較と従来の72routing probeは、合成在庫・seed変種を含む検査であり、公式の実測試行数へ加算しない。
+
+G.F.1で両者40/10/20・本人手札9から4＋26（なぎなたクラシック、価格3）を自己売却した。追加応答なしでG.F.2 CPU mainへ進み、両者資源と表示枚数9は不変、4コピー2→1・26コピー1を確認した。新しい攻12は後のtooltipで46精霊の杖と同定した。中間のCP加減順や配送tokenは取得しておらず、operation cardの価格5を別の手数料として挿入しない検査と、観測された自己売却のnet資源を区別する。
+
+G.F.2でCPU69つるぎ焼き（石ATK2）へ空防御し、本人HP40→38、MP10/CP20とCPU40/10/20、手札9を保ってG.F.3へ進んだ。G.F.3の46（無属性ATK12、cutCost）自己使用は、追加defendなしで本人HP38→26、両者MP/CPとCPU HPは不変、46消費・攻13補充・手札9、次launch前のG.F.4 CPU mainまで連続取得した。攻13のモデルは未同定である。
+
+対局ruleset52・Snapshot52・`official-execution-view-v50` は、明示self・非chance・非Wideの通常mainについて、武器baseにcut_costを追加する。現台帳の追加対象は46だけ。同abilityの143/163/173（防具）と204（雑貨）はこのbase条件に含めない。46単品の実測を根拠に、MC/FREE等の合法合成へ既存の完成列費用・保持・消費を使う限定一般化を加える。先頭46から後続奇跡を全て自動無料にする変更はなく、MPは既存の完成列費用・隣接FREE条件で計算する。ABI2・構造体幅・phase/opcodeと、他特殊base・敵対象・redirect等の経路は維持する。新rule全文は[対局v52節](official-execution-subset.md)とheaderを参照。
+
+実gift46は記録したがnativeのRNGに指定せず、モデルidentityを比較から外す。4/26の実総数は、新giftのモデル寄与を除いた元コピー消費・保持・配送の検査とは区別する。新しい攻13も補完しない。v55特殊6種の自己bodyは今回も未実測であり、今回の3例をそれらの実測へ読み替えない。致死・補充・二回攻撃の内部順は未確認のままとする。94＋Wideと178の終末grantについても、新しい確証は得られていない。
