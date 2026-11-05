@@ -143,6 +143,29 @@ class OfficialStateTests(unittest.TestCase):
                 for player in raw["players"]:
                     self.assertEqual(received.view(player_id=player["id"]), strict.view(player_id=player["id"]))
 
+    def test_received_v65_fog_privacy_guardian_and_used_miracles(self):
+        for scenario, hp, mp, counts, empty in (
+                ("guardian", (40, 40, 45), (10, 10, 4), (9, 9, 10), (0, 2, 0)),
+                ("fate", (40, 40, 40), (10, 10, 10), (9, 9, 9), (0, 1, 0))):
+            report = json.loads((Path(__file__).resolve().parents[1] / f"data/official-v2/wire-game-updates-v65-{scenario}.json").read_text())
+            for index, entry in enumerate(report["updates"]):
+                with self.subTest(scenario=scenario, update=index+1):
+                    raw = entry["game"]; state = self.received(raw); own = state.view(player_id=1)
+                    self.assertEqual(state.raw_snapshot, raw)
+                    self.assertEqual((raw["updateCount"], own["gf"]), (index+1, index+1))
+                    self.assertEqual((own["players"][0]["status"]["hp"], own["players"][0]["status"]["mp"]), (hp[index], mp[index]))
+                    self.assertEqual((len(own["hand"]), len(state.empty_slots)), (counts[index], empty[index]))
+                    self.assertEqual(state.view(spectator=True)["hand"], [])
+                    if scenario == "fate" and index:
+                        self.assertTrue(own["players"][1]["fogged"])
+                        self.assertIsNone(own["players"][1]["status"])
+                    if scenario == "guardian" and index:
+                        self.assertEqual(own["players"][0]["status"]["guardian"], "neptune")
+                        cpu = state.view(player_id=2)
+                        self.assertTrue(next(item for item in cpu["hand"] if item["token"] == 5)["used"])
+                    if scenario == "guardian" and index == 2:
+                        self.assertTrue(next(item for item in own["hand"] if item["token"] == 4)["used"])
+
     def test_received_v64_dream_presence_visible_faces_and_privileged_evidence(self):
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v64.json").read_text())
         expected = ((4, 4, 35, 15, 195), (5, 5, 34, 15, 195),

@@ -207,3 +207,18 @@ useDefenseItemsには135/fake135、useAttackItemsには195/fake195と197/fake195
 初期通信は今回も復元しない。再現用GF3 sceneはupdate4の本人gift195/fake195を消費前の195/Noneへ戻し、CPU空枠を消費23/id6へ戻して構成する。本人35/10/20・DreamはUI、CPU64/id2は既に届いていた受信在庫を使う。原配列順・初期draw・game3は不明で、CPU通常補充の省略イベントやretry列を作らない。recipientごとのlocal補充順をbackend順へ読み替えない。
 
 新4操作で累計28完了例・native対象25例とする。固定8seed×4受信checkpoint＝32比較を追加し、以前の投影・routing・一新部分検証・各世代checkpointは別集計を保つ。開始〜終局の受信game列は累計1対局分、全backend内部traceは0である。GF9から退出し、ホーム復帰とNetwork Monitor閉鎖を確認した。[機械可読の観測範囲](../data/official-v2/live-transition-witnesses-v64.json)へ固定する。
+
+
+## v65：201召喚後の壁・Neptuneと207からの濃霧
+
+2026年11月5日、終末なし2人CPU修行を8回開始し、2対局の完了viewer操作4件を収録した。その他6対局は初期手札の探索のみで、完了観測へ加算しない。Network Monitorでゲーム状態を含む大きなGET応答を選び、本文だけを保存した。gameを含まない165 byteの探索用応答は根拠へ使わない。両収録対局でupdate1の権威的初期状態も取得でき、以前の再構成初期sceneとは区別する。
+
+[Neptune対局の3更新](../data/official-v2/wire-game-updates-v65-guardian.json)は、初期双方40/10/20・本人mainから201/id6自己使用→setGuardian neptune→本人196/id6補充→GF2 CPU29/id2＋231/id5のATK16を含む。CPUはMP10→4、231をused保持し、実物8＋empty2となった。
+
+本人は233/id4「壁」（MP6、無属性武器を止める）で応答した。update3はuseDefenseItems233→block→attackByGuardian（source1/Neptune/model276）→HP＋5→本人gift123/id10→GF3の順で、本人HP40→45・MP10→4、233はusedで残った。CPU200/id2・19/id10は最終在庫差分で、giftイベントはない。Neptuneの回復が補充より先に届く有限例であり、召喚率・自動機会率・各技の率や一般scheduleを証明しない。
+
+[Fate対局の3更新](../data/official-v2/wire-game-updates-v65-fate.json)は、初期本人の207/id7を使用し、phenomenon288→setCurseOfEverybody fog→本人gift192/id7→GF2 CPU76/id6の闇3という順である。本人は142/id6のDEF6で応答し、safe・HP40維持・本人166/id6補充・GF3を取得した。CPU26/id6は在庫差分で、双方Fogは維持する。UIでも本人の資源は見える一方、相手の資源が隠れた。
+
+既存FateActionへ観測288と通常結果を指定し、固定8seed×3checkpoint＝24比較を行う。Fogのsingleton対象drawは実行したままで、selectorや乱数を合わせない。Neptuneの召喚/自動選出はfull再生せず、276のHP5だけを外部GuardianActionで照合する別枠8component検証へ分ける。post3在庫・used233/231を静的contextに使いHP5のみ戻した合成入力であり、公式の途中状態や補充順を再現したものではない。
+
+新4完了観測で累計32例、うち全体native投影対象27例、複合5例は記録のみとなる。別枠routing1例・一新部分検証・各世代wire checkpointは維持し、新Neptune効果8検査を別集計する。開始〜終局の受信game列は累計1対局分・全backend内部trace0のままである。GF3で両収録対局を退出し、最後にホーム復帰とNetwork Monitor閉鎖を確認した。[機械可読範囲](../data/official-v2/live-transition-witnesses-v65.json)へ固定する。

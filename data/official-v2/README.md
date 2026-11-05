@@ -365,3 +365,16 @@ runtime56/Snapshot56/view-v54を変更せず固定8seed×4受信checkpointを比
 | --- | ---: | --- |
 | `wire-game-updates-v64.json` | 19,912 | `c7714518c9b542062699740b6115dfb3facc6bb0e9daa18b116381b64f331fb0` |
 | `live-transition-witnesses-v64.json` | 7,819 | `ce55a7a85db9a7e2c6850cc6e4460bcecc27b51e1dfbf8ae507269e53257ec78` |
+
+
+## v65：NeptuneとFate288の二つの受信列
+
+[Neptune対局](wire-game-updates-v65-guardian.json)と[Fate対局](wire-game-updates-v65-fate.json)は、それぞれ初期を含む連続update1〜3を保存する。[witness](live-transition-witnesses-v65.json)は新4操作とnative全体2例/効果単体の区分を保持する。初期手札探索8対局のうち収録2対局、残6は完了件数へ混ぜない。名前・userId・updatedAt・transport識別情報を除去し、受信配列順・used233/231・slot再利用・省略CPU giftを保持する。
+
+Fate207→288と142防御は既存8seed×3checkpointで比較する。201/自動276はrecord-onlyとし、276のHP5効果だけを別枠8componentへ分ける。selectorやRNGをfitせず、通常結果とCPU在庫差分を明示入力する。runtime56/Snapshot56/view-v54を変更せず、旧資料は保持する。
+
+| v65 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v65-guardian.json` | 14,174 | `a519d83eb558c1653db01ca33aa8afdfb7e7df286facb80cfc7daea35ce13938` |
+| `wire-game-updates-v65-fate.json` | 13,512 | `3519892a146a84b6e827f0aa525cd7dd64057b79c21caacac207863e0be828f2` |
+| `live-transition-witnesses-v65.json` | 6,209 | `e7c44691cdacd68e54d1b043529ce97317a2f6f832308f1d6040a50e32b224c1` |

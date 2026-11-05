@@ -2149,3 +2149,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信update4〜7](../data/official-v2/wire-game-updates-v64.json)では、135/fake135の防御使用・195/fake195の自己使用を実測し、fake presenceがuseイベントにも残ることを確認した。さらに実197/fake195の選択プレビューは195/MP＋5、使用イベントは実197/fake195、受信boostMPは15、UIもMP20→35となった。これは既存互換クラス内の「見かけで入力・実体で効果」を直接支持する1例である。zero-cost同カテゴリ以外の費用・合法性差には一般化しない。
 
 通常195→同番号195、同番号195→異番号197/195、異番号197/195→同番号13という受領を取得したが、候補集合・率・乱数器を推定する母集団とはしない。CPU188/196/202の補充は在庫差分であり、受信eventsに無いgift/retryを補完しない。初期sceneの再構成と4受信終点の比較であり、game3・元draw/orderやbackend schedulerの一般的同値性は未取得のままである。対局runtime56/Snapshot56/view-v54・旧oracleを維持する。
+
+
+## v65：観測された守護神先行とFate288
+
+[Neptuneの受信列](../data/official-v2/wire-game-updates-v65-guardian.json)で201の自己使用→Neptune付与→通常196補充を取得した。次CPUの29＋231を233で止めると、block→Neptune276→HP＋5→本人123補充→GF更新が届いた。used233/231は残り、CPUの200/19は在庫差分である。この例では守護神の効果が通常補充より前に並ぶ。一般の病気/守護神/補充順、201/276の選出や率は未確定のままとする。
+
+[別の受信列](../data/official-v2/wire-game-updates-v65-fate.json)で所有207が濃霧288を発動し、全員Fog→通常192補充→CPU76闇3へ進んだ。142/DEF6の応答はsafeでHP40を維持した。既存の外部結果付きFateActionと防御規約に整合する有限例であり、独立phenomenon_stepへ置き換えず所有207の消費・補充・来歴を含めて照合する。Fogの一人対象選択にもローカルdrawを残し、公式selectorの同値性へ広げない。

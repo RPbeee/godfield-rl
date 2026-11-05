@@ -3147,3 +3147,13 @@ GF3の初期sceneはUI資源・受信残在庫・消費イベントからの再�
 
 
 検証はRelease全156対象とASan/UBSanの更新wire1対象が通過した。新しい4checkpoint×8seed、Python State19・Match164、独立したraw匿名化・数値転記の監査結果と検証範囲は[適合計画v64](official-conformance-plan.md)へ記録する。
+
+
+## 作業世代v65：所有Fate288と守護神効果の観測比較
+
+runtimeは対局v56/Snapshot56/view-v54のまま。初期状態を含むFate対局3checkpointを既存8seedで比較し、FateActionによる207消費・288結果・通常192補充、Fog CPU76の対象選択、142防御・166/CPU26差分補充を既存APIで実行する。明示結果の配送は無RNGだが、Fogのsingleton target drawを省略しない。サーバーの現象選出やgift順の一致は主張しない。
+
+201→Neptuneと自動276の対局は別の記録である。276を外部GuardianActionで実行する効果単体8検査は、受信post3の在庫を固定してHP5だけ戻した合成contextを使い、召喚・自動機会・防御/補充順のfull再生へ数えない。新規chance phaseやAPI型は追加しない。
+
+
+Release全156対象とASan/UBSanの更新wire1対象が通過した。Python State20・Match165を含む検証と、6受信状態の匿名化・数値転記監査は[適合計画v65](official-conformance-plan.md)へ記録する。

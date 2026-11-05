@@ -1,0 +1,563 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scenario": "fate",
+  "scope": "Three consecutive received snapshots1-3 of one bounded no-apocalypse CPU training game,including its initial state. Not a complete lifecycle or exhaustive backend event trace.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25139,
+      "response_body_sha256": "5723ac125f730d363f48f02f6f9aa76d8248fa2de0bad7c020a9e0e3605846b6",
+      "webchannel_frame_count": 11
+    },
+    {
+      "label": "dense-fog",
+      "response_body_bytes": 20209,
+      "response_body_sha256": "dad3ab030a6c8416caebf43359d719bd883c63d388f847f4a1f7504278501e8e",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "dark-defense",
+      "response_body_bytes": 17322,
+      "response_body_sha256": "e24e6c3c3ec1c88ccf3341a3d782107dbd3ae0bd6bd017197fb2122dd77a4ee3",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor Save Response As,response bodies only;no constructed/replayed HTTP requests,headers,HAR or outgoing command payload capture.",
+  "sanitization": {
+    "removed": [
+      "all original player names",
+      "players[].userId",
+      "game.updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Numeric game fields,field omissions,received player/item/event array order,used miracle rows,zero placeholders and received slot reuse.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "query/session/resume tokens",
+      "HTTP headers",
+      "request payloads",
+      "raw transport bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "CPU true hands are privileged validation data,never public-player policy inputs.",
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "updateCount": 1,
+        "gf": 1,
+        "attackTurnPlayerId": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "diseasePlayerId": 1,
+        "players": [
+          {
+            "hp": 40,
+            "id": 1,
+            "name": "viewer",
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 211
+              },
+              {
+                "modelId": 74,
+                "id": 2
+              },
+              {
+                "modelId": 32,
+                "id": 3
+              },
+              {
+                "modelId": 3,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 33
+              },
+              {
+                "modelId": 142,
+                "id": 6
+              },
+              {
+                "modelId": 207,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 69
+              },
+              {
+                "modelId": 16,
+                "id": 9
+              }
+            ],
+            "cp": 20
+          },
+          {
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 144,
+                "id": 1
+              },
+              {
+                "modelId": 35,
+                "id": 2
+              },
+              {
+                "modelId": 89,
+                "id": 3
+              },
+              {
+                "modelId": 156,
+                "id": 4
+              },
+              {
+                "modelId": 38,
+                "id": 5
+              },
+              {
+                "modelId": 76,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 109
+              },
+              {
+                "modelId": 170,
+                "id": 8
+              },
+              {
+                "modelId": 182,
+                "id": 9
+              }
+            ],
+            "mp": 10,
+            "isBot": true,
+            "id": 2,
+            "name": "cpu",
+            "hp": 40
+          }
+        ],
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 211,
+              "id": 1
+            }
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "id": 2,
+              "modelId": 74
+            },
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 32,
+              "id": 3
+            }
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 3,
+              "id": 4
+            },
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "id": 5,
+              "modelId": 33
+            }
+          },
+          {
+            "item": {
+              "modelId": 142,
+              "id": 6
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 207,
+              "id": 7
+            }
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 69,
+              "id": 8
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 16,
+              "id": 9
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ]
+      }
+    },
+    {
+      "source_body": "dense-fog",
+      "game": {
+        "guardianPlayerIds": [
+          1
+        ],
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 207,
+                "id": 7
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "phenomenon",
+            "itemModelId": 288
+          },
+          {
+            "curse": "fog",
+            "action": "setCurseOfEverybody"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 7,
+              "modelId": 192
+            }
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 76,
+                "id": 6
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "attacks": [
+          {
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              76
+            ],
+            "playerId": 2
+          }
+        ],
+        "attackTurnPlayerId": 2,
+        "diseasePlayerId": 2,
+        "gf": 2,
+        "players": [
+          {
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 211,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 74
+              },
+              {
+                "modelId": 32,
+                "id": 3
+              },
+              {
+                "modelId": 3,
+                "id": 4
+              },
+              {
+                "modelId": 33,
+                "id": 5
+              },
+              {
+                "modelId": 142,
+                "id": 6
+              },
+              {
+                "id": 8,
+                "modelId": 69
+              },
+              {
+                "modelId": 16,
+                "id": 9
+              },
+              {
+                "id": 7,
+                "modelId": 192
+              }
+            ],
+            "curses": [
+              "fog"
+            ],
+            "hp": 40,
+            "name": "viewer",
+            "id": 1
+          },
+          {
+            "name": "cpu",
+            "curses": [
+              "fog"
+            ],
+            "id": 2,
+            "hp": 40,
+            "mp": 10,
+            "isBot": true,
+            "cp": 20,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 144
+              },
+              {
+                "modelId": 35,
+                "id": 2
+              },
+              {
+                "modelId": 89,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 156
+              },
+              {
+                "modelId": 38,
+                "id": 5
+              },
+              {
+                "modelId": 109,
+                "id": 7
+              },
+              {
+                "modelId": 170,
+                "id": 8
+              },
+              {
+                "modelId": 182,
+                "id": 9
+              },
+              {
+                "id": 0,
+                "modelId": 0
+              }
+            ]
+          }
+        ],
+        "updateCount": 2
+      }
+    },
+    {
+      "source_body": "dark-defense",
+      "game": {
+        "updateCount": 3,
+        "gf": 3,
+        "attackTurnPlayerId": 1,
+        "players": [
+          {
+            "hp": 40,
+            "id": 1,
+            "items": [
+              {
+                "modelId": 211,
+                "id": 1
+              },
+              {
+                "modelId": 74,
+                "id": 2
+              },
+              {
+                "modelId": 32,
+                "id": 3
+              },
+              {
+                "modelId": 3,
+                "id": 4
+              },
+              {
+                "modelId": 33,
+                "id": 5
+              },
+              {
+                "modelId": 69,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 16
+              },
+              {
+                "id": 7,
+                "modelId": 192
+              },
+              {
+                "modelId": 166,
+                "id": 6
+              }
+            ],
+            "cp": 20,
+            "curses": [
+              "fog"
+            ],
+            "name": "viewer",
+            "mp": 10
+          },
+          {
+            "name": "cpu",
+            "isBot": true,
+            "hp": 40,
+            "items": [
+              {
+                "modelId": 144,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 35
+              },
+              {
+                "id": 3,
+                "modelId": 89
+              },
+              {
+                "modelId": 156,
+                "id": 4
+              },
+              {
+                "modelId": 38,
+                "id": 5
+              },
+              {
+                "id": 7,
+                "modelId": 109
+              },
+              {
+                "modelId": 170,
+                "id": 8
+              },
+              {
+                "modelId": 182,
+                "id": 9
+              },
+              {
+                "modelId": 26,
+                "id": 6
+              }
+            ],
+            "id": 2,
+            "mp": 10,
+            "curses": [
+              "fog"
+            ],
+            "cp": 20
+          }
+        ],
+        "guardianPlayerIds": [
+          2
+        ],
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 142,
+                "id": 6
+              }
+            ],
+            "action": "useDefenseItems"
+          },
+          {
+            "action": "safe"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 166,
+              "id": 6
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "diseasePlayerId": 1
+      }
+    }
+  ],
+  "boundary_notes": [
+    "207 use,phenomenon288 and Fog on everyone precede the viewer192 receipt;CPU76 Dark3 then starts in update2.",
+    "142 DEF6 produces safe with HP40 unchanged. Viewer166 is a gift event;CPU26/id6 is an inventory delta only.",
+    "Native replay uses the existing owned207 FateAction with explicit observed288 outcome,not a standalone phenomenon_step or a fitted phenomenon selector.",
+    "Fog CPU76 has one alive enemy. Its local singleton target draw is retained;explicit artifact receipts do not consume RNG. Backend RNG and selector distribution remain unverified.",
+    "The local input-seat receipt order is a completion convention,not a recovered backend ordering result."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false
+  },
+  "captured_authoritative_game_snapshot_count": 3,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 2,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

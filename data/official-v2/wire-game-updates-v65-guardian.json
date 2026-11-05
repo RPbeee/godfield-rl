@@ -1,0 +1,583 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scenario": "guardian",
+  "scope": "Three consecutive received snapshots1-3 of one bounded no-apocalypse CPU training game,including its initial state. Not a complete lifecycle or exhaustive backend event trace.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 24956,
+      "response_body_sha256": "231901591d9a5b232d85a3981aa2fab9e881a1fa9177002ac3d3cb83e3e0d810",
+      "webchannel_frame_count": 8
+    },
+    {
+      "label": "summon",
+      "response_body_bytes": 20579,
+      "response_body_sha256": "13bed9068b6b4581696dd2e20af47e0c9ab5986cbbba9732569a5d659023db0c",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "wall-neptune",
+      "response_body_bytes": 19820,
+      "response_body_sha256": "a78e6307a14f28243450791da35ed0adfd50af643907bb0e1d4200b3203ca022",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor Save Response As,response bodies only;no constructed/replayed HTTP requests,headers,HAR or outgoing command payload capture.",
+  "sanitization": {
+    "removed": [
+      "all original player names",
+      "players[].userId",
+      "game.updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Numeric game fields,field omissions,received player/item/event array order,used miracle rows,zero placeholders and received slot reuse.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "query/session/resume tokens",
+      "HTTP headers",
+      "request payloads",
+      "raw transport bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "CPU true hands are privileged validation data,never public-player policy inputs.",
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "updateCount": 1,
+        "gf": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "attackTurnPlayerId": 1,
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 176,
+              "id": 1
+            }
+          },
+          {
+            "item": {
+              "modelId": 67,
+              "id": 2
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "id": 3,
+              "modelId": 142
+            }
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "id": 4,
+              "modelId": 233
+            },
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 23,
+              "id": 5
+            },
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 201,
+              "id": 6
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 23,
+              "id": 7
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 4,
+              "id": 8
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "id": 9,
+              "modelId": 26
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "players": [
+          {
+            "name": "viewer",
+            "hp": 40,
+            "id": 1,
+            "cp": 20,
+            "mp": 10,
+            "items": [
+              {
+                "modelId": 176,
+                "id": 1
+              },
+              {
+                "modelId": 67,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 142
+              },
+              {
+                "modelId": 233,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 23
+              },
+              {
+                "modelId": 201,
+                "id": 6
+              },
+              {
+                "modelId": 23,
+                "id": 7
+              },
+              {
+                "modelId": 4,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 26
+              }
+            ]
+          },
+          {
+            "isBot": true,
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 3
+              },
+              {
+                "modelId": 29,
+                "id": 2
+              },
+              {
+                "modelId": 173,
+                "id": 3
+              },
+              {
+                "modelId": 4,
+                "id": 4
+              },
+              {
+                "modelId": 231,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 196
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 3,
+                "id": 8
+              },
+              {
+                "modelId": 113,
+                "id": 9
+              }
+            ],
+            "name": "cpu",
+            "cp": 20,
+            "hp": 40,
+            "id": 2
+          }
+        ],
+        "diseasePlayerId": 1
+      }
+    },
+    {
+      "source_body": "summon",
+      "game": {
+        "gf": 2,
+        "guardianPlayerIds": [
+          1
+        ],
+        "attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              29,
+              231
+            ]
+          }
+        ],
+        "diseasePlayerId": 2,
+        "attackTurnPlayerId": 2,
+        "updateCount": 2,
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 201,
+                "id": 6
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "guardian": "neptune",
+            "action": "setGuardian"
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 196,
+              "id": 6
+            }
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 2
+          },
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "modelId": 29,
+                "id": 2
+              },
+              {
+                "modelId": 231,
+                "id": 5
+              }
+            ]
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "players": [
+          {
+            "name": "viewer",
+            "items": [
+              {
+                "modelId": 176,
+                "id": 1
+              },
+              {
+                "modelId": 67,
+                "id": 2
+              },
+              {
+                "modelId": 142,
+                "id": 3
+              },
+              {
+                "modelId": 233,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 23
+              },
+              {
+                "id": 7,
+                "modelId": 23
+              },
+              {
+                "modelId": 4,
+                "id": 8
+              },
+              {
+                "modelId": 26,
+                "id": 9
+              },
+              {
+                "id": 6,
+                "modelId": 196
+              }
+            ],
+            "hp": 40,
+            "id": 1,
+            "mp": 10,
+            "guardian": "neptune",
+            "cp": 20
+          },
+          {
+            "isBot": true,
+            "name": "cpu",
+            "items": [
+              {
+                "modelId": 3,
+                "id": 1
+              },
+              {
+                "id": 3,
+                "modelId": 173
+              },
+              {
+                "modelId": 4,
+                "id": 4
+              },
+              {
+                "modelId": 196,
+                "id": 6
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 3,
+                "id": 8
+              },
+              {
+                "modelId": 113,
+                "id": 9
+              },
+              {
+                "modelId": 231,
+                "used": true,
+                "id": 5
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "hp": 40,
+            "id": 2,
+            "mp": 4,
+            "cp": 20
+          }
+        ]
+      }
+    },
+    {
+      "source_body": "wall-neptune",
+      "game": {
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 233,
+                "id": 4
+              }
+            ],
+            "action": "useDefenseItems"
+          },
+          {
+            "action": "block"
+          },
+          {
+            "attack": {
+              "itemModelIds": [
+                276
+              ],
+              "guardian": "neptune",
+              "playerId": 1
+            },
+            "action": "attackByGuardian"
+          },
+          {
+            "hp": 5,
+            "action": "boostHP"
+          },
+          {
+            "item": {
+              "modelId": 123,
+              "id": 10
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "players": [
+          {
+            "mp": 4,
+            "guardian": "neptune",
+            "name": "viewer",
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 176,
+                "id": 1
+              },
+              {
+                "modelId": 67,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 142
+              },
+              {
+                "id": 5,
+                "modelId": 23
+              },
+              {
+                "modelId": 23,
+                "id": 7
+              },
+              {
+                "modelId": 4,
+                "id": 8
+              },
+              {
+                "modelId": 26,
+                "id": 9
+              },
+              {
+                "modelId": 196,
+                "id": 6
+              },
+              {
+                "id": 4,
+                "modelId": 233,
+                "used": true
+              },
+              {
+                "modelId": 123,
+                "id": 10
+              }
+            ],
+            "hp": 45,
+            "id": 1
+          },
+          {
+            "isBot": true,
+            "name": "cpu",
+            "items": [
+              {
+                "modelId": 3,
+                "id": 1
+              },
+              {
+                "modelId": 173,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 4
+              },
+              {
+                "id": 6,
+                "modelId": 196
+              },
+              {
+                "id": 7,
+                "modelId": 3
+              },
+              {
+                "id": 8,
+                "modelId": 3
+              },
+              {
+                "id": 9,
+                "modelId": 113
+              },
+              {
+                "used": true,
+                "id": 5,
+                "modelId": 231
+              },
+              {
+                "modelId": 200,
+                "id": 2
+              },
+              {
+                "modelId": 19,
+                "id": 10
+              }
+            ],
+            "hp": 40,
+            "id": 2,
+            "mp": 4,
+            "cp": 20
+          }
+        ],
+        "updateCount": 3,
+        "guardianPlayerIds": [
+          2
+        ],
+        "gf": 3,
+        "attackTurnPlayerId": 1,
+        "diseasePlayerId": 1
+      }
+    }
+  ],
+  "boundary_notes": [
+    "201 self-use reports Neptune before the viewer's normal196 gift and GF advance;the next CPU29+231 launch shares update2.",
+    "233 defense retains a used miracle and consumes MP6. update3 orders block,guardian276,HP+5,viewer gift123,and advanceGF.",
+    "CPU200/id2 and19/id10 are inventory deltas only. Their omitted gift events,retry and backend recipient ordering are not reconstructed.",
+    "The observed summon type and automatic guardian opportunity/move are not supplied to the current normal201 path. No seed search or probability estimate is made. Full native replay is not claimed.",
+    "A separate276 effect-only native component uses post3 inventories as static context and reverses only the received HP5 before applying an explicit external GuardianAction. This does not replay the response,scheduler or gift order."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false
+  },
+  "captured_authoritative_game_snapshot_count": 3,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 2,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

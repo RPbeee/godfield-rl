@@ -3677,6 +3677,30 @@ class MatchTests(unittest.TestCase):
             with self.assertRaises(InvalidMatchError): game.rollout_step(17, 123)
             self.assertEqual((game.observe(0), game.status), (before, status))
 
+    def test_v65_received_owned_fate_fog_and_dark_defense(self):
+        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v65-fate.json").read_text())
+        initial, _, expected = (entry["game"] for entry in report["updates"])
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True, include_fate=True))
+        with OfficialState(initial, library=LIBRARY) as state: game.load_scene(state, 1, 42)
+        action = FateAction(1, 7, PhenomenonAction(288))
+        self.assertTrue(game.fate_legal(action)); game.fate_step(action)
+        self.assertEqual(game.observe()["last_fate"], {"actor": 1, "model": 207, "phenomenon": 288})
+        game.artifact_grant_step(ArtifactGrantAction(1, 192))
+        game.step(Command(2, "play", (6,), 1))
+        hidden = game.observe(1)["board"]["players"][1]
+        self.assertTrue(hidden["fogged"]); self.assertIsNone(hidden["status"])
+        self.assertEqual(game.status.phase, "response")
+        game.step(Command(1, "defend", (6,)))
+        game.artifact_grant_step(ArtifactGrantAction(1, 166))
+        # CPU26 is known from its received inventory delta,not a gift event.
+        game.artifact_grant_step(ArtifactGrantAction(2, 26))
+        self.assertEqual((game.status.phase, game.status.owner, game.observe()["board"]["gf"]), ("main", 1, 3))
+        for seat, received in enumerate(expected["players"]):
+            own = game.observe(received["id"])["board"]; status = own["players"][seat]["status"]
+            self.assertEqual((status["hp"], status["mp"], status["cp"], status["curses"]), (40, 10, 20, ["fog"]))
+            self.assertEqual(sorted((item["face"], item["disguised"], item["used"]) for item in own["hand"]),
+                             sorted((item["modelId"], False, item.get("used", False)) for item in received["items"]))
+
     def test_v64_received_different_dream_flower_uses_actual_gain(self):
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v64.json").read_text())
         before, expected = (entry["game"] for entry in report["updates"][2:])

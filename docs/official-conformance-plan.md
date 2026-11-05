@@ -2076,3 +2076,19 @@ Python Matchには受信update6のquiescent sceneを明示importし、197/fake19
 最終Release CTestは156/156（16.82秒）通過。更新したwire targetはRelease1/1（0.29秒）、ASan/UBSan1/1（0.47秒）通過し、今回の両wire buildのwarning/errorは0件。Python State19・Match164 unique methodsを含む全Releaseを確認した。runtime本体の変更はなく、SAN全suiteやPython SANを再実行した意味ではない。
 
 独立監査では、再構成前の両18行・4終点の両72行をfixtureと機械照合し、model/fake/used・受信順・再構成slot順が一致した。4 private原本からの匿名化も全件差分0、公開artifactのbytes/SHA256はデータREADMEと照合した。旧世代の記録・oracleは変更していない。
+
+
+## v65：Fate288の受信再生とNeptuneの効果単体
+
+2対局各3更新を権威的初期状態から保存した。新4viewer操作（201召喚、233壁、207/Fate288、142防御）のうちFate対局2操作を全体のnative投影へ加え、累計32完了例・native対象27例とする。Neptune対局2操作はrecord-onlyのまま、276のHP5効果のみを別枠8component検証へ分ける。CPU自動後続や初期手札探索6対局を独立完了例へ重複加算しない。
+
+Fateは明示288結果を既存所有FateActionへ渡し、固定8seedで初期・Fog/Cobra保留・142防御後の3checkpoint＝24比較を行う。全positiveモデル・fake省略・used・資源・Fog・GF/owner/pendingを比較し、各native境界をsnapshot/restoreする。明示192/166/CPU26配送の前後はRNG不変、Fog一人対象drawは保持する。server updateCountとdecision数、現象selectorやCPUの省略gift/retry・授与順は比較対象外である。
+
+Neptune対局は201→Neptune→gift196、block→276/HP＋5→gift123という有限受信順を保持する。276componentは最終受信の正の在庫とused233/231を固定し、HP5だけを戻して外部GuardianActionを適用する。これは自動scheduleや201 selectorを再生した比較ではない。旧pins・oracle・観測世代・legacy37とruntime56/Snapshot56/view-v54を維持する。
+
+
+Pythonの受信frame回帰では両対局6状態を読み、Fog時の他者資源非表示、Neptune、used233/231、empty0/2/0および0/1/0を確認する。Python Matchでは権威的Fate初期sceneから207/288・明示192・CPU76・142防御・166/CPU26補充をC接口経由で再生し、最終資源・両者の手札投影を比較する。State20、Match165 unique methods、native Match231 callbacksである。
+
+最終Release CTestは156/156（13.14秒）通過。更新wireはRelease1/1（0.30秒）、ASan/UBSan1/1（0.49秒）通過し、両wire buildのwarning/errorは0件。runtime本体は変更せず、SAN全suiteやPython SANを再実行した意味ではない。
+
+独立監査でprivate6ゲーム状態の匿名化後と両wire記録が全件一致し、Fate54行・276component20行の数値転記も一致した。fixed8seedに検索/skipはなく、selector未再現の2観測とfull Fate24 checkpoint・別枠component8を区別する。公開artifactのhashはデータREADMEと照合した。旧世代記録・oracleは変更していない。

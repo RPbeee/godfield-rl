@@ -486,13 +486,114 @@ void replay(std::uint64_t seed) {
 }
 }
 
+
+// v65 has two separate training games. Only the owned207/Fog game is a full
+// conditional replay. Neptune's observed201 draw and automatic move selector
+// are not reproduced by choosing or searching native seeds.
+namespace v65 {
+constexpr std::array<std::array<ReceivedSlot,9>,3> fate_viewer{{
+    {{{1,211},{2,74},{3,32},{4,3},{5,33},{6,142},{7,207},{8,69},{9,16}}},
+    {{{1,211},{2,74},{3,32},{4,3},{5,33},{6,142},{8,69},{9,16},{7,192}}},
+    {{{1,211},{2,74},{3,32},{4,3},{5,33},{8,69},{9,16},{7,192},{6,166}}}
+}};
+constexpr std::array<ReceivedSlot,10> component_viewer{{{1,176},{2,67},{3,142},{5,23},{7,23},{8,4},{9,26},{6,196},{4,233,0,true},{10,123}}};
+constexpr std::array<std::array<ReceivedSlot,9>,3> fate_cpu{{
+    {{{1,144},{2,35},{3,89},{4,156},{5,38},{6,76},{7,109},{8,170},{9,182}}},
+    {{{1,144},{2,35},{3,89},{4,156},{5,38},{7,109},{8,170},{9,182},{0,0}}},
+    {{{1,144},{2,35},{3,89},{4,156},{5,38},{7,109},{8,170},{9,182},{6,26}}}
+}};
+constexpr std::array<ReceivedSlot,10> component_cpu{{{1,3},{3,173},{4,4},{6,196},{7,3},{8,3},{9,113},{5,231,0,true},{2,200},{10,19}}};
+
+void compare_fate(const Match& game,const SlotMap& slots,std::size_t checkpoint) {
+    const auto& snap=game.snapshot();
+    check(snap.state.gf==static_cast<std::int64_t>(checkpoint+1)&&snap.owner==(checkpoint==1?2:1)
+          &&!snap.terminated&&!snap.truncated&&!snap.state.is_over&&snap.state.players.size()==2,
+          "v65 Fate received GF/owner/nonterminal roster match");
+    std::size_t total=0;
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];const auto& rows=seat?fate_cpu[checkpoint]:fate_viewer[checkpoint];
+        check(player.id==seat+1&&player.hp==40&&player.mp==10&&player.cp==20&&!player.dead
+              &&player.team==Team::solo&&player.guardian==Guardian::none&&player.confusion_count==0,
+              "v65 both received resources and live/team/guardian defaults match");
+        check(player.curses==(checkpoint?std::vector<Curse>{Curse::fog}:std::vector<Curse>{}),
+              "v65 supplied288 sets Fog on everyone and defended Dark does not clear it");
+        std::size_t positive=0,empty=0;
+        for(const auto& row:rows) {
+            if(!row.model){check(row.slot==0,"v65 received canonical placeholder");++empty;continue;}
+            ++positive;const auto map=slots.find({player.id,row.slot});check(map!=slots.end(),"v65 qualified received slot has a native token");
+            const auto item=std::find_if(player.items.begin(),player.items.end(),[&](const auto& x){return x.token==map->second;});
+            check(item!=player.items.end()&&item->model==row.model&&!item->fake_model&&item->used==row.used,
+                  "v65 every positive model,absent fake and used status matches");
+        }
+        check(player.items.size()==positive&&snap.gifts[seat]==empty,"v65 physical counts and live placeholder debt match");total+=positive;
+    }
+    check(slots.size()==total,"v65 no stale consumed slot mappings");
+    if(checkpoint==1) {
+        check(snap.phase==MatchPhase::response&&snap.actor==1&&snap.queue.size()==1,"v65 Fog CPU launch waits for viewer defense");
+        const auto& attack=snap.queue.front();
+        check(attack.models==std::vector<CardId>{76}&&attack.origin==2&&attack.source==2&&attack.target==1
+              &&attack.category==Category::weapons&&attack.power==3&&attack.element==Element::darkness
+              &&attack.ability==Ability::none&&attack.hit_rate==0&&!attack.is_counter&&!attack.is_death,
+              "v65 received Cobra retains its derived Dark3 payload");
+    } else check(snap.phase==MatchPhase::main&&snap.actor==1&&snap.queue.empty(),"v65 initial and final checkpoints are viewer main");
+    if(checkpoint) {
+        const auto own=game.observe(1);
+        check(own.find("\"fogged\":true")!=std::string::npos&&own.find("\"status\":null")!=std::string::npos,
+              "v65 opponent resources remain hidden in the policy view despite the privileged fixture");
+    }
+    // No server updateCount/native decision equality or backend gift order claim.
+    // Fog's one-enemy target still uses its local draw; no seed is selected/skipped.
+    roundtrip(game);
+}
+void replay_fate(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.include_fate=true;config.max_decisions=64;
+    Match game(config);SlotMap slots;SnapshotState state;state.gf=1;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;const auto& rows=seat?fate_cpu[0]:fate_viewer[0];
+        for(const auto& row:rows){const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;player.items.push_back({token,row.model,{},false});}
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_fate(game,slots,0);
+    const FateAction fate{1,consumed_slot(slots,1,7),PhenomenonAction{288,{},{}},{}};
+    check(game.fate_legal(fate),"v65 owned207 accepts the received288 result through FateAction");(void)game.fate_step(fate);roundtrip(game);
+    check(game.snapshot().fate_actions==1&&game.snapshot().phenomenon_actions==0&&game.snapshot().rng==seed
+          &&game.snapshot().last_fate_event==std::optional<FateEvent>{{1,288}},
+          "v65 supplied outcome uses the owned action proof without a local phenomenon selector");
+    v64::receipt(game,slots,1,7,192);
+    const Command cobra{2,CommandKind::play,{consumed_slot(slots,2,6)},1};
+    check(game.legal(cobra),"v65 received Fog launch has its sole alive enemy");(void)game.step(cobra);compare_fate(game,slots,1);
+    const Command defend142{1,CommandKind::defend,{consumed_slot(slots,1,6)},{}};
+    check(game.legal(defend142),"v65 received DEF6 can fully prevent Dark3");(void)game.step(defend142);roundtrip(game);
+    check(game.snapshot().state.players[0].hp==40&&!game.snapshot().state.players[0].dead,"v65 no positive Dark damage means no death");
+    v64::receipt(game,slots,1,6,166);v64::receipt(game,slots,2,6,26);compare_fate(game,slots,2);
+}
+void neptune_effect_component(std::uint64_t seed) {
+    // Synthetic effect-only context: keep all post3 positive inventories fixed
+    // and reverse just the received HP5. Gift/summon/scheduler order is excluded.
+    SnapshotState state;state.gf=3;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;player.mp=4;
+        if(!seat)player.guardian=Guardian::neptune;
+        const auto& rows=seat?component_cpu:component_viewer;
+        for(const auto& row:rows)player.items.push_back({1000*player.id+row.slot,row.model,{},row.used});
+        state.players.push_back(std::move(player));
+    }
+    Match game;game.load_scene(state,1,seed);const GuardianAction action{1,276,1};
+    check(game.guardian_legal(action),"v65 observed276 is a supported canonical Neptune body");(void)game.guardian_step(action);
+    auto expected=state;expected.players[0].hp=45;
+    check(game.snapshot().state.players==expected.players&&game.snapshot().state.gf==3&&game.snapshot().owner==1
+          &&game.snapshot().rng==seed&&game.snapshot().guardian_actions==1,
+          "v65 explicit276 component applies HP5 only,without changing items,MP,CP,GF or RNG");roundtrip(game);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -503,4 +604,5 @@ int main() {
              <<"all seeds match the observed non-worsening Heaven branch without search or skip; not server RNG equivalence\n";
     std::cout<<"v63: existing 8 seeds x1 received post-only checkpoint; reconstructed pre-play copies, self80 and explicit135/135; no original initial draw/order or server RNG claim\n";
     std::cout<<"v64: existing 8 seeds x4 received checkpoints; reconstructed GF3, identity135/195 use and actual197/fake195 MP15; explicit artifacts and CPU inventory-delta completions, not backend order or RNG equivalence\n";
+    std::cout<<"v65: 8 seeds x3 owned207/Fog received checkpoints; separate8 Neptune276 body-only components, no summon/automatic-guardian full replay or seed fitting\n";
 }

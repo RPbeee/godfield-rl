@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "Session date;precise per-action wall-clock timestamps were not captured.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v64.json",
+  "method": "Native UI CPU training only. Eight initial-hand explorations,two curated games;the other six had no curated completed viewer commands. This targeted search is not a random-sample distribution study.",
+  "privacy": "Original names,userIds,updatedAt and transport identifiers excluded;CPU true inventories are privileged validation data.",
+  "authoritative_fixtures": [
+    "wire-game-updates-v65-guardian.json",
+    "wire-game-updates-v65-fate.json"
+  ],
+  "cases": [
+    {
+      "id": "201-neptune-summon-and-cpu-aura",
+      "native_projection_covered": false,
+      "fixture": "wire-game-updates-v65-guardian.json",
+      "received_updates": [
+        1,
+        2
+      ],
+      "confirmed_choice": {
+        "actor": 1,
+        "model": 201,
+        "slot": 6,
+        "target": 1
+      },
+      "observed_effects": [
+        "setGuardian neptune",
+        "viewer gift196/id6",
+        "advanceGF to CPU",
+        "CPU29/id2 plus231/id5,ATK16,MP10->4,used231 retained"
+      ],
+      "limits": "Observed201 outcome and automatic schedule are not native chance inputs. Neither seed fitting nor a fully reproduced summon sequence is claimed."
+    },
+    {
+      "id": "233-wall-before-neptune276-and-gifts",
+      "native_projection_covered": false,
+      "fixture": "wire-game-updates-v65-guardian.json",
+      "received_updates": [
+        2,
+        3
+      ],
+      "confirmed_choice": {
+        "actor": 1,
+        "model": 233,
+        "slot": 4,
+        "role": "defense",
+        "mp_cost": 6
+      },
+      "observed_effects": [
+        "block physical ATK16",
+        "viewer MP10->4,233 retained used",
+        "guardian276 from Neptune source1",
+        "viewer HP40->45",
+        "viewer gift123/id10",
+        "CPU200/id2 and19/id10 inventory deltas",
+        "GF3 viewer main"
+      ],
+      "component_comparison": {
+        "component": "external canonical276 HP5 effect only",
+        "fixed_seeds": 8,
+        "full_transition": false,
+        "context": "Final received inventories are held fixed as static context;only HP5 is reversed before applying the explicit body. No scheduler,gift-order or201 replay is implied."
+      },
+      "limits": "This finite event order supports guardian-before-gift in this case,not general opportunity/departure rates or all scheduler branches."
+    },
+    {
+      "id": "owned207-to-dense-fog288",
+      "native_projection_covered": true,
+      "fixture": "wire-game-updates-v65-fate.json",
+      "received_updates": [
+        1,
+        2
+      ],
+      "confirmed_choice": {
+        "actor": 1,
+        "model": 207,
+        "slot": 7
+      },
+      "observed_effects": [
+        "phenomenon288",
+        "setCurseOfEverybody fog",
+        "viewer gift192/id7",
+        "GF2 CPU76/id6 Dark3 toward viewer"
+      ],
+      "limits": "288 is supplied as the observed external FateAction outcome in replay. Its1/10 local selector or official probability is not measured. CPU Fog target has one enemy."
+    },
+    {
+      "id": "fog-dark3-safe-with142",
+      "native_projection_covered": true,
+      "fixture": "wire-game-updates-v65-fate.json",
+      "received_updates": [
+        2,
+        3
+      ],
+      "confirmed_choice": {
+        "actor": 1,
+        "model": 142,
+        "slot": 6,
+        "role": "defense",
+        "defense": 6
+      },
+      "observed_effects": [
+        "safe,viewerHP40 unchanged",
+        "viewer gift166/id6",
+        "CPU26/id6 inventory delta",
+        "Fog persists on both players",
+        "GF3 viewer main"
+      ],
+      "limits": "A fully defended Dark body is one finite case;no additional CPU gift/retry event or backend recipient order is invented."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false,
+    "fate_fixed_replays": 8,
+    "fate_received_checkpoints_per_replay": 3,
+    "fate_received_checkpoint_comparisons": 24,
+    "guardian_effect_only_component_comparisons": 8,
+    "summon_or_automatic_guardian_full_replays": 0,
+    "random_seed_fitting": false,
+    "scope": "Fate initial-state-to-update3 conditional replay with explicit288 and known artifact results;separate276 body-only component. No official selector,RNG or general schedule equivalence."
+  },
+  "capture_counts": {
+    "training_games_started": 8,
+    "curated_training_games": 2,
+    "uncurated_initial_hand_explorations": 6,
+    "authoritative_game_snapshots": 6,
+    "initial_authoritative_game_snapshots": 2,
+    "bounded_authoritative_game_update_batches": 4,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "last_curated_gf": 3,
+    "additional_gameplay_commands_after_boundary": false
+  },
+  "new_completed_public_transition_witnesses": 4,
+  "cumulative_completed_public_transition_witnesses": 32,
+  "new_native_projection_covered_completed_witnesses": 2,
+  "cumulative_native_projection_covered_completed_witnesses": 27,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "native_coverage_note": "Two Fate-game choices count as new full projection-covered witnesses. The summon and wall/automatic276 choices remain record-only,with a separately counted effect component. CPU automatic follow-ups are not counted as separate viewer choices. All older projection/routing/redraw and wire generations remain separate.",
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

@@ -2998,3 +2998,10 @@ ruleset56 / Snapshot56 / view-v54、Match ABI2と既存構造体幅を維持し�
 公式CPU修行で135/135防具と195/195の花を実際に使用し、さらに見かけ195（MP＋5）・実体197（MP＋15）の使用でMP20→35を確認しました。受信update4〜7を保存し、再構成sceneから既存実装と照合します。新しい異番号pairは既存の9key互換範囲内です。
 
 今回は公式記録と回帰テストの拡充で、runtimeはruleset56 / Snapshot56 / view-v54を維持します。[観測記録](docs/official-live-observations.md)と[差分表](docs/official-spec-gap.md)へ反映し、ブラウザでホーム復帰とNetwork Monitorの終了まで確認しました。
+
+
+## v65：運命のひも・濃霧と守護神の発動順
+
+公式CPU修行で207の使用から濃霧288・双方Fog・補充・次CPUの闇3攻撃、DEF6による無被害までを取得し、既存Fate APIで再現します。別対局では201によるNeptune召喚と、壁233の防御後に276のHP＋5→通常補充という受信順を保存しました。召喚・自動発動のselectorは未再現で、276の効果単体だけを別に検査します。
+
+新4観測で累計32例、全体のnative投影対象は27例です。runtime56 / Snapshot56 / view-v54とAPI幅は維持し、観測記録と回帰テストを拡充します。
