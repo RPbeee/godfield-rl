@@ -1,0 +1,332 @@
+{
+  "schema_version": 1,
+  "schema": "official-supplied-purchase-replay-v1",
+  "recorded_on_jst": "2026-11-05",
+  "report_kind": "local_replay_capability_for_existing_official_observations",
+  "new_official_observations": 0,
+  "source_fixtures": [
+    {
+      "path": "wire-game-updates-v69.json",
+      "bytes": 30371,
+      "sha256": "07dc4facb5cb0c3fe6bda23be0a107cf9f9391d3aa0ea27fbb3ed76f7e77c24a",
+      "received_updates_reused": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ]
+    }
+  ],
+  "source_witness_record": "live-transition-witnesses-v69.json",
+  "source_witness_id": "training-gf6-zero-cp-buy-refusal-returned-buy",
+  "prior_replay_report": "supplied-redraw-replay-v70.json",
+  "immutable_evidence_note": "All v69 fixture/witness/pin artifacts and v70 replay report remain unchanged. The new report documents local conditional execution of an already captured case.",
+  "observed_transition": {
+    "before_received_update": 6,
+    "after_received_update": 7,
+    "buyer_player_id": 2,
+    "seller_player_id": 1,
+    "before": {
+      "gf": 6,
+      "owner": 2,
+      "buyer": {
+        "hp": 13,
+        "mp": 30,
+        "cp": 0,
+        "curses": [
+          "dream"
+        ],
+        "positive_model_copies": 9
+      },
+      "seller": {
+        "hp": 40,
+        "mp": 10,
+        "cp": 20,
+        "positive_model_copies": 9
+      }
+    },
+    "selected_operation_copy": {
+      "player_id": 2,
+      "server_item_id": 3,
+      "model": 5
+    },
+    "seller_inventory_before": [
+      {
+        "id": 1,
+        "modelId": 81
+      },
+      {
+        "modelId": 129,
+        "id": 4
+      },
+      {
+        "id": 6,
+        "modelId": 230
+      },
+      {
+        "modelId": 15,
+        "id": 7
+      },
+      {
+        "id": 8,
+        "modelId": 118
+      },
+      {
+        "id": 9,
+        "modelId": 16
+      },
+      {
+        "modelId": 5,
+        "id": 2
+      },
+      {
+        "modelId": 105,
+        "id": 3
+      },
+      {
+        "modelId": 142,
+        "id": 5
+      }
+    ],
+    "received_event_actions": [
+      "useAttackItems",
+      "setTargetPlayer",
+      "useDefenseItems",
+      "buy",
+      "canNotBuy",
+      "gift",
+      "advanceGF",
+      "useAttackItems",
+      "setTargetPlayer"
+    ],
+    "received_quote": {
+      "action": "buy",
+      "item": {
+        "modelId": 5,
+        "id": 2
+      }
+    },
+    "received_refusal": {
+      "action": "canNotBuy",
+      "item": {
+        "modelId": 5,
+        "id": 2
+      }
+    },
+    "quoted_price": 5,
+    "price_evidence": [
+      "official UI quote recorded in v69 witness",
+      "catalog model5 price5"
+    ],
+    "price_field_in_received_buy_event": false,
+    "yes_no_choice_observed": false,
+    "viewer_receipt": {
+      "player_id": 2,
+      "server_item_id": 3,
+      "model": 237,
+      "fake_field_present": false,
+      "evidence": "received gift event and inventory"
+    },
+    "following_cpu_launch": {
+      "source_player_id": 1,
+      "target_player_id": 2,
+      "model": 5,
+      "server_item_id": 2,
+      "response_observed": false
+    },
+    "after": {
+      "gf": 7,
+      "owner": 1,
+      "buyer": {
+        "hp": 13,
+        "mp": 30,
+        "cp": 0,
+        "curses": [
+          "dream"
+        ],
+        "positive_model_copies": 9
+      },
+      "seller": {
+        "hp": 40,
+        "mp": 10,
+        "cp": 20,
+        "positive_model_copies": 8,
+        "received_zero_placeholder_rows": 1
+      },
+      "phase": "pending viewer response to the following CPU BUY"
+    },
+    "after_positive_seller_inventory": [
+      {
+        "modelId": 81,
+        "id": 1
+      },
+      {
+        "modelId": 129,
+        "id": 4
+      },
+      {
+        "modelId": 230,
+        "id": 6
+      },
+      {
+        "modelId": 15,
+        "id": 7
+      },
+      {
+        "id": 8,
+        "modelId": 118
+      },
+      {
+        "modelId": 16,
+        "id": 9
+      },
+      {
+        "modelId": 105,
+        "id": 3
+      },
+      {
+        "modelId": 142,
+        "id": 5
+      }
+    ],
+    "no_cp_transfer_observed": true,
+    "scope": "The same received CPU5/id2 is selected,refused,and subsequently launched by the CPU. The automatic unaffordable outcome is not a manual decline of an affordable offer. No response,offer or payment for the following CPU BUY was captured."
+  },
+  "supplied_execution_boundary": {
+    "cpp_action": "PurchaseResponseAction{Command response,optional<ItemToken> commodity}",
+    "implementation_descriptor_status": "source_reviewed_and_runtime_validation_passed",
+    "ruleset": "official-execution-subset-v60",
+    "snapshot_version": 60,
+    "observe_schema": "official-execution-view-v58",
+    "seller_selection": "Supply the local token mapped to received seller item5/id2,not model5 alone. Seller has nine positive unused eligible copies at update6.",
+    "no_selected_model_or_fake_injection": true,
+    "replayed_in_order": [
+      "reuse v70 reconstruction and supplied178 replacements to update6",
+      "launch viewer BUY5/id3 toward CPU1",
+      "apply CPU empty response with supplied existing seller item5/id2",
+      "resolve CP0 versus price5 as insufficient CP,returning the same local seller copy",
+      "supply separate received viewer237/id3 normal gift",
+      "launch the returned CPU5/id2 toward viewer2",
+      "compare authoritative update7 pending response"
+    ],
+    "existing_token_vs_server_slot_note": "An explicit slot-to-local-token map identifies the observed seller copy. Preserving that local token across refusal does not assert the server allocation algorithm or original inventory order.",
+    "chance_boundary": "Supplying the selected existing copy bypasses only the commodity-selector draw. Default BUY selection remains unchanged;other effect/grant RNG retains its existing path.",
+    "privacy_boundary": "Exact seller tokens are privileged outcome inputs,not player-policy commands. Unselected actual/fake inventory remains behind the existing observation boundary.",
+    "redraw_dependency": "The first six checkpoints reuse the v70 path,including supplied178 replacement8,CPU35 launch-copy reconstruction and separately supplied ordinary receipts. Those inputs remain conditional and do not prove the official selector or gift scheduler.",
+    "cpp_entrypoints": [
+      "purchase_response_legal",
+      "purchase_response_step"
+    ],
+    "c_entrypoints": [
+      "gfo_match_purchase_response_legal",
+      "gfo_match_purchase_response_step"
+    ],
+    "c_abi_version": 2,
+    "new_c_purchase_selection_bytes": 16,
+    "existing_c_abi_layouts_changed": false,
+    "private_journal": "ActionBatch.resolved_purchases records sparse accepted-response indices and optional exact copy tokens. MatchSnapshot.purchase_proof retains full-origin replay through pending/completed/grant/cutoff boundaries. All present grant/redraw/purchase proofs must match."
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v71",
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 7,
+    "received_updates_compared": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "random_seed_search_exclusion_or_fitting": false,
+    "baseline_cumulative_wire_checkpoint_comparisons": 312,
+    "comparison_scope": "All seven reused received boundaries,including resources,GF/actor/pending response and full actual/fake/used inventory under a slot map,plus snapshot restore. The first six boundaries are reused validation,not six additional official observations.",
+    "test_entrypoint": "v70::replay(seed,true),with v71::continue_replay for update6→7",
+    "earlier_replay_paths_preserved": [
+      "v69::replay(seed):5 checkpoints",
+      "v70::replay(seed):6 checkpoints"
+    ],
+    "new_native_callback_groups": 3,
+    "new_python_test_methods": 2,
+    "local_test_results": {
+      "source": "parent-reported local validation;record author did not run builds/tests",
+      "release_status": "passed",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.55,
+      "native_registered_callbacks": 241,
+      "python_test_methods": 175,
+      "compile_warnings": 0,
+      "compile_errors": 0,
+      "c11_werror_layout_and_prototype_check": "passed",
+      "documentation_python_usage_example": "passed",
+      "release_seconds": 39.39,
+      "release_python_seconds": 8.708,
+      "sanitizer_scope": "Focused native core,C API and wire targets only;no full sanitizer suite or Python sanitizer execution is claimed."
+    },
+    "received_checkpoint_comparisons": 56,
+    "cumulative_wire_checkpoint_comparisons": 368
+  },
+  "coverage": {
+    "new_completed_official_transition_witnesses": 0,
+    "cumulative_completed_official_transition_witnesses": 45,
+    "baseline_native_projection_covered_completed_witnesses": 39,
+    "baseline_record_only_completed_witnesses": 6,
+    "coverage_change_pending_test_success": false,
+    "new_authoritative_received_snapshots": 0,
+    "new_complete_received_game_update_sequences": 0,
+    "cumulative_complete_received_game_update_sequences": 1,
+    "captured_full_backend_event_traces": 0,
+    "scope": "Only existing update6→7 unaffordable BUY gains conditional native projection coverage after successful local tests. Earlier reused cases retain their existing coverage and are not counted again.",
+    "newly_covered_existing_witnesses": 1,
+    "cumulative_native_projection_covered_completed_witnesses": 40,
+    "cumulative_record_only_completed_witnesses": 5
+  },
+  "source_audit": {
+    "clear_source_ambiguity_found": false,
+    "event_snapshot_consistency": "Received buy/canNotBuy both reference seller item5/id2. Update7 seller inventory contains the prior eight other positive copies plus model0/id0 placeholder,consistent with immediate use of returned5/id2. Viewer keeps all other eight copies unchanged and receives237 at the consumed operation slot3.",
+    "ambiguities": [
+      "Received buy events have no price field;price5 comes from recorded UI/catalog evidence.",
+      "No YES/NO decision was observed.",
+      "Local token retention and grant scheduling are replay conventions;the source does not establish a general server token allocator or internal event scheduler.",
+      "The following CPU BUY remains unanswered,so no later quote,recipient choice,payment or terminal state is inferred."
+    ],
+    "build_or_test_performed_by_record_author": false,
+    "native_expected_arrays_match_received_update7": true,
+    "root_wire_scope_confirmed": true
+  },
+  "official_selector_probability_or_rng_equivalence_established": false,
+  "official_full_simulator_equivalence_established": false,
+  "independent_static_audit": {
+    "clear_issue_found": false,
+    "reviewed_boundaries": [
+      "exact existing current-seller unused token and explicit token0 versus absence",
+      "selection reached exactly once or transaction rejected",
+      "response-index uniqueness and bounds,full-origin replay and complete snapshot equality",
+      "grant/redraw/purchase proof presence,equality,synchronization and clearing",
+      "copied core/C transaction and Python-owned command input",
+      "public selection-token and unselected-truth privacy,unchanged default selector path"
+    ],
+    "conclusion": "No clear defect found in the reviewed saved source. Successful local runtime validation was separately reported by the parent;the record author did not build or run tests.",
+    "origin_scope": "The purchase path shares the existing replay_launch dispatcher and full-snapshot comparison. Shared origin integration was inspected statically;the new purchase tests do not add executed all-origin or automatic-payload scenarios."
+  }
+}

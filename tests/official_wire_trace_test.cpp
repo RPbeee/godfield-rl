@@ -91,10 +91,10 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
     check(slots.size()==total_positive,"slot map contains no consumed stale slot or placeholder");
     if(expected.pending) {
         const auto defender=expected.players[0].id==expected.owner?expected.players[1].id:expected.players[0].id;
-        check(actual.phase==MatchPhase::response&&actual.actor==defender&&actual.queue.size()==1,"pending CPU attack has viewer as response actor");
+        check(actual.phase==MatchPhase::response&&actual.actor==defender&&actual.queue.size()==1,"pending CPU action has viewer as response actor");
         const auto& effect=actual.queue.front();const auto* card=find_card(expected.pending);
         check(card&&effect.models==std::vector<CardId>{expected.pending}&&effect.origin==expected.owner&&effect.source==expected.owner&&effect.target==defender
-              &&effect.category==Category::weapons&&effect.power==card->atk&&effect.element==card->element
+              &&effect.category==card->category&&effect.power==card->atk&&effect.element==card->element
               &&effect.ability==card->ability&&effect.amount==card->ability_value
               &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
         // Curse is derived from the retained base model, not a separate frame field.
@@ -852,13 +852,55 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v71 extends the same received sequence with a privileged commodity outcome.
+// It supplies the exact seller copy rather than fitting a local selection seed.
+namespace v71 {
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,81},{4,129},{6,230},{7,15},{8,118},{9,16},{3,105},{5,142},{0,0}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{4,202,202},{5,29,23},{7,196,195},{8,5},{9,203},{2,21,21},{6,195,196},{1,213},{3,237}}};
+constexpr ReceivedCheckpoint after{7,7,1,{{{1,40,10,20,false,after_cpu},{2,13,30,0,false,after_viewer}}},5};
+
+void continue_replay(Match& game,SlotMap& slots,std::uint64_t seed) {
+    const auto commodity=slots.at({1,2});
+    const Command buy{2,CommandKind::buy,{consumed_slot(slots,2,3)},1};
+    check(game.legal(buy),"v71 received CP0 BUY launch is legal before commodity selection");
+    (void)game.step(buy);roundtrip(game);
+    const auto pending=game.snapshot();
+    const PurchaseResponseAction response{{1,CommandKind::defend,{},{}},commodity};
+    check(game.purchase_response_legal(response)&&game.snapshot()==pending,
+          "v71 supplied seller copy preflight leaves the pending BUY unchanged");
+    (void)game.purchase_response_step(response);roundtrip(game);
+    const auto& rejected=game.snapshot();
+    check(rejected.rng==seed&&rejected.purchase_proof.has_value()
+          &&!rejected.purchase&&rejected.last_purchase
+          &&rejected.last_purchase->reason==PurchaseReason::insufficient_cp
+          &&rejected.last_purchase->model==5&&rejected.last_purchase->price==5
+          &&rejected.state.players[0].hp==40&&rejected.state.players[0].mp==10&&rejected.state.players[0].cp==20
+          &&rejected.state.players[1].hp==13&&rejected.state.players[1].mp==30&&rejected.state.players[1].cp==0
+          &&rejected.phase==MatchPhase::grant&&rejected.pending_grant==2,
+          "v71 price5 selection immediately rejects CP0 without quote,resource debt or selection RNG");
+    const auto returned=std::find_if(rejected.state.players[0].items.begin(),rejected.state.players[0].items.end(),
+                                    [=](const auto& item){return item.token==commodity;});
+    check(returned!=rejected.state.players[0].items.end()&&returned->model==5&&!returned->fake_model&&!returned->used,
+          "v71 rejected commodity returns as the same unused unmasked physical copy");
+    v64::receipt(game,slots,2,3,237);
+    check(game.snapshot().purchase_proof.has_value(),"v71 purchase proof retains the explicit ordinary receipt");
+    const Command next{1,CommandKind::buy,{consumed_slot(slots,1,2)},2};
+    check(game.legal(next),"v71 CPU can immediately use the returned same BUY copy");
+    (void)game.step(next);roundtrip(game);compare_checkpoint(game,slots,after,PlayerId{2});
+    check(game.snapshot().rng==seed&&!game.snapshot().purchase_proof
+          &&game.snapshot().redraws==1&&game.snapshot().redrawn_items==8
+          &&game.snapshot().dream_rolls==0&&game.snapshot().dream_masks==0,
+          "v71 next accepted action clears the old proof; final CPU BUY stays unanswered without selector RNG");
+}
+}
+
 // v70 reuses v69 received states; no new official observations.
 namespace v70 {
 constexpr std::array<ReceivedSlot,9> before_cpu{{{1,81},{3,47},{4,129},{5,35},{6,230},{7,15},{8,118},{9,16},{0,0}}};
 constexpr std::array<ReceivedSlot,9> before_viewer{{{1,199},{2,203},{3,180},{4,123},{5,178},{6,148},{7,5},{8,4},{9,5}}};
 constexpr ReceivedCheckpoint before{1,1,1,{{{1,40,10,20,false,before_cpu},{2,40,10,20,false,before_viewer}}},35};
 
-void replay(std::uint64_t seed) {
+void replay(std::uint64_t seed,bool supplied_purchase=false) {
     MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
     Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
     for(std::size_t seat=0;seat<2;++seat) {
@@ -905,6 +947,7 @@ void replay(std::uint64_t seed) {
     // is separate from replaceItems8; CPU-vs-viewer receipt order is unobserved.
     v64::receipt(game,slots,1,2,5);v64::receipt(game,slots,2,9,203);
     v69::compare(game,slots,0,seed,1);v69::continue_replay(game,slots,seed,1);
+    if(supplied_purchase)v71::continue_replay(game,slots,seed);
 }
 }
 
@@ -914,7 +957,7 @@ int main() {
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -930,4 +973,5 @@ int main() {
     std::cout<<"v68: 8 seeds x6 received states from initial setup through self27 atHP3 toHP7; five viewer operations and CPU MP recovery; explicit receipts,not a completed game or server RNG proof\n";
     std::cout<<"v69: 8 seeds x5 received post-redraw states; masked19/27 self,113/135 defense,CP0 exchange and empty response;178 generation and multi-candidate BUY selector excluded\n";
     std::cout<<"v70: 8 seeds x6 reused v69 received states including178 with supplied8 replacements; reserved gifts separate,full private replay; no new observations or selector/RNG equivalence\n";
+    std::cout<<"v71: 8 seeds x7 reused v69 received states,extending supplied178 with supplied seller5 CP0 BUY rejection and237 receipt; final CPU BUY unanswered,no selection seed fitting or probability proof\n";
 }

@@ -485,8 +485,67 @@ void redraw_response_bridge() {
         gfo_match_destroy(game);
     }
 }
+void purchase_response_bridge() {
+    namespace official=godfield::official;
+    check(gfo_match_purchase_selection_size()==16&&offsetof(gfo_match_purchase_selection,has_commodity)==8
+        &&offsetof(gfo_match_purchase_selection,reserved)==9
+        &&std::string(gfo_match_purchase_response_rule())==official::purchase_response_rule,"purchase selection additive16B layout and rule");
+    for(unsigned scenario=0;scenario<3;++scenario){
+        const bool empty=scenario==2;const int cp=scenario==0?0:99;
+        gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;config.initial_hp=40;config.initial_mp=99;config.initial_cp=cp;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;gfo_match* game=nullptr;gfo_match_status outcome{};
+        check(gfo_match_create(&config,setup.data(),2,42,&game)==0,"supplied purchase C create");
+        std::array<gfo_state_player,2> people{};people[1].id=7;for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}
+        people[0].mp=99;people[0].cp=cp;people[0].item_count=1;people[1].item_offset=1;people[1].item_count=empty?1:2;people[1].curse_count=1;
+        std::vector<gfo_state_item> items(empty?2:3);items[0].token=9;items[0].model=5;
+        if(!empty){items[1].model=6;items[1].fake_model=57;}
+        items.back().token=1;items.back().model=235;items.back().used=1;
+        const uint8_t curse=static_cast<uint8_t>(official::Curse::dream);gfo_state_meta meta{};meta.gf=1;gfo_state* received=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),&curse,1,&received)==0
+            &&gfo_match_load_scene(game,received,0,42,&outcome)==0,"supplied purchase typed scene");gfo_state_destroy(received);
+        official::MatchConfig nc;nc.initial_hand=0;nc.initial_mp=99;nc.initial_cp=cp;nc.external_artifacts=true;nc.max_decisions=64;official::Match native(nc);official::SnapshotState state;state.gf=1;state.players.resize(2);
+        state.players[0].mp=99;state.players[0].cp=cp;state.players[0].items={{9,5,{},false}};state.players[1].id=7;state.players[1].curses={official::Curse::dream};
+        if(!empty)state.players[1].items.push_back({0,6,57,false});state.players[1].items.push_back({1,235,{},true});native.load_scene(state,0,42);
+        const auto audit=[&]{official::Match restored;restored.restore(native.snapshot());check(restored.snapshot()==native.snapshot(),"supplied purchase pending/completed full proof restores");
+            check(observe(game,0,0)==native.observe({})&&observe(game,1,7)==native.observe(7),"supplied purchase C/native projections match");};
+        gfo_match_command buy{};buy.kind=6;buy.has_target=1;buy.target=7;buy.item_count=1;buy.items[0]=9;
+        check(gfo_match_step(game,&buy,&outcome)==0,"supplied purchase incoming BUY launch");native.step({0,official::CommandKind::buy,{9},7});audit();
+        gfo_match_command response{};response.actor=7;response.kind=1;gfo_match_purchase_selection selection{};selection.has_commodity=!empty;
+        const auto before=observe(game,1,7);const auto old=status(game);uint8_t legal=77;
+        if(scenario==1){
+            check(gfo_match_purchase_response_legal(nullptr,&response,&selection,&legal)==-1
+                &&gfo_match_purchase_response_legal(game,nullptr,&selection,&legal)==-1
+                &&gfo_match_purchase_response_legal(game,&response,nullptr,&legal)==-1
+                &&gfo_match_purchase_response_legal(game,&response,&selection,nullptr)==-1&&legal==77,"purchase NULL checks preserve outputs");
+            for(unsigned error=0;error<10;++error){auto bad=selection;
+                if(error<7)bad.reserved[error]=1;if(error==7)bad.has_commodity=2;if(error==8){bad.has_commodity=0;bad.commodity=1;}if(error==9)bad.commodity=official::max_wire_integer+1;
+                legal=77;outcome=old;
+                check(gfo_match_purchase_response_legal(game,&response,&bad,&legal)==-2&&legal==77
+                    &&gfo_match_purchase_response_step(game,&response,&bad,&outcome)==-2&&equal(outcome,old)
+                    &&observe(game,1,7)==before,"purchase padding/inactive/unsafe selection is atomic");}
+            for(const auto token:{uint64_t{1},uint64_t{9},uint64_t{123}}){auto bad=selection;bad.commodity=token;legal=77;outcome=old;
+                check(gfo_match_purchase_response_legal(game,&response,&bad,&legal)==0&&!legal
+                    &&gfo_match_purchase_response_step(game,&response,&bad,&outcome)==-2&&equal(outcome,old)
+                    &&observe(game,1,7)==before,"purchase used/foreign/unknown seller token rejected without mutation");}
+            auto absent=selection;absent.has_commodity=0;legal=77;check(gfo_match_purchase_response_legal(game,&response,&absent,&legal)==0&&!legal,"absence cannot replace a present unused seller copy");
+        }
+        check(gfo_match_purchase_response_legal(game,&response,&selection,&legal)==0&&legal&&observe(game,1,7)==before,"exact token0/empty supplied selection legal is pure");
+        check(gfo_match_purchase_response_step(game,&response,&selection,&outcome)==0,"supplied BUY response succeeds");
+        native.purchase_response_step({{7,official::CommandKind::defend,{},{}},empty?std::optional<official::ItemToken>{}:std::optional<official::ItemToken>{0}});audit();
+        check(native.snapshot().rng==42,"supplied commodity consumes no selector RNG");
+        if(scenario==1){check(outcome.phase==3&&outcome.actor==0&&native.snapshot().purchase&&native.snapshot().purchase->item.token==0,"affordable current token0 creates buyer quote");
+            selection.commodity=123; // Input storage is not retained by the proof.
+            gfo_match_command no{};no.kind=8;check(gfo_match_step(game,&no,&outcome)==0,"supplied quote NO remains an ordinary command");native.step({0,official::CommandKind::decline,{},{}});audit();
+            check(native.snapshot().state.players[1].items.front()==official::ItemInstance{0,6,{},false},"NO restores the exact chosen unmasked copy");
+        }else check(native.snapshot().last_purchase&&native.snapshot().last_purchase->reason==(empty?official::PurchaseReason::empty:official::PurchaseReason::insufficient_cp),"empty and CP-only refusal remain distinct results");
+        check(native.snapshot().phase==official::MatchPhase::grant&&native.snapshot().state.players[0].hp==40&&native.snapshot().state.players[0].mp==99,"no CP borrowing from HP/MP and original operation gift remains separate");
+        gfo_match_artifact_grant_action artifact{};artifact.model=6;check(gfo_match_artifact_grant_step(game,&artifact,&outcome)==0,"supplied purchase finishes through the existing reserved pump");native.artifact_grant_step({0,6,{}});audit();
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
+    purchase_response_bridge();
     redraw_response_bridge();
     std::size_t fixed_query_probes = 0;
     check(gfo_match_abi_version() == 2 && gfo_match_config_size() == sizeof(gfo_match_config)
@@ -523,8 +582,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v59"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v59 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v60"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v60 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
@@ -855,7 +914,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v57\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v58\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

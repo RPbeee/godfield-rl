@@ -84,6 +84,12 @@ typedef struct gfo_match_redraw_result {
     const gfo_match_redraw_item* items;
     size_t item_count;
 } gfo_match_redraw_result;
+// Privileged resolved BUY selection. Token0 is a real copy when present;
+// absence requires commodity0 and means that no unused seller copy exists.
+typedef struct gfo_match_purchase_selection {
+    uint64_t commodity;
+    uint8_t has_commodity, reserved[7];
+} gfo_match_purchase_selection;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -137,6 +143,8 @@ const char* gfo_match_normal_grant_rule(void);
 size_t gfo_match_redraw_item_size(void);
 size_t gfo_match_redraw_result_size(void);
 const char* gfo_match_redraw_response_rule(void);
+size_t gfo_match_purchase_selection_size(void);
+const char* gfo_match_purchase_response_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -229,6 +237,13 @@ int gfo_match_redraw_response_legal(const gfo_match* match, const gfo_match_comm
     const gfo_match_redraw_result* results, size_t result_count, uint8_t* out);
 int gfo_match_redraw_response_step(gfo_match* match, const gfo_match_command* response,
     const gfo_match_redraw_result* results, size_t result_count, gfo_match_status* out);
+// Apply a BUY-resolving ordinary response with an external current seller token.
+// No commodity selector RNG; the normal visible response/CP/quote/NO semantics
+// and one response decision remain unchanged. Borrowed input is copied.
+int gfo_match_purchase_response_legal(const gfo_match* match, const gfo_match_command* response,
+    const gfo_match_purchase_selection* selection, uint8_t* out);
+int gfo_match_purchase_response_step(gfo_match* match, const gfo_match_command* response,
+    const gfo_match_purchase_selection* selection, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

@@ -292,3 +292,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 外部結果付き178応答へreplaceItemsの8モデル/fakeを渡し、通常補充は別にCPU5/slot2の在庫差分と本人203/slot9を供給する。これにより一新前update1→一新後update2→既存4操作のupdate6まで6状態を、既存8seedで48比較する。v69の一新後sceneからの40比較も残し、同じ受信状態を別の経路から再検査する範囲として数える。
 
 完了観測は45のまま、178の既存1例を外部結果条件付きのnative対象へ移す。native対象39・record-only6、wire比較総312となる。これは新しい公式対局や新規goldenの追加ではない。低CP BUYの商品選出は引き続き範囲外、完了受信start→endは従来1対局のままである。旧v69の当時のcoverage記録とraw出典は変更せず、新しい検証reportへ分ける。
+
+
+## v71：既存CP0購入拒否を外部商品指定で照合（新観測なし）
+
+[再生report](../data/official-v2/supplied-purchase-replay-v71.json)は既存v69のupdate1〜7を対象とする。178の8枚を供給するv70経路から続け、BUY応答時のCPU商品5/slot2を明示する。CP0では確認画面へ進まず同じコピーが返り、本人237の通常gift後、CPUが返却品を使った次BUY保留まで比較する。CP/HP/MP、Dream、全正コピーとfake presence、placeholder、GF/owner/response、各private snapshotの復元を検査する。
+
+7状態×固定8seed＝56比較を加え、重複を含むwire累計368比較とする。新規観測0・完了観測45例を維持し、既存BUY拒否の1例を条件付きnative対象へ移して40/record-only5。元v69のwire/witnessと当時のcoverageは変更しない。公式の商品selector分布・乱数器、次CPU BUYへの応答/支払いは再現対象外である。

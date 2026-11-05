@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v56` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v60` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3044,3 +3044,14 @@ C++の独立した `HpDisplay` に、受信した `dealDamage` と `boostHP` を
 通常の `step`・driver・samplerと一新の抽選は維持します。検証用の外部結果は新しいprivate履歴に保存し、pending・補充待ち・完了・cutoffでも同じ局面へ復元します。ruleset59 / Snapshot59 / view-v57、C ABI2と既存型幅は維持し、新しい置換item/result型だけ8/16 byteを追加します。
 
 新しい公式観測は増やさず、v69の受信8枚を使って一新前から6状態を再生します。抽選分布や終末中の一新を公式同等とする変更ではありません。[実行規約](docs/official-execution-subset.md)に使用例と検証範囲を記載します。
+
+
+## v71：購入商品の外部指定とCP0拒否の再生
+
+既存の公式受信記録にある購入商品を、`PurchaseResponseAction` で正確な売り手コピーとして指定できます。商品抽選だけを差し替え、公開・CP判定・確認・返却・配送は既存の処理を使います。通常のCommand・driver・samplerの抽選経路は維持します。
+
+v69の一新前から7状態を固定8seedで再生し、CP0で価格5の商品を購入できず同じコピーを返却すること、本人への237補充、返却品を使う次のCPU BUYまで照合します。新規公式観測は0、既存45例中の条件付きnative対象は40例、記録のみは5例です。公式の商品選出分布と、最後の未応答CPU BUYの結果は未検証です。
+
+ruleset60 / Snapshot60 / view-v58、C ABI2と旧構造体幅を維持し、追加の購入選出型は16 byteです。[再生report](data/official-v2/supplied-purchase-replay-v71.json)へ範囲を記録します。
+
+検証はRelease CTest157/157（39.39秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.55秒）が通過。native241群・Python175method、compile warning/error0、C11 -Werrorの新旧layout/prototypeと実行規約に掲載した購入APIのPython使用例も確認した。時間はsuiteの経過で、速度比較には使わない。全SAN suite/Python SANの実行とは区別する。

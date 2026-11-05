@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v59"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v60"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v57\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v58\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==59&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==60&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v57")!=std::string::npos
+    check(view.find("official-execution-view-v58")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3839,10 +3839,106 @@ void supplied_redraw_shapes_proof_forgery_and_default_transactions(){
     }
     check(sampled,"local normal policy still selects178 without an external result payload");
 }
+void reject_purchase_response(Match& game,const PurchaseResponseAction& action){const auto before=game.snapshot();check(!game.purchase_response_legal(action),"invalid supplied purchase query rejects");bool failed=false;try{game.purchase_response_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==before,"invalid supplied selection preserves seller,frame,proof and RNG");}
+
+void supplied_purchase_cp_zero_token0_and_completed_proof(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({5},{6});state.players[0].cp=0;state.players[0].mp=20;
+    auto game=fixture(state,config);game.step({0,CommandKind::buy,{0},7});const auto before=game.snapshot();
+    const PurchaseResponseAction supplied{defend(7),ItemToken{0}};
+    check(game.purchase_response_legal(supplied)&&game.snapshot()==before,"current seller token0 is an explicit unused commodity");
+    reject_purchase_response(game,{defend(7),{}});game.purchase_response_step(supplied);
+    const auto& after=game.snapshot();
+    check(after.phase==MatchPhase::grant&&!after.purchase&&after.purchase_proof&&after.grant_proof
+        &&*after.purchase_proof==*after.grant_proof&&after.last_purchase->reason==PurchaseReason::insufficient_cp
+        &&after.last_purchase->model==6&&after.state.players[0].hp==40&&after.state.players[0].mp==20&&after.state.players[0].cp==0
+        &&after.state.players[1].items==std::vector<ItemInstance>{{0,6,{},false}}&&after.rng==before.rng,
+        "supplied positive-price result retains the old CP-only rejection,exact return and no selection RNG");roundtrip(game);
+    check(after.purchase_proof->resolved_purchases==std::vector<PurchaseResolution>{{0,ItemToken{0}}},"private journal preserves token0 presence");
+    const auto public_view=game.observe({});check(public_view.find(purchase_response_rule)!=std::string::npos
+        &&public_view.find("resolved_purchases")==std::string::npos&&public_view.find("purchase_proof")==std::string::npos,
+        "supplied selection token and private journal are not public events");
+    drain_supplied_gifts(game);check(game.snapshot().owner==7&&game.snapshot().purchase_proof,"completed BUY retains its selection proof");roundtrip(game);
+    game.step(play(7,{0},7));check(!game.snapshot().purchase_proof,"next accepted main clears the previous purchase proof");roundtrip(game);
+}
+
+void supplied_purchase_quotes_return_reflection_and_self_boundaries(){
+    MatchConfig config;config.external_artifacts=true;
+    for(bool accept:{false,true}) {
+        auto state=scene({5},{19});state.players[1].curses={Curse::dream};state.players[1].items[0].fake_model=27;
+        auto game=fixture(state,config);game.step({0,CommandKind::buy,{0},7});const auto rng=game.snapshot().rng;
+        game.purchase_response_step({defend(7),ItemToken{0}});const auto quote=game.snapshot();
+        check(quote.phase==MatchPhase::purchase&&quote.actor==0&&quote.purchase->buyer==0&&quote.purchase->seller==7
+            &&quote.purchase->item==ItemInstance{0,19,{},false}&&quote.purchase->slot==0&&quote.rng==rng
+            &&quote.last_reveals==std::vector<RevealedItem>{{7,27,19,false}},
+            "supplied offer reveals actual model/price and preserves existing unmasked escrow semantics");roundtrip(game);
+        game.step({0,accept?CommandKind::accept:CommandKind::decline,{},{}});const auto& after=game.snapshot();
+        check(after.last_purchase->reason==(accept?PurchaseReason::bought:PurchaseReason::declined)
+            &&after.state.players[0].cp==20-(accept?find_card(19)->price:0)
+            &&after.state.players[1].cp==20+(accept?find_card(19)->price:0),"YES/NO keep actual-price CP transfer semantics");
+        if(accept)check(after.state.players[0].items==std::vector<ItemInstance>{{quote.next_token,19,{},false}}
+            &&after.state.players[1].items.empty(),"YES delivers a fresh unused actual copy without a product gift");
+        else check(after.state.players[1].items==std::vector<ItemInstance>{{0,19,{},false}},"NO restores the exact escrow token and slot without remasking");
+        roundtrip(game);drain_supplied_gifts(game);roundtrip(game);
+    }
+    auto state=scene({5,23},{190,6});auto reflected=fixture(state,config);reflected.step({0,CommandKind::buy,{0},7});
+    reject_purchase_response(reflected,{defend(7,{0}),ItemToken{1}});reflected.step(defend(7,{0}));const auto rng=reflected.snapshot().rng;
+    reject_purchase_response(reflected,{defend(0),ItemToken{0}});
+    reflected.purchase_response_step({defend(0),ItemToken{1}});
+    check(reflected.snapshot().phase==MatchPhase::purchase&&reflected.snapshot().actor==7&&reflected.snapshot().purchase->seller==0
+        &&reflected.snapshot().purchase->item.model==23&&reflected.snapshot().rng==rng
+        &&reflected.snapshot().purchase_proof->resolved_purchases.front().response_index==1,
+        "after regular reflection the supplied token belongs to the final current seller,not the original target");roundtrip(reflected);
+    reflected.step({7,CommandKind::decline,{},{}});roundtrip(reflected);drain_supplied_gifts(reflected);
+    auto selfstate=scene({5,19},{});selfstate.players[0].curses={Curse::dream};selfstate.players[0].items[1].fake_model=27;
+    auto self=fixture(selfstate,config);reject_purchase_response(self,{defend(0),ItemToken{1}});const auto self_rng=self.snapshot().rng;
+    self.step({0,CommandKind::buy,{0},0});check(!self.snapshot().purchase_proof&&!self.snapshot().purchase
+        &&self.snapshot().last_purchase->reason==PurchaseReason::self_inspection&&self.snapshot().state.players[0].items[0]==ItemInstance{1,19,{},false}
+        &&self.snapshot().rng==self_rng+0x9e3779b97f4a7c15ULL,"self BUY remains the original launch-time inspection with its ordinary singleton draw");roundtrip(self);
+}
+
+void supplied_purchase_empty_cutoff_proof_and_default_transactions(){
+    MatchConfig config;config.external_artifacts=true;auto empty_state=scene({5},{235});empty_state.players[1].items[0].used=true;
+    auto empty=fixture(empty_state,config);empty.step({0,CommandKind::buy,{0},7});reject_purchase_response(empty,{defend(7),ItemToken{0}});
+    const auto rng=empty.snapshot().rng;empty.purchase_response_step({defend(7),{}});
+    check(empty.snapshot().last_purchase->reason==PurchaseReason::empty&&empty.snapshot().rng==rng
+        &&empty.snapshot().state.players[1].items[0].used,"None is valid only for a seller with no unused copy");roundtrip(empty);
+    auto state=scene({5},{6,235});state.players[1].items[1].used=true;auto pending=fixture(state,config);pending.step({0,CommandKind::buy,{0},7});
+    const PurchaseResponseAction valid{defend(7),ItemToken{0}};
+    for(const auto token:{ItemToken{1},ItemToken{999},max_wire_integer+1})reject_purchase_response(pending,{defend(7),token});
+    reject_purchase_response(pending,{defend(7),{}});reject_purchase_response(pending,{defend(0),ItemToken{0}});
+    auto game=pending;game.purchase_response_step(valid);const auto saved=game.snapshot();roundtrip(game);
+    for(unsigned error=0;error<9;++error){auto bad=saved;
+        for(auto* proof:{&bad.batch,&bad.grant_proof,&bad.redraw_proof,&bad.purchase_proof})if(*proof){auto& entry=(**proof).resolved_purchases[0];
+            if(error==0)entry.commodity=1;if(error==1)entry.commodity.reset();if(error==2)entry.response_index=1;
+            if(error==3)(**proof).responses[0].actor=0;
+        }
+        if(error==4)++bad.rng;if(error==5)++bad.purchase->item.token;if(error==6)bad.purchase_proof.reset();
+        if(error==7)bad.batch->resolved_purchases.clear();if(error==8)bad.purchase->item.model=19;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==saved,"supplied purchase token/index/actor/escrow/RNG/proof forgery rolls back");
+    }
+    MatchConfig cap=config;cap.max_decisions=2;auto cutoff=fixture(state,cap);cutoff.step({0,CommandKind::buy,{0},7});const auto before=cutoff.snapshot().rng;
+    cutoff.purchase_response_step(valid);check(cutoff.snapshot().truncated&&!cutoff.snapshot().purchase
+        &&cutoff.snapshot().last_purchase->reason==PurchaseReason::cutoff&&cutoff.snapshot().rng==before
+        &&cutoff.snapshot().state.players[1].items==state.players[1].items,"cutoff returns unresolved supplied escrow before canceling gifts");roundtrip(cutoff);
+    auto late=state;late.update_count=max_wire_integer-1;auto update=fixture(late,config);update.step({0,CommandKind::buy,{0},7});const auto exact=update.snapshot();bool failed=false;
+    try{update.purchase_response_step(valid);}catch(const MatchError&){failed=true;}check(failed&&update.snapshot()==exact,"late selection failure restores seller and original response without a partial proof");
+    auto full_tokens=state;full_tokens.players[1].items[0].token=max_wire_integer;auto delivery=fixture(full_tokens,config);delivery.step({0,CommandKind::buy,{0},7});
+    delivery.purchase_response_step({defend(7),max_wire_integer});const auto offer=delivery.snapshot();failed=false;
+    try{delivery.step({0,CommandKind::accept,{},{}});}catch(const MatchError&){failed=true;}
+    check(failed&&delivery.snapshot()==offer,"late YES delivery failure preserves quote,CP and supplied proof");delivery.step({0,CommandKind::decline,{},{}});roundtrip(delivery);
+    auto ordinary=pending,driver=pending;std::uint64_t policy=123,chance=99;auto trial=policy;const auto response=ordinary.sample_action(trial);
+    ordinary.step(response);driver.rollout_step(policy,chance);
+    check(ordinary.snapshot()==driver.snapshot()&&policy==trial&&chance==99&&!ordinary.snapshot().purchase_proof
+        &&ordinary.snapshot().rng==pending.snapshot().rng+0x9e3779b97f4a7c15ULL,
+        "normal step and driver retain the old singleton purchase selector and policy entropy");roundtrip(ordinary);
+}
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),238> tests{{
+    const std::array<void(*)(),241> tests{{
+        supplied_purchase_cp_zero_token0_and_completed_proof,
+        supplied_purchase_quotes_return_reflection_and_self_boundaries,
+        supplied_purchase_empty_cutoff_proof_and_default_transactions,
         supplied_redraw_received_inventory_privacy_and_completed_proof,
         supplied_redraw_multiple_hats_followup_passives_and_cutoff,
         supplied_redraw_all_origin_factories_and_grant_interleave,

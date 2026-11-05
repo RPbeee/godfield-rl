@@ -65,6 +65,8 @@ static_assert(std::is_nothrow_move_assignable_v<official::Match>);
 static_assert(sizeof(gfo_match_redraw_item)==8 && offsetof(gfo_match_redraw_item,fake_model)==2
     && offsetof(gfo_match_redraw_item,has_fake)==4 && offsetof(gfo_match_redraw_item,reserved)==5);
 static_assert(sizeof(gfo_match_redraw_result)==16 && offsetof(gfo_match_redraw_result,item_count)==8);
+static_assert(sizeof(gfo_match_purchase_selection)==16 && offsetof(gfo_match_purchase_selection,has_commodity)==8
+    && offsetof(gfo_match_purchase_selection,reserved)==9);
 namespace {
 template<std::size_t N> bool zero(const uint8_t (&bytes)[N]) { return std::all_of(std::begin(bytes), std::end(bytes), [](auto v) { return v == 0; }); }
 void valid(bool condition) { if (!condition) throw std::invalid_argument("invalid match ABI input"); }
@@ -222,6 +224,14 @@ official::RedrawResponseAction redraw_action(const gfo_match_command& input,
     }
     return out;
 }
+official::PurchaseResponseAction purchase_response_action(const gfo_match_command& input,
+    const gfo_match_purchase_selection& selection) {
+    valid(selection.has_commodity<=1 && zero(selection.reserved) && selection.commodity<=official::max_wire_integer
+        && (selection.has_commodity || selection.commodity==0));
+    official::PurchaseResponseAction out;out.response=command(input);
+    if(selection.has_commodity)out.commodity=selection.commodity;
+    return out;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 9
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -359,6 +369,8 @@ const char* gfo_match_normal_grant_rule(void) { return official::normal_grant_ru
 size_t gfo_match_redraw_item_size(void) { return sizeof(gfo_match_redraw_item); }
 size_t gfo_match_redraw_result_size(void) { return sizeof(gfo_match_redraw_result); }
 const char* gfo_match_redraw_response_rule(void) { return official::redraw_response_rule; }
+size_t gfo_match_purchase_selection_size(void) { return sizeof(gfo_match_purchase_selection); }
+const char* gfo_match_purchase_response_rule(void) { return official::purchase_response_rule; }
 
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
@@ -582,6 +594,19 @@ int gfo_match_redraw_response_step(gfo_match* match,const gfo_match_command* inp
     if(const auto err=redraw_storage(results,count))return err;
     try { const auto action=redraw_action(*input,results,count);auto next=match->value;next.redraw_response_step(action);const auto value=status(next);
         match->value=std::move(next);*out=value;return 0; }
+    catch(...){return error();}
+}
+int gfo_match_purchase_response_legal(const gfo_match* match,const gfo_match_command* input,
+    const gfo_match_purchase_selection* selection,uint8_t* out) {
+    if(!match||!input||!selection||!out)return -1;
+    try{const auto action=purchase_response_action(*input,*selection);const uint8_t value=match->value.purchase_response_legal(action);*out=value;return 0;}
+    catch(...){return error();}
+}
+int gfo_match_purchase_response_step(gfo_match* match,const gfo_match_command* input,
+    const gfo_match_purchase_selection* selection,gfo_match_status* out) {
+    if(!match||!input||!selection||!out)return -1;
+    try{const auto action=purchase_response_action(*input,*selection);auto next=match->value;next.purchase_response_step(action);const auto value=status(next);
+        match->value=std::move(next);*out=value;return 0;}
     catch(...){return error();}
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {

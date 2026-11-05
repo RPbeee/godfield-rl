@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v56
+# 現行公式データによる限定実行器 v60
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v56` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v60` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3231,3 +3231,41 @@ with Match(config=Config(initial_hand=0, external_artifacts=True)) as game:
 ruleset59 / Snapshot59（旧1〜58拒否）/ view-v57へ更新する。defaultのCommand/driver/sampler/redraw generatorや候補・率は変更しない。これは結果が既知の場合の条件付き再生であり、公式の選出分布・終末の悪魔境界・一般server scheduleの証明ではない。
 
 検証はRelease157/157（18.05秒）、変更したnative core/C/wireのDebug ASan/UBSan3/3（18.50秒）。native238群・Python173method、C11の8/16と旧184/24layout/prototype、上記Python使用例を通過した。全SAN/Python SANの実行とは区別する。
+
+
+## 対局v60（作業世代v71）：外部結果付き購入商品選出
+
+`PurchaseResponseAction{Command response, optional<ItemToken> commodity}` と `purchase_response_legal/step` は、保留中のBUYに対する通常の応答と、売り手の物理コピーの選出結果を受け取る。これは全状態を扱う検証用入力で、通常のCommand・PlayerChoice・policy samplerの選択肢には含めない。商品を選ぶ既存の乱数drawだけを省き、reveal・CP-only判定・escrow・確認・返却・配送・後続処理は共通経路を使う。
+
+commodityは、実際の選出時点で現在のsellerが持つunusedなtokenに限る。Noneは候補が0個の場合だけを表し、token0と区別する。未知/used token、空候補へのtoken指定、候補がある場合のNone、BUYを解決しない応答は拒否する。190等で次の応答へ続くだけの段階へ結果を先渡しできない。通常mainで直ちに解決するself BUYにはこの応答用入口を使わず、従来のローカル選出を維持する。
+
+疎な `ActionBatch.resolved_purchases` はaccepted response indexとtoken presenceを保存し、非再帰の `MatchSnapshot.purchase_proof` が元actionから完了/補充/cutoffまでの再生を保持する。redraw/grant proofと共存するjournalは一致を要求する。次のaccepted main/external actionで古いproofをclearする。全copy上で実行し、後半の失敗もworld/RNG/outへcommitしない。
+
+Cでは16byteの `gfo_match_purchase_selection` と、Command pointer＋selection pointerを受けるlegal/step、size/rule getterを追加する。presence・reserved領域・不使用時tokenを検証する。旧ABI2・Config24・Command184・Grant32・Artifact16とredraw型8/16は維持する。Pythonはfrozen `PurchaseResponseAction` を公開する。
+
+```python
+from official_match import (Match, Config, Command, PurchaseResponseAction,
+                            ArtifactGrantAction)
+from official_state import OfficialState
+
+with Match(config=Config(initial_hand=0, external_artifacts=True)) as game:
+    raw = {"gf": 1, "players": [
+        {"id": 0, "hp": 13, "mp": 30, "cp": 0,
+         "items": [{"id": 0, "modelId": 5}]},
+        {"id": 7, "hp": 40, "mp": 10, "cp": 20,
+         "items": [{"id": 0, "modelId": 5}]}]}
+    with OfficialState(raw) as scene:
+        game.load_scene(scene, 0, 42)
+    game.step(Command(0, "buy", (0,), 7))
+    # seller7のtoken0を明示。None（候補なし）とは区別する。
+    game.purchase_response_step(
+        PurchaseResponseAction(Command(7, "defend"), 0))
+    # CP0なので価格5の購入は拒否され、seller7の同コピーが返る。
+    game.artifact_grant_step(ArtifactGrantAction(0, 237))
+```
+
+v71wireは既存v69のupdate1〜7を8seed×7状態＝56比較する。v70の6状態までを再実行した上で、CP0/MP30/HP13の本人がCPUのモデル5/slot2を選び、価格5で即時拒否・同token返却となることを確認する。237の通常補充を別に供給し、同じ返却コピーによる次のCPU BUYの保留までを比較する。その最後の応答・quote・支払いは未観測である。既存比較との重複を含む累計368 checkpointで、新規観測は増やさない。
+
+ruleset60 / Snapshot60（旧1〜59拒否）/ view-v58へ更新する。既定の商品selectorと乱数消費、player policyの出力は変更しない。受信商品が既知の場合の条件付き再生であり、公式selectorの分布・乱数器や一般scheduleの同値性は示さない。
+
+検証はRelease CTest157/157（39.39秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.55秒）が通過。native241群・Python175method、compile warning/error0、C11 -Werrorの新旧layout/prototypeと実行規約に掲載した購入APIのPython使用例も確認した。時間はsuiteの経過で、速度比較には使わない。全SAN suite/Python SANの実行とは区別する。

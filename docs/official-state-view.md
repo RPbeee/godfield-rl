@@ -395,3 +395,10 @@ HP10群と従来2,617行×2分岐を含めRelease157/157、変更したnative4�
 外部結果付き178応答は `RedrawItem` のモデル/fake列をprivate journalとredraw_proofへ保持する。公開表示には既存のowner IDだけの `last_redraws` を使い、old未選択手札・replacementの真値/個数列・response index/proofは追加しない。本人の新手札は通常のDream/fake表示に従い、同番号のpresenceや19→27も保持する。公開JSONの新しい欄 `redraw_response_rule` は静的契約だけである。
 
 通常Command/PlayerChoice/driverのpolicy出力に結果を含めず、privilegedなC++/C/Python入口からだけ指定する。Match viewはv57、対局rules59/Snapshot59。独立read-only State/ActiveDisplay/HpDisplayのschemaは維持する。
+
+
+## v71：外部購入商品と情報境界
+
+対局view-v58に `purchase_response_rule` を追加する。供給commodity token、疎なresolved_purchases、purchase_proofはprivilegedな入力/保存状態であり、観測・PlayerChoiceへ追加しない。通常のBUY公開・quote表示と直近購入結果の投影を維持する。売り手全手札が必要な再生fixtureを公開プレイヤーのpolicy入力へ渡さない。
+
+rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplayのschemaは維持する。既存v69のupdate7は、返却後すぐ同じ商品が次のCPU BUYで消費された状態なので、受信終点のplaceholderを返却失敗や新規コピーと解釈しない。

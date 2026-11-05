@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, FateRequest, RolloutResult, RolloutError, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, ArtifactGrantAction, RedrawItem, RedrawResponseAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, FateRequest, RolloutResult, RolloutError, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, ArtifactGrantAction, RedrawItem, RedrawResponseAction, PurchaseResponseAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 def choice_envelope_reference(seed, bound):
@@ -108,7 +108,7 @@ class MatchTests(unittest.TestCase):
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
         self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v59"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v60"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v57")
+        self.assertEqual(own["schema"], "official-execution-view-v58")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v57")
+        self.assertEqual(event["schema"], "official-execution-view-v58")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3831,6 +3831,70 @@ class MatchTests(unittest.TestCase):
                              sorted((item.get("fakeModelId", item["modelId"]), "fakeModelId" in item, item.get("used", False))
                                     for item in received["items"]))
         self.assertEqual(game.observe()["board"]["hand"], [])
+
+    def test_supplied_purchase_exact_zero_token_quote_price_and_yes_no(self):
+        raw = {"players": [
+            {"id": 0, "hp": 40, "mp": 99, "cp": 99, "items": [{"id": 9, "modelId": 5}]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"],
+             "items": [{"id": 0, "modelId": 6, "fakeModelId": 57}, {"id": 1, "modelId": 235, "used": True}]}]}
+        for decision in ("accept", "decline"):
+            game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            game.step(Command(0, "buy", (9,), 7)); before, status = game.observe(7), game.status
+            response_items = []; action = PurchaseResponseAction(Command(7, "defend", response_items), 0)
+            response_items.append(1); self.assertEqual(action.response.items, ())
+            with self.assertRaises(AttributeError): action.commodity = 1
+            self.assertTrue(game.purchase_response_legal(action)); self.assertEqual((game.observe(7), game.status), (before, status))
+            game.purchase_response_step(action); quote = game.observe()
+            self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("purchase", 0, 2))
+            self.assertEqual(quote["purchase_response_rule"], game.purchase_response_rule)
+            self.assertEqual(quote["purchase"], {"origin": 0, "buyer": 0, "seller": 7, "model": 6, "price": 1})
+            self.assertEqual(quote["last_reveals"], [{"owner": 7, "face": 57, "model": 6}])
+            self.assertEqual([(i["token"], i["face"], i["used"]) for i in game.observe(7)["board"]["hand"]], [(1, 235, True)])
+            game.step(Command(0, decision)); view = game.observe()
+            self.assertEqual(game.status.phase, "grant")
+            self.assertEqual([p["status"]["cp"] for p in view["board"]["players"]], [98, 21] if decision == "accept" else [99, 20])
+            self.assertEqual([p["status"]["hp"] for p in view["board"]["players"]], [40, 40])
+            if decision == "decline":
+                returned = next(i for i in game.observe(7)["board"]["hand"] if i["token"] == 0)
+                self.assertEqual((returned["face"], returned["disguised"], returned["used"]), (6, False, False))
+            else:
+                delivered, = game.observe(0)["board"]["hand"]
+                self.assertEqual((delivered["face"], delivered["used"], delivered["disguised"]), (6, False, False))
+                self.assertNotIn(delivered["token"], (0, 1, 9))
+            game.artifact_grant_step(ArtifactGrantAction(0, 6))
+            self.assertEqual((game.status.phase, game.status.owner), ("main", 7))
+
+    def test_supplied_purchase_empty_insufficient_and_invalid_selection_are_atomic(self):
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 99, "cp": 0, "items": [{"id": 9, "modelId": 5}]},
+                            {"id": 7, "hp": 40, "mp": 10, "cp": 20,
+                             "items": [{"id": 0, "modelId": 6}, {"id": 1, "modelId": 235, "used": True}]}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "buy", (9,), 7)); before, status = game.observe(), game.status
+        for token in (None, 1, 9, 123):
+            action = PurchaseResponseAction(Command(7, "defend"), token)
+            self.assertFalse(game.purchase_response_legal(action))
+            with self.assertRaises(MatchError): game.purchase_response_step(action)
+            self.assertEqual((game.observe(), game.status), (before, status))
+        game.purchase_response_step(PurchaseResponseAction(Command(7, "defend"), 0))
+        self.assertEqual(game.observe()["last_purchase"]["reason"], "insufficient-cp")
+        self.assertEqual(game.status.phase, "grant")
+        self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"]) for p in game.observe()["board"]["players"]], [(40, 99, 0), (40, 10, 20)])
+        self.assertIn(0, [i["token"] for i in game.observe(7)["board"]["hand"]])
+        raw["players"][1]["items"] = [{"id": 1, "modelId": 235, "used": True}]
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "buy", (9,), 7)); self.assertTrue(game.purchase_response_legal(PurchaseResponseAction(Command(7, "defend"))))
+        game.purchase_response_step(PurchaseResponseAction(Command(7, "defend")))
+        self.assertEqual(game.observe()["last_purchase"], {"origin": 0, "buyer": 0, "seller": 7, "model": 0, "price": 0, "bought": False, "reason": "empty", "overflow_model": None})
+        self.assertFalse(game.purchase_response_legal(PurchaseResponseAction(Command(7, "defend"))))
+        for token in (True, -1, 9007199254740992, 1.0):
+            with self.assertRaises(InvalidMatchError): PurchaseResponseAction(Command(7, "defend"), token)
+        raw["updateCount"] = 9007199254740990
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "buy", (9,), 7)); before, status = game.observe(), game.status
+        with self.assertRaises(InvalidMatchError): game.purchase_response_step(PurchaseResponseAction(Command(7, "defend")))
+        self.assertEqual((game.observe(), game.status), (before, status))
 
     def test_supplied_redraw_v69_eight_items_owned_results_and_reserved_gifts(self):
         raw = {"gf": 1, "players": [

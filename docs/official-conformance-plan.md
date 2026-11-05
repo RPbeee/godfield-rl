@@ -2141,3 +2141,12 @@ ActionBatchの疎なresponse_index結果と非再帰redraw_proofを保存し、�
 native238callbackは、used置換・複数178・空結果・新208/112のbody接続・cutoff・次main BUYへのproof非干渉・全origin・snapshot偽造・token/update後半失敗・通常step/driverのstate/RNG一致を検査する。C bridgeはnested storageの借用/所有copy、8/16layout、NULL・extent・padding・fake presence・out canary、C/native parityを検査し、Python173methodにはfrozen DTOの所有tuple・実8枚・空/multi/失敗回帰を含む。
 
 Release157/157（18.05秒）、Debug ASan/UBSanの変更3target3/3（18.50秒）、compile warning/error0、C11 -Werrorの新旧型layout/prototype、実行規約のPython使用例、diff-checkが通過した。全SAN/Python SANや公式selector分布の証明ではない。独立read-only監査も通過し、既存v69/pinsは変更せず、新しい再生reportへ検証範囲と結果を保存する。
+
+
+## 作業世代v71：既知の商品選出から購入拒否を再生
+
+通常のpolicy選択と分けた `PurchaseResponseAction` で、応答解決時のunused seller tokenまたは空候補を供給する。選出だけgame RNGを使わず、CP-only判定・返却・確認・配送は既存処理を共有する。full-origin replayへ疎なresolved_purchasesとpurchase_proofを接続し、grant/redraw journalとの一致、完了・cutoff・次actionでの保持/消去を検査する。rules60/Snapshot60/view58、旧C ABI2/型幅を維持して16byteの追加型を導入する。
+
+新しい公式観測は0。既存v69の7受信状態を一新前から8固定seedで56比較し、商品5のCP0拒否・同コピー返却・237補充・返却品による次のCPU BUY保留までを条件付き再生する。v70とv69の独立経路も維持するため、重複込みでwire累計368比較。観測45例中のnative対象を40へ、record-onlyを5へ更新する。最終CPU BUYの応答、商品選出分布、一般server scheduleは未検証のまま、start→end受信列も従来1対局である。
+
+検証はRelease CTest157/157（39.39秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.55秒）が通過。native241群・Python175method、compile warning/error0、C11 -Werrorの新旧layout/prototypeと実行規約に掲載した購入APIのPython使用例も確認した。時間はsuiteの経過で、速度比較には使わない。全SAN suite/Python SANの実行とは区別する。

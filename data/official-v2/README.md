@@ -428,3 +428,14 @@ native比較は一新後update2〜6の5状態×既存8seed＝40だけで、178�
 | v70 artifact | bytes | SHA256 |
 | --- | ---: | --- |
 | `supplied-redraw-replay-v70.json` | 9,363 | `f3a73632f43ffe363050fede8a8dfc812245d24b47c165934a578ce389b4c8cc` |
+
+
+## v71：既存CP0購入拒否の外部商品指定再生（新観測なし）
+
+[再生report](supplied-purchase-replay-v71.json)は、v69の既存update1〜7を、v70の外部一新結果と新しい `PurchaseResponseAction` から再生する。応答時にCPUの正確な商品5/slot2を指定し、CP0拒否・同コピー返却・本人237通常補充・返却品による次CPU BUY保留までを照合する。通常商品selectorの乱数経路は維持し、公式の選出分布や最後のCPU BUYの応答/支払いは検証しない。
+
+7状態×既存8固定seed＝56追加比較、旧経路との重複込みwire累計368。新規公式観測0、既存45例中の条件付きnative対象40・record-only5、受信start→endは従来1対局である。rules60/Snapshot60/view58、旧ABI2/型幅維持、新C購入型16byte。Release157/157（39.39秒）・重点ASan/UBSan3/3（14.55秒）・C11/layout・Python使用例が通過した。native241群・Python175methodで、全SAN/Python SANの実行とは区別する。既存v69wire/witness・v70report・旧pinsは変更しない。
+
+| v71 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `supplied-purchase-replay-v71.json` | 12,012 | `de32668f6486893c989f850efe0fe269f62fc91387647ab8ace5699cb4f2499b` |
