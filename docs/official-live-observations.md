@@ -371,3 +371,12 @@ CPU19には応答せず途中退出した。初期1/使用後2を8固定seedで1
 [受信3状態](../data/official-v2/wire-game-updates-v81.json)と[2操作](../data/official-v2/live-transition-witnesses-v81.json)を保存する。CPU1/viewer2、最初はCPU29の8攻撃待ち。本人は空応答で40→32となり、その後66を自己使用して32→30・MP10/CP20維持、追加本人防御なしで実gift21を受け取った。CPU196のMP＋10が続き、GF4本人mainで停止した。
 
 CPU196/3の通常補充はsnapshot deltaだけで、giftイベントを作らない。初期02は01の完全重複として除外し、preCPUlaunch native再構成をraw取得に数えない。固定8seed×3状態＝24比較、新2完了操作で累計62/native56/record-only6・wire552、完全受信lifecycle2を維持する。ホーム復帰・Network Monitor終了を確認した。
+
+
+## 作業世代v82：30の画面観測と既存201召喚の条件付き再生
+
+新CPU修行はviewer2/CPU1、終末なし。初期raw1はGF1 CPU214「岩」の8攻撃保留で、CPU40/6/20・viewer40/10/20、viewer30/id7を含む9枚。空応答を確定するとUIでGF2本人32/10/20となり、30だけを選んで本人へ主動作ペインから確定すると、追加の本人防御なしで19/10/20・GF3 CPU鎖ガマ5保留へ進んだ。CPUの表示名から台帳19は対応するが、use19のrawやslotは取得していない。
+
+[初期受信の文脈](../data/official-v2/wire-game-updates-v82-hell.json)と[2操作のUI記録](../data/official-v2/live-transition-witnesses-v82.json)を分ける。02/03/05は01全体の重複、04はkeepaliveだけであり、post受信状態は0。通常補充とCPU在庫変化は不明のままにする。HP13減少は既存の本体8＋Hell非悪化tick5と一致するが、病気付与や減算のraw列を取得した証拠ではない。再読込で生誕画面へ戻り、Network Monitorを閉じた。通常の退出操作や終局取得をしたとはしない。
+
+別に、既存v65の201召喚1例はNeptuneを外部結果として条件付き再生する。[再生報告](../data/official-v2/summon-replay-v82.json)で原記録と区別し、2状態×8seed＝16比較を追加する。新2観測と既存1例の移行により累計64/native57/record-only7・wire568、完全受信lifecycle2/routing1/internal trace0。

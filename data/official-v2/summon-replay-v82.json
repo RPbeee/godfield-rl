@@ -1,0 +1,193 @@
+{
+  "schema_version": 1,
+  "schema": "official-supplied-summon-replay-v1",
+  "recorded_on_jst": "2026-11-05",
+  "report_kind": "local_replay_capability_for_existing_official_observations",
+  "new_official_observations": 0,
+  "source_fixtures": [
+    {
+      "path": "wire-game-updates-v65-guardian.json",
+      "bytes": 14174,
+      "sha256": "a519d83eb558c1653db01ca33aa8afdfb7e7df286facb80cfc7daea35ce13938",
+      "received_updates_reused": [
+        1,
+        2
+      ],
+      "retained_but_not_compared_updates": [
+        3
+      ]
+    }
+  ],
+  "source_witness_record": "live-transition-witnesses-v65.json",
+  "source_witness_id": "201-neptune-summon-and-cpu-aura",
+  "immutable_evidence_note": "The v65 fixture,witness,raw provenance and pins remain unchanged. This is a new conditional replay path for one existing observation,not a newly observed official game.",
+  "implementation": {
+    "status": "saved_source_reviewed_and_runtime_validation_passed",
+    "ruleset": "official-execution-subset-v68",
+    "snapshot_version": 68,
+    "observe_schema": "official-execution-view-v66",
+    "cpp_action": "SummonResultAction{Command command;Guardian guardian}",
+    "cpp_entrypoints": [
+      "summon_result_legal",
+      "summon_result_step"
+    ],
+    "action_scope": "Privileged ordinary main play of one physical201 or239 only;normal actor,target,visible-command,cost and consumption checks remain.",
+    "outcome_scope": "Supply only the guardian selected by the summon body. No arbitrary player-state mutation or extra player decision is added.",
+    "private_journal": "ActionBatch.supplied_summon and MatchSnapshot.summon_proof retain the ordinary launch result through responses and completion. Other present grant/redraw/purchase proofs must match the same whole-action journal.",
+    "default_behavior": "Normal Command,driver,sampler and local summon selection keep their existing path. Only the externally supplied summon selection draw is omitted;downstream body/guardian/gift RNG keeps its existing path.",
+    "c_abi_version": 2,
+    "new_c_structs": false,
+    "existing_c_abi_layouts_changed": false,
+    "c_argument_shape": "game,const command pointer,uint8 guardian,out",
+    "source_scope_note": "The v82 received replay measures self201 only. Other permitted paths are implementation tests,not additional official observations."
+  },
+  "received_replay_boundary": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2,
+    "initial_received_update": 1,
+    "final_received_update": 2,
+    "initial_authoritative": true,
+    "initial_hands_given_not_generated": true,
+    "selected_source_copy": {
+      "player_id": 1,
+      "server_item_id": 6,
+      "model": 201
+    },
+    "supplied_guardian": "neptune",
+    "guardian_recipient": 1,
+    "target_evidence": "The v65 confirmed self choice and received player1 guardian are retained;no missing setTargetPlayer event is fabricated.",
+    "initial_guardians": {
+      "1": "none",
+      "2": "none"
+    },
+    "separate_received_normal_gift": {
+      "player_id": 1,
+      "server_item_id": 6,
+      "model": 196,
+      "evidence": "explicit received gift event after setGuardian"
+    },
+    "following_cpu_launch": {
+      "player_id": 2,
+      "target_player_id": 1,
+      "server_item_ids": [
+        2,
+        5
+      ],
+      "actual_models": [
+        29,
+        231
+      ],
+      "derived_power": 16,
+      "mp_before": 10,
+      "mp_after": 4,
+      "used_retained_model": 231
+    },
+    "final_physical_counts": {
+      "viewer_positive": 9,
+      "cpu_positive": 8,
+      "cpu_zero_placeholders": 2
+    },
+    "source_array_order_and_omissions_preserved": true,
+    "server_item_ids_are_local_token_identity": false,
+    "self_summon_enemy_opportunity_note": "The newly summoned guardian belongs to the main owner1,and initialCPU2 has no guardian. The existing scheduler has no eligible enemy guardian opportunity during this owner batch. The following CPU attack is still pending,so its end-of-action automatic guardian stage is not executed.",
+    "not_included": "Do not defend233 or apply automatic276 in this replay. The later233-wall/276/gift observation remains record-only;the previous276 body-only8 checks retain their component classification."
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v82",
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 2,
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "random_seed_search_exclusion_or_fitting": false,
+    "baseline_cumulative_wire_checkpoint_comparisons": 552,
+    "comparison_scope": "Resources,GF/owner/response,guardian assignment,full CPU and viewer actual/fake/used inventory under a slot map,used231 retention,two CPU reserved debts,and complete native snapshot restore.",
+    "generic_checkpoint_change": "ReceivedPlayer has a trailing expected guardian field defaulting to none;existing checkpoint initializers retain that default.",
+    "scope_limit": "The summon outcome,initial hands,ordinary196 receipt and CPU command are explicit observed inputs. There is no official summon selector,weight,CPU policy,initial distribution or automatic-guardian RNG equivalence claim.",
+    "received_checkpoint_comparisons": 16,
+    "cumulative_wire_checkpoint_comparisons": 568,
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;artifact author did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 38.31,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 13.87,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "native_registered_callbacks": 255,
+      "python_test_methods": 185,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "c11_werror_old_layout_sizes_checked": [
+        24,
+        184,
+        248
+      ],
+      "c11_new_function_prototypes_checked": 3,
+      "c11_layout_and_prototype_check": "passed",
+      "python_new_api_usage_example": "passed",
+      "scope": "Full Release and focused native core/C API/wire sanitizer validation. No full sanitizer suite or Python sanitizer execution is claimed.",
+      "new_received_checkpoint_comparisons_passed": 16
+    }
+  },
+  "coverage": {
+    "new_completed_official_transition_witnesses": 0,
+    "cumulative_completed_official_transition_witnesses": 64,
+    "baseline_native_projection_covered_completed_witnesses": 56,
+    "baseline_record_only_completed_witnesses": 6,
+    "coverage_change_pending_test_success": false,
+    "new_authoritative_received_snapshots": 0,
+    "new_complete_received_game_update_sequences": 0,
+    "cumulative_complete_received_game_update_sequences": 2,
+    "captured_full_backend_event_traces": 0,
+    "scope": "The existing201-Neptune case gains conditional full-state projection coverage after successful fixed8-seed tests. Two new UI-only v82 viewer operations are recorded separately and add no wire checkpoints;the later automatic276 case remains record-only.",
+    "new_ui_record_only_witnesses_in_separate_record": 2,
+    "newly_covered_existing_witnesses": 1,
+    "cumulative_native_projection_covered_completed_witnesses": 57,
+    "cumulative_record_only_completed_witnesses": 7
+  },
+  "source_audit": {
+    "source_game_inventory_values": "Expected rows are transcribed from the pinned v65 initial1 and post2,including CPU231 used:true and both zero placeholders.",
+    "build_or_test_performed_by_report_author": false,
+    "clear_core_diff_issue_found": false,
+    "reviewed_core_boundaries": [
+      "main singleton201/239 and nonempty guardian validation",
+      "original effect origin/models/tokens plus guardian-none isolate downstream auto summons",
+      "foreign pending and reflection use the final current target",
+      "cancelled or unreached body keeps the supplied result unused",
+      "sync/clear/finish/cutoff and all proof-presence/equality paths",
+      "common replay_launch and transactional copy commit"
+    ]
+  },
+  "limitations": [
+    "No newly captured raw data is used by this reused-v65 replay. The two live v82 UI transitions and their initial-only context are recorded separately and contribute no native received checkpoints here.",
+    "Explicit Neptune is a conditional input,not a generated selector result or1-in10 distribution proof.",
+    "The later same-batch automatic Neptune276 opportunity/target and guardian-before-gift scheduler remain outside full replay coverage.",
+    "Independent Fate/guardian APIs and default selectors are not expanded by this scenario.",
+    "Official full simulator equivalence remains unestablished."
+  ],
+  "official_full_simulator_equivalence_established": false,
+  "separate_current_generation_ui_record": "live-transition-witnesses-v82.json",
+  "new_official_observations_in_separate_ui_record": 2,
+  "new_authoritative_context_snapshots_in_separate_ui_record": 1,
+  "record_status": "final"
+}

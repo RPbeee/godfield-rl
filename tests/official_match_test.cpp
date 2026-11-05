@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v67"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v68"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v65\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v66\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==67&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==68&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v65")!=std::string::npos
+    check(view.find("official-execution-view-v66")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3127,9 +3127,9 @@ void ordinary_self_attack_completion_and_resume(){
     resume.grant_step({0,0,{},{}});check(resume.snapshot().phase==MatchPhase::main&&resume.snapshot().owner==7
         &&resume.snapshot().state.players[0].hp==28&&resume.snapshot().state.gf==5,
         "grant continuation resumes the self-hit journal without applying damage twice");roundtrip(resume);
-    auto special=fixture(scene({30},{}));special.step(play(0,{0},0));
+    auto special=fixture(scene({34},{}));special.step(play(0,{0},0));
     check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0,
-        "unobserved Hell-on-damage self weapon retains its existing scoped response route");
+        "unobserved bounceMiracle self weapon retains its existing scoped response route");
     auto wide=fixture(scene({32,232},{}));wide.step(play(0,{0,1},0));
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
         "Wide continues to use its enemy roster even with a self target hint");roundtrip(wide);
@@ -3607,7 +3607,7 @@ void dream_weapon_self_body_and_narrow_routing(){
     }
     auto foreign=fixture(scene({80},{141}));foreign.step(play(0,{0},7));check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7,"foreign Dream weapon keeps its ordinary response");
     check(foreign.legal(defend(7,{0})),"Wood4 accepts Stone DEF5 in the foreign-response fixture");foreign.step(defend(7,{0}));check(foreign.snapshot().state.players[1].hp==40&&foreign.snapshot().state.players[1].curses.empty(),"full foreign defense prevents Dream on damage");roundtrip(foreign);
-    auto hell=fixture(scene({30},{}));hell.step(play(0,{0},0));check(hell.snapshot().phase==MatchPhase::response&&hell.snapshot().actor==0&&hell.snapshot().state.players[0].hp==40,"self Hell weapon remains outside the observed curse routing extensions");roundtrip(hell);
+    auto bounce=fixture(scene({34},{}));bounce.step(play(0,{0},0));check(bounce.snapshot().phase==MatchPhase::response&&bounce.snapshot().actor==0&&bounce.snapshot().state.players[0].hp==40,"unobserved bounceMiracle self weapon remains outside the observed direct routing extensions");roundtrip(bounce);
     auto wide_state=scene({80,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);wide.step(play(0,{0,1},0));
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,"Wide Dream column remains an enemy response rather than a direct self body");roundtrip(wide);
 }
@@ -3653,9 +3653,9 @@ void darkcloud41_self_body_and_narrow_routing(){
         "redirected41 still requires its existing response rather than entering the main explicit-self shortcut");roundtrip(reflected);
     reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==29
         &&reflected.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud},"reflected41 keeps existing damage and curse arithmetic");roundtrip(reflected);
-    for(CardId model:{CardId{30}}){auto special=fixture(scene({model},{}));special.step(play(0,{0},0));
+    for(CardId model:{CardId{34}}){auto special=fixture(scene({model},{}));special.step(play(0,{0},0));
         check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0&&special.snapshot().state.players[0].hp==40,
-            "Hell self weapon remains outside the observed curse shortcut");roundtrip(special);}
+            "unobserved bounceMiracle weapon remains outside the observed direct shortcut");roundtrip(special);}
     auto wide_state=scene({41,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);wide.step(play(0,{0,1},0));
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
         "Wide41 column keeps the enemy roster response route");roundtrip(wide);
@@ -3775,7 +3775,7 @@ void bounce_weapon21_self_body_and_narrow_routing(){
 void cold_weapon_self_body_tick_and_narrow_routing(){
     std::vector<CardId> traits;
     for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::add_curse_on_damage&&card.curse==Curse::cold)traits.push_back(card.id);
-    check(traits==std::vector<CardId>{33,48,62},"Cold self shortcut is limited to33/48/62 and excludes Hell30");
+    check(traits==std::vector<CardId>{33,48,62},"Cold on-damage weapon trait remains exactly33/48/62");
     MatchConfig config;config.external_artifacts=true;
     constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
@@ -3818,8 +3818,8 @@ void cold_weapon_self_body_tick_and_narrow_routing(){
         "redirected Cold still waits for the existing response instead of using the main-only shortcut");roundtrip(reflected);reflected.step(defend(0));
     check(reflected.snapshot().state.players[0].hp==26&&reflected.snapshot().last_tick&&reflected.snapshot().rng==rng+draw,
         "reflected Cold preserves the ordinary body and original-owner tick schedule");roundtrip(reflected);
-    auto hell=fixture(scene({30},{}));hell.step(play(0,{0},0));check(hell.snapshot().phase==MatchPhase::response&&hell.snapshot().actor==0&&hell.snapshot().state.players[0].hp==40,
-        "unobserved Hell30 remains outside the Cold shortcut");roundtrip(hell);
+    auto bounce=fixture(scene({34},{}));bounce.step(play(0,{0},0));check(bounce.snapshot().phase==MatchPhase::response&&bounce.snapshot().actor==0&&bounce.snapshot().state.players[0].hp==40,
+        "unobserved bounceMiracle34 keeps its previous response route");roundtrip(bounce);
     Match percent;percent.load_scene(scene({97},{}),0,0);reject(percent,play(0,{0},0));percent.step(chance_play(0,{0}));
     check(percent.snapshot().phase==MatchPhase::response&&percent.snapshot().actor==7&&percent.snapshot().chance_rolls==1&&percent.snapshot().state.players[0].hp==40,
         "percent curse weapon keeps its targetless hit draw and enemy response");roundtrip(percent);
@@ -4404,10 +4404,179 @@ void supplied_purchase_confusion_then_automatic_guardian_replay(){
     }
     check(witnessed,"bounded local fixture reaches a canonical Saturn follow-up after the supplied purchase");
 }
+void reject_summon_result(Match& game,const SummonResultAction& action){const auto before=game.snapshot();check(!game.summon_result_legal(action)&&game.snapshot()==before,"invalid supplied summon query is pure");bool failed=false;try{game.summon_result_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==before,"invalid supplied summon leaves the entire action and RNG unchanged");}
+
+void hell30_self_body_tick_and_narrow_routing(){
+    std::vector<CardId> traits;
+    for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::add_curse_on_damage&&card.curse==Curse::hell)traits.push_back(card.id);
+    check(traits==std::vector<CardId>{30},"Hell self routing admits only weapon30 in the pinned catalog");
+    MatchConfig config;config.external_artifacts=true;constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;
+    constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
+    // The live evidence is a UI total32->19 with no extra defense. The8+5
+    // separation and tick records below are existing local arithmetic,not a captured raw30 event sequence.
+    for(auto seed:seeds){auto state=scene({30,145},{});state.players[0].hp=32;Match game(config);game.load_scene(state,0,seed);game.step(play(0,{0},0));const auto body=game.snapshot();
+        check(body.phase==MatchPhase::grant&&!body.actor&&body.queue.empty()&&body.decisions==1&&body.pending_grant==0
+            &&body.state.players[0].hp==19&&body.state.players[0].mp==10&&body.state.players[0].cp==20
+            &&body.state.players[0].curses==std::vector<Curse>{Curse::hell}&&body.gifts[0]==1
+            &&body.state.players[0].items==std::vector<ItemInstance>{{1,145,{},false}}&&body.last_tick
+            &&body.last_tick->before==Curse::hell&&body.last_tick->after==Curse::hell&&!body.last_tick->worsened
+            &&body.last_tick->hp_before==24&&body.last_tick->hp_after==19&&body.rng==seed+draw,
+            "UI-observed self30 total matches the existing8-damage body and single non-worsening Hell tick across the fixed seeds");roundtrip(game);
+        game.artifact_grant_step({0,199,{}});
+        check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().state.players[0].hp==19
+            &&game.snapshot().last_tick==body.last_tick&&game.snapshot().rng==body.rng,
+            "synthetic ordinary receipt preserves the finished Hell tick without an extra draw or damage");roundtrip(game);
+    }
+    auto state=scene({30},{});state.players[0].hp=32;Match worsened(config);worsened.load_scene(state,0,29);worsened.step(play(0,{0},0));
+    check(worsened.snapshot().state.players[0].hp==29&&worsened.snapshot().state.players[0].curses==std::vector<Curse>{Curse::heaven}
+        &&worsened.snapshot().last_tick->worsened&&!worsened.snapshot().last_tick->fallen
+        &&worsened.snapshot().last_tick->hp_before==24&&worsened.snapshot().last_tick->hp_after==29&&worsened.snapshot().rng==29+draw,
+        "synthetic worsening seed retains the existing Hell-to-Heaven upgrade before its positive5 tick");roundtrip(worsened);
+    state.players[0].curses={Curse::hell};Match reapplied(config);reapplied.load_scene(state,0,42);reapplied.step(play(0,{0},0));
+    check(reapplied.snapshot().state.players[0].hp==29&&reapplied.snapshot().state.players[0].curses==std::vector<Curse>{Curse::heaven}
+        &&!reapplied.snapshot().last_tick->worsened&&reapplied.snapshot().rng==42+draw,"synthetic repeated Hell still upgrades once before the unchanged owner tick");roundtrip(reapplied);
+    state.players[0].curses.clear();MatchConfig cap=config;cap.max_decisions=1;auto cutoff=fixture(state,cap);cutoff.step(play(0,{0},0));
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==24&&cutoff.snapshot().state.players[0].curses==std::vector<Curse>{Curse::hell}
+        &&!cutoff.snapshot().last_tick&&cutoff.snapshot().gifts[0]==0&&cutoff.snapshot().rng==1234,
+        "synthetic cutoff applies the self body then cancels the later Hell tick and gift");roundtrip(cutoff);
+    auto foreign=fixture(scene({30},{}),config);foreign.step(play(0,{0},7));check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7,"foreign30 keeps its response");foreign.step(defend(7));
+    check(foreign.snapshot().state.players[1].hp==32&&foreign.snapshot().state.players[1].curses==std::vector<Curse>{Curse::hell}
+        &&!foreign.snapshot().last_tick,"foreign Hell recipient does not tick during the attacker's completed action");roundtrip(foreign);
+    auto reflection=scene({30},{190});reflection.players[0].hp=32;auto reflected=fixture(reflection,config);reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));
+    check(reflected.snapshot().phase==MatchPhase::response&&reflected.snapshot().actor==0&&reflected.snapshot().state.players[0].hp==32,
+        "reflected Hell keeps the existing separate response");roundtrip(reflected);reflected.step(defend(0));
+    check(reflected.snapshot().state.players[0].hp==19&&reflected.snapshot().rng==1234+draw,"reflected Hell reuses existing body and original-owner tick");roundtrip(reflected);
+    auto wide=fixture(scene({30,232},{}));wide.step(play(0,{0,1},0));check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,"Wide Hell keeps the enemy roster");roundtrip(wide);
+    auto payload_state=scene({},{});payload_state.players[0].guardian=Guardian::earth;auto payload=fixture(payload_state);payload.guardian_payload_step({0,Guardian::earth,{30},0});
+    check(payload.snapshot().phase==MatchPhase::response&&payload.snapshot().actor==0,"external self Hell keeps the guardian response schedule");payload.step(defend(0));
+    check(payload.snapshot().state.players[0].hp==32&&!payload.snapshot().last_tick,"external guardian Hell does not tick an ordinary owner");roundtrip(payload);
+    auto late=state;late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{0},0));}catch(const MatchError&){failed=true;}check(failed&&atomic.snapshot()==before,"late failure restores self Hell damage,curse,inventory,gifts and RNG");
+}
+
+void supplied_summon_self_cost_results_and_normal_selector(){
+    MatchConfig config;config.external_artifacts=true;
+    for(CardId model:{CardId{201},CardId{239}})for(unsigned type=1;type<=10;++type){
+        auto state=scene({model},{191});state.players[0].mp=40;state.players[0].guardian=Guardian::neptune;
+        auto game=fixture(state,config);const auto before=game.snapshot();const auto guardian=static_cast<Guardian>(type);
+        const SummonResultAction action{play(0,{0},0),guardian};
+        check(game.summon_result_legal(action)&&game.snapshot()==before,"supplied summon accepts all ten known types,including the existing type,without a query draw");
+        game.summon_result_step(action);const auto body=game.snapshot();
+        check(body.phase==MatchPhase::grant&&body.pending_grant==0&&body.decisions==1&&body.guardian_summons==1
+            &&body.state.players[0].guardian==guardian&&body.state.players[0].mp==40-find_card(model)->cost
+            &&body.state.players[0].items.size()==(model==239?1u:0u)&&body.gifts[0]==1&&body.rng==before.rng
+            &&body.summon_proof&&body.batch&&*body.summon_proof==*body.batch&&*body.summon_proof==*body.grant_proof
+            &&body.summon_proof->supplied_summon==guardian,"one supplied result replaces only its summon draw while ordinary consumption,cost and gift remain");
+        if(model==239)check(body.state.players[0].items.front()==ItemInstance{0,239,{},true},"supplied239 retains the original used miracle copy");roundtrip(game);
+        game.artifact_grant_step({0,199,{}});const auto& completed=game.snapshot();
+        check(completed.phase==MatchPhase::main&&completed.owner==7&&completed.summon_proof&&completed.rng==before.rng
+            &&completed.state.players[0].guardian==guardian&&completed.state.players[0].items.back()==ItemInstance{body.next_token,199,{},false},
+            "supplied result and complete nonrecursive proof survive normal grant completion");roundtrip(game);
+        if(model==201&&guardian==Guardian::neptune){game.step(play(7,{0},7));check(!game.snapshot().summon_proof,"next accepted ordinary main clears the completed summon proof");roundtrip(game);}
+    }
+    constexpr std::uint64_t draw=0x9e3779b97f4a7c15ULL;
+    auto state=scene({201},{});auto local=fixture(state,config);local.step(play(0,{0},0));
+    auto supplied=fixture(state,config);supplied.summon_result_step({play(0,{0},0),local.snapshot().state.players[0].guardian});
+    check(local.snapshot().state==supplied.snapshot().state&&local.snapshot().gifts==supplied.snapshot().gifts
+        &&local.snapshot().rng==supplied.snapshot().rng+draw&&!local.snapshot().summon_proof
+        &&local.snapshot().batch->supplied_summon==std::nullopt,"ordinary Command still uses its original single summon draw without creating a supplied-result marker");roundtrip(local);roundtrip(supplied);
+    auto sick=scene({201},{});sick.players[0].curses={Curse::cold};Match tick(config);tick.load_scene(sick,0,42);tick.summon_result_step({play(0,{0},0),Guardian::neptune});
+    check(tick.snapshot().state.players[0].hp==39&&tick.snapshot().last_tick&&!tick.snapshot().last_tick->worsened
+        &&tick.snapshot().rng==42+draw,"the supplied summon does not suppress the later ordinary disease draw and owner tick");roundtrip(tick);
+}
+
+void supplied_summon_foreign_reflection_cancel_and_auto_isolation(){
+    MatchConfig config;config.external_artifacts=true;
+    auto state=scene({201},{190});auto game=fixture(state,config),other=fixture(state,config);
+    game.summon_result_step({play(0,{0},7),Guardian::neptune});other.summon_result_step({play(0,{0},7),Guardian::mars});
+    check(game.snapshot().phase==MatchPhase::response&&game.snapshot().guardian_summons==0
+        &&game.observe(0)==other.observe(0)&&game.observe(7)==other.observe(7)&&game.observe({})==other.observe({}),
+        "pending supplied summon identity stays private until the original body resolves");roundtrip(game);roundtrip(other);
+    game.step(defend(7,{0}));check(game.snapshot().actor==0&&game.snapshot().state.players[0].guardian==Guardian::none,
+        "190 reflection preserves the result for the final recipient without drawing or applying it early");roundtrip(game);game.step(defend(0));
+    check(game.snapshot().state.players[0].guardian==Guardian::neptune&&game.snapshot().state.players[1].guardian==Guardian::none
+        &&game.snapshot().guardian_summons==1&&game.snapshot().rng==1234,"reflected original201 applies exactly one supplied result to its current target");roundtrip(game);drain_supplied_gifts(game);roundtrip(game);
+    auto canceled_state=scene({239},{55});canceled_state.players[0].mp=20;auto canceled=fixture(canceled_state,config);
+    canceled.summon_result_step({play(0,{0},7),Guardian::jupiter});canceled.step(defend(7,{0}));
+    check(canceled.snapshot().guardian_summons==0&&canceled.snapshot().state.players[0].guardian==Guardian::none
+        &&canceled.snapshot().state.players[1].guardian==Guardian::none&&canceled.snapshot().state.players[0].mp==5
+        &&canceled.snapshot().state.players[0].items[0]==ItemInstance{0,239,{},true}&&canceled.snapshot().rng==1234,
+        "blockMiracle cancels the original body normally,leaving its supplied result unused and its payment/retention intact");roundtrip(canceled);drain_supplied_gifts(canceled);roundtrip(canceled);
+    // Adapt the existing independent local two-source golden: these automatic selectors are not official probability evidence.
+    MatchConfig automatic=config;automatic.local_guardian_payloads=true;SnapshotState world;
+    world.players={player(0,{201},Team::two),player(7,{},Team::one),player(9,{},Team::one)};
+    for(auto& p:world.players){p.hp=99;p.mp=0;}world.players[2].guardian=Guardian::moon;
+    Match auto_game(automatic);auto_game.load_scene(world,0,0x55a41);auto_game.summon_result_step({play(0,{0},7),Guardian::earth});auto_game.step(defend(7));
+    const auto& after=auto_game.snapshot();
+    check(after.guardian_summons==3&&after.auto_guardian_actions==2&&after.guardian_opportunities==2
+        &&after.last_auto_guardian_payloads==std::vector<GuardianPayloadAction>{{7,Guardian::earth,{201},7},{9,Guardian::moon,{239},9}}
+        &&after.state.players[1].guardian==static_cast<Guardian>(2)&&after.state.players[2].guardian==static_cast<Guardian>(5)
+        &&after.rng==0xf1bbcdcbfa593ae9ULL&&after.summon_proof->supplied_summon==Guardian::earth,
+        "original supplied Earth result does not leak into later automatic201/239 summons,which keep both ordinary draws");roundtrip(auto_game);
+}
+
+void supplied_summon_redraw_grant_proof_and_next_purchase(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({201,178,235},{5,6});state.players[0].items[2].used=true;state.players[0].hp=99;
+    Match game(config);game.load_scene(state,0,2);game.summon_result_step({play(0,{0},7),Guardian::saturn});game.step(defend(7));
+    check(game.snapshot().phase==MatchPhase::response&&game.snapshot().actor==0&&game.snapshot().auto_guardian_actions==1,
+        "legal supplied enemy summon reaches an ordinary Saturn response after its body");roundtrip(game);
+    RedrawResult replacement;replacement.items.push_back({150,{}});game.redraw_response_step({defend(0,{1}),{replacement}});
+    const auto redraw=game.snapshot();
+    check(redraw.phase==MatchPhase::grant&&redraw.redraws==1&&redraw.redrawn_items==1&&redraw.summon_proof
+        &&*redraw.summon_proof==*redraw.redraw_proof&&*redraw.summon_proof==*redraw.grant_proof
+        &&redraw.summon_proof->responses.size()==2&&redraw.summon_proof->resolved_redraws[0].response_index==1
+        &&redraw.state.players[0].items.size()==1&&!redraw.state.players[0].items[0].used,
+        "summon,ordinary auto response,supplied178 and reserved grants share one full original journal");roundtrip(game);
+    drain_supplied_gifts(game);check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7
+        &&game.snapshot().summon_proof&&*game.snapshot().summon_proof==*game.snapshot().redraw_proof
+        &&*game.snapshot().summon_proof==*game.snapshot().grant_proof,"completed combined proof remains identical after both gifts");roundtrip(game);
+    const auto commodity=game.snapshot().state.players[0].items.front().token;
+    game.step({7,CommandKind::buy,{0},0});check(!game.snapshot().summon_proof&&!game.snapshot().redraw_proof&&!game.snapshot().grant_proof,
+        "next accepted BUY clears the old summon/redraw/grant proof before starting a new purchase");
+    game.purchase_response_step({defend(0),commodity});check(game.snapshot().phase==MatchPhase::purchase&&game.snapshot().purchase_proof&&!game.snapshot().summon_proof,
+        "new supplied BUY remains independent of the completed summon proof");roundtrip(game);
+}
+
+void supplied_summon_invalid_proof_cutoff_and_atomicity(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({201,239,204},{});state.players[0].mp=20;auto game=fixture(state,config);
+    for(const auto& action:std::vector<SummonResultAction>{{play(0,{0},0),Guardian::none},{play(0,{0},0),static_cast<Guardian>(255)},
+        {pray(0),Guardian::neptune},{play(0,{0,1},0),Guardian::neptune},{play(0,{1,2},0),Guardian::neptune},
+        {play(7,{0},0),Guardian::neptune},{play(0,{0},999),Guardian::neptune}})reject_summon_result(game,action);
+    auto wrong=fixture(scene({191},{}),config);reject_summon_result(wrong,{play(0,{0},0),Guardian::neptune});
+    auto confused=state;confused.players[0].confusion_count=1;auto gated=fixture(confused,config);reject_summon_result(gated,{play(0,{0},0),Guardian::neptune});
+    auto poor=state;poor.players[0].mp=14;auto insufficient=fixture(poor,config);reject_summon_result(insufficient,{play(0,{1},0),Guardian::neptune});
+    game.summon_result_step({play(0,{0},0),Guardian::neptune});const auto saved=game.snapshot();roundtrip(game);
+    for(unsigned error=0;error<9;++error){auto bad=saved;
+        for(auto* proof:{&bad.batch,&bad.grant_proof,&bad.summon_proof})if(*proof){
+            if(error==0)(**proof).supplied_summon=Guardian::mars;if(error==1)(**proof).supplied_summon.reset();
+            if(error==2)(**proof).initial_state.players[0].items[0].model=191;
+            if(error==3)(**proof).supplied_summon=Guardian::none;if(error==4)(**proof).confusion_command=true;
+            if(error==5)(**proof).guardian_action=GuardianAction{0,275,0};
+        }
+        if(error==6)bad.summon_proof.reset();if(error==7)++bad.rng;if(error==8)bad.state.players[0].guardian=Guardian::mars;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==saved,"supplied summon result,anchor,source,confusion,proof and final-world forgeries reject atomically");
+    }
+    MatchConfig cap=config;cap.max_decisions=1;
+    for(bool self:{false,true}){auto cut=fixture(scene({201},{}),cap);cut.summon_result_step({play(0,{0},self?0:7),Guardian::neptune});
+        check(cut.snapshot().truncated&&cut.snapshot().summon_proof&&cut.snapshot().guardian_summons==(self?1u:0u)
+            &&cut.snapshot().state.players[0].guardian==(self?Guardian::neptune:Guardian::none)
+            &&cut.snapshot().gifts[0]==0&&cut.snapshot().rng==1234,"cutoff preserves a resolved self summon or cancels an unresolved foreign result without drawing");roundtrip(cut);}
+    auto late=scene({201},{});late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.summon_result_step({play(0,{0},0),Guardian::neptune});}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late update failure restores supplied summon counter,guardian,consumption,proof and RNG");
+    auto exhausted=scene({201},{});exhausted.players[0].items[0].token=max_wire_integer;auto delivery=fixture(exhausted);const auto exact=delivery.snapshot();failed=false;
+    try{delivery.summon_result_step({play(0,{max_wire_integer},0),Guardian::neptune});}catch(const MatchError&){failed=true;}
+    check(failed&&delivery.snapshot()==exact,"late ordinary replacement exhaustion rolls back the supplied self summon transaction");
+}
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),250> tests{{
+    const std::array<void(*)(),255> tests{{
+        hell30_self_body_tick_and_narrow_routing,
+        supplied_summon_self_cost_results_and_normal_selector,
+        supplied_summon_foreign_reflection_cancel_and_auto_isolation,
+        supplied_summon_redraw_grant_proof_and_next_purchase,
+        supplied_summon_invalid_proof_cutoff_and_atomicity,
         supplied_purchase_confusion_origin_and_receipt_replay,
         supplied_purchase_confusion_then_automatic_guardian_replay,
         supplied_purchase_cp_zero_token0_and_completed_proof,

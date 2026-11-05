@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "One authoritative initial context state only,already pending CPU214 toward viewer2. The later empty defense and self30 were UI-observed but no post-action game state was captured. This fixture contributes no native received-checkpoint comparison.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "source_bodies": [
+    {
+      "label": "initial-pending-cpu214-context",
+      "response_body_bytes": 28594,
+      "response_body_sha256": "d2edb7aa99857f72f273e310772d93e2d65eee2d0276f874d3ad7ca35d0754ec",
+      "webchannel_frame_count": 15,
+      "included_game_index": 0
+    }
+  ],
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "cpu",
+      "2": "viewer"
+    },
+    "retained": "Original numeric in-game IDs,models,item IDs,event payloads,used flags,array order and field omissions.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "CPU true hand is context for source provenance,not player-policy observation. No post CPU hand or replacement is synthesized.",
+  "updates": [
+    {
+      "source_body": "initial-pending-cpu214-context",
+      "source_game_index": 0,
+      "game": {
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 195,
+              "id": 1
+            },
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "playerId": 2,
+            "item": {
+              "modelId": 70,
+              "id": 2
+            }
+          },
+          {
+            "item": {
+              "modelId": 221,
+              "id": 3
+            },
+            "action": "gift",
+            "playerId": 2
+          },
+          {
+            "item": {
+              "id": 4,
+              "modelId": 42
+            },
+            "playerId": 2,
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "action": "gift",
+            "item": {
+              "modelId": 191,
+              "id": 5
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 2,
+            "item": {
+              "modelId": 154,
+              "id": 6
+            }
+          },
+          {
+            "playerId": 2,
+            "action": "gift",
+            "item": {
+              "id": 7,
+              "modelId": 30
+            }
+          },
+          {
+            "playerId": 2,
+            "action": "gift",
+            "item": {
+              "id": 8,
+              "modelId": 25
+            }
+          },
+          {
+            "playerId": 2,
+            "item": {
+              "modelId": 113,
+              "id": 9
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 214,
+                "id": 5
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 2,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "players": [
+          {
+            "id": 1,
+            "mp": 6,
+            "items": [
+              {
+                "modelId": 16,
+                "id": 1
+              },
+              {
+                "modelId": 152,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 170
+              },
+              {
+                "id": 4,
+                "modelId": 54
+              },
+              {
+                "id": 6,
+                "modelId": 19
+              },
+              {
+                "modelId": 130,
+                "id": 7
+              },
+              {
+                "modelId": 134,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 4
+              },
+              {
+                "used": true,
+                "modelId": 214,
+                "id": 5
+              },
+              {
+                "id": 0,
+                "modelId": 0
+              }
+            ],
+            "hp": 40,
+            "isBot": true,
+            "cp": 20,
+            "name": "cpu"
+          },
+          {
+            "cp": 20,
+            "hp": 40,
+            "id": 2,
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 70
+              },
+              {
+                "id": 3,
+                "modelId": 221
+              },
+              {
+                "modelId": 42,
+                "id": 4
+              },
+              {
+                "modelId": 191,
+                "id": 5
+              },
+              {
+                "modelId": 154,
+                "id": 6
+              },
+              {
+                "modelId": 30,
+                "id": 7
+              },
+              {
+                "modelId": 25,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 113
+              }
+            ],
+            "mp": 10,
+            "name": "viewer"
+          }
+        ],
+        "attacks": [
+          {
+            "targetPlayerId": 2,
+            "playerId": 1,
+            "itemModelIds": [
+              214
+            ]
+          }
+        ],
+        "attackTurnPlayerId": 1,
+        "diseasePlayerId": 1,
+        "updateCount": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "gf": 1
+      }
+    }
+  ],
+  "context_only": true,
+  "native_received_checkpoint_comparisons": 0,
+  "continuity": {
+    "server_update_counts": [
+      1
+    ],
+    "initial_authoritative_snapshot_captured": true,
+    "initial_already_pending_cpu_launch": true,
+    "prelaunch_authoritative_snapshot_captured": false,
+    "post_action_authoritative_snapshot_captured": false
+  },
+  "capture_failures": {
+    "duplicate_initial_bodies_excluded": 3,
+    "game_free_keepalive_bodies_excluded": 1,
+    "keepalive_body_bytes": 303,
+    "keepalive_frame_count": 3,
+    "new_post_action_game_snapshots": 0,
+    "scope": "Post attempts returned three exact copies of initial1 and one game-free keepalive. No update2 or3 is fabricated."
+  },
+  "boundary_notes": [
+    "Initial viewer2 has30/id7 as its unique model30 copy;CPU1 has used214/id5 retained and MP6 after the already launched4-MP miracle.",
+    "The initial context certifies neither the later viewer response nor self30 event payloads. Those observations are recorded separately as UI evidence.",
+    "UI following CPU weapon name鎖ガマ maps to catalog19. Its initial id6 ownership does not certify the later launch slot,because no raw launch was obtained.",
+    "No unknown viewer30 replacement or CPU replenishment is inserted.",
+    "Reload returned the UI to the birth screen and Network Monitor was closed. This is not a normal quit/home sequence or a received terminal state."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v68",
+    "snapshot_version": 68,
+    "observe_schema": "official-execution-view-v66"
+  },
+  "captured_authoritative_game_snapshot_count": 1,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 0,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "native_projection_validation_record": "live-transition-witnesses-v82.json",
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final"
+}

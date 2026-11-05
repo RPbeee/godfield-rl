@@ -198,6 +198,21 @@ class PurchaseResponseAction:
         if self.commodity is not None: _integer(self.commodity, "purchase commodity")
 
 @dataclass(frozen=True)
+class SummonResultAction:
+    """Privileged singleton201/239 play with a supplied guardian selection.
+
+    Only its summon draw is omitted. Ordinary target routing, fees, retained
+    miracles, gifts and subsequent scheduler draws remain native operations.
+    """
+    command: Command
+    guardian: str
+
+    def __post_init__(self):
+        object.__setattr__(self, "command", _decode_command(_command(self.command)))
+        if type(self.guardian) is not str or self.guardian not in _GUARDIAN_NAMES:
+            raise InvalidMatchError("summon guardian must be one of the ten guardian names")
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -404,6 +419,12 @@ def _purchase_response_action(value):
     return _command(value.response), _PurchaseSelection(commodity=0 if value.commodity is None else value.commodity,
         has_commodity=value.commodity is not None)
 
+def _summon_result_action(value):
+    if type(value) is not SummonResultAction: raise InvalidMatchError("operation requires SummonResultAction")
+    if type(value.guardian) is not str or value.guardian not in _GUARDIAN_NAMES:
+        raise InvalidMatchError("summon guardian must be one of the ten guardian names")
+    return _command(value.command), _GUARDIAN_NAMES.index(value.guardian)+1
+
 def _resource_action(value, record_type, minimum):
     if not isinstance(value, record_type): raise InvalidMatchError(f"operation requires {record_type.__name__}")
     encoded = _DevilAction(target=_integer(value.target, "recipient"), model=_integer(value.model, "model", minimum, 65535))
@@ -516,7 +537,7 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule", "redraw_response_rule", "purchase_response_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule", "redraw_response_rule", "purchase_response_rule", "summon_result_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
             for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size", "redraw_item_size", "redraw_result_size", "purchase_selection_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
@@ -527,9 +548,10 @@ class Match:
         self.normal_grant_rule = lib.gfo_match_normal_grant_rule().decode()
         self.redraw_response_rule = lib.gfo_match_redraw_response_rule().decode()
         self.purchase_response_rule = lib.gfo_match_purchase_response_rule().decode()
+        self.summon_result_rule = lib.gfo_match_summon_result_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v67"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v68"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21
@@ -642,6 +664,10 @@ class Match:
         lib.gfo_match_purchase_response_legal.restype = c.c_int
         lib.gfo_match_purchase_response_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_PurchaseSelection), c.POINTER(_Status)]
         lib.gfo_match_purchase_response_step.restype = c.c_int
+        lib.gfo_match_summon_result_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.c_uint8, c.POINTER(c.c_uint8)]
+        lib.gfo_match_summon_result_legal.restype = c.c_int
+        lib.gfo_match_summon_result_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.c_uint8, c.POINTER(_Status)]
+        lib.gfo_match_summon_result_step.restype = c.c_int
 
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
@@ -877,6 +903,18 @@ class Match:
         """Resolve the response and supplied BUY selection as one transaction."""
         self._open(); response, selection = _purchase_response_action(action); out = _Status()
         _check(self._lib.gfo_match_purchase_response_step(self._handle, c.byref(response), c.byref(selection), c.byref(out)))
+        return _decode_status(out)
+
+    def summon_result_legal(self, action):
+        """Validate a supplied summon result without sampling or mutating."""
+        self._open(); encoded, guardian = _summon_result_action(action); out = c.c_uint8()
+        _check(self._lib.gfo_match_summon_result_legal(self._handle, c.byref(encoded), guardian, c.byref(out)))
+        return bool(out.value)
+
+    def summon_result_step(self, action):
+        """Apply one main command with its supplied summon selector result."""
+        self._open(); encoded, guardian = _summon_result_action(action); out = _Status()
+        _check(self._lib.gfo_match_summon_result_step(self._handle, c.byref(encoded), guardian, c.byref(out)))
         return _decode_status(out)
 
     def step(self, command):

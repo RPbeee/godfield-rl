@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v67` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v68` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3147,3 +3147,12 @@ Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 rules67/Snapshot67/view65へ更新し、ABI2/型幅を維持します。[受信3状態](data/official-v2/wire-game-updates-v81.json)を固定8seedで24比較し、累計62観測/native56/記録のみ6・wire552。最初の受信はCPU29の攻撃待ちで、未取得の使用前sceneを復元してから照合します。
 
 Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.38秒）が通過した。native250 callbacks・Python182 unique methods、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般属性優先の同値性を示す結果ではない。
+
+
+## v82：召喚結果の供給と地獄のハサミの自己使用
+
+`SummonResultAction` とC/Python入口を追加し、201/239の通常単品召喚の結果だけを指定できるようにしました。支払い・奇跡保持・対象の導出・補充・後続の進行は既存処理を使い、通常の召喚抽選やpolicyは維持します。[既存v65の召喚記録](data/official-v2/summon-replay-v82.json)をNeptune指定・実補充196・CPU29＋231保留まで固定8seedで16比較します。後続の自動Neptune276の発動結果を指定する機能は残件です。
+
+また、[新しい画面観測](data/official-v2/live-transition-witnesses-v82.json)で30地獄のハサミの自己使用がHP32→19・追加本人防御なしで進むことを確認し、余分な防御待ちを除きました。病気の算法は維持し、8＋5という内訳は既存算法との一致として扱います。使用後の受信本文と補充は取得できず、新2操作は記録のみです。rules68/Snapshot68/view66・ABI2/旧構造体幅を維持し、累計64観測/native57/記録のみ7・wire568です。
+
+Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（13.87秒）が通過した。native255 callbacks・Python185 unique methods、両buildのwarning/error0、C11 -Werrorの旧24/184/248byte layoutと新入口prototype、Python召喚結果API使用例、diff-checkも確認した。全SAN suite/Python SANや、公式召喚分布・病気の一般率の適合を示す結果ではない。

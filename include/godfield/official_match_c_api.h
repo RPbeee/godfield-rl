@@ -145,6 +145,7 @@ size_t gfo_match_redraw_result_size(void);
 const char* gfo_match_redraw_response_rule(void);
 size_t gfo_match_purchase_selection_size(void);
 const char* gfo_match_purchase_response_rule(void);
+const char* gfo_match_summon_result_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -244,6 +245,13 @@ int gfo_match_purchase_response_legal(const gfo_match* match, const gfo_match_co
     const gfo_match_purchase_selection* selection, uint8_t* out);
 int gfo_match_purchase_response_step(gfo_match* match, const gfo_match_command* response,
     const gfo_match_purchase_selection* selection, gfo_match_status* out);
+// Privileged single201/239 main play with an externally supplied guardian1..10.
+// Only the summon selector draw is omitted; ordinary target routing, payment,
+// retention, gifts and subsequent scheduler RNG still apply. No extra decision.
+int gfo_match_summon_result_legal(const gfo_match* match, const gfo_match_command* command,
+    uint8_t guardian, uint8_t* out);
+int gfo_match_summon_result_step(gfo_match* match, const gfo_match_command* command,
+    uint8_t guardian, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

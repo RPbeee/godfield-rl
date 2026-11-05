@@ -2231,3 +2231,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信更新1/2/3](../data/official-v2/wire-game-updates-v81.json)を取得した。rolesはCPU1/viewer2。最初のraw1は既にCPU29/id4→viewer2が保留で、空useDefense→damage8→advance2で本人40→32となる。CPU196/id4の補充はsnapshot deltaとしてだけ確認する。
 
 次のraw3は66/id5→target2→damage2→gift21/id5→advance1→CPU196/id4使用→boostMP10→advance2を含み、本人30/10/20・CPU40/20/20・GF4となる。CPUの次の3/id4は再びinventory deltaだけである。追加本人defendはなく、66の直接自己使用を修正する。83は同traitの推論で、無防御の自己2被害から属性優先の一般順序や83の実戦結果まで識別したとはしない。
+
+
+## 作業世代v82：召喚の外部結果とHell自己使用の有限根拠
+
+既存v65の201→Neptuneを、`SummonResultAction` の通常単品201/239 mainに限った外部結果で再生する。選出guardianだけを指定し、対象・費用・保持・授与・進行をcallerに指定させない。通常selectorと後続の自動守護神抽選は従来どおりで、公式選出分布を再現したとはしない。v65の壁233後の自動Neptune276は別の残件である。
+
+公式CPU修行で30単品自己使用の本人HP32→19・MP10/CP20維持・追加本人応答なし・GF3 CPU鎖ガマ5保留をUIで確認した。初期raw1はCPU214の保留で、空応答後の32と自己30後の19はUIのみ。postの重複本文/keepaliveを受信更新として扱わず、補充とCPU真手札を埋めない。8本体＋5 Hell tickは既存算法が説明する内訳で、rawイベント順の新証明ではない。Hell武器baseだけ直接selfへ加え、病気/悪化/費用算法を変えない。68/S68/view66・ABI2、64/native57/record-only7・wire568。

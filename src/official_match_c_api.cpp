@@ -371,6 +371,7 @@ size_t gfo_match_redraw_result_size(void) { return sizeof(gfo_match_redraw_resul
 const char* gfo_match_redraw_response_rule(void) { return official::redraw_response_rule; }
 size_t gfo_match_purchase_selection_size(void) { return sizeof(gfo_match_purchase_selection); }
 const char* gfo_match_purchase_response_rule(void) { return official::purchase_response_rule; }
+const char* gfo_match_summon_result_rule(void) { return official::summon_result_rule; }
 
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
@@ -607,6 +608,20 @@ int gfo_match_purchase_response_step(gfo_match* match,const gfo_match_command* i
     if(!match||!input||!selection||!out)return -1;
     try{const auto action=purchase_response_action(*input,*selection);auto next=match->value;next.purchase_response_step(action);const auto value=status(next);
         match->value=std::move(next);*out=value;return 0;}
+    catch(...){return error();}
+}
+int gfo_match_summon_result_legal(const gfo_match* match,const gfo_match_command* input,
+    uint8_t guardian,uint8_t* out) {
+    if(!match||!input||!out)return -1;
+    try { valid(guardian>=1&&guardian<=10);const official::SummonResultAction action{command(*input),static_cast<official::Guardian>(guardian)};
+        const uint8_t value=match->value.summon_result_legal(action);*out=value;return 0; }
+    catch(...){return error();}
+}
+int gfo_match_summon_result_step(gfo_match* match,const gfo_match_command* input,
+    uint8_t guardian,gfo_match_status* out) {
+    if(!match||!input||!out)return -1;
+    try { valid(guardian>=1&&guardian<=10);const official::SummonResultAction action{command(*input),static_cast<official::Guardian>(guardian)};
+        auto next=match->value;next.summon_result_step(action);const auto value=status(next);match->value=std::move(next);*out=value;return 0; }
     catch(...){return error();}
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {

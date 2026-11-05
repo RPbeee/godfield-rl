@@ -2246,3 +2246,14 @@ weapon set_elementだけを直接selfへ追加し、66実測/83同trait推論を
 新2完了viewer操作で累計62/native56/record-only6・wire552、完全start→end2・routing-only1・内部trace0は維持する。native7決定をserver3更新へ読み替えず、CPU196継続・途中退出・失敗したfooter試行を追加観測へ数えない。ホーム復帰とNetwork Monitor終了を確認した。
 
 Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.38秒）が通過した。native250 callbacks・Python182 unique methods、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般属性優先の同値性を示す結果ではない。
+
+
+## 作業世代v82：召喚selectorだけを供給する再生
+
+既存v65の `201-neptune-summon-and-cpu-aura` を、単品201/239の結果だけを渡す `SummonResultAction` で再生する。初期から実gift196、CPU29＋231保留まで2状態×既存8seed＝16比較を追加し、既存276効果単体8検査と後続自動発動の未再現を分ける。v65の原記録は変更せず、新reportで条件付きnative対象への移行を記録する。
+
+新30実測ではCPU214へ空応答してHP40→32、その後30単品selfで32→19・追加本人防御なしをUIで確認した。postrawは02/03/05が初期01の重複、04がgameなしのkeepaliveであり、新2操作はrecord-onlyとする。8被害とHell tick5の内訳/イベント順、補充品、後続CPUのslotは未取得で、ローカル回帰を新公式rawとして数えない。再読込で生誕画面へ戻り、Network Monitor終了を確認した。
+
+68/S68/view66・ABI2/旧型幅を維持し、累計64/native57/record-only7・wire568、完全start→end2・routing-only1・全内部trace0。元資料・旧pinsを変更しない。
+
+Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（13.87秒）が通過した。native255 callbacks・Python185 unique methods、両buildのwarning/error0、C11 -Werrorの旧24/184/248byte layoutと新入口prototype、Python召喚結果API使用例、diff-checkも確認した。全SAN suite/Python SANや、公式召喚分布・病気の一般率の適合を示す結果ではない。

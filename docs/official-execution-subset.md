@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v67
+# 現行公式データによる限定実行器 v68
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v67` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v68` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3379,3 +3379,31 @@ Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 新viewer完了操作は空応答と自己66の2件で、累計62/native56/record-only6・wire552、完全lifecycle2を維持する。CPU196の自動継続を新viewer観測へ加えない。Fireの単品自己被害は、属性優先や83の実戦結果を独立に識別する証拠ではない。
 
 Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.38秒）が通過した。native250 callbacks・Python182 unique methods、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般属性優先の同値性を示す結果ではない。
+
+
+## 作業世代v82：単品201/239の外部召喚結果とHell直接self
+
+`SummonResultAction{command, guardian}` は通常mainの単品201/239に限ったprivilegedな結果入口である。`summon_result_legal/step` はguardian1〜10を検査し、通常の対象/Fog・支払い・消費/奇跡used保持・予約補充と進行を維持する。召喚selectorの一抽選だけを省き、後続の自動守護神を含む別の抽選を置換しない。反応で遮断/中断した場合は、未使用の供給結果から召喚しない。結果は非再帰のprivate journal/proofへ保持し、保留/完了/補充再開を元操作から復元する。通常Command・sampler・driverと通常召喚の抽選法は従来どおりである。
+
+Cには `gfo_match_summon_result_rule` と `gfo_match_summon_result_legal/step(match, command, guardian, out)` を追加する。新C構造体を設けず、ABI2と旧型幅を維持する。Pythonは `SummonResultAction(Command(...), "neptune")` と同名methodsを公開する。これは手番の選択に将来結果を含ませるものではなく、取得済み結果の検証入口である。
+
+既存v65の初期→201→Neptune→実補充196→CPU29＋231保留を2状態×固定8seedで比較する。召喚結果や補充の分布、後続の自動Neptune276を再現したとはしない。別の公式UIでは30自己使用がHP32→19で追加応答なく進むことを確認し、weapon Hellだけ直接selfへ加える。病気/悪化算法は変えず、無防御本体8＋Hell5という説明と、未取得のraw列/補充を区別する。合成の明示gift6等をこの公式補充として記録しない。
+
+rules68/Snapshot68/view66、64/native57/record-only7・wire568、完全lifecycle2/routing1/internal trace0。
+
+Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（13.87秒）が通過した。native255 callbacks・Python185 unique methods、両buildのwarning/error0、C11 -Werrorの旧24/184/248byte layoutと新入口prototype、Python召喚結果API使用例、diff-checkも確認した。全SAN suite/Python SANや、公式召喚分布・病気の一般率の適合を示す結果ではない。
+
+外部結果を渡す使用例（既存sceneの初期化は従来の `OfficialState` / `load_scene` を使う）:
+
+```python
+from official_match import Command, SummonResultAction, ArtifactGrantAction
+
+# actor0が自分へ、所有token0の201を使うscene。結果は取得済みNeptune。
+action = SummonResultAction(Command(0, "play", (0,), 0), "neptune")
+assert match.summon_result_legal(action)
+match.summon_result_step(action)
+# external_artifacts=Trueの場合は、通常補充も別に供給する。
+match.artifact_grant_step(ArtifactGrantAction(0, 196))
+```
+
+この196はv65の取得済み結果であり、v82 Hellの未知の補充へ流用しない。

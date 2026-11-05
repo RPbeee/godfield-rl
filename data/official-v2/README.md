@@ -590,3 +590,20 @@ Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 | --- | ---: | --- |
 | `wire-game-updates-v81.json` | 17,681 | `6b04773920b4af7d7e22737878169e1f59c4718949f5302b72c364c9b22cf7b1` |
 | `live-transition-witnesses-v81.json` | 13,928 | `6518e363a962f52a8a7fbb606a92b01569f4b4bcb0e8145fec7a75b142fef24d` |
+
+
+## v82：召喚結果付き再生とHellのUIのみの2操作
+
+[召喚再生report](summon-replay-v82.json)は既存v65の201→Neptuneを外部結果で供給し、実gift196→CPU29＋231保留まで2状態×8seed＝16比較を追加する。既存原記録と276効果単体8検査は変更しない。壁233後の自動Neptune276と公式選出分布は未再現である。
+
+[Hell初期raw1](wire-game-updates-v82-hell.json)は文脈保存だけで、新wire比較へ計上しない。[新2操作](live-transition-witnesses-v82.json)は空応答40→32と30単品self32→19・MP10/CP20維持・追加本人防御なしのUI観測である。postraw取得は02/03/05が01完全重複、04が303bytes/3frames/game0のkeepaliveで失敗した。補充/CPU在庫を埋めず、8＋5は既存算法の説明としてraw列の確認とは分ける。CPU次攻撃はUIの鎖ガマ/ATK5から台帳19へ対応するが、useのslotは未取得。
+
+68/S68/view66・ABI2/旧型幅、64/native57/record-only7・wire568、完全lifecycle2/routing1/internal trace0。元応答/解析物は0600、公開JSONは匿名化のみで初期literalを保持する。再読込で生誕画面となりNetwork Monitorを終了した。通常退出や新しい終局取得とはしない。
+
+Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（13.87秒）が通過した。native255 callbacks・Python185 unique methods、両buildのwarning/error0、C11 -Werrorの旧24/184/248byte layoutと新入口prototype、Python召喚結果API使用例、diff-checkも確認した。全SAN suite/Python SANや、公式召喚分布・病気の一般率の適合を示す結果ではない。
+
+| v82 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `summon-replay-v82.json` | 9,243 | `6c689df87080ce95d2e5f4540671977ce729bd8d8faefb0283b7571d8f67f85f` |
+| `wire-game-updates-v82-hell.json` | 8,069 | `17cce4bb23c65a3ad4b2103529e3bdf5ebdccb430e893f55e125bef787bbecc9` |
+| `live-transition-witnesses-v82.json` | 10,631 | `5fdee5b617dfcd44441aaedb9797b20fcfa6b829913dd1508c227d83aa7120ff` |

@@ -10,9 +10,9 @@
 namespace godfield::official {
 // Local executable subset. Public client arithmetic is source-checked; turn,
 // gift and death scheduling below is an explicit experimental contract.
-inline constexpr const char* match_ruleset = "official-execution-subset-v67";
+inline constexpr const char* match_ruleset = "official-execution-subset-v68";
 inline constexpr const char* match_scope = "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence";
-inline constexpr const char* self_attack_rule = "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-set-element-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-set-element66-raw-self-use-observed-v81-83-same-trait-inference-hell-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route";
+inline constexpr const char* self_attack_rule = "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-set-element-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-hell-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-set-element66-raw-self-use-observed-v81-83-same-trait-inference-hell30-ui-self-use-observed-v82-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route";
 inline constexpr const char* bounce_target_rule = "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates";
 inline constexpr const char* chance_rule = "experimental:targetless-all-alive-enemies-in-input-order;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll;skip-dead;cancel-on-origin-death";
 inline constexpr const char* counter_rule = "experimental:actual-hp-loss;survivors-only;selection-order-fifo-before-next-target;skip-dead-source-or-target;single-target;darkcloud-forces-without-draw;roll-before-response;redirects-no-reroll";
@@ -40,10 +40,11 @@ inline constexpr const char* dream_rule = "experimental:compatible-face-or-recei
 inline constexpr const char* redraw_rule = "experimental:response-only178;consume-entire-selection-first;selection-order-self-dream-before-each-redraw;replace-all-current-nonempty-including-used-miracles;same-count-fresh-unused-tokens;immediate-weighted-draw-with-compatible-dream-mask;reserved-gifts-excluded-and-preserved;before-incoming-body-and-revival;no-old-hand-models-or-counts-public;owner-id-only-redraw-notice;same-action-new-items-usable;no-trigger-on-discard-or-trade;max-decisions-bounds-journal";
 inline constexpr const char* redraw_response_rule = "experimental:external-results-for-response-selected178-only;usual-visible-command-validation-and-single-decision;consume-entire-selection-first;one-result-per178-in-selection-order;dream-before-each-immediate-replacement;exact-current-physical-count-including-used-excluding-reserved-gifts;configured-positive-models-and-received-supported-disguises;fresh-local-unused-tokens;replacement-only-no-game-or-chance-rng-or-local-dream-generation-statistics;existing-body-guardian-and-followup-draws-preserved;before-incoming-body-revival-death-and-counters;old-gift-reservations-preserved;body-before-cutoff;private-sparse-response-index-results-and-full-origin-replay-through-completion;public-owner-id-only-redraw-notice;default-command-driver-sampler-and-local-redraw-unchanged;supplied-results-not-official-selector-or-probability-proof";
 inline constexpr const char* purchase_response_rule = "experimental:external-commodity-for-resolving-pending-buy-response-only;usual-visible-response-validation-and-single-decision;exact-current-seller-unused-owned-token-including-token0;absent-only-if-no-unused-physical-copy;selection-reached-exactly-once-or-transaction-rejected;selection-only-no-game-or-chance-rng;existing-reveal-price-cp-only-affordability-escrow-yes-no-cutoff-gifts-and-followup-draws-preserved;private-sparse-response-index-selection-and-full-origin-replay-through-completion;no-new-public-selection-token-or-policy-choice;self-buy-launch-and-default-selector-driver-sampler-unchanged;supplied-selection-not-official-selector-or-distribution-proof";
+inline constexpr const char* summon_result_rule = "experimental:ordinary-main-single-owned201-or239;explicit-known-guardian-result;replace-original-summon-draw-only;reflection-final-recipient;unresolved-or-canceled-body-keeps-result-unused;normal-cost-consumption-gifts-tick-auto-and-downstream-rng;private-nonrecursive-whole-action-proof;normal-command-policy-driver-and-local-summon-unchanged;no-official-selector-or-scheduler-equivalence";
 inline constexpr const char* guardian_rule = "experimental:canonical42-only;auto-after-ordinary-owner-tick-before-gifts;alive-enemy-sources-in-input-order;one-quarter-opportunity-draw-per-present-source;weighted6-5-4-3-2-for-first8;earth285-moon286-fixed-singleton-move-draw;uniform-alive-enemy-for-atk-curse-bribe-takecp-otherwise-alive-allies-including-self;singleton-target-draw;280-all-alive-no-target-draw;single-target-percent-and-darkcloud;no-fog-reselection;counter-death-fifo-before-next-source;stop-on-main-owner-death;no-internal-decisions-or-source-fee-gift;external-main-boundary-one-decision-no-auto-followup;earth-moon-official-general-selection-unsupported-default-canonical-auto-unchanged";
 inline constexpr const char* guardian_summon_rule = "experimental:201-and239-current-target;uniform-all10-in-enum-order;one-draw-including-resummon-same-type;normal-consumption-mp-retention-and-gift";
 inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
-inline constexpr std::uint32_t match_snapshot_version = 67;
+inline constexpr std::uint32_t match_snapshot_version = 68;
 inline constexpr const char* guardian_payload_auto_rule = "experimental:opt-in-local-guardian-payloads-default-false;existing-enemy-input-order-quarter-opportunity-after-owner-tick-before-deferred-gifts;only-successful-earth-moon-opportunities-use-shared-local120-26-selector;automatic-selection-and-body-use-game-rng-replayed-from-main-anchor;external-const-helper-keeps-caller-owned-chance-stream;no-additional-decision-source-items-ordinary-mp-fee-or-operation-gift;58-saves-launch-mp-and-drains-once-202-draws-one-sign-after-target;14-two-fresh-original-frames-with-death-then-counter-fifo-between-hits;fixed-launch-models-guardian-mp-sign-through-redirection-and-departure;stop-remaining-and-future-sources-on-main-owner-death-stop-remaining-on-source-or-target-death;self-nondamaging-body-immediate-with-shared-death-pump;launched-payload-log-only-no-future-rng-or-private-launch-values;external-payload-counter-unchanged-auto-counter-includes-both-kinds;other8-guardians-and-default-canonical285286-unchanged;uniform-base-geometric-extras-and-target-distribution-local-not-official-server-equivalence";
 inline constexpr const char* choice_rule = "experimental:player-choice-v1-command-or-fate-request-actor-token-only;no-outcome-recipient-guardian-assignment-or-shuffle-in-player-choice;normal-main-owner-count0-visible-unused-unmasked207;gift-flag-does-not-gate-already-owned207;inventory-order-per-copy-fate-envelopes-plus-one-normal-command-envelope;uniform-bounded-Nplus1-zero-delegates-old-command-policy-rest-select-one-token;no207-response-purchase-delegate-old-policy-with-no-extra-draw;ordinary-discard-and-trade207-roles-preserved;not-uniform-over-all-legal-actions-or-official-policy;grant-and-positive-confusion-main-refuse-with-policy-unchanged;pure-world-game-rng-and-chance-unchanged;request-preflight-does-not-probe-future-outcome-validity;sample-and-choice-step-separate-transactions";
 inline constexpr const char* driver_rule = "experimental:local-driver-api1-one-accepted-decision;grant-uses-chance-sample-grant-step;positive-confusion-main-uses-chance-existing-confusion-policy-no207;other-main-response-purchase-use-policy-player-choice;fate-request-resolved-only-by-chance-existing-fate-helper;ordinary-command-does-not-use-external-chance;game-rng-remains-owned-by-match;copy-world-and-trial-policy-and-chance-commit-only-after-full-step-and-result;failure-preserves-world-both-streams-and-outputs-no-reroll;distinct-policy-chance-storage-required-equal-values-allowed;no-new-phase-decision-fee-gift-or-observation-fields;save-match-snapshot-policy-chance-and-driver-api-policy-rule-for-resume;multi-step-rollout-is-sequence-of-transactions-not-one-transaction;existing-sample-action-confusion-fate-grant-and-random-rollout-unchanged;not-all-legal-actions-all-gift-devils-or-official-server-equivalence";
@@ -129,6 +130,12 @@ struct PurchaseResponseAction {
     // Empty only when that seller has no unused eligible copy at resolution.
     std::optional<ItemToken> commodity;
     bool operator==(const PurchaseResponseAction&) const = default;
+};
+// Privileged result for one ordinary201/239 launch,not a player selection or selector policy.
+struct SummonResultAction {
+    Command command;
+    Guardian guardian = Guardian::none;
+    bool operator==(const SummonResultAction&) const = default;
 };
 // A player's intention to use207. Its resolved outcome remains external chance.
 struct FateRequest {
@@ -282,6 +289,7 @@ struct ActionBatch {
     std::optional<AutomaticGuardianPayload> automatic_payload;
     bool tick_processed = false; // Whole-action owner tick already ran before a posthumous response.
     bool confusion_command = false; // Privileged pre-debit launch; never part of a public observation.
+    std::optional<Guardian> supplied_summon; // Original ordinary201/239 body only; future automatic summons stay local.
     Command attack;
     std::vector<CardId> models;
     std::vector<PlayerId> targets; // Ordered launch roster; attackTwice repeats the whole roster.
@@ -405,6 +413,7 @@ struct MatchSnapshot {
     std::optional<ActionBatch> grant_proof; // Full original action journal, retained through completion.
     std::optional<ActionBatch> redraw_proof; // Supplied redraw results and whole-origin replay, non-recursive.
     std::optional<ActionBatch> purchase_proof; // Supplied BUY selection and whole-origin replay, non-recursive.
+    std::optional<ActionBatch> summon_proof; // Supplied ordinary summon result,retained through responses and completion.
     std::optional<DevilEvent> last_grant; // model0 hides any ordinary model; explicit ordinary inputs remain in the private journal.
     std::optional<DevilRecord> last_devil; // Privileged whole direct action and response proof.
     std::optional<DevilEvent> last_devil_event;
@@ -497,6 +506,8 @@ public:
     MatchStep redraw_response_step(const RedrawResponseAction& action);
     [[nodiscard]] bool purchase_response_legal(const PurchaseResponseAction& action) const noexcept;
     MatchStep purchase_response_step(const PurchaseResponseAction& action);
+    [[nodiscard]] bool summon_result_legal(const SummonResultAction& action) const noexcept;
+    MatchStep summon_result_step(const SummonResultAction& action);
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
 private:
     void apply_choice(const PlayerChoice& choice, std::uint64_t& chance_rng); // Only on a transaction copy.

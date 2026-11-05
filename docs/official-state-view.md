@@ -468,3 +468,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view65/rules67/Snapshot67へ更新し、独立State/表示componentとC構造体を維持する。raw1のCPU1は29消費後の8正コピー+空行1、viewer2は66を含む9正コピー・HP40である。空応答後raw2は本人32/10/20、自己66とCPU196継続後raw3は本人30/10/20・CPU40/20/20となる。
 
 owner付きslot4はCPU29→196→3という異なるnative tokenへ写し、viewer66/id5→21/id5もfresh tokenにする。196/3はsnapshot差分、21は明示giftである。GF1→2→4とserver update1→2→3、native7決定を同一視しない。C/Pythonの独立body回帰はGF2/HP32からの66→30・gift21までを検証する。
+
+
+## 作業世代v82：召喚結果はprivate proofへ保持
+
+対局view66/rules68/Snapshot68へ更新し、公開 `summon_result_rule` を追加する。`SummonResultAction` の結果guardianはprivilegedなaccepted journalへ保存し、pending中の未来の結果をpolicy viewへ追加しない。実際の召喚時のguardian変化は既存の公開表示で扱う。独立State/表示component、C ABI2と旧構造体幅は維持する。
+
+v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82の30確認は初期rawだけが得られ、使用後HP32→19はUI観測である。未取得の補充/CPU在庫をfresh viewで補完せず、ここから新しいwire比較を増やさない。

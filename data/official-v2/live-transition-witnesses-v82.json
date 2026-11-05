@@ -1,0 +1,255 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v81.json",
+  "method": "Two new actual viewer2 UI transitions after one authoritative initialCPU214-pending state:empty defense toHP32 and single30 self-use toHP19/MP10/CP20. All post-state acquisition attempts failed to yield a new game;three repeatedinitial bodies and one keepalive are excluded.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. Initial CPU true hand is privileged context only.",
+  "authoritative_context_fixture": "wire-game-updates-v82-hell.json",
+  "source_body_provenance": [
+    {
+      "label": "initial-pending-cpu214-context",
+      "response_body_bytes": 28594,
+      "response_body_sha256": "d2edb7aa99857f72f273e310772d93e2d65eee2d0276f874d3ad7ca35d0754ec",
+      "webchannel_frame_count": 15,
+      "included_game_index": 0
+    }
+  ],
+  "post_authoritative_fixtures": [],
+  "model_provenance": {
+    "214": {
+      "id": 214,
+      "imageName": "rock",
+      "category": "miracles",
+      "element": "stone",
+      "atk": 8,
+      "cost": 4,
+      "giftRate": 1,
+      "name": "＜岩＞"
+    },
+    "30": {
+      "id": 30,
+      "imageName": "hell-scissors",
+      "category": "weapons",
+      "atk": 8,
+      "ability": "addCurseOnDamage",
+      "curse": "hell",
+      "price": 15,
+      "giftRate": 1,
+      "name": "地獄のハサミ"
+    },
+    "19": {
+      "id": 19,
+      "imageName": "kusarigama",
+      "category": "weapons",
+      "atk": 5,
+      "price": 2,
+      "giftRate": 7,
+      "name": "鎖ガマ"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-viewer2-empty-rock214-ui-only",
+      "native_projection_covered": false,
+      "evidence_class": "completed UI transition with authoritative before context only",
+      "before_authoritative_context": {
+        "server_update_count": 1,
+        "gf": 1,
+        "owner": 1,
+        "viewer2": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu1": {
+          "hp": 40,
+          "mp": 6,
+          "cp": 20
+        },
+        "pending_models": [
+          214
+        ],
+        "pending_source": 1,
+        "pending_target": 2
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "defend",
+        "displayed_models": [],
+        "outgoing_wire_command_captured": false
+      },
+      "after_ui": {
+        "gf": 2,
+        "owner": "viewer2",
+        "viewer_hp": 32,
+        "viewer_mp_separately_reported": null,
+        "viewer_cp_separately_reported": null,
+        "cpu_replacement_model": null,
+        "cpu_post_hand": null
+      },
+      "received_post_snapshot_or_response_event_captured": false,
+      "catalog_arithmetic": {
+        "rock214_attack": 8,
+        "viewer_ui_hp": "40-8=32"
+      },
+      "observation": "The UI accepted an empty response to the initially receivedCPU214,and displayed viewerHP32 atGF2.",
+      "limits": "No post-response game state or useDefense/damage event was received. CPU replenishment and private post state remain unknown;this is not a full native replay witness."
+    },
+    {
+      "id": "training-gf2-viewer2-self-hell-scissors-ui-only",
+      "native_projection_covered": false,
+      "evidence_class": "completed UI transition;raw30 use and resulting state unavailable",
+      "before_ui": {
+        "gf": 2,
+        "owner": "viewer2",
+        "viewer_hp": 32
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "play",
+        "displayed_model": 30,
+        "server_item_id_from_initial_context": 7,
+        "identity_evidence": "Unique initial received30/id7 plus UI single-card selection and one self confirmation. No raw use30 payload is asserted.",
+        "target": "self viewer2",
+        "single_card": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after_ui": {
+        "gf": 3,
+        "owner": "cpu1",
+        "viewer": {
+          "hp": 19,
+          "mp": 10,
+          "cp": 20
+        },
+        "viewer_replacement_model": null,
+        "cpu_replenishment": null,
+        "cpu_private_post_hand": null
+      },
+      "following_cpu_action": {
+        "displayed_name": "鎖ガマ",
+        "catalog_model_from_name": 19,
+        "displayed_attack": 5,
+        "actual_server_item_id": null,
+        "initial_id6_is_later_launch_id_proven": false,
+        "response_observed": false
+      },
+      "observed_hp_total_loss": 13,
+      "raw_damage_or_hell_tick_events_captured": false,
+      "model_interpretation": {
+        "catalog30_body_damage": 8,
+        "existing_local_hell_tick_damage": 5,
+        "sum": "8+5=13",
+        "interpretation_only": true,
+        "two_separate_deductions_or_event_order_proven": false
+      },
+      "observation": "The UI accepted single30 toward self and advanced fromGF2 viewerHP32 toGF3 viewer19/10/20 with CPU鎖ガマ/ATK5 pending,without an additional viewer self-response.",
+      "limits": "The observed total13 is consistent with the existing8-damage body plus5 Hell tick model. It does not prove those two separate deductions,their event order,Hell rates,death/revival timing or the unknown replacement/private post state. CPU19 slot6 is not certified as the later launched copy."
+    }
+  ],
+  "capture_failure": {
+    "post_action_response_attempts": 4,
+    "duplicate_initial_game_bodies": 3,
+    "game_free_keepalive_bodies": 1,
+    "keepalive_bytes": 303,
+    "keepalive_frames": 3,
+    "new_post_action_game_snapshots": 0,
+    "scope": "Saved files contain initial1 again or no game. No post-response,self30,HP19,Hell tick,gift or CPU19 launch payload is synthesized."
+  },
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v68",
+    "snapshot_version": 68,
+    "observe_schema": "official-execution-view-v66",
+    "full_native_projection_status": "not_covered_ui_only_post_state_missing",
+    "full_native_projection_covered": false,
+    "received_checkpoint_comparisons": 0,
+    "fixed_received_state_replays": 0,
+    "initial_context_compared_in_native_replay": false,
+    "local_synthetic_test_results_status": "passed",
+    "scope": "Local Hell route tests may validate8+5 arithmetic and one-command routing using synthetic states. They do not reconstruct the two official post states or certify event order. The separate v65 summon replay belongs to summon-replay-v82.json.",
+    "local_synthetic_test_results": {
+      "source": "Parent-reported completed local validation;artifact author did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 38.31,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 13.87,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "native_registered_callbacks": 255,
+      "python_test_methods": 185,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "c11_werror_old_layout_sizes_checked": [
+        24,
+        184,
+        248
+      ],
+      "c11_new_function_prototypes_checked": 3,
+      "c11_layout_and_prototype_check": "passed",
+      "python_new_api_usage_example": "passed",
+      "scope": "Full Release and focused native core/C API/wire sanitizer validation. No full sanitizer suite or Python sanitizer execution is claimed.",
+      "new_received_checkpoint_comparisons_for_this_ui_game": 0,
+      "separate_reused_v65_summon_checkpoint_comparisons": 16,
+      "evidence_scope": "The local Hell algorithm and input route are synthetic regressions. They do not make these two UI-only official cases full native projections or establish separate8+5 events/order."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 1,
+    "initial_authoritative_game_snapshots": 1,
+    "post_action_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 0,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "normal_quit_confirmed": false,
+    "home_menu_return_confirmed": false,
+    "reload_performed": true,
+    "birth_screen_return_confirmed": true,
+    "network_monitor_closed": true,
+    "ui_session_reset_observed": true,
+    "exit_kind": "reload to birth screen;not a received terminal or normal quit/home sequence",
+    "following_cpu19_response_observed": false,
+    "cleanup_counted_as_completed_operation": false,
+    "cleanup_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 2,
+  "cumulative_completed_public_transition_witnesses": 64,
+  "new_native_projection_covered_completed_witnesses": 0,
+  "cumulative_native_projection_covered_completed_witnesses": 57,
+  "new_record_only_completed_witnesses": 2,
+  "baseline_record_only_completed_witnesses": 6,
+  "coverage_change_pending_separate_summon_test_success": false,
+  "new_wire_checkpoint_comparisons_for_this_ui_game": 0,
+  "baseline_cumulative_wire_checkpoint_comparisons": 552,
+  "separate_coverage_report": "summon-replay-v82.json",
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "cumulative_record_only_completed_witnesses": 7,
+  "newly_covered_existing_witnesses_from_separate_summon_report": 1,
+  "existing_record_only_witnesses_reclassified_by_separate_summon_report": 1,
+  "new_wire_checkpoint_comparisons_from_separate_summon_report": 16,
+  "cumulative_wire_checkpoint_comparisons": 568,
+  "coverage_note": "This UI game adds two completed observations and two record-only cases,with no native received checkpoints. The separate reused-v65 summon replay promotes one older record-only case. Overall totals are64 completed,57 native-covered,7 record-only and568 wire comparisons. The initial Hell context is not counted as a compared checkpoint. Complete received lifecycles remain2 and routing-only observations remain1."
+}
