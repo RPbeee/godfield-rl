@@ -2188,3 +2188,12 @@ Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 58単品自己使用をHP40/MP10→HP20/MP0として初期1と使用後2の2受信状態で比較する。実gift23を供給し、CPU221保留まで再生する。既存固定8seedを探索/除外せず16比較、完了操作は58の1件だけを追加する。累計55/native50/record-only5・wire464、routing-only1・完全start→end2・backend内部trace0を維持する。runtime変更・API追加はない。53、低HP45/216、58の合成/FREE/MP境界等は残件。ホーム復帰とNetwork Monitor終了を確認した。
 
 検証はRelease CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0、diff-check正常。runtime/APIは変更せず、全SAN suiteやPython SANの実行とは区別する。
+
+
+## 作業世代v76：Cold自己使用のrouting修正
+
+48の自己使用で13被害→Cold→owner tick1被害→通常58補充を受信し、余分な本人responseを取り除く。33/62は同traitによる限定一般化、Hell/Flash/Fogや他entryは従来経路に保つ。rules64/Snapshot64/view62・ABI2固定。
+
+初期1/使用後2を固定8seedで16比較し、累計56観測/native51/record-only5・wire480へ進める。初期両手札/CPU SELLの選択は入力、58は実giftの供給、病気は既存ローカルRNGで進める。サーバー乱数との同一視・悪化率推定・枝の探索/除外はしない。未応答SELL/途中退出を新完了操作や終局に数えず、完全start→end2・routing-only1・backend内部trace0を維持する。
+
+Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wireの2対象2/2（13.22秒）と、別実行のC API1/1（1.47秒）が通過し、主要3対象を確認した。全SAN suite/Python SANや一回の3対象合計時間とは区別する。native247 callbacks・Python179 unique methods、最終buildのwarning/error0、diff-check正常。

@@ -497,3 +497,19 @@ Release CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSa
 | --- | ---: | --- |
 | `wire-game-updates-v75.json` | 11,411 | `6593d0541353ebd7997f16e11931af69c1e51ce5a8d301579199c9763d919ecb` |
 | `live-transition-witnesses-v75.json` | 10,331 | `7a1ab0e93d961bc98a18db20e9a3a07e5359c5b4e2bb109e9f2e511d60b82ff6` |
+
+
+## v76：Cold武器48の自己使用とowner tick
+
+[受信初期1・使用後2](wire-game-updates-v76.json)と[1操作](live-transition-witnesses-v76.json)を保存する。48の単品自己使用は13被害→Cold付与→disease player1の1被害→通常58補充でHP40→26となり、追加本人応答がない。Cold武器の自己使用経路を修正し、48実測・33/62同traitの限定一般化として記録する。Hell30・Flash70・Fog72や、foreign/redirect/Wide/guardianは従来経路を維持する。
+
+8既存固定seed×2状態＝16比較を加え、累計56観測/native51/record-only5・wire重複込み480とする。既存RNGの初回病気rollは全8seedが非悪化だが、選別・病気結果注入や公式の5%分布の検証とはしない。CPU4+168は7正コピー+空行1・SELL保留として比較し、未応答の売却成立/課金/配送/熱病付与を先取りしない。新しい完全受信lifecycleは0・累計2、routing-only1・内部trace0を維持する。
+
+rules64/Snapshot64/view62へ更新し、ABI2/型幅・病気計算と抽選を維持する。nativeのcutoff/再付与/restore/他entry境界は合成回帰として実測から分離する。ホーム復帰・Network Monitor終了を確認し、private元応答/解析物は0600で保存する。旧記録・pinsを変更しない。
+
+Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wireの2対象2/2（13.22秒）と、別実行のC API1/1（1.47秒）が通過し、主要3対象を確認した。全SAN suite/Python SANや一回の3対象合計時間とは区別する。native247 callbacks・Python179 unique methods、最終buildのwarning/error0、diff-check正常。
+
+| v76 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v76.json` | 11,540 | `88127e929cb9f0db14ca9a8e386a6a747bf81c2fb97f6d1c420883feb86a3f81` |
+| `live-transition-witnesses-v76.json` | 12,645 | `3003ccc6c9e7fd949c35ca7e853bdf964391950605d9acc604038a0c06c0aaec` |

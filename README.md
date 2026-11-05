@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v63` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v64` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3093,3 +3093,12 @@ Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 runtime63/Snapshot63/view61・ABI2は維持します。累計55観測/native対象50/記録のみ5・wire重複込み464。53の自己使用や58の合成/FREE・MP境界、公式完全対応は引き続き残件です。
 
 検証はRelease CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0、diff-check正常。runtime/APIは変更せず、全SAN suiteやPython SANの実行とは区別する。
+
+
+## v76：風邪武器の自己使用と直後の病気tick
+
+公式CPU戦で48「激烈疾風剣」を自己使用し、13被害→風邪→1被害→通常58補充、HP40→26を受信しました。追加の本人防御が不要なため、Coldを付ける武器の直接自己経路を修正します。48は実測、33/62は同能力による限定一般化です。
+
+rules64 / Snapshot64 / view-v62へ更新し、既存ABI2と型幅を維持します。[受信記録](data/official-v2/wire-game-updates-v76.json)を固定8seed×2状態で比較し、累計56観測/native51/記録のみ5・wire重複込み480。CPUの4+168売却は未応答で、病気悪化率や全特殊境界、公式完全対応の検証は残っています。
+
+Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wireの2対象2/2（13.22秒）と、別実行のC API1/1（1.47秒）が通過し、主要3対象を確認した。全SAN suite/Python SANや一回の3対象合計時間とは区別する。native247 callbacks・Python179 unique methods、最終buildのwarning/error0、diff-check正常。

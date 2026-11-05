@@ -428,3 +428,8 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 ## v75：58自己使用後の保持と空行
 
 初期9枚から58/id2を消費し、通常23/id2を新しいowner付きlocal tokenへ写す。CPU221/id6はused=trueで保持され、その通常補充はid0/model0の空行1として受信する。更新2は本人HP20/MP0・CPU40/7、Fog付与前のresponse待ちである。独立State/表示component・対局view61/rules63/Snapshot63・C構造体を変更しない。
+
+
+## v76：Cold自己使用後の資源と保留SELL
+
+対局view62/rules64/Snapshot64へ更新し、独立State/表示componentとC構造体を維持する。48/id7を消費し、通常58/id7はfresh local tokenへ写す。本人HP26・Coldは13被害と直後1被害の受信結果で、MP10/CP20は変化しない。CPUは4/id5と168/id9を消費した正コピー7+空行1で、SELL4+168/source2/target1/price10が未応答のまま残る。本人への168配送、CP移動、使用者Feverを先取りしない。

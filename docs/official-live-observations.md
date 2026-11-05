@@ -329,3 +329,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [2受信状態](../data/official-v2/wire-game-updates-v75.json)と[1操作](../data/official-v2/live-transition-witnesses-v75.json)を保存した。本人HP40/MP10/CP20から58を単品自己使用し、追加防御なしでHP20/MP0/CP20・通常23補充となる。CPU221起動でMP7、221はused保持＋空行1となり、Fogはまだ付いていない。応答せず途中退出したため、Fog使用への完了応答や終局に数えない。
 
 固定8seed×2状態＝16比較を追加し、累計55観測/native50/record-only5・wire464。runtime63/Snapshot63/view61は維持し、新しい完全受信lifecycleは0・累計2。重複capture02は除外し、ホーム復帰とNetwork Monitor終了を確認した。
+
+
+## v76：激烈疾風剣48の自己使用と風邪
+
+[受信2状態](../data/official-v2/wire-game-updates-v76.json)と[1完了操作](../data/official-v2/live-transition-witnesses-v76.json)を保存した。本人HP40/MP10/CP20から単品48を自己使用し、追加defend無しで13被害→Cold→disease1/1被害→通常58となりHP26へ進む。
+
+次CPUは4+168のSELLを起動するが、本人は応答せず途中退出した。課金/配送/Fever付与・58使用は観測に含まない。固定8seed×2状態＝16比較を追加し、累計56/native51/record-only5・wire480、完全受信lifecycle2を維持する。ホーム復帰とNetwork Monitor終了を確認した。

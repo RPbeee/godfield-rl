@@ -102,9 +102,11 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         const auto& effect=actual.queue.front();const auto* card=find_card(expected.pending);
         const auto models=expected.pending_models.empty()?std::vector<CardId>{expected.pending}
             :std::vector<CardId>(expected.pending_models.begin(),expected.pending_models.end());
+        const auto amount=card&&card->ability==Ability::sell&&models.size()==2
+            ?find_card(models[1])->price:card?card->ability_value:0;
         check(card&&effect.models==models&&effect.origin==expected.pending_origin.value_or(expected.owner)&&effect.source==expected.owner&&effect.target==defender
               &&effect.category==card->category&&effect.power==expected.pending_power.value_or(attack_power(models))&&effect.element==attack_element(models)
-              &&effect.ability==card->ability&&effect.amount==card->ability_value
+              &&effect.ability==card->ability&&effect.amount==amount
               &&effect.hit_rate==0&&effect.is_counter==expected.counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
         // Curse is derived from the retained base model, not a separate frame field.
         // The later received Cold state is also checked directly at update3.
@@ -1214,13 +1216,59 @@ void replay(std::uint64_t seed) {
 }
 }
 
+namespace v76 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,5},{2,170},{3,135},{4,29},{5,198},{6,78},{7,48},{8,5},{9,163}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,79},{2,13},{3,199},{4,60},{5,4},{6,187},{7,3},{8,82},{9,168}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,5},{2,170},{3,135},{4,29},{5,198},{6,78},{8,5},{9,163},{7,58}}};
+constexpr std::array<ReceivedSlot,8> after_cpu{{{1,79},{2,13},{3,199},{4,60},{6,187},{7,3},{8,82},{0,0}}};
+constexpr std::array<CardId,2> sale_models{4,168};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,26,10,20,true,after_viewer},{2,40,10,20,false,after_cpu}}},4,sale_models}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,7)},1};
+    check(game.legal(self),"v76 observed48 single self command is legal");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==1&&body.phase==MatchPhase::grant&&body.pending_grant==1&&body.gifts[0]==1
+          &&body.queue.empty()&&body.state.players[0].hp==26&&body.state.players[0].mp==10
+          &&body.state.players[0].curses==std::vector<Curse>{Curse::cold}
+          &&body.last_tick&&body.last_tick->owner==1&&body.last_tick->before==Curse::cold
+          &&body.last_tick->after==Curse::cold&&!body.last_tick->worsened&&!body.last_tick->fallen
+          &&body.last_tick->hp_before==27&&body.last_tick->hp_after==26,
+          "v76 self48 applies13,Cold and one non-worsening1-damage owner tick before the ordinary gift");
+    const auto tick_rng=body.rng;check(tick_rng!=seed,"v76 disease tick uses the existing environment RNG rather than a supplied outcome");
+    v64::receipt(game,slots,1,7,58);
+    const Command sale{2,CommandKind::sell,{consumed_slot(slots,2,5),consumed_slot(slots,2,9)},1};
+    check(game.legal(sale),"v76 observed CPU4 plus168 SELL launch is legal");
+    (void)game.step(sale);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& s=game.snapshot();
+    check(s.decisions==3&&s.rng==tick_rng&&s.chance_rolls==0&&s.counter_rolls==0&&s.dream_rolls==0
+          &&s.dream_masks==0&&s.redraws==0&&s.auto_guardian_actions==0&&s.revivals==0
+          &&s.state.players[0].cp==20&&s.state.players[1].cp==20&&!s.last_sale,
+          "v76 fixed seeds keep the observed non-worsening branch;pending SELL has no delivery,CP transfer or Fever yet");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1241,4 +1289,5 @@ int main() {
     std::cout<<"v73: 8 seeds x4 received initial-to-end states,self55,11damage-to22counter,190reflection and empty fatal response;initial hand/ordinary184 supplied,no initial distribution,CPU policy or server RNG claim\n";
     std::cout<<"v74: 8 seeds x2 received endpoints1 and3 with missing rawupdate2;UI-observed self21,supplied23 BUY and normal44/13 deltas;no fabricated update2,complete lifecycle or selection distribution claim\n";
     std::cout<<"v75: 8 seeds x2 received states,self58 atMP10 for20 damage/allMP and supplied23 receipt;CPU221 launch remains unanswered,no runtime change,initial distribution or server RNG claim\n";
+    std::cout<<"v76: 8 fixed seeds x2 received states,self48 for13 damage/Cold/one1-damage tick before supplied58;CPU4+168 SELL unanswered,no seed fitting,distribution or server RNG equivalence claim\n";
 }

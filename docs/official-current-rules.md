@@ -2189,3 +2189,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 ## v75：58自己使用の単品MP10例
 
 [受信初期1と使用後2](../data/official-v2/wire-game-updates-v75.json)に、58/id2使用→本人target→20被害→23/id2 gift→次GF2→CPU221起動がある。UIでもMP10・攻20の自己選択からHP20/MP0へ進み、追加本人防御を要求しなかった。単品1例として既存計算を支持するが、支払い/表示の内部イベント順、MP0/99・合成/FREE・反射/復活へ一般化しない。CPU221は未応答、105は未使用である。
+
+
+## v76：48自己使用とColdの終了時被害
+
+[受信初期1と使用後2](../data/official-v2/wire-game-updates-v76.json)には、48/id7使用→本人target→dealDamage13→addCurse cold→disease player1→dealDamage1→gift58/id7→advanceGF2→CPU4+168 SELLがある。本人はHP26/MP10/CP20・Cold。追加本人防御は挟まらない。
+
+48の単品非致死例としてCold武器の直接自己経路を修正する。33/62への適用は同traitの限定一般化である。初期配布・悪化5%分布・病気cursorの一般scheduleを確定せず、CPU売却の成立・課金・熱病付与も観測していない。
