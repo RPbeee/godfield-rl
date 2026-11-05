@@ -2217,3 +2217,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信初期1と使用後2](../data/official-v2/wire-game-updates-v79.json)に、72/id5使用→target1→dealDamage3→addCurse fog→gift10/id5→advance2→CPU40/id4/target1がある。本人は40/10/20→37/10/20とFog、CPUは内部40/10/20を保持する。追加本人defendは挟まらず、UIではCPU資源欄だけが隠れる。
 
 これはv77とは別の対局で、当時不明だった補充やCPU手札を遡及して確定する根拠ではない。v77の未取得記録は保存したまま、新たな有限のraw証拠を追加する。Fogの一般的な対象抽選・確率武器97・他のentry/終局順を新たに検証したとはしない。
+
+
+## v80：70単品自己使用とFlash付与
+
+[受信初期1と使用後2](../data/official-v2/wire-game-updates-v80.json)には70/id8使用→target1→dealDamage2→addCurse flash→gift4/id8→advance2→CPU10/id3/target1がある。本人は40/10/20→38/10/20・Flashとなり、追加本人defendは挟まらない。UIも本人へ「まぶしい」と表示した。
+
+70の自己使用を既存direct経路へ加える根拠とする。Hell30・確率奇跡224・他のentryの一般化は行わない。224はCPU手札にあるが使用されていない。一枚応答制限は既存client規則へ接続するlocal検証で、今回の公式UIで二枚を選択/送信したという証拠はない。

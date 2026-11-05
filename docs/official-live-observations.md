@@ -357,3 +357,10 @@ CPU19には応答せず途中退出した。初期1/使用後2を8固定seedで1
 [新受信2状態](../data/official-v2/wire-game-updates-v79.json)と[1完了操作](../data/official-v2/live-transition-witnesses-v79.json)を保存する。本人40/10/20から72を自己使用し、3被害→Fog→通常10、本人37/10/20・CPU40待ちとなる。UIではCPUの資源欄が隠れるが、rawにはCPU40/10/20と正コピー8+空行1が残る。
 
 初期1/使用後2を8固定seedで16比較、累計59/native53/record-only6・wire512、完全受信lifecycle2を維持する。v77のUI-only記録は今回の別対局で補完せず保持する。prep捕獲01の別room2状態は除外し、CPU40には応答せず、ホーム復帰・Network Monitor終了を確認した。
+
+
+## v80：フラッシュダガー70の自己使用
+
+[受信2状態](../data/official-v2/wire-game-updates-v80.json)と[1操作](../data/official-v2/live-transition-witnesses-v80.json)を保存する。本人40/10/20から70を単品自己使用し、追加本人防御なしで2被害→Flash→実gift4、本人38/10/20・次CPU10待ちとなった。UIには「まぶしい」と出る。
+
+初期sourceは2game混在のindex1を採用し、異なるprep documentのindex0を除外する。初期1/使用後2を固定8seedで16比較、累計60/native54/record-only6・wire528、完全受信lifecycle2は維持する。CPU10には応答せず、一枚/二枚応答を公式UIで追加検証したとは扱わない。ホーム復帰・Network Monitor終了を確認した。

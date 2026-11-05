@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v65
+# 現行公式データによる限定実行器 v66
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v65` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v66` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3357,3 +3357,14 @@ Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSa
 実行挙動は変更せずrules65/Snapshot65/view63・ABI2を維持する。self_attack_ruleの根拠文字列だけを `fog72-ui-observed-v77-and-raw-self-use-observed-v79` へ訂正し、C/Pythonのexact期待を同期する。snapshot構造・保存内容・版gateは不変。v77のUI-only1例を権威的replay済みへ繰り上げず、累計59/native53/record-only6・wire512、完全受信lifecycle2を維持する。
 
 Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。
+
+
+## 対局v66（作業世代v80）：Flash武器の直接自己経路
+
+通常main・明示self・weapon base/add_curse_on_damage Flash・hit0・Wide無しを直接解決へ加える。固定台帳の該当は70だけで、Hell30・確率奇跡224・反撃/guardianへは広げない。foreign/redirect/Wide/Earth entryは既存の応答経路を維持する。既存Flash付与算術と一枚応答制限・病気tick/抽選を変更せず、66/Snapshot66/view64へ更新、ABI2/型幅を維持する。
+
+受信初期1→使用後2を8固定seedで16比較し、2被害・Flash・実gift4・CPU10保留を通常body/授与から再生する。初期bodyには別gameも入っているためindex1だけを採用し、prep index0は除外する。新1観測で累計60/native54/record-only6・wire528、完全lifecycle2を維持する。
+
+自己付与Flashから二枚防御を拒否し一枚を許す接続、cutoff/Heaven同居、他entry、proof/失敗時rollbackはlocal回帰である。公式のCPU10へは応答していない。224を使ったchance分布や、Flashの全死亡/復活順・server RNGの一致をこの有限例から主張しない。
+
+最終Release CTest157/157（29.01秒）が通過した。初回に残っていたCのself70応答1箇所とPython既存2methodの追加defend前提を除き、旧cure/併存の回帰を維持した。この期待修正でruntimeは変えていない。ASan/UBSanは初回3対象中core/wireが通過（run全体14.04秒）し、同じ期待を直したCだけを再実行して1/1（1.44秒）通過した。主要3対象を確認したが、単一clean3/3 run・全SAN suite・Python SANとは区別する。native249 callbacks・Python181 unique methods、全buildのwarning/error0、diff-check正常。

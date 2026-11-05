@@ -558,3 +558,19 @@ Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 | --- | ---: | --- |
 | `wire-game-updates-v79.json` | 11,470 | `fc8e751a790d2cf437a6f7405994645e211e28c5d8b0a8a8ec71ced002ad01c1` |
 | `live-transition-witnesses-v79.json` | 10,957 | `6477480df9a02c5f536bd537ab37e6c7fd63b422bdd1311047eb8850dca5c955` |
+
+
+## v80：70自己使用のFlashと一枚応答への接続
+
+[受信初期1・使用後2](wire-game-updates-v80.json)と[1操作](live-transition-witnesses-v80.json)を保存する。70/id8自己使用→2被害→Flash→実gift4/id8→CPU10/id3保留を取得し、本人38/10/20・CPU40/10/20を照合する。70の余分なself responseを除いて66/S66/view64へ更新し、既存Flash算術/一枚制限・ABI2/型幅を維持する。
+
+初期source01は2gameを含む49033bytesの全体hashを保持し、current index1だけを採用して異なるprep index0を除外する。post source02のindex0と同documentであることはprivateで照合した。公開JSONには選んだ2状態だけを含め、prep内容・文書IDや元の名前/userId/updatedAt等を載せない。元応答/解析物は0600に保つ。
+
+8固定seed×2状態＝16比較を追加し、累計60/native54/record-only6・wire重複込み528、完全lifecycle2・routing-only1を維持する。CPU224は未使用でchance枝を再現したとはしない。二枚拒否/一枚合法のlocal回帰を公式UI操作へ数えず、CPU10には応答していない。ホーム復帰・Network Monitor終了を確認し、旧記録・pinsを維持する。
+
+最終Release CTest157/157（29.01秒）が通過した。初回に残っていたCのself70応答1箇所とPython既存2methodの追加defend前提を除き、旧cure/併存の回帰を維持した。この期待修正でruntimeは変えていない。ASan/UBSanは初回3対象中core/wireが通過（run全体14.04秒）し、同じ期待を直したCだけを再実行して1/1（1.44秒）通過した。主要3対象を確認したが、単一clean3/3 run・全SAN suite・Python SANとは区別する。native249 callbacks・Python181 unique methods、全buildのwarning/error0、diff-check正常。
+
+| v80 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v80.json` | 11,974 | `ca5fdaba0994df099d61e1bc7223ed31e41d323fdacd3aabbf364052e521cf23` |
+| `live-transition-witnesses-v80.json` | 11,907 | `789feabb961e547f0df6f2df60c8bc3928bb6eecf7eb7c18beab52292043acc8` |

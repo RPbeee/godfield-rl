@@ -675,8 +675,35 @@ void observed_self72_bridge() {
     check(gfo_match_legal(game,&extra,&legal)==0&&!legal&&gfo_match_step(game,&extra,&outcome)==-2&&equal(outcome,old)&&observe(game,1,0)==before,"self72 extra defense is semantically illegal and atomic");
     check(old.phase==0&&old.owner==7&&native.snapshot().state.gf==2&&native.snapshot().state.players[0].items.size()==2,"self72 gift advances once");gfo_match_destroy(game);
 }
+void observed_self70_bridge() {
+    namespace o=godfield::official;
+    gfo_match_config cfg{};cfg.max_decisions=64;cfg.hand_limit=18;cfg.external_artifacts=1;cfg.initial_hp=40;cfg.initial_mp=10;cfg.initial_cp=20;
+    std::array<gfo_match_player,2> setup{};setup[1].id=7;gfo_match* game=nullptr;gfo_match_status out{};
+    check(gfo_match_create(&cfg,setup.data(),2,42,&game)==0,"self70 create");
+    std::array<gfo_state_player,2> people{};people[1].id=7;for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}
+    people[0].item_count=3;people[1].item_offset=3;people[1].item_count=1;
+    std::array<gfo_state_item,4> items{};items[0].token=3;items[0].model=70;items[1].token=9;items[1].model=130;
+    items[2].token=10;items[2].model=149;items[3].token=20;items[3].model=10;
+    gfo_state_meta meta{};meta.gf=1;gfo_state* imported=nullptr;
+    check(gfo_state_create(&meta,people.data(),2,items.data(),4,nullptr,0,&imported)==0&&gfo_match_load_scene(game,imported,0,42,&out)==0,"self70 typed scene");gfo_state_destroy(imported);
+    o::MatchConfig nc;nc.initial_hand=0;nc.external_artifacts=true;nc.max_decisions=64;o::Match native(nc);o::SnapshotState state;state.gf=1;state.players.resize(2);state.players[1].id=7;
+    state.players[0].items={{3,70,{},false},{9,130,{},false},{10,149,{},false}};state.players[1].items={{20,10,{},false}};native.load_scene(state,0,42);
+    const auto audit=[&]{o::Match copy;copy.restore(native.snapshot());check(copy.snapshot()==native.snapshot()&&observe(game,1,0)==native.observe(0)&&observe(game,0,0)==native.observe({}),"self70 full replay and C/native parity");};
+    gfo_match_command use{};use.has_target=1;use.item_count=1;use.items[0]=3;
+    check(gfo_match_step(game,&use,&out)==0,"self70 one command");native.step({0,o::CommandKind::play,{3},0});audit();
+    check(out.phase==4&&!out.has_actor&&out.decisions==1&&native.snapshot().queue.empty()&&native.snapshot().state.players[0].hp==38
+        &&native.snapshot().state.players[0].curses==std::vector<o::Curse>{o::Curse::flash}&&native.snapshot().gifts[0]==1&&!native.snapshot().last_tick&&native.snapshot().rng==42,"self70 body and Flash before one receipt without self-defense");
+    gfo_match_artifact_grant_action gift{};gift.model=4;check(gfo_match_artifact_grant_step(game,&gift,&out)==0,"self70 actual model4 supplied");native.artifact_grant_step({0,4,{}});audit();
+    gfo_match_command cpu{};cpu.actor=7;cpu.has_target=1;cpu.item_count=1;cpu.items[0]=20;
+    check(gfo_match_step(game,&cpu,&out)==0,"self70 next CPU10 launch");native.step({7,o::CommandKind::play,{20},0});audit();
+    const auto before=observe(game,1,0);const auto old=status(game);gfo_match_command pair{};pair.kind=1;pair.item_count=2;pair.items[0]=9;pair.items[1]=10;uint8_t legal=77;out=old;
+    check(gfo_match_legal(game,&pair,&legal)==0&&!legal&&gfo_match_step(game,&pair,&out)==-2&&equal(old,out)&&observe(game,1,0)==before,"self-applied Flash rejects two-card defense atomically");
+    auto one=pair;one.item_count=1;one.items[1]=0;check(gfo_match_legal(game,&one,&legal)==0&&legal,"one-card Flash defense remains legal but unanswered");audit();gfo_match_destroy(game);
+}
+
 }
 int main() {
+    observed_self70_bridge();
     observed_self72_bridge();
     observed_self48_bridge();
     observed_self21_bridge();
@@ -719,9 +746,9 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v65"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v66"
         && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v64 scope");
-    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-hell-flash-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
+    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-hell-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -1051,7 +1078,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v63\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v64\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -1451,7 +1478,8 @@ int main() {
         check(gfo_match_step(effect_match, &command, &free_result) == 0
             && gfo_match_step(effect_replay, &command, &replay_result) == 0 && equal(free_result, replay_result), "curse replay command/status");
     };
-    both_step(flash_attack); both_step(flash_pass);
+    both_step(flash_attack);
+    check(free_result.phase==0&&free_result.owner==77&&free_result.decisions==1, "self70 now finishes without the obsolete self response");
     check(observe(effect_match).find("\"curses\":[\"flash\"]") != std::string::npos
         && observe(effect_match).find("\"flash_rule\":") != std::string::npos, "Flash is visible through C ABI");
     flash_attack.actor = 77; flash_attack.items[0] = receipt_token(1, 6); both_step(flash_attack);

@@ -454,3 +454,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view63/rules65/Snapshot65・独立State/表示component・C構造体を維持する。新対局のraw使用後2は本人37/10/20/FogとCPU40/10/20を持つが、本人UIのCPU statusは非表示である。native検証では本人viewのCPU status=nullと、特権world/spectatorの資源保持を別々に確認する。CPU真手札や検証用spectatorを本人policyの入力へ流用しない。
 
 消費72/id5と実補充10/id5を異なるnative tokenへ写し、CPU40はid4だけを消費してid7の同モデルを保持する。正コピー8と空行1の未応答frameまで比較し、CPU40による被害は適用しない。v77の合成199/176と今回の実gift10は別の根拠である。
+
+
+## v80：自己70のFlashと次の応答待ち
+
+対局view64/rules66/Snapshot66へ更新し、独立State/表示componentとC構造体を維持する。本人38/10/20・Flash、CPU40/10/20とCPU10/source2/target1/power2の未応答frameを照合する。FlashはFogのようにCPU statusを隠さず、両者の資源表示を保持する。
+
+消費70/id8と実gift4/id8を別native tokenへ写し、既存4/id6を残す。native/C/Pythonの合成回帰は自己付与Flashから一枚防御の合法性・二枚防御の拒否と状態不変を調べるが、公式UIの追加応答操作ではない。

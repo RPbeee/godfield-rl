@@ -28,7 +28,7 @@ constexpr std::array<ReceivedSlot,9> after_cure_viewer{{{2,61},{3,4},{4,103},{5,
 constexpr std::array<ReceivedSlot,9> after_halberd_cpu{{{1,212},{2,135},{4,161},{6,199},{7,156},{8,68},{9,149},{5,184},{0,0}}};
 struct ReceivedPlayer {
     PlayerId id; int hp, mp, cp; bool cold; std::span<const ReceivedSlot> slots;
-    bool darkcloud = false, dead = false, fog = false;
+    bool darkcloud = false, dead = false, fog = false, flash = false;
 };
 struct ReceivedCheckpoint {
     unsigned update; std::int64_t gf; PlayerId owner;
@@ -83,6 +83,7 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         if(dream_player==want.id)curses.push_back(Curse::dream);
         if(want.darkcloud)curses.push_back(Curse::darkcloud);
         if(want.fog)curses.push_back(Curse::fog);
+        if(want.flash)curses.push_back(Curse::flash);
         check(got.curses==curses,"received curse state matches without adding inferred ticks");
         std::size_t positive=0,placeholders=0;
         for(const auto& row:want.slots) {
@@ -1358,13 +1359,59 @@ void replay(std::uint64_t seed){
 }
 }
 
+namespace v80 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,35},{2,130},{3,5},{4,149},{5,16},{6,4},{7,113},{8,70},{9,53}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,131},{2,19},{3,10},{4,11},{5,123},{6,45},{7,31},{8,224},{9,135}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,35},{2,130},{3,5},{4,149},{5,16},{6,4},{7,113},{9,53},{8,4}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,131},{2,19},{4,11},{5,123},{6,45},{7,31},{8,224},{9,135},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,38,10,20,false,after_viewer,false,false,false,true},{2,40,10,20,false,after_cpu}}},10}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,8)},1};
+    check(game.legal(self),"v80 received70 single self play is legal");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==1&&body.phase==MatchPhase::grant&&body.pending_grant==1&&body.gifts[0]==1
+          &&body.queue.empty()&&body.state.players[0].hp==38&&body.state.players[0].mp==10
+          &&body.state.players[0].cp==20&&body.state.players[0].curses==std::vector<Curse>{Curse::flash}
+          &&!body.last_tick&&body.rng==seed,
+          "v80 self70 deals2 and applies Flash before one ordinary gift without self-defense or a disease tick");
+    v64::receipt(game,slots,1,8,4);
+    const Command cpu{2,CommandKind::play,{consumed_slot(slots,2,3)},1};
+    check(game.legal(cpu),"v80 received CPU10 launch is legal");
+    (void)game.step(cpu);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto before=game.snapshot();
+    check(game.legal({1,CommandKind::defend,{slots.at({1,2})},{}})
+          &&!game.legal({1,CommandKind::defend,{slots.at({1,2}),slots.at({1,4})},{}})
+          &&game.snapshot()==before,
+          "v80 local preflight connects self-applied Flash to the existing one-card limit without an observed UI defense probe");
+    check(before.decisions==3&&before.rng==seed&&before.chance_rolls==0&&before.counter_rolls==0
+          &&before.dream_rolls==0&&before.dream_masks==0&&before.redraws==0
+          &&before.auto_guardian_actions==0&&before.revivals==0,
+          "v80 all fixed seeds compare both states without fitting;held224 is unused and CPU10 remains unanswered");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1388,4 +1435,5 @@ int main() {
     std::cout<<"v76: 8 fixed seeds x2 received states,self48 for13 damage/Cold/one1-damage tick before supplied58;CPU4+168 SELL unanswered,no seed fitting,distribution or server RNG equivalence claim\n";
     std::cout<<"v78: 8 fixed seeds x2 received states,self53 for14+14 damage and supplied160;CPU19 unanswered,no source-versus-target order,low-HP boundary,initial distribution or server RNG equivalence claim\n";
     std::cout<<"v79: 8 fixed seeds x2 received states,self72/Fog and supplied10;UI hides CPU status while world retains40/10/20,CPU40 unanswered;v77 remains a separate UI-only record,no initial distribution or server RNG equivalence claim\n";
+    std::cout<<"v80: 8 fixed seeds x2 selected received states,self70/Flash and supplied4;one-card preflight is local only,CPU10 unanswered,unused224,no fitted outcomes or server RNG equivalence claim\n";
 }

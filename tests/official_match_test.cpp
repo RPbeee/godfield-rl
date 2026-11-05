@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v65"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v66"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v63\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v64\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==65&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==66&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v63")!=std::string::npos
+    check(view.find("official-execution-view-v64")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3653,9 +3653,9 @@ void darkcloud41_self_body_and_narrow_routing(){
         "redirected41 still requires its existing response rather than entering the main explicit-self shortcut");roundtrip(reflected);
     reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==29
         &&reflected.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud},"reflected41 keeps existing damage and curse arithmetic");roundtrip(reflected);
-    for(CardId model:{CardId{30},CardId{70}}){auto special=fixture(scene({model},{}));special.step(play(0,{0},0));
+    for(CardId model:{CardId{30}}){auto special=fixture(scene({model},{}));special.step(play(0,{0},0));
         check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0&&special.snapshot().state.players[0].hp==40,
-            "Hell and Flash self weapons remain outside the observed curse shortcut");roundtrip(special);}
+            "Hell self weapon remains outside the observed curse shortcut");roundtrip(special);}
     auto wide_state=scene({41,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);wide.step(play(0,{0,1},0));
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
         "Wide41 column keeps the enemy roster response route");roundtrip(wide);
@@ -3886,6 +3886,63 @@ void fog72_self_body_privacy_and_narrow_routing(){
     auto late=state;late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
     try{atomic.step(play(0,{0},0));}catch(const MatchError&){failed=true;}
     check(failed&&atomic.snapshot()==before,"late failure rolls back self72 damage,Fog,consumption and gift reservation");
+}
+
+void flash70_self_body_defense_limit_and_narrow_routing(){
+    std::vector<CardId> traits;
+    for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::add_curse_on_damage&&card.curse==Curse::flash&&!card.hit_rate)traits.push_back(card.id);
+    check(traits==std::vector<CardId>{70},"Flash self shortcut admits weapon70 only,not percent miracle224");
+    MatchConfig config;config.external_artifacts=true;auto state=scene({70,150,150,224},{10});
+    auto game=fixture(state,config);const auto rng=game.snapshot().rng;game.step(play(0,{0},0));const auto body=game.snapshot();
+    check(body.phase==MatchPhase::grant&&!body.actor&&body.queue.empty()&&body.decisions==1&&body.pending_grant==0
+        &&body.state.players[0].hp==38&&body.state.players[0].mp==10&&body.state.players[0].cp==20
+        &&body.state.players[0].curses==std::vector<Curse>{Curse::flash}
+        &&body.state.players[0].items==std::vector<ItemInstance>({{1,150,{},false},{2,150,{},false},{3,224,{},false}})
+        &&body.gifts[0]==1&&!body.last_tick&&body.chance_rolls==0&&body.rng==rng,
+        "observed self70 deals2 and installs Flash in one command while unselected224 remains unused and makes no chance draw");roundtrip(game);
+    reject(game,defend(0));
+    for(unsigned error=0;error<3;++error){auto bad=body;if(error==0)bad.state.players[0].curses.clear();if(error==1)++bad.state.players[0].hp;if(error==2)++bad.rng;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==body,"self Flash replay rejects forged curse,HP or RNG without changing the pending grant");}
+    game.artifact_grant_step({0,4,{}});
+    check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().state.gf==1
+        &&game.snapshot().state.players[0].items.back()==ItemInstance{body.next_token,4,{},false}&&game.snapshot().rng==rng,
+        "explicit observed gift4 resumes the existing self Flash body without another tick or hit draw");roundtrip(game);
+    // Spare armor and the following attack are synthetic boundaries,not additional live70 events.
+    game.step(play(7,{0},0));reject(game,defend(0,{1,2}));
+    check(game.legal(defend(0,{1})),"Flash acquired from the actual self body permits one compatible armor but rejects two");
+    game.step(defend(0,{1}));
+    check(game.snapshot().state.players[0].hp==38&&game.snapshot().state.players[0].curses==std::vector<Curse>{Curse::flash}
+        &&game.snapshot().state.players[0].items.front()==ItemInstance{2,150,{},false}
+        &&game.snapshot().rng==rng,"one selected armor fully defends the synthetic attack without clearing Flash or consuming the spare");roundtrip(game);
+    MatchConfig cap=config;cap.max_decisions=1;auto heaven=scene({70},{});heaven.players[0].curses={Curse::heaven};auto cutoff=fixture(heaven,cap);cutoff.step(play(0,{0},0));
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==38
+        &&cutoff.snapshot().state.players[0].curses==std::vector<Curse>({Curse::heaven,Curse::flash})
+        &&!cutoff.snapshot().last_tick&&cutoff.snapshot().gifts[0]==0&&cutoff.snapshot().rng==rng,
+        "synthetic self Flash coexists with Heaven without falling,and cutoff skips later tick and gift");roundtrip(cutoff);
+    auto foreign=fixture(scene({70},{}),config);foreign.step(play(0,{0},7));
+    check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7&&foreign.snapshot().state.players[1].hp==40,
+        "foreign70 retains its original response window");foreign.step(defend(7));
+    check(foreign.snapshot().state.players[1].hp==38&&foreign.snapshot().state.players[1].curses==std::vector<Curse>{Curse::flash},
+        "foreign70 retains its damage-dependent Flash body");roundtrip(foreign);
+    auto reflected=fixture(scene({70},{190}),config);reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));
+    check(reflected.snapshot().phase==MatchPhase::response&&reflected.snapshot().actor==0&&reflected.snapshot().state.players[0].hp==40,
+        "redirected70 still requires a separate response instead of the main explicit-self shortcut");roundtrip(reflected);reflected.step(defend(0));
+    check(reflected.snapshot().state.players[0].hp==38&&reflected.snapshot().state.players[0].curses==std::vector<Curse>{Curse::flash}
+        &&reflected.snapshot().rng==rng,"reflected Flash preserves existing body arithmetic and RNG");roundtrip(reflected);
+    Match percent;percent.load_scene(scene({224},{}),0,42);reject(percent,play(0,{0},0));percent.step(chance_play(0,{0}));
+    check(percent.snapshot().phase==MatchPhase::response&&percent.snapshot().actor==7&&percent.snapshot().chance_rolls==1
+        &&percent.snapshot().state.players[0].hp==40&&percent.snapshot().state.players[0].mp==7
+        &&percent.snapshot().state.players[0].items[0]==ItemInstance{0,224,{},true},
+        "Flash224 remains targetless,paid and retained with its own percent-hit response route");roundtrip(percent);
+    auto wide=fixture(scene({70,232},{}));wide.step(play(0,{0,1},0));
+    check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
+        "Wide70 retains its enemy roster despite a self target hint");roundtrip(wide);
+    auto payload_state=scene({},{});payload_state.players[0].guardian=Guardian::earth;auto payload=fixture(payload_state);payload.guardian_payload_step({0,Guardian::earth,{70},0});
+    check(payload.snapshot().phase==MatchPhase::response&&payload.snapshot().actor==0&&payload.snapshot().state.players[0].hp==40,
+        "external Earth self70 retains the old guardian response schedule");roundtrip(payload);payload.step(defend(0));roundtrip(payload);
+    auto late=state;late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{0},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late failure rolls back self70 damage,Flash,consumption and replacement reservation");
 }
 
 void received_identity_disguise_presence_use_and_replay(){
@@ -4288,7 +4345,7 @@ void supplied_purchase_confusion_then_automatic_guardian_replay(){
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),248> tests{{
+    const std::array<void(*)(),249> tests{{
         supplied_purchase_confusion_origin_and_receipt_replay,
         supplied_purchase_confusion_then_automatic_guardian_replay,
         supplied_purchase_cp_zero_token0_and_completed_proof,
@@ -4304,6 +4361,7 @@ int main(){
         bounce_weapon21_self_body_and_narrow_routing,
         cold_weapon_self_body_tick_and_narrow_routing,
         fog72_self_body_privacy_and_narrow_routing,
+        flash70_self_body_defense_limit_and_narrow_routing,
         received_identity_disguise_presence_use_and_replay,
         received_directed19_face27_uses_visible_legality_and_actual_body,
         external_artifacts_flags_thresholds_sampler_and_driver,

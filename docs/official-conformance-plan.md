@@ -2224,3 +2224,14 @@ Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSa
 新1完了例で累計59/native53/record-only6・wire512、完全start→end2・routing-only1・backend内部trace0を維持する。v77は別対局のUI-onlyのままである。算術/遷移・65/S65/view63・ABI2を変更せず、根拠ラベルだけをv77/v79へ更新する。CPU40には応答せず途中退出し、ホーム復帰とNetwork Monitor終了を確認した。
 
 Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。
+
+
+## 作業世代v80：70の直接自己使用とFlash応答制限
+
+70単品自己使用が一操作で2被害・Flash・通常4となるrawを取得し、余分な本人responseを除く。66/S66/view64・ABI2固定で、受信初期1と使用後2を8固定seedで16比較する。CPU10までの入力にchance枝はなく、CPU224は保持されたまま未使用である。
+
+新1完了操作で累計60/native54/record-only6・wire528、完全start→end2・routing-only1・内部trace0を維持する。初期のmixed sourceはfull body hashを保持し、同documentのindex1だけをpostと結ぶ。prep index0の内容は公開しない。
+
+一枚/二枚応答の合法性、二枚step拒否のC出力/Python状態不変は、自己付与後のlocal回帰で検証する。公式UIで防御を実行/拒否された例として加算せず、CPU10未応答のまま終了する。ホーム復帰とNetwork Monitor終了を確認した。
+
+最終Release CTest157/157（29.01秒）が通過した。初回に残っていたCのself70応答1箇所とPython既存2methodの追加defend前提を除き、旧cure/併存の回帰を維持した。この期待修正でruntimeは変えていない。ASan/UBSanは初回3対象中core/wireが通過（run全体14.04秒）し、同じ期待を直したCだけを再実行して1/1（1.44秒）通過した。主要3対象を確認したが、単一clean3/3 run・全SAN suite・Python SANとは区別する。native249 callbacks・Python181 unique methods、全buildのwarning/error0、diff-check正常。

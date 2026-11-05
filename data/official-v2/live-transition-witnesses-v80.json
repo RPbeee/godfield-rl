@@ -1,0 +1,338 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v79.json",
+  "method": "One actual single70 self-use with selected authoritative initial/post states. The mixed initial body is pinned whole,while only its current game index1 is retained and privately matched to post game index0. CPU10 remained unanswered before quit/home/Network cleanup.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. Unrelated preparation game content is omitted. CPU true hand is privileged validation context.",
+  "authoritative_fixture": "wire-game-updates-v80.json",
+  "source_body_provenance": [
+    {
+      "label": "initial-mixed-body-current-game",
+      "response_body_bytes": 49033,
+      "response_body_sha256": "f99cce961541a029a7fffa47e0f600395a0dce429039117ea7fc09457b1a5725",
+      "webchannel_frame_count": 16,
+      "game_document_count_in_body": 2,
+      "included_game_index": 1,
+      "excluded_game_indices": [
+        0
+      ],
+      "hash_scope": "entire saved response body;excluded game content is not serialized in this fixture"
+    },
+    {
+      "label": "after-self70-flash-pending-cpu10",
+      "response_body_bytes": 20270,
+      "response_body_sha256": "cedeb9eef6fdbff8f5a0d105f4e2709903f4a8b3c0545ab219d590c3ec4fcd50",
+      "webchannel_frame_count": 5,
+      "game_document_count_in_body": 1,
+      "included_game_index": 0,
+      "excluded_game_indices": [],
+      "hash_scope": "entire saved response body;excluded game content is not serialized in this fixture"
+    }
+  ],
+  "model_provenance": {
+    "70": {
+      "id": 70,
+      "imageName": "flash-dagger",
+      "category": "weapons",
+      "element": "light",
+      "atk": 2,
+      "ability": "addCurseOnDamage",
+      "curse": "flash",
+      "price": 15,
+      "giftRate": 1,
+      "name": "フラッシュダガー"
+    },
+    "4": {
+      "id": 4,
+      "imageName": "sell",
+      "category": "trade",
+      "ability": "sell",
+      "price": 5,
+      "giftRate": 20,
+      "name": "売る"
+    },
+    "10": {
+      "id": 10,
+      "imageName": "whip",
+      "category": "weapons",
+      "atk": 2,
+      "price": 1,
+      "giftRate": 4,
+      "name": "ムチ"
+    },
+    "224": {
+      "id": 224,
+      "imageName": "flash",
+      "category": "miracles",
+      "element": "light",
+      "atk": 1,
+      "hitRate": 25,
+      "ability": "addCurseOnDamage",
+      "curse": "flash",
+      "cost": 3,
+      "giftRate": 1,
+      "name": "＜閃光＞"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-flash-dagger-authoritative",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 70,
+        "displayed_model": 70,
+        "item_id": 8,
+        "target": 1,
+        "single_card": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 38,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "flash"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              10
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "addCurse",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "action": "dealDamage",
+          "damage": 2
+        },
+        {
+          "action": "addCurse",
+          "curse": "flash"
+        },
+        {
+          "action": "gift",
+          "playerId": 1,
+          "item": {
+            "modelId": 4,
+            "id": 8
+          }
+        },
+        {
+          "action": "advanceGF",
+          "playerId": 2
+        }
+      ],
+      "catalog_arithmetic": {
+        "single70_light_attack": 2,
+        "viewer_hp": "40-2=38",
+        "mp_unchanged": 10,
+        "cp_unchanged": 20
+      },
+      "one_card_restriction_additional_ui_probe_observed": false,
+      "following_cpu_launch": {
+        "model": 10,
+        "item_id": 3,
+        "source": 2,
+        "target": 1,
+        "response_observed": false,
+        "result_observed": false
+      },
+      "observation": "One actual single70 self-use is directly received as2 damage then Flash then gift4/id8. Viewer is38/10/20 with Flash;the next CPU10 remains pending.",
+      "limits": "Only this70 self-use is measured. The direct route does not certify Hell30 or other unobserved self traits. Flash one-card/two-card behavior is separately covered by existing client/native rules and synthetic tests,not a new official UI probe here. No CPU224 chance rate,CPU10 result or general scheduler is measured."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v66",
+    "snapshot_version": 66,
+    "observe_schema": "official-execution-view-v64",
+    "status": "passed",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "received_checkpoint_comparisons": 16,
+    "baseline_cumulative_wire_checkpoint_comparisons": 512,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load the selected current initial hands,execute ordinary self70 and its Flash effect,supply actual received4,then execute received CPU10 to the pending response. Additional one-card restriction tests are synthetic and add no official received checkpoint or viewer operation.",
+    "passed": true,
+    "cumulative_wire_checkpoint_comparisons": 528,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v80",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/provenance audits and did not build or run tests.",
+      "release_initial_full_run": {
+        "passed": 155,
+        "total": 157,
+        "seconds": 38.95,
+        "failed_targets": [
+          "C API",
+          "Python"
+        ],
+        "reason": "Old tests still expected an extra self70 defense after the newly supported direct self route."
+      },
+      "old_test_migration": "Three obsolete extra-self-response calls/assertions in old C/Python tests were replaced with the direct main/owner and decision1 expectation. The runtime implementation was unchanged by these test corrections.",
+      "release_final_full_run": {
+        "passed": 157,
+        "total": 157,
+        "seconds": 29.01,
+        "single_clean_full_run": true
+      },
+      "asan_ubsan_initial_three_target_run": {
+        "passed": 2,
+        "total": 3,
+        "seconds": 14.04,
+        "passed_targets": [
+          "core",
+          "wire"
+        ],
+        "failed_targets": [
+          "C API"
+        ],
+        "reason": "The same obsolete self-response test expectation."
+      },
+      "asan_ubsan_separate_c_api_rerun": {
+        "passed": 1,
+        "total": 1,
+        "seconds": 1.44
+      },
+      "asan_ubsan_unique_focused_targets_verified": 3,
+      "asan_ubsan_clean_combined_three_target_run": false,
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 249,
+      "python_test_methods": 181,
+      "final_build_log_count": 4,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Final clean full Release suite and focused sanitizer core/wire results plus separate corrected C API rerun. No single clean sanitizer3/3 run,full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_unrelated_preparation_game_documents": 1
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu10_response_observed": false,
+    "cpu10_result_observed": false,
+    "one_card_two_card_official_ui_probe_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit while CPU10 response pending",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 60,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 54,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 528,
+  "native_coverage_note": "One actual single70 self-use brings completed observations to60 and conditional native-covered observations to54;record-only observations remain6. Selected initial1 and post2 are compared across eight fixed seeds with actual received4. Mixed-body whole-response provenance and selected game indices1/0 are retained;the excluded preparation game is not part of the fixture. CPU10 launch is pending boundary context. Additional one-card restriction checks are synthetic,not new UI probes. Complete received lifecycles remain2 and routing-only observations remain1."
+}

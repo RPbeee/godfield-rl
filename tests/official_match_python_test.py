@@ -107,8 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-hell-flash-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v65"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-hell-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v66"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v63")
+        self.assertEqual(own["schema"], "official-execution-view-v64")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v63")
+        self.assertEqual(event["schema"], "official-execution-view-v64")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -662,6 +662,31 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((game.observe(0), game.status), (before, status))
         self.assertEqual(len(game.observe(0)["board"]["hand"]), 2)
 
+    def test_observed_self70_flash_restricts_the_following_defense(self):
+        raw = {"gf": 1, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [
+                {"id": 3, "modelId": 70}, {"id": 9, "modelId": 130}, {"id": 10, "modelId": 149}]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 20, "modelId": 10}]}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(raw, library=LIBRARY) as state: game.load_scene(state, 0, 42)
+        game.step(Command(0, "play", (3,), 0)); view = game.observe(0)
+        self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 1))
+        self.assertIsNone(view["pending"])
+        self.assertEqual(view["board"]["players"][0]["status"]["hp"], 38)
+        self.assertEqual(view["board"]["players"][0]["status"]["curses"], ["flash"])
+        self.assertEqual([i["token"] for i in view["board"]["hand"]], [9, 10])
+        game.artifact_grant_step(ArtifactGrantAction(0, 4))
+        self.assertEqual((game.status.phase, game.status.owner), ("main", 7))
+        game.step(Command(7, "play", (20,), 0))
+        before, status = game.observe(0), game.status
+        self.assertEqual((status.phase, status.actor), ("response", 0))
+        pair = Command(0, "defend", (9, 10))
+        self.assertFalse(game.legal(pair))
+        with self.assertRaises(InvalidMatchError): game.step(pair)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        self.assertTrue(game.legal(Command(0, "defend", (9,))))
+        # Preflight is a local regression;the actual CPU10 remained unanswered.
+
     def test_ui_self72_fog_body_hides_opponent_without_extra_defense(self):
         raw = {"gf": 1, "players": [
             {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 3, "modelId": 72}, {"id": 9, "modelId": 176}]},
@@ -937,7 +962,8 @@ class MatchTests(unittest.TestCase):
         armor = tuple(item["token"] for item in hand(0) if item["face"] in {113,118,123,124,130,135,136,142,149,150,154,155,161,162,166,170,172,176,180})[:2]
         self.assertEqual(len(armor), 2)
         self.assertTrue({70, 237, 204} <= own.keys())
-        match.step(Command(0, "play", (own[70],), 0)); match.step(Command(0, "defend"))
+        match.step(Command(0, "play", (own[70],), 0))
+        self.assertEqual((match.status.phase, match.status.owner, match.status.decisions), ("main", 1, 1))
         self.assertEqual(match.observe()["board"]["players"][0]["status"]["curses"], ["flash"])
         match.step(Command(1, "play", (other[6],), 0))
         before, status = match.observe(0), match.status
@@ -1004,7 +1030,8 @@ class MatchTests(unittest.TestCase):
         game = self.match(config=config, seed=36583)
         self.assertTrue({41, 186, 223} <= set(game.supported_models))
         own = hand(game, 0); self.assertTrue({70, 223, 199, 200} <= own.keys())
-        game.step(Command(0, "play", (own[70],), 0)); game.step(Command(0, "defend"))
+        game.step(Command(0, "play", (own[70],), 0))
+        self.assertEqual((game.status.phase, game.status.owner, game.status.decisions), ("main", 1, 1))
         self.assertEqual(curses(game), [["flash"], []]); yield_other(game)
         for unused in range(2):
             game.step(Command(0, "play", (own[223],), 0))

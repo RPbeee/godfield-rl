@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v65` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v66` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3129,3 +3129,12 @@ Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSa
 前回v77のUI-only記録はそのまま残し、今回の別対局を新1件として追加します。累計59観測/native53/記録のみ6・wire512。根拠表記だけを更新し、既存rules65/Snapshot65/view63・ABI2と実行挙動は維持します。
 
 Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。
+
+
+## v80：フラッシュダガー70の自己使用を修正
+
+公式CPU戦で70の自己使用→2被害→閃光→通常4補充、追加本人防御なしを受信しました。70の余分な防御待ちを除き、rules66/Snapshot66/view64へ更新します。既存ABI2と型幅は維持します。
+
+[受信初期と使用後](data/official-v2/wire-game-updates-v80.json)を固定8seed×2状態で比較し、累計60観測/native54/記録のみ6・wire528。自己付与した閃光が次の一枚応答制限へつながることもnative/C/Pythonの回帰で確認します。公式UIでは次のCPU10へ応答しておらず、二枚拒否を新しい公式操作として数えません。
+
+最終Release CTest157/157（29.01秒）が通過した。初回に残っていたCのself70応答1箇所とPython既存2methodの追加defend前提を除き、旧cure/併存の回帰を維持した。この期待修正でruntimeは変えていない。ASan/UBSanは初回3対象中core/wireが通過（run全体14.04秒）し、同じ期待を直したCだけを再実行して1/1（1.44秒）通過した。主要3対象を確認したが、単一clean3/3 run・全SAN suite・Python SANとは区別する。native249 callbacks・Python181 unique methods、全buildのwarning/error0、diff-check正常。
