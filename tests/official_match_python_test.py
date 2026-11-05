@@ -3677,6 +3677,32 @@ class MatchTests(unittest.TestCase):
             with self.assertRaises(InvalidMatchError): game.rollout_step(17, 123)
             self.assertEqual((game.observe(0), game.status), (before, status))
 
+    def test_v66_received_self_absorb_and_twice_state_projections(self):
+        for scenario, viewer in (("absorb", 1), ("twice", 2)):
+            with self.subTest(scenario=scenario):
+                report = json.loads((Path(__file__).resolve().parents[1] / f"data/official-v2/wire-game-updates-v66-{scenario}.json").read_text())
+                before, expected = (entry["game"] for entry in report["updates"])
+                game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+                with OfficialState(before, library=LIBRARY) as state: game.load_scene(state, viewer, 42)
+                game.step(Command(viewer, "play", (6,), viewer))
+                self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 1))
+                # At HP40 the absorb endpoint does not distinguish heal/damage order.
+                game.artifact_grant_step(ArtifactGrantAction(viewer, 161 if scenario == "absorb" else 19))
+                if scenario == "absorb":
+                    game.step(Command(2, "buy", (7,), 1))
+                    self.assertEqual((game.status.phase, game.actor, game.status.owner), ("response", 1, 2))
+                else:
+                    game.step(Command(1, "play", (7,), 1))
+                    game.artifact_grant_step(ArtifactGrantAction(1, 47))  # CPU inventory delta only.
+                    self.assertEqual((game.status.phase, game.actor, game.status.owner), ("main", 2, 2))
+                self.assertEqual(game.observe()["board"]["gf"], expected["gf"])
+                for received in expected["players"]:
+                    own = game.observe(received["id"])["board"]
+                    status = next(p for p in own["players"] if p["id"] == received["id"])["status"]
+                    self.assertEqual(tuple(status[k] for k in ("hp", "mp", "cp")), tuple(received[k] for k in ("hp", "mp", "cp")))
+                    self.assertEqual(sorted((i["face"], i["disguised"], i["used"]) for i in own["hand"]),
+                                     sorted((i["modelId"], False, False) for i in received["items"] if i["modelId"]))
+
     def test_v65_received_owned_fate_fog_and_dark_defense(self):
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v65-fate.json").read_text())
         initial, _, expected = (entry["game"] for entry in report["updates"])

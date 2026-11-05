@@ -2156,3 +2156,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [Neptuneの受信列](../data/official-v2/wire-game-updates-v65-guardian.json)で201の自己使用→Neptune付与→通常196補充を取得した。次CPUの29＋231を233で止めると、block→Neptune276→HP＋5→本人123補充→GF更新が届いた。used233/231は残り、CPUの200/19は在庫差分である。この例では守護神の効果が通常補充より前に並ぶ。一般の病気/守護神/補充順、201/276の選出や率は未確定のままとする。
 
 [別の受信列](../data/official-v2/wire-game-updates-v65-fate.json)で所有207が濃霧288を発動し、全員Fog→通常192補充→CPU76闇3へ進んだ。142/DEF6の応答はsafeでHP40を維持した。既存の外部結果付きFateActionと防御規約に整合する有限例であり、独立phenomenon_stepへ置き換えず所有207の消費・補充・来歴を含めて照合する。Fogの一人対象選択にもローカルdrawを残し、公式selectorの同値性へ広げない。
+
+
+## v66：自己吸収の受信順と自己二回攻撃
+
+[45自己使用の受信](../data/official-v2/wire-game-updates-v66-absorb.json)はdealDamage12の後にboostHP12を置き、通常161補充へ進んだ。これは現ローカルbodyの先healと異なる表示順である。HP40ではどちらも最終40になるため、受信eventからserver内部のclip/死亡確定順まで決めない。上限・低HPを区別する実測が無いまま演算順を入れ替える変更は行わない。
+
+[14自己使用の受信](../data/official-v2/wire-game-updates-v66-twice.json)は3被害→nextAttack14→再target2→3被害、一消費と一giftを示した。次CPUの191自己回復を経てGF4本人HP34となる。有限の単品・非致死例であり、合成列、復活/死亡や中断時の全scheduleを検証したものではない。自己使用が未実測だった6種のうち45/14の経路を新たに実測し、27/216/58/53は引き続き未実測である。

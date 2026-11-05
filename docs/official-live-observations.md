@@ -222,3 +222,16 @@ useDefenseItemsには135/fake135、useAttackItemsには195/fake195と197/fake195
 既存FateActionへ観測288と通常結果を指定し、固定8seed×3checkpoint＝24比較を行う。Fogのsingleton対象drawは実行したままで、selectorや乱数を合わせない。Neptuneの召喚/自動選出はfull再生せず、276のHP5だけを外部GuardianActionで照合する別枠8component検証へ分ける。post3在庫・used233/231を静的contextに使いHP5のみ戻した合成入力であり、公式の途中状態や補充順を再現したものではない。
 
 新4完了観測で累計32例、うち全体native投影対象27例、複合5例は記録のみとなる。別枠routing1例・一新部分検証・各世代wire checkpointは維持し、新Neptune効果8検査を別集計する。開始〜終局の受信game列は累計1対局分・全backend内部trace0のままである。GF3で両収録対局を退出し、最後にホーム復帰とNetwork Monitor閉鎖を確認した。[機械可読範囲](../data/official-v2/live-transition-witnesses-v65.json)へ固定する。
+
+
+## v66：リアルゴーストソードと二回攻撃の自己使用
+
+2026年11月5日の終末なしCPU修行3対局を探索し、2対局の自己使用を収録した。残1対局は完了viewer操作がなく、観測数へ加算しない。
+
+[吸収対局](../data/official-v2/wire-game-updates-v66-absorb.json)はGF1本人1/CPU2、双方40/10/20・guardian/curseなしから45/id6を明示selfで使用した。受信update2はuse45→target1→dealDamage12→boostHP12→gift161/id6→GF2 CPU→CPUのBUY5/id7→target1である。追加の自己防御入力はなく、本人HP40/MP10/CP20と手札9を維持した。CPU BUYへの応答はせず、offer・支払・YES/NOは未観測である。beforeの応答はFirefoxでstream中断扱いだったが、完全なgame1文書を保存・decodeできており、transport全体の完結とは区別する。
+
+吸収の受信client表示は40→28→40、現native bodyは先healで40→52→40となる。終点が同じなので、今回の状態比較を内部順の適合証明へ読み替えない。HPがraw量より小さい場合・99上限・死亡/復活を伴う場合は未取得であり、既存の実験規約は変更していない。
+
+[二回攻撃対局](../data/official-v2/wire-game-updates-v66-twice.json)の最初のgame1は既にGF2本人2 mainで、CPU1が197を自己使用した後の40/25/20、本人40/10/20である。14/id6を単品selfで確定すると、update2にdamage3→nextAttack14→target2→damage3→gift19/id6→CPUへGF更新→CPU191/id7自己回復→本人へGF更新が並んだ。本人HP34、CPU45/25/20、GF4本人mainとなった。消費とgiftは1回ずつで、二発の間の自己defend入力もない。CPU47/id7は在庫差分であり、giftイベントは受信していない。
+
+native比較は45のGF1と14の受信GF2をそのまま開始sceneへ使い、既存固定8seedで各2checkpoint＝32比較とする。14の先行CPU197・元CPU初期draw/order、45の途中resource順や後の購入selectorは範囲外とする。新2操作で累計34完了例・native対象29例、複合record-only5例・独立routing1例、開始〜終局の受信列1対局分・全backend内部trace0を保つ。両対局を退出し、最後にホーム復帰・Network Monitor閉鎖を確認した。[機械可読の範囲](../data/official-v2/live-transition-witnesses-v66.json)へ固定する。

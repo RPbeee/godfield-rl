@@ -2092,3 +2092,17 @@ Pythonの受信frame回帰では両対局6状態を読み、Fog時の他者資�
 最終Release CTestは156/156（13.14秒）通過。更新wireはRelease1/1（0.30秒）、ASan/UBSan1/1（0.49秒）通過し、両wire buildのwarning/errorは0件。runtime本体は変更せず、SAN全suiteやPython SANを再実行した意味ではない。
 
 独立監査でprivate6ゲーム状態の匿名化後と両wire記録が全件一致し、Fate54行・276component20行の数値転記も一致した。fixed8seedに検索/skipはなく、selector未再現の2観測とfull Fate24 checkpoint・別枠component8を区別する。公開artifactのhashはデータREADMEと照合した。旧世代記録・oracleは変更していない。
+
+
+## v66：特殊自己使用2例と状態投影の限界
+
+45自己使用と14自己使用の2対局を収録し、累計34完了例・native対象29例とする。各before/after2状態×固定8seed＝32比較、全model/fake省略/unused・資源・GF/owner/pending・各native境界のrestoreを確認する。45後CPUのBUYは未応答responseで止め、購入offer RNG/YESNOへ入らない。14は先行CPU197後の受信GF2からロードし、そのCPU操作と元初期draw/orderを再現したとはしない。CPU47は在庫差分である。
+
+45の受信dealDamage12→boostHP12とローカル先healは順序が違う。HP40では両方40なので終点比較は可能だが、ordered-resource-event-replay=falseとして内部clip/死亡順は未解明と記録する。14はdamage3/nextAttack/damage3と一消費/一giftを受信した。どちらも単品・非致死の有限例で、一般吸収・二回攻撃scheduleの完成とはしない。runtime56/Snapshot56/view-v54・旧データ/legacy37を維持する。
+
+
+Python Stateは両対局4状態を直接読み、viewerが1/2の両配置、slot6の45→161/14→19、absorb後の161同モデル2copy、BUY先頭frameとemptyを検査する。Python Matchは受信beforeから自己play・明示結果・次CPU行動をC接口経由で再生し、両者の資源と手札投影を比較する。State21、Match166 unique methods、native Match231 callbacksである。
+
+最終Release CTestは156/156（18.00秒）通過。更新wireはRelease1/1（0.41秒）、ASan/UBSan1/1（0.63秒）通過し、両wire buildのwarning/errorは0件。runtime本体を変更しておらず、SAN全suiteやPython SANの再実行を意味しない。
+
+独立監査でprivate4状態の匿名化と両wire記録が全件一致し、native72行の数値・配列順も一致した。45の終点比較と内部順未検証、14のGF2開始、BUY未応答停止、CPU47のdelta区分、新2/cumulative34・native29を確認した。公開artifact hashはデータREADMEと照合し、旧世代記録・oracleは変更していない。

@@ -587,13 +587,101 @@ void neptune_effect_component(std::uint64_t seed) {
 }
 }
 
+
+// v66: self45 and self14 are separate received before/after pairs. This tests
+// state projections,not the unresolved intermediate absorb clip/death order.
+namespace v66 {
+constexpr std::array<std::array<ReceivedSlot,9>,2> absorb_p1{{
+    {{{1,191},{2,54},{3,161},{4,154},{5,41},{6,45},{7,12},{8,47},{9,230}}},
+    {{{1,191},{2,54},{3,161},{4,154},{5,41},{7,12},{8,47},{9,230},{6,161}}}
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,2> absorb_p2{{
+    {{{1,189},{2,59},{3,149},{4,78},{5,226},{6,117},{7,5},{8,118},{9,5}}},
+    {{{1,189},{2,59},{3,149},{4,78},{5,226},{6,117},{8,118},{9,5},{0,0}}}
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,2> twice_p1{{
+    {{{2,13},{3,167},{4,5},{5,177},{6,43},{7,191},{8,151},{9,175},{1,149}}},
+    {{{2,13},{3,167},{4,5},{5,177},{6,43},{8,151},{9,175},{1,149},{7,47}}}
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,2> twice_p2{{
+    {{{1,146},{2,41},{3,13},{4,185},{5,4},{6,14},{7,3},{8,113},{9,21}}},
+    {{{1,146},{2,41},{3,13},{4,185},{5,4},{7,3},{8,113},{9,21},{6,19}}}
+}};
+
+void compare(const Match& game,const SlotMap& slots,bool twice,std::size_t checkpoint,std::uint64_t seed) {
+    const auto& snap=game.snapshot();const auto expected_owner=twice?2:checkpoint?2:1;
+    check(snap.state.gf==(twice?checkpoint?4:2:checkpoint?2:1)&&snap.owner==expected_owner
+          &&snap.rng==seed&&!snap.state.is_over&&!snap.terminated&&!snap.truncated&&snap.state.players.size()==2,
+          "v66 received GF/owner/nonterminal state and deterministic local stream match");
+    std::size_t total=0;
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];
+        const auto& rows=twice?(seat?twice_p2[checkpoint]:twice_p1[checkpoint]):(seat?absorb_p2[checkpoint]:absorb_p1[checkpoint]);
+        check(player.id==seat+1&&player.hp==(twice&&checkpoint?(seat?34:45):40)
+              &&player.mp==(twice&&!seat?25:10)&&player.cp==20&&!player.dead&&player.team==Team::solo
+              &&player.guardian==Guardian::none&&player.curses.empty()&&player.confusion_count==0,
+              "v66 both received resource triples and live/team/curse/guardian defaults match");
+        std::size_t positive=0,empty=0;
+        for(const auto& row:rows) {
+            if(!row.model){check(row.slot==0,"v66 canonical received placeholder");++empty;continue;}
+            ++positive;const auto mapped=slots.find({player.id,row.slot});check(mapped!=slots.end(),"v66 qualified slot maps to a current copy");
+            const auto item=std::find_if(player.items.begin(),player.items.end(),[&](const auto& x){return x.token==mapped->second;});
+            check(item!=player.items.end()&&item->model==row.model&&!item->fake_model&&!item->used,
+                  "v66 every positive received model,absent fake and unused flag match");
+        }
+        check(player.items.size()==positive&&snap.gifts[seat]==empty,"v66 physical copies and reserved placeholder debts match");total+=positive;
+    }
+    check(slots.size()==total,"v66 no stale mappings survive consumption/reuse");
+    if(!twice&&checkpoint) {
+        check(snap.phase==MatchPhase::response&&snap.actor==1&&snap.queue.size()==1&&!snap.purchase,
+              "v66 CPU BUY is only a response launch,no random offer has been chosen");
+        const auto& buy=snap.queue.front();
+        check(buy.models==std::vector<CardId>{5}&&buy.origin==2&&buy.source==2&&buy.target==1
+              &&buy.category==Category::trade&&buy.ability==Ability::buy&&buy.power==0,
+              "v66 received BUY operation keeps its actor,target and category");
+    } else check(snap.phase==MatchPhase::main&&snap.actor==expected_owner&&snap.queue.empty(),"v66 quiescent checkpoint is main");
+    // Exclude raw slot identity/order,server updateCount/native decisions and
+    // the native intermediate heal/damage order not distinguished at HP40.
+    roundtrip(game);
+}
+void replay(std::uint64_t seed,bool twice) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=twice?2:1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;if(twice&&!seat)player.mp=25;
+        const auto& rows=twice?(seat?twice_p2[0]:twice_p1[0]):(seat?absorb_p2[0]:absorb_p1[0]);
+        for(const auto& row:rows){const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;player.items.push_back({token,row.model,{},false});}
+        state.players.push_back(std::move(player));
+    }
+    const PlayerId owner=twice?2:1;
+    game.load_scene(std::move(state),owner,seed);compare(game,slots,twice,0,seed);
+    const Command self{owner,CommandKind::play,{consumed_slot(slots,owner,6)},owner};
+    check(game.legal(self),"v66 observed single-item self choice is legal");(void)game.step(self);roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&!game.snapshot().actor&&game.snapshot().queue.empty()
+          &&game.snapshot().pending_grant==owner&&game.snapshot().decisions==1
+          &&game.snapshot().state.players[twice?1:0].hp==(twice?34:40)
+          &&game.snapshot().gifts[twice?1:0]==1,
+          "v66 one self command resolves body without defense and reserves exactly one ordinary receipt");
+    v64::receipt(game,slots,owner,6,twice?19:161);
+    if(twice) {
+        const Command dew{1,CommandKind::play,{consumed_slot(slots,1,7)},1};
+        check(game.legal(dew),"v66 recorded CPU191 self recovery is legal");(void)game.step(dew);roundtrip(game);
+        v64::receipt(game,slots,1,7,47); // Positive inventory delta,not a captured CPU gift event.
+    } else {
+        const Command buy{2,CommandKind::buy,{consumed_slot(slots,2,7)},1};
+        check(game.legal(buy),"v66 recorded CPU BUY launch is legal");(void)game.step(buy);roundtrip(game);
+    }
+    compare(game,slots,twice,1,seed);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -605,4 +693,5 @@ int main() {
     std::cout<<"v63: existing 8 seeds x1 received post-only checkpoint; reconstructed pre-play copies, self80 and explicit135/135; no original initial draw/order or server RNG claim\n";
     std::cout<<"v64: existing 8 seeds x4 received checkpoints; reconstructed GF3, identity135/195 use and actual197/fake195 MP15; explicit artifacts and CPU inventory-delta completions, not backend order or RNG equivalence\n";
     std::cout<<"v65: 8 seeds x3 owned207/Fog received checkpoints; separate8 Neptune276 body-only components, no summon/automatic-guardian full replay or seed fitting\n";
+    std::cout<<"v66: 2 scenarios x8 seeds x2 state checkpoints; self45 endpoint and self14 two hits/single receipt; absorb intermediate order and unobserved BUY offer excluded\n";
 }

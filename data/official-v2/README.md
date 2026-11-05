@@ -378,3 +378,16 @@ Fate207→288と142防御は既存8seed×3checkpointで比較する。201/自動
 | `wire-game-updates-v65-guardian.json` | 14,174 | `a519d83eb558c1653db01ca33aa8afdfb7e7df286facb80cfc7daea35ce13938` |
 | `wire-game-updates-v65-fate.json` | 13,512 | `3519892a146a84b6e827f0aa525cd7dd64057b79c21caacac207863e0be828f2` |
 | `live-transition-witnesses-v65.json` | 6,209 | `e7c44691cdacd68e54d1b043529ce97317a2f6f832308f1d6040a50e32b224c1` |
+
+
+## v66：自己吸収45と二回攻撃14
+
+[吸収の2状態](wire-game-updates-v66-absorb.json)、[二回攻撃の2状態](wire-game-updates-v66-twice.json)、[witness範囲](live-transition-witnesses-v66.json)を保存する。45のbeforeはGF1、14の最初の受信game1は先行CPU197後のGF2であり、後者の元CPU初期draw/orderは再現範囲外である。3対局探索のうち2自己操作を収録し、残1探索を完了数へ混ぜない。
+
+45の被害→回復受信順を維持し、先healのnative演算順と同値だとは扱わない。HP40のbefore/after投影だけを比較する。14は3被害/nextAttack/3被害と一gift19、CPU47は在庫差分として保存する。旧pins・記録・runtimeは変更しない。
+
+| v66 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v66-absorb.json` | 10,457 | `b457b0b7e1e7eaa9ef4a8436837dafabdf26b36ae2b458e444f1aa25dcb1c32e` |
+| `wire-game-updates-v66-twice.json` | 10,806 | `66dc1f32f5fd206fbedfbbd78e5d9d813845d471f783741125752728e6cbf0bc` |
+| `live-transition-witnesses-v66.json` | 4,632 | `929644f89e9d4c6bc107d3371b9153e0e3096f2b2032d0b66742fdb29914af22` |

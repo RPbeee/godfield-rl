@@ -143,6 +143,29 @@ class OfficialStateTests(unittest.TestCase):
                 for player in raw["players"]:
                     self.assertEqual(received.view(player_id=player["id"]), strict.view(player_id=player["id"]))
 
+    def test_received_v66_self_weapon_roles_slots_and_pending_buy(self):
+        for scenario, viewer, before_model, after_model in (("absorb", 1, 45, 161), ("twice", 2, 14, 19)):
+            report = json.loads((Path(__file__).resolve().parents[1] / f"data/official-v2/wire-game-updates-v66-{scenario}.json").read_text())
+            self.assertEqual(report["roles"]["viewer_player_id"], viewer)
+            for index, entry in enumerate(report["updates"]):
+                with self.subTest(scenario=scenario, update=index+1):
+                    raw = entry["game"]; state = self.received(raw); own = state.view(player_id=viewer)
+                    player = next(p for p in own["players"] if p["id"] == viewer)
+                    item = next(i for i in own["hand"] if i["token"] == 6)
+                    self.assertEqual((item["face"], item["disguised"], item["used"]), (after_model if index else before_model, False, False))
+                    self.assertEqual((player["status"]["hp"], player["status"]["mp"], player["status"]["cp"]),
+                                     (34 if scenario == "twice" and index else 40, 10, 20))
+                    self.assertEqual(len(own["hand"]), 9)
+                    self.assertEqual(state.raw_snapshot, raw)
+                    self.assertEqual(len(state.empty_slots), int(scenario == "absorb" and index == 1))
+                    self.assertEqual(state.view(spectator=True)["hand"], [])
+                    if scenario == "absorb" and index:
+                        self.assertEqual(state.active_attack()["models"], [5])
+                        self.assertEqual(state.active_attack()["target"], 1)
+                        self.assertEqual(sum(i["face"] == 161 for i in own["hand"]), 2)
+                    else:
+                        self.assertIsNone(state.active_attack())
+
     def test_received_v65_fog_privacy_guardian_and_used_miracles(self):
         for scenario, hp, mp, counts, empty in (
                 ("guardian", (40, 40, 45), (10, 10, 4), (9, 9, 10), (0, 2, 0)),

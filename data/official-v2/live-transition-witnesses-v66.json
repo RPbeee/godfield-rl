@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "Session date;precise per-action wall-clock timestamps were not captured.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v65.json",
+  "method": "Three no-apocalypse CPU training starts,two curated self-play observations. The uncurated second game had no completed viewer command. Targeted hand search is not a distribution measurement.",
+  "privacy": "Original names,userIds,updatedAt and transport identifiers excluded. CPU true hands are privileged validation data.",
+  "authoritative_fixtures": [
+    "wire-game-updates-v66-absorb.json",
+    "wire-game-updates-v66-twice.json"
+  ],
+  "cases": [
+    {
+      "id": "45-self-endpoint-and-received-order",
+      "native_projection_covered": true,
+      "native_ordered_resource_event_replay": false,
+      "fixture": "wire-game-updates-v66-absorb.json",
+      "received_updates": [
+        1,
+        2
+      ],
+      "confirmed_choice": {
+        "actor": 1,
+        "model": 45,
+        "slot": 6,
+        "target": 1
+      },
+      "observed_effects": [
+        "one self play,no self defense",
+        "received damage12 then boostHP12",
+        "viewer40/10/20 before and after",
+        "one consumption and gift161/id6",
+        "next CPU BUY5/id7 response pending"
+      ],
+      "known_order_difference": "Existing native source heal precedes target damage. At HP40 both end at40;the endpoint test does not validate either order at low HP,HP99 cap,revival or death.",
+      "limits": "No purchase offer selection or acceptance was observed. The ordered received events are preserved as evidence,not claimed as native intermediate-state equivalence."
+    },
+    {
+      "id": "14-self-two-hits-single-receipt",
+      "native_projection_covered": true,
+      "fixture": "wire-game-updates-v66-twice.json",
+      "received_updates": [
+        1,
+        2
+      ],
+      "confirmed_choice": {
+        "actor": 2,
+        "model": 14,
+        "slot": 6,
+        "target": 2
+      },
+      "observed_effects": [
+        "damage3,nextAttack14,target2,damage3",
+        "viewerHP40->34,MP10/CP20 unchanged",
+        "one chosen play,one consumption and one gift19/id6",
+        "CPU191/id7 self HP40->45,CPU MP25/CP20 unchanged",
+        "CPU47/id7 positive inventory delta",
+        "GF2->4,viewer2 main"
+      ],
+      "limits": "Replay begins at received GF2 after automatic CPU197. Full original initial draw,lethal interruption,revival and composed double attacks are not established."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false,
+    "fixed_replays_per_scenario": 8,
+    "received_checkpoints_per_replay": 2,
+    "received_checkpoint_comparisons": 32,
+    "random_seed_fitting": false,
+    "scope": "Two before/after state projections with explicit observed artifact results and a CPU inventory-delta completion. Absorb intermediate resource order,unobserved BUY selection and prior CPU197 are excluded."
+  },
+  "capture_counts": {
+    "training_games_started": 3,
+    "curated_training_games": 2,
+    "uncurated_initial_hand_explorations": 1,
+    "authoritative_game_snapshots": 4,
+    "first_received_snapshots": 2,
+    "bounded_authoritative_game_update_batches": 2,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "last_curated_gf": 4,
+    "additional_gameplay_commands_after_boundary": false
+  },
+  "new_completed_public_transition_witnesses": 2,
+  "cumulative_completed_public_transition_witnesses": 34,
+  "new_native_projection_covered_completed_witnesses": 2,
+  "cumulative_native_projection_covered_completed_witnesses": 29,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "native_coverage_note": "State endpoint projection coverage is separate from complete event-order equivalence. The five older compound record-only witnesses and older component/routing/checkpoint counts remain unchanged.",
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

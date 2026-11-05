@@ -3157,3 +3157,13 @@ runtimeは対局v56/Snapshot56/view-v54のまま。初期状態を含むFate対�
 
 
 Release全156対象とASan/UBSanの更新wire1対象が通過した。Python State20・Match165を含む検証と、6受信状態の匿名化・数値転記監査は[適合計画v65](official-conformance-plan.md)へ記録する。
+
+
+## 作業世代v66：自己45/14の状態投影と未解明の吸収順
+
+runtimeは対局v56/Snapshot56/view-v54を維持する。45自己使用→161明示補充→次CPU BUY未応答、14自己使用→19明示補充→CPU191自己回復→CPU47差分補充の2対局を、既存固定8seedで各2checkpoint照合する。どちらも原発play1decision・追加self-defenseなし・消費/予約補充1回となる。
+
+45の受信は被害→回復で、現bodyの先healと逆である。HP40の最終状態投影は一致するが、中間資源順の一致とはしない。低HP/99上限/死亡のserver結果は未取得で、今回の比較を理由に旧演算順や他吸収モデルへ新しい規則を適用しない。14は単品・非致死の二発3+3を受信できたが、合成・中断・復活等は既存実験規約を維持する。
+
+
+Release全156対象とASan/UBSanの更新wire1対象が通過した。Python State21・Match166、2対局×8seed×2状態比較と独立監査の範囲は[適合計画v66](official-conformance-plan.md)へ記録する。吸収の途中順を終点一致で解決済みにはしない。
