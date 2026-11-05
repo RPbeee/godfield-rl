@@ -354,3 +354,30 @@ Cはinactive72byte sweep・予約padding・extentをpointer参照前に検査す
 この比較は独立display API追加による既存対局への非干渉を確認するもので、公式serverの抽選・進行との同値性を証明しない。独立familyは最大2系統を並行実行し、速度改善の主張には使わない。
 
 gift/replaceItems/useDevilItemのhand placeholder・used-pane更新、全resource/病気/取引/ending/rating event、公式server schedule・selector、一般Earth/Moon・Dream互換外・94+Wide等は引き続き別の残件である。学習器・学習済みモデルも追加していない。
+
+
+## v67：受信HPイベントの独立投影（C++のみ）
+
+`official_hp_display.hpp` の `HpDisplay` は、検証済み `SnapshotState` からroster順のIDとHPだけをコピーする。元のStateやMatchは変更しない。現在の対象は `optional<PlayerId>` で呼出側が明示し、各 `HpDisplayEvent` のIDが省略されたときだけフォールバックする。明示ID0は実在プレイヤーとして扱う。wireの `playerId=0` sentinelを自動解釈するAPIではないため、呼出側でabsenceへ正規化する。
+
+`deal_damage` はamountを引き、`boost_hp` はamountを足し、その都度0..99へclipする。amountと初期HPは既存safe wire整数の範囲を許し、初期HPは最初のイベントまで保持する。負のamountや初期HP100等の検査は合成境界条件であり、公式serverがその値を送ったという観測ではない。全batchはcopy/validate/commitで適用し、後半の未知ID・不正kind・unsafe amountでもprefixをcommitしない。target setterも未知IDを拒否して元のcontextを保つ。
+
+```cpp
+#include "godfield/official_hp_display.hpp"
+#include <array>
+using namespace godfield::official;
+// boardは呼出側がdecode・検証したSnapshotState。ここではplayer1のHP40。
+HpDisplay received(board, PlayerId{1});
+const std::array damage{HpDisplayEvent{HpDisplayEventKind::deal_damage, 12, {}}};
+received.apply(damage); // player1 HP28
+const std::array heal{HpDisplayEvent{HpDisplayEventKind::boost_hp, 12, PlayerId{1}}};
+received.apply(heal);   // player1 HP40
+```
+
+`view()` はID/HP/current_targetの所有copy、`hp_display_json` は専用 `official-hp-display-view-v1` を返す。名前・手札・真偽装・guardian等の元State情報を保持しない。これは呼出側の表示contextで、policy用の公開観測を生成する入口ではない。C/Python橋は今回追加していない。
+
+固定公式clientの受信分岐 `dealDamage` / `boostHP` と `c5.eV` を根拠とする。[resource oracle](../scripts/official_resource_oracle.cjs)の既存7,898行のうちHP2,617行を両分岐から照合する。v66受信では45の40→28→40と、14の40→37→34・後続CPU191の40→45を確認する。後者の省略IDは呼出側が対象をCPUへ切り替えてから適用する。useAttackItems/advanceGF/nextAttack等からの対象の自動推定や全rawイベントdecoderは実装していない。
+
+HP0への表示変更でdead・208復活・112攻撃・gift・手番を生成せず、受信イベントからMatchの効果・死亡順を推定しない。MP/CPの増減・debt cascade、病気・手札・取引・ending/ratingの増分投影は残件である。Match ruleset56 / Snapshot56 / view-v54、既存State/Display APIとABIは維持する。
+
+検証はRelease CTest157/157（16.23秒）、新しいHP targetのDebug ASan/UBSan 1/1（0.40秒）。HP targetは9群・固定HP vector2,617行×2分岐を含む。全SAN suiteやPython SANを今回通したという主張ではない。compile warning/errorは0件、`git diff --check`も通過した。

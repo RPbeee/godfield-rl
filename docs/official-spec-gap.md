@@ -2308,3 +2308,14 @@ Neptune対局は201召喚結果Neptune→196補充→CPU29＋231/ATK16、233壁�
 14/id6は受信GF2本人2 mainから使用し、damage3→nextAttack14→target2→damage3、gift19が1回、次CPU191の自己回復を経てGF4・本人HP34となった。二発の間に自己defendは入力していない。最初の受信game1に含まれる先行CPU197は再生範囲外とし、CPU MP25を既に持つquiescent sceneから比較する。CPU47は在庫差分、45後のBUYは未応答のまま止め、未観測のoffer選出・YES/NOへ進めない。
 
 新2操作を固定8seed×各2checkpoint＝32の状態投影で照合し、累計34例・native対象29例へ加える。吸収の途中event順・clipや全二回攻撃の中断/合成まで一致したという区分にはしない。今回の探索3対局のうち収録2対局、残1対局は完了viewer操作なしで、確率の標本には使わない。
+
+
+## v67：受信HPの中間状態を既存公式資料で照合
+
+独立C++ `HpDisplay` に `dealDamage` / `boostHP` の順序付きHP投影を追加した。固定clientのresource helperが出力したHP2,617行を各2分岐＝5,234比較し、v66の45表示40→28→40と、14の二発後にcallerが対象を切り替える191回復を別に検査する。whole-batch原子性・ID0とabsence・safe整数・clip・context所有も検査する。C/Python橋・自動raw decoderは今回の範囲に含めない。
+
+これは受信表示の不足を一部埋める変更である。対局本体の先heal→target damageという既存実験規約は変更せず、低HP・上限・死亡を区別する公式例も今回取得していない。新しい公式完了観測は0、累計34例・native状態投影対象29例・wire checkpoint比較176は維持する。HP算術vectorと表示の中間checkpointを公式対局の追加件数へ足さない。
+
+CPU配布の探索は行ったが、識別可能な吸収例を得る前に修行を退出し、ホーム復帰・Network Monitor終了を確認した。両替3で低HPへ配分する検証手順はsourceから絞れたが、まだ実測ではない。Dream中のBUY拒否返却でfakeが残るかもserver応答次第の仮説であり、runtimeの変更根拠にはしない。
+
+ruleset56 / Snapshot56 / view-v54と既存ABIを維持する。HP以外のresource増分、hand/used-pane・病気・取引・ending/rating、全server schedule/selector、Dream互換外・94＋Wide・一般Earth/Moonの残件は継続する。

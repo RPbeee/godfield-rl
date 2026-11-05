@@ -235,3 +235,10 @@ useDefenseItemsには135/fake135、useAttackItemsには195/fake195と197/fake195
 [二回攻撃対局](../data/official-v2/wire-game-updates-v66-twice.json)の最初のgame1は既にGF2本人2 mainで、CPU1が197を自己使用した後の40/25/20、本人40/10/20である。14/id6を単品selfで確定すると、update2にdamage3→nextAttack14→target2→damage3→gift19/id6→CPUへGF更新→CPU191/id7自己回復→本人へGF更新が並んだ。本人HP34、CPU45/25/20、GF4本人mainとなった。消費とgiftは1回ずつで、二発の間の自己defend入力もない。CPU47/id7は在庫差分であり、giftイベントは受信していない。
 
 native比較は45のGF1と14の受信GF2をそのまま開始sceneへ使い、既存固定8seedで各2checkpoint＝32比較とする。14の先行CPU197・元CPU初期draw/order、45の途中resource順や後の購入selectorは範囲外とする。新2操作で累計34完了例・native対象29例、複合record-only5例・独立routing1例、開始〜終局の受信列1対局分・全backend内部trace0を保つ。両対局を退出し、最後にホーム復帰・Network Monitor閉鎖を確認した。[機械可読の範囲](../data/official-v2/live-transition-witnesses-v66.json)へ固定する。
+
+
+## v67：低HP吸収の探索と既存受信HPの検査
+
+CPU修行で吸収27/45/216と両替3を利用できる局面を探したが、内部演算順を区別できる低HP・上限の完了例は今回取得していない。新しいresponse bodyや完了遷移goldenは追加せず、実測累計34例・native状態投影対象29例を維持する。最後に修行を退出し、公式ホーム復帰とNetwork Monitor終了を確認した。
+
+既存v66の受信データだけを使い、独立HP reducerで45の40→28→40を検査する。14の二発40→37→34と後続CPU191の40→45は、呼出側の対象切替を明示して検査する。この表示比較は対局内部の吸収・死亡順を確定せず、新しい公式観測にも数えない。
