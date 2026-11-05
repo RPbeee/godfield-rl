@@ -1,0 +1,624 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No precise per-action wall-clock time is assigned from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v66.json",
+  "method": "One CPU training game with six consecutive received game updates and five curated viewer operations. Native Firefox UI confirmations were correlated with Network Monitor response-body saves. This is not an end-of-game capture or a distribution sample.",
+  "privacy": "Original names,userIds,updatedAt,room/document references and transport tokens are excluded from the companion fixture. CPU true inventories remain privileged validation data,not policy observations.",
+  "authoritative_fixtures": [
+    "wire-game-updates-v68.json"
+  ],
+  "cases": [
+    {
+      "id": "training-low-hp-gf1-self-moonlight-axe-ogre-armor",
+      "native_projection_covered": true,
+      "received_before_update": 1,
+      "received_after_update": 2,
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          39,
+          162
+        ],
+        "item_ids": [
+          3,
+          5
+        ],
+        "target": "viewer",
+        "outgoing_wire_command_captured": false,
+        "ui_confirmation_count": 1
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 15,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              19
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "observation": "Self39 moonlight axe10 plus162 ogre armor additional15 gave neutral ATK25. One explicit self play resolved without an added self-defense input:viewer HP40 to15. The same received update also launches CPU19 toward viewer.",
+      "limits": "The DEF9 property of162 is not a self-defense selection;it was an ordered main-attack extra. The gift113/id3 and166/id5 are explicit received outcomes,not fitted RNG draws.",
+      "additional_viewer_self_response_chosen": false,
+      "catalog_arithmetic": {
+        "attack": "10+15=25",
+        "defense": 0,
+        "viewer_hp": "40-25=15"
+      },
+      "received_viewer_gifts": [
+        {
+          "modelId": 113,
+          "id": 3
+        },
+        {
+          "modelId": 166,
+          "id": 5
+        }
+      ],
+      "native_regression_scope": "The new direct-self routing regression for reflectMiracle weapon39 is covered together with ordered162 extra attack:one main command,damage25 and two replacement outcomes,without an invented self-defense. This is the same curated first operation,not an additional observation."
+    },
+    {
+      "id": "training-low-hp-gf2-kusarigama-empty-defense",
+      "native_projection_covered": true,
+      "received_before_update": 2,
+      "received_after_update": 3,
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 15,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              19
+            ]
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [],
+        "outgoing_wire_command_captured": false,
+        "ui_confirmation_count": 1
+      },
+      "after": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 10,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "advanceGF"
+      ],
+      "observation": "CPU19 kusarigama neutral ATK5 was answered with empty defense,viewer HP15 to10.",
+      "limits": "CPU115/id8 is a snapshot-delta replacement;no CPU gift event is present in this received event list.",
+      "empty_defense_encoding": "Received useDefenseItems event omits the items key;the raw-derived fixture preserves that omission.",
+      "cpu_replacement_snapshot_delta": {
+        "modelId": 115,
+        "id": 8,
+        "corresponding_received_gift_event_present": false
+      }
+    },
+    {
+      "id": "training-low-hp-gf3-self-kusarigama",
+      "native_projection_covered": true,
+      "received_before_update": 3,
+      "received_after_update": 4,
+      "before": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 10,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          19
+        ],
+        "item_ids": [
+          1
+        ],
+        "target": "viewer",
+        "outgoing_wire_command_captured": false,
+        "ui_confirmation_count": 1
+      },
+      "after": {
+        "gf": 4,
+        "server_update_count": 4,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 5,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "itemModelIds": [
+              67
+            ],
+            "playerId": 2,
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "observation": "Viewer19 kusarigama neutral ATK5 was explicitly self-played once,HP10 to5. The received update then launches CPU67 toward viewer.",
+      "limits": "Viewer gift163/id1 is explicit. The reused slot1 does not identify an immutable physical token.",
+      "additional_viewer_self_response_chosen": false,
+      "received_viewer_gift": {
+        "modelId": 163,
+        "id": 1
+      }
+    },
+    {
+      "id": "training-low-hp-gf4-thorn-whip-empty-defense",
+      "native_projection_covered": true,
+      "received_before_update": 4,
+      "received_after_update": 5,
+      "before": {
+        "gf": 4,
+        "server_update_count": 4,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 5,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "itemModelIds": [
+              67
+            ],
+            "playerId": 2,
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [],
+        "outgoing_wire_command_captured": false,
+        "ui_confirmation_count": 1
+      },
+      "after": {
+        "gf": 5,
+        "server_update_count": 5,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 3,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "advanceGF"
+      ],
+      "observation": "CPU67 thorn whip Wood ATK2 was answered with empty defense,viewer HP5 to3.",
+      "limits": "CPU26/id2 is a snapshot-delta replacement rather than an emitted CPU gift event.",
+      "empty_defense_encoding": "Received useDefenseItems event omits the items key;the raw-derived fixture preserves that omission.",
+      "cpu_replacement_snapshot_delta": {
+        "modelId": 26,
+        "id": 2,
+        "corresponding_received_gift_event_present": false
+      }
+    },
+    {
+      "id": "training-low-hp-gf5-self-ghost-sword-damage-before-heal",
+      "native_projection_covered": true,
+      "received_before_update": 5,
+      "received_after_update": 6,
+      "before": {
+        "gf": 5,
+        "server_update_count": 5,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 3,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_models": [
+          27
+        ],
+        "item_ids": [
+          7
+        ],
+        "target": "viewer",
+        "outgoing_wire_command_captured": false,
+        "ui_confirmation_count": 1
+      },
+      "after": {
+        "gf": 7,
+        "server_update_count": 6,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 7,
+            "mp": 10,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 25,
+            "cp": 20,
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "boostHP",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "boostMP",
+        "advanceGF"
+      ],
+      "observation": "Viewer27 ghost sword neutral ATK7 was explicitly self-played at HP3. Received order is dealDamage7 then boostHP7 for viewer. The resulting viewer HP is7 alive. CPU197 then self-uses for MP10 to25 and the update ends GF7 viewer main.",
+      "limits": "Only27 is the new discriminating low-HP self-absorption witness. Applying the same trait-body order to45/216 or redirected/counter frames is implementation generalization,not a new low-HP observation for those models. CPU197 is part of this composite update,not a sixth curated viewer operation.",
+      "additional_viewer_self_response_chosen": false,
+      "ordered_absorption_evidence": {
+        "before_viewer_hp": 3,
+        "attack_power": 7,
+        "received_damage_event": {
+          "action": "dealDamage",
+          "damage": 7
+        },
+        "following_received_heal_event": {
+          "action": "boostHP",
+          "hp": 7,
+          "playerId": 1
+        },
+        "after_viewer_hp": 7,
+        "viewer208_present_before": false,
+        "received_die_event_present": false,
+        "viewer_dead_field_present_after": false,
+        "damage_first_clamped_interpretation": "max(0,3-7)+7=7",
+        "intermediate_hp0_is_a_separate_received_snapshot": false,
+        "older_local_heal_first_alias_prediction": "3+7-7=3",
+        "death_boundary": "The body ends alive after the heal. No separate authoritative intermediate HP0 state or death-finalization timestamp was captured."
+      },
+      "following_cpu_self_operation": {
+        "displayed_model": 197,
+        "received_item_id": 3,
+        "resource": "mp",
+        "amount": 15,
+        "before_cpu_mp": 10,
+        "after_cpu_mp": 25,
+        "cpu_replacement_snapshot_delta": {
+          "modelId": 123,
+          "id": 3
+        },
+        "corresponding_received_gift_event_present": false,
+        "counts_as_additional_curated_completion": false
+      },
+      "received_viewer_gift": {
+        "modelId": 38,
+        "id": 7
+      }
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v57",
+    "snapshot_version": 57,
+    "observe_schema": "official-execution-view-v55",
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 6,
+    "received_checkpoint_comparisons": 48,
+    "random_seed_fitting": false,
+    "scope": "All six received state projections pass with explicit observed normal results and CPU snapshot-delta completions. The regression includes weapon39 direct-self routing and the27 low-HP damage-before-heal body. Generalizing that body to45/216 is not a new low-HP observation for those models. Native metadata counters,server slot IDs and every internal backend event are not asserted identical.",
+    "local_test_results": {
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "asan_ubsan_focused_passed": 4,
+      "asan_ubsan_focused_total": 4,
+      "native_registered_callbacks": 233,
+      "python_test_methods": 168,
+      "compile_warnings": 0,
+      "compile_errors": 0
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 6,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 5,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "source_body_provenance": [
+    {
+      "label": "scout01",
+      "response_body_bytes": 25297,
+      "response_body_sha256": "0b57c45145de00e0a29eaff7a1d1f35f4eced47a71530e30073820f6875fe42d",
+      "webchannel_frame_count": 14
+    },
+    {
+      "label": "pre-response",
+      "response_body_bytes": 21059,
+      "response_body_sha256": "57ac5f483c5453f351217cda6bb619028a74b3b3f32a53a00db965ab280432d0",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-response-final",
+      "response_body_bytes": 15262,
+      "response_body_sha256": "51b02207a23f3b22e08a2f074bc4f296c074ac1020c05672dfa70ad09371578a",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "low-pre-response",
+      "response_body_bytes": 19645,
+      "response_body_sha256": "8a626628906c238ed87d1b109d4b55e757adfcbb8862eedc9a40b32ea5389b3d",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "pre-absorb-final",
+      "response_body_bytes": 15262,
+      "response_body_sha256": "6a8388f0feadbaeddc629fa318e0b4968205e32b8e46a83d53207ff8c6c699d0",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "post-absorb",
+      "response_body_bytes": 19533,
+      "response_body_sha256": "3c10f696bc74a2c4459ac4662d72fd26c27f8b92460c62e5fefc5fb2ffa49680",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "session_end_observation": {
+    "terminal_received": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "scope": "Exit/cleanup was directly confirmed after the curated boundary. No terminal game state was received and no later exploration is added to the five curated operations."
+  },
+  "new_completed_public_transition_witnesses": 5,
+  "cumulative_completed_public_transition_witnesses": 39,
+  "new_native_projection_covered_completed_witnesses": 5,
+  "cumulative_native_projection_covered_completed_witnesses": 34,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "cumulative_record_only_completed_witnesses": 5,
+  "new_wire_checkpoint_comparisons": 48,
+  "cumulative_wire_checkpoint_comparisons": 224
+}

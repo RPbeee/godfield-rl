@@ -2106,3 +2106,14 @@ Python Stateは両対局4状態を直接読み、viewerが1/2の両配置、slot
 最終Release CTestは156/156（18.00秒）通過。更新wireはRelease1/1（0.41秒）、ASan/UBSan1/1（0.63秒）通過し、両wire buildのwarning/errorは0件。runtime本体を変更しておらず、SAN全suiteやPython SANの再実行を意味しない。
 
 独立監査でprivate4状態の匿名化と両wire記録が全件一致し、native72行の数値・配列順も一致した。45の終点比較と内部順未検証、14のGF2開始、BUY未応答停止、CPU47のdelta区分、新2/cumulative34・native29を確認した。公開artifact hashはデータREADMEと照合し、旧世代記録・oracleは変更していない。
+
+
+## 作業世代v68：低HP自己吸収と39の直接自己使用
+
+新しい公式CPU対局の初期状態から6更新を受領し、自己39＋162・CPU19への空防御・自己19・CPU67への空防御・自己27の5操作を保存した。本人HP列は40→15→10→5→3→7。27のHP3・被害7→回復7・生存結果は従来bodyの先healによるHP3と区別できるため、自己aliasだけdamage→nominal healへ修正した。39＋162の最初の操作は公式で1command解決するが旧nativeはresponseを待っていたため、武器39のreflect_miracleも明示selfのDEF0直接経路へ追加した。両変更はruleset57/Snapshot57/view-v55で固定し、ABI2/構造体幅/台帳は維持する。
+
+`official_wire_trace` は既存8seedを探索・skipせず、6state＝48追加比較が一致する。初期在庫から通常Commandと明示ArtifactGrantで進め、受信damageをeffectへ注入しない。各boundaryの完全private restore、消費copyと再利用slotの写像、CPUの省略giftを在庫差分として入力する範囲を検査する。raw server updateCount・全配布順・server RNGや、start→endの完全対局再現は対象としない。公式観測39・native対象34・record-only5・wire224比較、完全な受信start→endは従来1対局のまま。
+
+新しいnative群を含む233callback、Cのtyped低HP/上限/208112/phase・出力原子性、Python168methodを検査する。合成境界は45/216、99上限、nominal192、counterのtarget実損失基準、Heavenfall prefixHP0、208/112、未選択防具、38維持と防具非拡張を含む。これらを新たな公式実測へ加算しない。独立HP reducerは10群となり、v68の受信3→0→7と従来HP2,617行×2分岐を検査する。
+
+Release全CTest157/157（17.96秒）、Debug ASan/UBSanの変更4target（core/C API/wire/HP）4/4（18.07秒）、compile warning/error0、`git diff --check`通過。両build/suiteを別directoryで並行実行し、全SAN suiteやPython SANを実行したとは主張しない。最終native/C/Python・fixtureは独立のread-only監査も受け、raw source6件のhash、mode0600、匿名化以外のgame literal一致を確認した。旧世代pins・records・legacy37は保持する。

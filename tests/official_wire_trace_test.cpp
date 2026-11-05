@@ -675,13 +675,99 @@ void replay(std::uint64_t seed,bool twice) {
 }
 }
 
+// v68: six received checkpoints from one CPU training game. Full numeric
+// inventories are privileged validation fixtures, never policy observations.
+namespace v68 {
+constexpr std::array<std::array<ReceivedSlot,9>,6> p1{{
+    {{{1,19},{2,122},{3,39},{4,130},{5,162},{6,191},{7,27},{8,199},{9,186}}},
+    {{{1,19},{2,122},{4,130},{6,191},{7,27},{8,199},{9,186},{3,113},{5,166}}},
+    {{{1,19},{2,122},{4,130},{6,191},{7,27},{8,199},{9,186},{3,113},{5,166}}},
+    {{{2,122},{4,130},{6,191},{7,27},{8,199},{9,186},{3,113},{5,166},{1,163}}},
+    {{{2,122},{4,130},{6,191},{7,27},{8,199},{9,186},{3,113},{5,166},{1,163}}},
+    {{{2,122},{4,130},{6,191},{8,199},{9,186},{3,113},{5,166},{1,163},{7,38}}},
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,6> p2{{
+    {{{1,26},{2,67},{3,197},{4,201},{5,3},{6,172},{7,21},{8,19},{9,21}}},
+    {{{1,26},{2,67},{3,197},{4,201},{5,3},{6,172},{7,21},{9,21},{0,0}}},
+    {{{1,26},{2,67},{3,197},{4,201},{5,3},{6,172},{7,21},{9,21},{8,115}}},
+    {{{1,26},{3,197},{4,201},{5,3},{6,172},{7,21},{9,21},{8,115},{0,0}}},
+    {{{1,26},{3,197},{4,201},{5,3},{6,172},{7,21},{9,21},{8,115},{2,26}}},
+    {{{1,26},{4,201},{5,3},{6,172},{7,21},{9,21},{8,115},{2,26},{3,123}}},
+}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,p1[0]},{2,40,10,20,false,p2[0]}}},0},
+    ReceivedCheckpoint{2,2,2,{{{1,15,10,20,false,p1[1]},{2,40,10,20,false,p2[1]}}},19},
+    ReceivedCheckpoint{3,3,1,{{{1,10,10,20,false,p1[2]},{2,40,10,20,false,p2[2]}}},0},
+    ReceivedCheckpoint{4,4,2,{{{1,5,10,20,false,p1[3]},{2,40,10,20,false,p2[3]}}},67},
+    ReceivedCheckpoint{5,5,1,{{{1,3,10,20,false,p1[4]},{2,40,10,20,false,p2[4]}}},0},
+    ReceivedCheckpoint{6,7,1,{{{1,7,10,20,false,p1[5]},{2,40,25,20,false,p2[5]}}},0},
+};
+
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed) {
+    compare_checkpoint(game,slots,checkpoints[checkpoint]);
+    const auto& snap=game.snapshot();
+    check(snap.rng==seed&&!snap.terminated&&!snap.truncated,
+          "v68 no selector/body RNG,seed search or terminal result is substituted");
+}
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        const auto& rows=seat?p2[0]:p1[0];
+        for(const auto& row:rows) {
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare(game,slots,0,seed);
+    const Command prepare{1,CommandKind::play,
+        {consumed_slot(slots,1,3),consumed_slot(slots,1,5)},1};
+    check(game.legal(prepare),"v68 observed self39+162 composition is legal");
+    (void)game.step(prepare);roundtrip(game);
+    check(game.snapshot().state.players[0].hp==15&&game.snapshot().gifts[0]==2,
+          "v68 one combined self25 command reserves two physical replacements");
+    v64::receipt(game,slots,1,3,113);v64::receipt(game,slots,1,5,166);
+    const Command first_cpu{2,CommandKind::play,{consumed_slot(slots,2,8)},1};
+    check(game.legal(first_cpu),"v68 received CPU19 launch is legal");
+    (void)game.step(first_cpu);roundtrip(game);compare(game,slots,1,seed);
+    const Command empty{1,CommandKind::defend,{},{}};
+    check(game.legal(empty),"v68 first received empty response is legal");
+    (void)game.step(empty);roundtrip(game);
+    v64::receipt(game,slots,2,8,115); // CPU positive inventory delta,not a gift event.
+    compare(game,slots,2,seed);
+    const Command lower{1,CommandKind::play,{consumed_slot(slots,1,1)},1};
+    check(game.legal(lower),"v68 observed self19 is legal");
+    (void)game.step(lower);roundtrip(game);v64::receipt(game,slots,1,1,163);
+    const Command second_cpu{2,CommandKind::play,{consumed_slot(slots,2,2)},1};
+    check(game.legal(second_cpu),"v68 received CPU67 launch is legal");
+    (void)game.step(second_cpu);roundtrip(game);compare(game,slots,3,seed);
+    check(game.legal(empty),"v68 second received empty response is legal");
+    (void)game.step(empty);roundtrip(game);v64::receipt(game,slots,2,2,26);
+    compare(game,slots,4,seed);
+    const Command absorb{1,CommandKind::play,{consumed_slot(slots,1,7)},1};
+    check(game.legal(absorb),"v68 observed low-HP self27 choice is legal");
+    (void)game.step(absorb);roundtrip(game);
+    check(game.snapshot().state.players[0].hp==7&&!game.snapshot().state.players[0].dead
+          &&game.snapshot().revivals==0&&game.snapshot().phase==MatchPhase::grant
+          &&game.snapshot().gifts[0]==1,
+          "v68 HP3 self27 finishes atHP7 alive without revival or an extra defense command");
+    v64::receipt(game,slots,1,7,38);
+    const Command recovery{2,CommandKind::play,{consumed_slot(slots,2,3)},2};
+    check(game.legal(recovery),"v68 observed CPU197 implicit-self MP15 is legal");
+    (void)game.step(recovery);roundtrip(game);v64::receipt(game,slots,2,3,123);
+    compare(game,slots,5,seed);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -694,4 +780,5 @@ int main() {
     std::cout<<"v64: existing 8 seeds x4 received checkpoints; reconstructed GF3, identity135/195 use and actual197/fake195 MP15; explicit artifacts and CPU inventory-delta completions, not backend order or RNG equivalence\n";
     std::cout<<"v65: 8 seeds x3 owned207/Fog received checkpoints; separate8 Neptune276 body-only components, no summon/automatic-guardian full replay or seed fitting\n";
     std::cout<<"v66: 2 scenarios x8 seeds x2 state checkpoints; self45 endpoint and self14 two hits/single receipt; absorb intermediate order and unobserved BUY offer excluded\n";
+    std::cout<<"v68: 8 seeds x6 received states from initial setup through self27 atHP3 toHP7; five viewer operations and CPU MP recovery; explicit receipts,not a completed game or server RNG proof\n";
 }

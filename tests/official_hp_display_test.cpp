@@ -77,6 +77,18 @@ void v66_twice_and_following_self_recovery_context() {
           "following implicit-self recovery must not inherit the viewer2 target");
 }
 
+void v68_received_low_hp_absorb_order() {
+    // wire-game-updates-v68.json update5->6, viewer1 has no revival passive.
+    // Both received amounts are7 although initial HP is3. A damage event's
+    // nominal amount must not be replaced by the clipped HP loss of3.
+    auto state=board();state.players[1].hp=3;HpDisplay display(state,1);
+    apply_event(display,{HpDisplayEventKind::deal_damage,7,{}});
+    check(display.view().players[1].hp==0,"v68 low-HP damage clips3 to0");
+    apply_event(display,{HpDisplayEventKind::boost_hp,7,PlayerId{1}});
+    check(display.view().players[1].hp==7,"v68 nominal boost7 follows damage and reaches7");
+    check(state.players[1].hp==3,"v68 received projection keeps its source checkpoint immutable");
+}
+
 void explicit_zero_and_current_target_presence() {
     HpDisplay display(board(),7);
     apply_event(display,{HpDisplayEventKind::deal_damage,3,PlayerId{0}});
@@ -240,6 +252,7 @@ int main(int argc,char** argv) {
     check(argc==2,"expected pinned resource vector path");
     v66_received_absorb_event_order();
     v66_twice_and_following_self_recovery_context();
+    v68_received_low_hp_absorb_order();
     explicit_zero_and_current_target_presence();
     clipping_and_synthetic_signed_boundaries();
     invalid_events_rollback_the_entire_batch();
@@ -247,5 +260,5 @@ int main(int argc,char** argv) {
     private_state_noninterference_and_no_lifecycle_generation();
     copy_resume_empty_batch_and_input_nonmutation();
     pinned_client_hp_vectors(argv[1]);
-    std::cout << "official HP display: 9 groups; 2617 pinned HP vectors x2 branches; received v66 HP40->28->40 and explicit caller target changes; not Match death/order equivalence\n";
+    std::cout << "official HP display: 10 groups; 2617 pinned HP vectors x2 branches; received v66 HP40->28->40 and v68 HP3->0->7; explicit caller target changes,not a full event decoder\n";
 }

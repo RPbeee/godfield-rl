@@ -381,3 +381,10 @@ received.apply(heal);   // player1 HP40
 HP0への表示変更でdead・208復活・112攻撃・gift・手番を生成せず、受信イベントからMatchの効果・死亡順を推定しない。MP/CPの増減・debt cascade、病気・手札・取引・ending/ratingの増分投影は残件である。Match ruleset56 / Snapshot56 / view-v54、既存State/Display APIとABIは維持する。
 
 検証はRelease CTest157/157（16.23秒）、新しいHP targetのDebug ASan/UBSan 1/1（0.40秒）。HP targetは9群・固定HP vector2,617行×2分岐を含む。全SAN suiteやPython SANを今回通したという主張ではない。compile warning/errorは0件、`git diff --check`も通過した。
+
+
+## v68：受信低HP吸収の表示検査
+
+[受信update5→6](../data/official-v2/wire-game-updates-v68.json)の27は初期HP3・damage7・boostHP7・最終HP7で、`HpDisplay` の検査に3→0→7を追加した。中間HP0を独立した受信Snapshotとして得たのではなく、固定clientのclip算術を受信イベント順に適用した表示値である。対局本体の修正と39の直接自己使用は別のMatchテストで検査し、ruleset57/Snapshot57/view-v55とする。HP部品のschema/APIは維持する。
+
+HP10群と従来2,617行×2分岐を含めRelease157/157、変更したnative4対象のASan/UBSan4/4が通過した。未取得の上限・guardian・復活複合の公式結果は、合成回帰と区別する。

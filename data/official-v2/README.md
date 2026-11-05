@@ -391,3 +391,15 @@ Fate207→288と142防御は既存8seed×3checkpointで比較する。201/自動
 | `wire-game-updates-v66-absorb.json` | 10,457 | `b457b0b7e1e7eaa9ef4a8436837dafabdf26b36ae2b458e444f1aa25dcb1c32e` |
 | `wire-game-updates-v66-twice.json` | 10,806 | `66dc1f32f5fd206fbedfbbd78e5d9d813845d471f783741125752728e6cbf0bc` |
 | `live-transition-witnesses-v66.json` | 4,632 | `929644f89e9d4c6bc107d3371b9153e0e3096f2b2032d0b66742fdb29914af22` |
+
+
+## v68：低HP自己吸収と月光のオノの自己使用
+
+[受信6状態](wire-game-updates-v68.json)と[5操作のwitness](live-transition-witnesses-v68.json)を保存する。初期update1からupdate6まで同じCPU修行のgameを連続取得した。元の名前・userId・updatedAt・transport識別情報を除去し、数値・受信配列順・省略・slot再利用を維持する。準備の39＋162自己使用はHP40→15、後の27自己使用はHP3→damage7→boostHP7→HP7生存である。CPUの115/26/123補充はgiftイベントの取得とは区別した在庫差分入力である。
+
+この識別例に基づき、自己吸収のdamage→全nominal healと39の余分な自己防御待ちを修正した。対局v57/Snapshot57/view-v55、既存ABI幅・旧資料を維持する。既存8固定seed×6状態＝48比較を追加し、全Release157/157・変更native4targetのSAN4/4が通過した。公式の新しい8対局や全server schedule再現を示すものではない。45/216等は同能力に基づく限定一般化であり、27以外の低HP・上限・復活複合を新実測として数えない。退出してホーム復帰・Network Monitor終了を確認し、終局の受信は未取得である。
+
+| v68 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v68.json` | 23,410 | `0d038993e0a5c34ee38387e8881fa5cdc1c0d334630df633d16c743cf4ac6f4a` |
+| `live-transition-witnesses-v68.json` | 19,767 | `3a59c54d334e022641384147176c8ba6576cec0499abf155d274a67bed340a4b` |

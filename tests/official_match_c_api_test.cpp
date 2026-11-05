@@ -318,6 +318,49 @@ void normal_grant_modes_bridge() {
         gfo_match_destroy(game);
     }
 }
+void self_absorption_alias_bridge() {
+    namespace official=godfield::official;
+    for(uint16_t model:{uint16_t{27},uint16_t{45},uint16_t{216}}) for(int hp:{1,3,95,99}) {
+        gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;
+        config.initial_hp=40;config.initial_mp=20;config.initial_cp=20;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;
+        gfo_match* game=nullptr;gfo_state* received=nullptr;gfo_match_status outcome{};
+        check(gfo_match_create(&config,setup.data(),setup.size(),42,&game)==0,"self absorption C create");
+        gfo_state_meta meta{};std::array<gfo_state_player,2> people{};people[1].id=7;
+        for(auto& person:people){person.hp=40;person.mp=20;person.cp=20;}
+        people[0].hp=hp;people[0].item_count=3;people[1].item_offset=3;
+        std::array<gfo_state_item,3> items{};items[0].model=model;
+        items[1].token=1;items[1].model=208;items[2].token=2;items[2].model=112;
+        check(gfo_state_create(&meta,people.data(),people.size(),items.data(),items.size(),nullptr,0,&received)==0
+            &&gfo_match_load_scene(game,received,0,42,&outcome)==0,"self absorption C typed low/cap/passive scene");
+        gfo_state_destroy(received);
+        official::MatchConfig nc;nc.initial_hand=0;nc.initial_mp=20;nc.max_decisions=64;nc.external_artifacts=true;
+        official::Match native(nc);official::SnapshotState state;state.players.resize(2);state.players[1].id=7;
+        for(auto& person:state.players)person.mp=20;
+        state.players[0].hp=hp;state.players[0].items={{0,model,{},false},{1,208,{},false},{2,112,{},false}};
+        native.load_scene(state,0,42);
+        gfo_match_command use{};use.has_target=1;use.item_count=1;
+        check(gfo_match_step(game,&use,&outcome)==0&&outcome.phase==4&&!outcome.has_actor&&outcome.decisions==1,
+              "self absorption C finishes both stages in one command then only awaits a gift");
+        (void)native.step({0,official::CommandKind::play,{0},0});
+        const auto raw=official::find_card(model)->atk;const auto expected=std::min(99,std::max(0,hp-raw)+raw);
+        check(native.snapshot().state.players[0].hp==expected&&!native.snapshot().state.players[0].dead
+            &&native.snapshot().revivals==0&&native.snapshot().death_bows==0&&native.snapshot().rng==42
+            &&observe(game,0,0)==native.observe({})&&observe(game,1,0)==native.observe(0),
+              "C/native self absorption agree on low/cap HP,nominal heal,no208/112 and public metadata");
+        official::Match copy;copy.restore(native.snapshot());check(copy.snapshot()==native.snapshot(),"self absorption C-corresponding full native replay");
+        const auto before=observe(game);const auto previous=status(game);outcome=previous;
+        check(gfo_match_step(game,&use,&outcome)==-5&&equal(outcome,previous)&&observe(game)==before,
+              "ordinary retry during absorption grant phase preserves C output and world");
+        gfo_match_artifact_grant_action artifact{};artifact.model=199;
+        check(gfo_match_artifact_grant_step(game,&artifact,&outcome)==0&&outcome.phase==0&&outcome.owner==7,
+              "self absorption C explicit receipt resumes owner advancement once");
+        (void)native.artifact_grant_step({0,199,{}});
+        check(observe(game,0,0)==native.observe({})&&native.snapshot().state.players[0].hp==expected,
+              "grant continuation does not reapply either alias stage");
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
     std::size_t fixed_query_probes = 0;
@@ -355,9 +398,9 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v56"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v56 scope");
-    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v57"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v57 scope");
+    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -372,28 +415,36 @@ int main() {
     const char name[] = {'A', '\0', 'B'};
     std::array<gfo_match_player, 2> players{}; players[0].id = 0; players[0].name = name; players[0].name_size = 3;
     players[1].id = 77; players[1].name = "C"; players[1].name_size = 1;
-    // One explicit self-target38 command completes without a synthetic defend.
+    // Explicit self-target38/39 with an optional plain ATK addon completes
+    // without a synthetic defend or activation of the weapon's response trait.
     // This synthetic routing check does not reconstruct the live game's later CPU/grant actions.
-    {
+    for(uint16_t model:{uint16_t{38},uint16_t{39}}) for(bool addon:{false,true}) {
         gfo_match* self = nullptr; gfo_state* scene = nullptr; gfo_match_status outcome{};
         check(gfo_match_create(nullptr, players.data(), 2, 0, &self) == 0, "self reflection-weapon create");
         gfo_state_meta meta{}; meta.gf = 2;
         std::array<gfo_state_player, 2> people{}; people[0].id = 0; people[1].id = 77;
         for (auto& person : people) { person.hp = 40; person.mp = 10; person.cp = 20; }
-        people[1].hp = 50; people[0].item_count = 1; people[1].item_offset = 1;
-        gfo_state_item sword{}; sword.token = 0; sword.model = 38;
-        check(gfo_state_create(&meta, people.data(), people.size(), &sword, 1, nullptr, 0, &scene) == 0
+        const std::size_t count=addon?3:2;
+        people[1].hp = 50; people[0].item_count = count; people[1].item_offset = count;
+        std::array<gfo_state_item,3> items{};items[0].model=model;
+        if(addon){items[1].token=1;items[1].model=162;}
+        items[count-1].token=2;items[count-1].model=142;
+        check(gfo_state_create(&meta, people.data(), people.size(), items.data(), count, nullptr, 0, &scene) == 0
             && gfo_match_load_scene(self, scene, 0, 0, &outcome) == 0, "self reflection-weapon typed scene");
         gfo_state_destroy(scene);
         gfo_match_command use{}; use.item_count = 1; use.items[0] = 0; use.has_target = 1; use.target = 0;
+        if(addon){use.item_count=2;use.items[1]=1;}
         uint8_t allowed = 0;
         check(gfo_match_legal(self, &use, &allowed) == 0 && allowed
             && gfo_match_step(self, &use, &outcome) == 0 && outcome.phase == 0 && outcome.actor == 77
             && outcome.decisions == 1 && observe(self).find("\"pending\":null") != std::string::npos
-            && observe(self).find("\"hp\":30,\"mp\":10,\"cp\":20") != std::string::npos
+            && observe(self).find(addon?"\"hp\":15,\"mp\":10,\"cp\":20":"\"hp\":30,\"mp\":10,\"cp\":20") != std::string::npos
             && observe(self).find("\"hp\":50,\"mp\":10,\"cp\":20") != std::string::npos,
-            "self reflection-weapon applies raw10 in one main command without a response");
+            "self38/39 applies raw10 or25 once with no response and preserves opposite resources");
         const auto view = observe(self); const auto saved = outcome;
+        check(view.find("\"token\":0,")==std::string::npos&&(!addon||view.find("\"token\":1,")==std::string::npos)
+            &&view.find("\"token\":2,\"face\":142")!=std::string::npos,
+            "self39 consumes selected weapon/addon once and leaves spare DEF unused");
         gfo_match_command extra{}; extra.kind = 1;
         check(gfo_match_legal(self, &extra, &allowed) == 0 && !allowed
             && gfo_match_step(self, &extra, &outcome) == -2 && equal(outcome, saved) && observe(self) == view,
@@ -679,7 +730,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v54\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v55\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -990,15 +1041,15 @@ int main() {
         && result.terminated && result.winners[0] == 0 && result.rewards[0] == 1 && result.rewards[1] == -1,
         "raw absorption completes natural terminal");
     const auto raw_absorb = observe(effect_match);
-    check(raw_absorb.find("\"damage_effect_rule\":\"experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only\"") != std::string::npos
+    check(raw_absorb.find("\"damage_effect_rule\":\"experimental:positive-nondark-remainder;self-absorption-target-damage-before-full-nominal-heal;nonself-absorption-and-same-damage-source-side-effect-before-target-damage;counter-basis-target-damage-only;death-and-revival-after-whole-body;self27-low-hp-observed-other-aliases-same-trait-inference\"") != std::string::npos
         && raw_absorb.find("\"hp\":10,\"mp\":0") != std::string::npos && raw_absorb.find("\"hp\":0,\"mp\":0") != std::string::npos,
         "source gains raw7 even when target can lose only3");
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 98; effect_attack.target = 0; effect_pass.actor = 0;
     check(gfo_match_create(&cfg, players.data(), 2, 1121, &effect_match) == 0
         && gfo_match_step(effect_match, &effect_attack, &result) == 0 && result.phase == 0 && result.decisions == 1
-        && observe(effect_match).find("\"hp\":92,\"mp\":0") != std::string::npos,
-        "immediate source-target alias heals to99 then takes raw7 without defense");
+        && observe(effect_match).find("\"hp\":98,\"mp\":0") != std::string::npos,
+        "immediate source-target alias takes raw7 then heals nominal7 without defense");
     gfo_match_destroy(effect_match);
     cfg.initial_hp = 40; effect_attack.target = 77; effect_pass.actor = 77;
     check(gfo_match_create(&cfg, players.data(), 2, 1121, &effect_match) == 0, "zero-remainder absorption create");
@@ -2948,6 +2999,7 @@ int main() {
         &&equal(result,late_sacrifice_status)&&observe(sacrifice_match,0,0)==late_sacrifice,"late sacrifice failure restores used state, copies, gifts and caller output");
     gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
     normal_grant_modes_bridge();
+    self_absorption_alias_bridge();
     artifact_grant_bridge();
     explicit_ordinary_grant_interop();
     check(gfo_match_grant_supported(0)&&gfo_match_grant_supported(6)&&gfo_match_grant_supported(207)

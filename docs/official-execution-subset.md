@@ -3167,3 +3167,18 @@ runtimeは対局v56/Snapshot56/view-v54を維持する。45自己使用→161明
 
 
 Release全156対象とASan/UBSanの更新wire1対象が通過した。Python State21・Match166、2対局×8seed×2状態比較と独立監査の範囲は[適合計画v66](official-conformance-plan.md)へ記録する。吸収の途中順を終点一致で解決済みにはしない。
+
+
+## 対局v57（作業世代v68）：自己吸収の低HP clip順を修正
+
+公式CPUの27自己使用でHP3→damage7→boostHP7→HP7生存を取得したため、`absorb_hp` かつcurrent source==targetのbodyを、target damage・target-stage実損失算出・既存guardian damage hook・full nominal healの順に変更する。healはclipped実損失へ縮めず、各段のHPは既存resource helperでclipする。死亡・208救済・112などは従来どおりbody全体の後に確定し、HP0の途中状態を外部Snapshotに露出しない。counter基準もhealとのnet差ではなくtarget damage段の実損失である。
+
+直接観測は非Dark・明示self・単品27・curse/guardian/復活なしの1例。45/216、redirect/payload後を含む同じ自己aliasへの適用は能力に基づく限定一般化である。99上限や復活・counter・guardian併用の回帰は合成入力と区別する。非selfの吸収は先source healを維持し、53同被害のsource→target順、Dark処理、self routing、抽選・配布候補は変更しない。
+
+ruleset57 / Snapshot57（旧1〜56拒否）/ view-v55。構造体のfieldは増やさず、C ABI2、Config24・Command184・GrantAction32・ArtifactGrantAction16 byteを維持する。Python loaderは新rulesetを要求する。HpDisplay等の独立read-only schemaと台帳・旧pinsは維持する。
+
+[受信6状態](../data/official-v2/wire-game-updates-v68.json)は初期の全在庫から、準備の39＋162・空防御・19・空防御・27までの5本人操作とCPU197回復を照合する。受信slotを現native tokenへ写像し、消費後のslot再利用を新しいcopyへ割り当てる。明示の通常補充とCPU在庫差分を外部入力し、全native境界でprivate snapshot restoreを照合する。server updateCount6をnative decision数と同一視しない。
+
+同じv68で、39 `reflect_miracle` 武器の明示self（hitRate0・noWide・原発main）もDEF0・1commandの直接経路へ追加する。39＋162で25被害・2消費/補充を公式に観測したことを根拠とし、38の既存経路は維持する。防具156/167/174・190やredirectの応答経路はこのrouting変更へ含めない。headerの `self_attack_rule` にreflect-miracleを追加し、C/Pythonのexact契約も同期する。
+
+新規約の合成prefix回帰では、Heavenfallで既にHP0ならtarget damage段の実損失は0、その後にnominal2を回復して生存する。旧規約の先healによる実損失2・counter4・208救済という期待は維持しない。外部補充でpauseし、journal偽造拒否・原owner tick1回・補充再開を引き続き検査する。この複合局面自体は新しい公式実測ではない。

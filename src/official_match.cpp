@@ -623,8 +623,13 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
     std::int64_t target_damage = 0;
     if (damaging(effect)) {
         const auto remaining = std::max<std::int64_t>(0, effect.power - defense);
+        // Observed self27 applies its full nominal damage then the full heal,
+        // even when the intermediate HP clips to0. Extend that alias arithmetic
+        // to the same absorption trait, without an intermediate death hook.
+        const bool self_absorption = remaining && effect.element != Element::darkness
+            && effect.ability == Ability::absorb_hp && effect.source == effect.target;
         if (remaining && effect.element != Element::darkness) {
-            if (effect.ability == Ability::absorb_hp)
+            if (effect.ability == Ability::absorb_hp && !self_absorption)
                 change_resource(s.state.players[index(s, effect.source)], Resource::hp, remaining);
             else if (effect.ability == Ability::deal_same_damage) {
                 auto& source=s.state.players[index(s,effect.source)]; const auto hp=source.hp;
@@ -637,6 +642,7 @@ std::int64_t resolve(MatchSnapshot& s, const EffectFrame& effect, std::int64_t d
         target_damage = hp - target.hp;
         if (target_damage > 0 && effect.ability == Ability::add_curse_on_damage) add_curse(target, find_card(effect.models.front())->curse);
         guardian_damage(s,target,target_damage);
+        if (self_absorption) change_resource(target,Resource::hp,remaining);
     } else {
         switch (effect.ability) {
         case Ability::boost_hp: change_resource(target, Resource::hp, effect.amount); break;
@@ -1230,7 +1236,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
-            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon || base.ability == Ability::cut_cost
+            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::reflect_weapon || base.ability == Ability::reflect_miracle || base.ability == Ability::cut_cost
                     || base.ability == Ability::absorb_hp || base.ability == Ability::attack_twice
                     || base.ability == Ability::atk_by2x_mp || base.ability == Ability::deal_same_damage
                     || (base.ability == Ability::add_curse_on_damage && base.curse == Curse::dream)))
@@ -2097,7 +2103,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v54\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v55\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

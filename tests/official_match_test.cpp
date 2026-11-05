@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v56"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v57"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v54\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v55\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -394,7 +394,7 @@ void mp_refill_extends_retained_redirect_budget(){
 void absorption_stages_reflection_and_retention(){
     const auto ghost=image("ghost-sword"),real=image("real-ghost-sword"),vine=image("vine-shoot"),spell=image("absorption"),saturn=image("saturn-ring");
     for(auto id:{ghost,real}){auto state=scene({id},{});state.players[0].hp=40;state.players[1].hp=2;auto m=fixture(state);m.step(play(0,{0},7));check(m.snapshot().state.players[0].hp==40,"absorption side effect does not run at launch");m.step(defend(7));check(m.snapshot().state.players[0].hp==40+find_card(id)->atk&&m.snapshot().state.players[1].hp==0&&m.snapshot().terminated,"overkill absorption credits whole positive remainder before clipping target HP loss");roundtrip(m);}
-    auto selfstate=scene({ghost},{});selfstate.players[0].hp=95;auto self=fixture(selfstate);self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==92&&self.snapshot().decisions==1&&self.snapshot().owner==7,"self absorption runs95 to99 healing then99 to92 damage in one command");roundtrip(self);
+    auto selfstate=scene({ghost},{});selfstate.players[0].hp=95;auto self=fixture(selfstate);self.step(play(0,{0},0));check(self.snapshot().state.players[0].hp==95&&self.snapshot().decisions==1&&self.snapshot().owner==7,"self absorption runs95 to88 damage then88 to95 nominal healing in one command");roundtrip(self);
     auto net=redirected_self_fixture(ghost,saturn);net.step(defend(7,{1}));check(net.snapshot().state.players[1].hp==40&&net.snapshot().queue[0].is_counter&&net.snapshot().queue[0].power==14&&net.snapshot().queue[0].ability==Ability::counter2x_atk,"redirected self absorption net HP zero still creates2x7 counter from target-damage stage only");roundtrip(net);net.step(defend(7));check(net.snapshot().state.players[1].hp==26,"derived counter never inherits parent's absorption ability");roundtrip(net);
     auto blocked=fixture(scene({ghost},{image("aqua-shoes"),image("god-shield")}));blocked.step(play(0,{0},7));blocked.step(defend(7,{1}));check(blocked.snapshot().state.players[0].hp==40&&blocked.snapshot().state.players[1].hp==40,"zero positive remainder gives no absorption healing");roundtrip(blocked);
     auto reflectstate=scene({ghost},{image("reflection-sword")});reflectstate.players[0].hp=30;reflectstate.players[1].hp=79;auto reflected=fixture(reflectstate);reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));check(reflected.snapshot().state.players[0].hp==30&&reflected.snapshot().state.players[1].hp==79&&reflected.snapshot().queue[0].ability==Ability::absorb_hp,"reflection continuation never fires damage side effect before final body");roundtrip(reflected);reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==23&&reflected.snapshot().state.players[1].hp==86,"absorption credits current reflected source rather than immutable original owner");roundtrip(reflected);
@@ -403,6 +403,50 @@ void absorption_stages_reflection_and_retention(){
     auto magic=scene({spell},{image("moonlight-helm")});auto m=fixture(magic);m.step(play(0,{0},7));m.step(defend(7,{0}));check(m.snapshot().state.players[0].mp==0&&m.snapshot().state.players[0].items[0].used,"absorption miracle retains original token and pays10 once across reflection");roundtrip(m);m.step(defend(0));check(m.snapshot().state.players[0].hp==30&&m.snapshot().state.players[1].hp==50,"reflected Light absorption heals current source and damages current target once");roundtrip(m);
     auto free_state=scene({spell,image("spiritual-doll")},{image("angel-knife")});free_state.players[0].mp=0;auto free=fixture(free_state);free.step(play(0,{0,1},7));free.step(defend(7,{0}));check(free.snapshot().state.players[0].mp==0&&free.snapshot().state.players[0].items[0].used&&free.snapshot().state.players[0].hp==40&&free.snapshot().state.players[1].hp==40,"FREE retained absorption may be blocked with both healing and damage canceled");roundtrip(free);
     auto again_state=scene({spell},{image("smile-dew")});again_state.players[0].mp=20;auto again=fixture(again_state);again.step(play(0,{0},0));again.step(play(7,{0},7));again.step(play(0,{0},0));check(again.snapshot().state.players[0].mp==0&&again.snapshot().state.players[0].hp==40&&std::count_if(again.snapshot().state.players[0].items.begin(),again.snapshot().state.players[0].items.end(),[&](auto& i){return i.token==0&&i.model==spell&&i.used;})==1,"same retained absorption token pays10 on each real turn while self stages preserve uncapped HP");roundtrip(again);
+}
+
+void self_absorption_damage_first_nominal_heal_and_counter_basis(){
+    // Only self27 at HP3 is observed. Other same-trait/current-alias cases are
+    // bounded regressions for the declared rule, not additional live examples.
+    for(CardId id:{CardId{27},CardId{45},CardId{216}}) for(int hp:{1,3,7,95,99}) {
+        auto state=scene({id,208,112,184},{});state.players[0].hp=hp;state.players[0].mp=20;
+        MatchConfig deferred;deferred.external_artifacts=true;auto game=fixture(state,deferred);
+        const auto rng=game.snapshot().rng;const auto power=find_card(id)->atk;
+        const auto expected=std::min(99,std::max(0,hp-power)+power);
+        game.step(play(0,{0},0));const auto& after=game.snapshot();
+        check(after.phase==MatchPhase::grant&&after.pending_grant==0&&after.decisions==1
+            &&after.state.players[0].hp==expected&&after.state.players[0].mp==20-find_card(id)->cost
+            &&!after.state.players[0].dead&&after.revivals==0&&after.death_bows==0&&after.counter_created==0
+            &&after.gifts[0]==1&&after.rng==rng,
+            "self absorption clips damage first then heals full nominal before death/revival/counter finalization");
+        for(ItemToken token:{1,2,3})check(std::any_of(after.state.players[0].items.begin(),after.state.players[0].items.end(),
+            [&](const auto& item){return item.token==token;}),"intermediate HP0 never consumes208/112 or an unselected counter");
+        check(std::any_of(after.state.players[0].items.begin(),after.state.players[0].items.end(),
+            [&](const auto& item){return item.token==0&&item.model==id&&item.used;})==(id==216),
+            "self absorption retains only its miracle copy and consumes physical weapons once");roundtrip(game);
+        game.artifact_grant_step({0,199,{}});check(game.snapshot().state.players[0].hp==expected
+            &&game.snapshot().owner==7&&game.snapshot().state.gf==1&&game.snapshot().revivals==0,
+            "explicit deferred receipt does not repeat either absorption stage");roundtrip(game);
+    }
+    auto overkill=scene({45,231,231,231,231},{});overkill.players[0].hp=3;overkill.players[0].mp=30;
+    MatchConfig one;one.max_decisions=1;auto capped=fixture(overkill,one);const auto rng=capped.snapshot().rng;
+    capped.step(play(0,{0,1,2,3,4},0));check(capped.snapshot().state.players[0].hp==99
+        &&capped.snapshot().state.players[0].mp==6&&capped.snapshot().truncated&&!capped.snapshot().terminated
+        &&capped.snapshot().revivals==0&&capped.snapshot().death_bows==0&&capped.snapshot().rng==rng
+        &&capped.snapshot().gifts==std::vector<std::uint32_t>{0,0},
+        "composed nominal192 self heal clips99 after target damage and before command cutoff");roundtrip(capped);
+    auto alias=redirected_self_fixture(27,184,3);alias.step(defend(7,{1}));
+    check(alias.snapshot().state.players[1].hp==7&&!alias.snapshot().state.players[1].dead
+        &&alias.snapshot().counter_created==1&&alias.snapshot().queue[0].is_counter
+        &&alias.snapshot().queue[0].power==6&&alias.snapshot().queue[0].ability==Ability::counter2x_atk,
+        "low-HP redirected self absorption counters use actual target-stage loss3,not nominal7 or net HP gain");roundtrip(alias);
+    alias.step(defend(7));check(alias.snapshot().state.players[1].hp==1&&alias.snapshot().death_bows==0,
+        "derived counter keeps ordinary damage arithmetic without inheriting the parent heal");roundtrip(alias);
+    auto foreign=scene({27},{208,112});foreign.players[0].hp=foreign.players[1].hp=3;
+    auto retained=fixture(foreign);retained.step(play(0,{0},7));retained.step(defend(7));
+    check(retained.snapshot().state.players[0].hp==10&&retained.snapshot().state.players[1].hp==10
+        &&retained.snapshot().revivals==1&&retained.snapshot().death_bows==0,
+        "nonself absorption still heals source first and genuine target death still invokes208 before112");roundtrip(retained);
 }
 
 void same_damage_stages_deaths_and_journal(){
@@ -1054,15 +1098,24 @@ void fever_mask_prefix_fall_body_counter_and_self_alias(){
     auto st=scene({45},{168,184,208});st.players[1].curses={Curse::heaven};auto normal=fixture(st);normal.step(play(0,{0},7));normal.step(defend(7,{0,1}));
     check(normal.snapshot().state.players[1].hp==10&&normal.snapshot().state.players[0].hp==42&&normal.snapshot().counter_created==0&&normal.snapshot().revivals==1,"nonalias prefix fall is excluded from target body loss and counter basis while source absorbs the positive remainder");roundtrip(normal);
     auto state=scene({45},{21,168,184,208});state.players[0].curses={Curse::cold};state.players[1].curses={Curse::heaven};Match self;bool found=false;
-    for(std::uint64_t seed=0;seed<64&&!found;++seed){Match candidate;candidate.load_scene(state,0,seed);candidate.step(play(0,{0},7));candidate.step(defend(7,{0}));
+    MatchConfig deferred;deferred.external_artifacts=true;
+    for(std::uint64_t seed=0;seed<64&&!found;++seed){Match candidate(deferred);candidate.load_scene(state,0,seed);candidate.step(play(0,{0},7));candidate.step(defend(7,{0}));
         if(candidate.snapshot().actor==7&&candidate.snapshot().queue[0].source==7){self=std::move(candidate);found=true;}}
     check(found,"prefix alias fixture reaches a bounced self response without an explicit main self-defense");self.step(defend(7,{1,2}));
-    check(self.snapshot().phase==MatchPhase::response&&self.snapshot().queue[0].is_counter&&self.snapshot().queue[0].power==4&&self.snapshot().state.players[1].hp==10
-        &&self.snapshot().revivals==1&&!self.snapshot().last_tick,"redirected selfalias prefix0 then absorb2 then targetloss2 creates counter4 after whole-body rescue");roundtrip(self);
-    const auto exact=self.snapshot();for(int error=0;error<5;++error){auto bad=exact;if(error==0)bad.batch->responses[1].items={2};if(error==1)bad.batch->initial_state.players[1].curses={Curse::fever};
-        if(error==2)bad.state.players[1].hp=9;if(error==3)bad.state.players[1].curses={Curse::fever};if(error==4)bad.queue[0].power=0;bool rejected=false;try{self.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&self.snapshot()==exact,"journal replay includes self-curse prefix, temporary HP0, source-heal alias and derived counter basis");}
-    self.step(defend(7));check(self.snapshot().state.players[1].hp==6&&self.snapshot().last_tick&&self.snapshot().last_tick->owner==0
-        &&self.snapshot().last_tick->before==Curse::cold,"only after the alias counter completes does the distinct original owner tick");roundtrip(self);
+    check(self.snapshot().phase==MatchPhase::grant&&self.snapshot().queue.empty()&&self.snapshot().counter_created==0
+        &&self.snapshot().state.players[1].hp==2&&self.snapshot().revivals==0
+        &&std::any_of(self.snapshot().state.players[1].items.begin(),self.snapshot().state.players[1].items.end(),[](const auto& item){return item.token==3&&item.model==208;})
+        &&self.snapshot().last_tick&&self.snapshot().last_tick->owner==0,
+        "redirected selfalias prefixHP0 loses0 to target damage then heals nominal2 without counter or208");roundtrip(self);
+    const auto exact=self.snapshot();for(int error=0;error<5;++error){auto bad=exact;
+        if(error==0){bad.batch->responses[1].items={2};bad.grant_proof->responses[1].items={2};}
+        if(error==1){bad.batch->initial_state.players[1].curses={Curse::fever};bad.grant_proof->initial_state.players[1].curses={Curse::fever};}
+        if(error==2)bad.state.players[1].hp=9;if(error==3)bad.state.players[1].curses={Curse::fever};if(error==4)bad.revivals=1;
+        bool rejected=false;try{self.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&self.snapshot()==exact,"grant replay includes prefixHP0,damage-before-heal alias and zero target-loss counter basis");}
+    for(unsigned gift=0;gift<4;++gift){check(self.snapshot().phase==MatchPhase::grant,"ordered alias gifts remain deferred");self.artifact_grant_step({*self.snapshot().pending_grant,199,{}});roundtrip(self);}
+    check(self.snapshot().phase==MatchPhase::main&&self.snapshot().owner==7&&self.snapshot().state.players[1].hp==2
+        &&self.snapshot().counter_created==0&&self.snapshot().revivals==0&&self.snapshot().last_tick&&self.snapshot().last_tick->before==Curse::cold,
+        "zero-loss alias completes without a synthetic counter response and original owner tick runs once");roundtrip(self);
 }
 
 void heaven_herb_mp_first_reflection_rescue_and_cutoff(){
@@ -3029,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==56&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==57&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3039,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v54")!=std::string::npos
+    check(view.find("official-execution-view-v55")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3074,9 +3127,9 @@ void ordinary_self_attack_completion_and_resume(){
     resume.grant_step({0,0,{},{}});check(resume.snapshot().phase==MatchPhase::main&&resume.snapshot().owner==7
         &&resume.snapshot().state.players[0].hp==28&&resume.snapshot().state.gf==5,
         "grant continuation resumes the self-hit journal without applying damage twice");roundtrip(resume);
-    auto special=fixture(scene({39},{}));special.step(play(0,{0},0));
+    auto special=fixture(scene({62},{}));special.step(play(0,{0},0));
     check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0,
-        "unobserved special self weapons retain their existing scoped response route");
+        "unobserved Cold-on-damage self weapon retains its existing scoped response route");
     auto wide=fixture(scene({32,232},{}));wide.step(play(0,{0,1},0));
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
         "Wide continues to use its enemy roster even with a self target hint");roundtrip(wide);
@@ -3135,10 +3188,10 @@ void special_self_body_alias_cost_and_passives(){
     for(CardId id:{CardId{27},CardId{45},CardId{216}}){
         auto state=scene({id,184},{});state.players[0].hp=95;state.players[0].mp=20;
         auto game=fixture(state);game.step(play(0,{0},0));
-        check(game.snapshot().state.players[0].hp==99-find_card(id)->atk
+        check(game.snapshot().state.players[0].hp==95
             &&game.snapshot().state.players[0].mp==20-find_card(id)->cost
             &&game.snapshot().decisions==1&&game.snapshot().owner==7&&game.snapshot().counter_created==0,
-            "self absorption credits before capped alias damage and never selects an available counter");
+            "self absorption damages before its nominal alias heal and never selects an available counter");
         check(std::any_of(game.snapshot().state.players[0].items.begin(),game.snapshot().state.players[0].items.end(),[](const auto& item){return item.token==1&&item.model==184;}),
             "unused self counter is physically retained");roundtrip(game);
     }
@@ -3233,6 +3286,32 @@ void special_self_journal_resume_and_late_failure_atomicity(){
     }
 }
 
+
+void miracle_reflection_weapon_self_body_and_role_boundaries(){
+    for(CardId model:{CardId{38},CardId{39}}) for(bool extra:{false,true}) {
+        auto state=scene({model,162,142},{});MatchConfig deferred;deferred.external_artifacts=true;
+        auto game=fixture(state,deferred);const auto rng=game.snapshot().rng;
+        game.step(extra?play(0,{0,1},0):play(0,{0},0));const auto& after=game.snapshot();
+        check(after.phase==MatchPhase::grant&&after.pending_grant==0&&after.queue.empty()
+            &&after.state.players[0].hp==(extra?15:30)&&after.state.players[0].mp==10
+            &&after.state.players[0].cp==20&&after.state.players[1].hp==40&&after.decisions==1
+            &&after.gifts[0]==(extra?2u:1u)&&after.rng==rng,
+            "weapon38/39 self uses plain ATK10 plus optional15 without reflection or an extra response");
+        check(std::none_of(after.state.players[0].items.begin(),after.state.players[0].items.end(),[](const auto& item){return item.token==0;})
+            &&std::any_of(after.state.players[0].items.begin(),after.state.players[0].items.end(),[](const auto& item){return item.token==2&&item.model==142;}),
+            "self39 consumes its weapon once while unselected ordinary DEF remains unused");roundtrip(game);
+        for(unsigned gift=0;gift<(extra?2u:1u);++gift){game.artifact_grant_step({0,199,{}});roundtrip(game);}
+        check(game.snapshot().owner==7&&game.snapshot().state.gf==1&&game.snapshot().state.players[0].hp==(extra?15:30),
+            "one or two replacement receipts never repeat the39 body or owner advance");
+    }
+    for(CardId armor:{CardId{156},CardId{167},CardId{174},CardId{190}}) {
+        auto not_main=fixture(scene({armor},{}));reject(not_main,play(0,{0},0));
+        auto response=fixture(scene({210},{armor}));response.step(play(0,{0},7));response.step(defend(7,{0}));
+        check(response.snapshot().phase==MatchPhase::response&&response.snapshot().actor==0
+            &&response.snapshot().queue[0].source==7&&response.snapshot().queue[0].target==0,
+            "reflecting armor remains response-only and still redirects a foreign miracle");roundtrip(response);
+    }
+}
 
 void cut_cost_weapon_self_body_payment_and_resume(){
     auto state=scene({46,150,6,12,3,4,5,195,203},{});state.gf=3;state.players[0].hp=38;
@@ -3563,7 +3642,7 @@ void received_identity_disguise_presence_use_and_replay(){
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),231> tests{{
+    const std::array<void(*)(),233> tests{{
         dream_weapon_self_body_and_narrow_routing,
         received_identity_disguise_presence_use_and_replay,
         external_artifacts_flags_thresholds_sampler_and_driver,
@@ -3574,6 +3653,7 @@ int main(){
         explicit_ordinary_grant_delivery_rng_and_config,
         explicit_ordinary_grant_atomicity_and_replay,
         cut_cost_weapon_self_body_payment_and_resume,
+        miracle_reflection_weapon_self_body_and_role_boundaries,
         special_self_body_alias_cost_and_passives,
         special_self_repeat_two_bodies_death_and_grants,
         special_self_journal_resume_and_late_failure_atomicity,
@@ -3609,6 +3689,7 @@ int main(){
         resource_counter_dead_skip_and_journal,
         mp_refill_extends_retained_redirect_budget,
         absorption_stages_reflection_and_retention,
+        self_absorption_damage_first_nominal_heal_and_counter_basis,
         same_damage_stages_deaths_and_journal,
         composed_damage_effect_and_block_cancel,
         flash_damage_selection_and_cures,

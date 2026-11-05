@@ -107,8 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v56"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v57"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v54")
+        self.assertEqual(own["schema"], "official-execution-view-v55")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v54")
+        self.assertEqual(event["schema"], "official-execution-view-v55")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -640,8 +640,81 @@ class MatchTests(unittest.TestCase):
             else:
                 self.assertEqual((result.phase, result.actor), ("main", 1))
 
+    def test_reflect_miracle_weapon_self_single_and_composed_direct_body(self):
+        # The compound39+162 routing is received server evidence; standalone39
+        # is the narrow weapon-base trait regression. No gift identity is fit.
+        for models, power in (((39,), 10), ((39, 162), 25)):
+            with self.subTest(models=models):
+                raw = {"gf": 1, "players": [
+                    {"id": 0, "hp": 40, "mp": 10, "cp": 20,
+                     "items": [{"id": index, "modelId": model} for index, model in enumerate(models)]
+                              + [{"id": 9, "modelId": 150}]},
+                    {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+                game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+                with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+                action = Command(0, "play", tuple(range(len(models))), 0)
+                self.assertTrue(game.legal(action)); game.step(action)
+                view = game.observe(0)
+                self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 1))
+                self.assertIsNone(view["pending"])
+                self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"])
+                                  for p in view["board"]["players"]], [(40-power, 10, 20), (40, 10, 20)])
+                self.assertEqual([(i["token"], i["face"], i["used"]) for i in view["board"]["hand"]], [(9, 150, False)])
+                self.assertFalse(game.legal(Command(0, "defend", (9,))))
+                for count in range(len(models)):
+                    self.assertEqual(game.observe()["pending_grant"], {"target": 0})
+                    game.artifact_grant_step(ArtifactGrantAction(0, 6))
+                    self.assertEqual(game.status.phase, "main" if count + 1 == len(models) else "grant")
+                self.assertEqual((game.status.owner, game.observe()["board"]["gf"], game.status.decisions), (7, 2, 1+len(models)))
+                hand = game.observe(0)["board"]["hand"]
+                self.assertEqual(len(hand), 1+len(models))
+                self.assertTrue(all(item["token"] not in range(len(models)) for item in hand))
+                self.assertTrue(any(item["token"] == 9 and item["face"] == 150 for item in hand))
+
+    def test_self_absorption_damage_first_nominal_heal_low_hp_and_cap(self):
+        # Low-HP27 is received server evidence. The same absorb trait for45/216
+        # and the remaining HP cases are local regression boundaries.
+        for model, power in ((27, 7), (45, 12), (216, 10)):
+            for hp in (1, 3, power, power + 1, 98, 99):
+                with self.subTest(model=model, hp=hp):
+                    raw = {"gf": 3, "players": [
+                        {"id": 0, "hp": hp, "mp": 10, "cp": 20,
+                         "items": [{"id": 0, "modelId": model}, {"id": 1, "modelId": 208}]},
+                        {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+                    game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+                    with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+                    game.step(Command(0, "play", (0,), 0))
+                    expected = max(0, hp - power) + power
+                    view = game.observe(0)
+                    self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 1))
+                    self.assertEqual(view["board"]["players"][0]["status"]["hp"], expected)
+                    self.assertEqual(view["board"]["players"][1]["status"]["hp"], 40)
+                    self.assertEqual(view["board"]["players"][0]["status"]["mp"], 0 if model == 216 else 10)
+                    self.assertIsNone(view["pending"])
+                    self.assertFalse(game.status.terminated)
+                    copies = {item["token"]: item for item in view["board"]["hand"]}
+                    self.assertIn(1, copies)  # Heal precedes final death/revival:208 is unused.
+                    self.assertEqual(copies[1]["face"], 208)
+                    self.assertEqual(0 in copies, model == 216)
+                    if model == 216: self.assertTrue(copies[0]["used"])
+                    self.assertEqual(view["pending_grant"], {"target": 0})
+                    game.artifact_grant_step(ArtifactGrantAction(0, 6))
+                    self.assertEqual((game.status.phase, game.status.owner, game.observe()["board"]["gf"]), ("main", 7, 4))
+                    self.assertEqual(len(game.observe(0)["board"]["hand"]), 3 if model == 216 else 2)
+        # Existing nonself source-first semantics and53's two damage stages are
+        # deliberately not altered by the self-absorb exception.
+        for model, hp, target, after in ((27, 98, 7, (99, 33)), (53, 40, 0, (12, 40))):
+            raw = {"players": [{"id": 0, "hp": hp, "mp": 10, "cp": 20,
+                                "items": [{"id": 0, "modelId": model}]},
+                               {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+            game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            game.step(Command(0, "play", (0,), target))
+            if target != 0: game.step(Command(7, "defend"))
+            self.assertEqual(tuple(p["status"]["hp"] for p in game.observe()["board"]["players"]), after)
+
     def test_damage_effects_absorption_raw_order_self_damage_and_counters(self):
-        rule = "experimental:positive-nondark-remainder;current-source-side-effect-before-target-damage;counter-basis-target-damage-only"
+        rule = "experimental:positive-nondark-remainder;self-absorption-target-damage-before-full-nominal-heal;nonself-absorption-and-same-damage-source-side-effect-before-target-damage;counter-basis-target-damage-only;death-and-revival-after-whole-body;self27-low-hp-observed-other-aliases-same-trait-inference"
         config = Config(initial_hand=18, initial_mp=0)
         def hand(match, player): return {item["face"]: item["token"] for item in match.observe(player)["board"]["hand"]}
         def hp(match): return [p["status"]["hp"] for p in match.observe()["board"]["players"]]
@@ -652,7 +725,7 @@ class MatchTests(unittest.TestCase):
             self.assertTrue(seen <= set(match.supported_models))
             if added <= seen: break
         self.assertTrue(added <= seen, "all five complete damage-effect models are gifted")
-        for initial_hp, target, expected in ((40, 1, [47, 33]), (98, 1, [99, 91]), (98, 0, [92, 98]), (3, 1, [10, 0])):
+        for initial_hp, target, expected in ((40, 1, [47, 33]), (98, 1, [99, 91]), (98, 0, [98, 98]), (3, 1, [10, 0])):
             effect = self.match(config=Config(initial_hand=18, initial_hp=initial_hp, initial_mp=0), seed=1121)
             own = hand(effect, 0); self.assertIn(27, own)
             effect.step(Command(0, "play", (own[27],), target))
@@ -671,7 +744,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual(hp(match), [40, 40])
         self.assertEqual((match.observe()["pending"]["source"], match.observe()["pending"]["target"]), (1, 0))
         match.step(Command(0, "defend")); self.assertEqual(hp(match), [33, 47])
-        # Explicit self-heal and target damage net to zero without selecting a defense or counter.
+        # Explicit self damage then nominal absorption net to zero here, without a defense or counter.
         match.reset(1094); own = hand(match, 0)
         self.assertTrue({27, 184} <= own.keys())
         match.step(Command(0, "play", (own[27],), 0))
