@@ -2128,3 +2128,16 @@ Release全CTest157/157（17.96秒）、Debug ASan/UBSanの変更4target（core/C
 native234 callbackとC/Python回帰は、typed19→27受領、同face27で異なるactual19/27の公開view/合法性/policy sampleの非干渉、実5被害・reveal・消費、reverse/他pair/noDreamの拒否・原子性を検査する。Pythonは170 method。CPU修行では所持金0・MP30で価格5のモデル5がbuy→canNotBuyとなりHP13/MP30/CP0を維持したため、既存CP-only gateを変更しない。この1例を全商品・self BUY・一般CP debt順の同値性へ拡張しない。
 
 Release CTest157/157（16.60秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（18.41秒）、compile warning/error0、diff-check通過。全SAN suite/Python SANの実行とは区別する。fixtureはraw7sourceのhash/mode0600と匿名化以外のgame literal完全一致を確認し、独立read-only監査も受けた。完了観測45・native対象38・record-only7・wire264checkpoint、完全なstart→end受信列は従来1対局のまま。最終CPU BUYは未応答で退出・ホーム復帰・Network Monitor終了を確認した。
+
+
+## 作業世代v70：外部置換結果を含む178の元action再生
+
+新しい公式観測は増やさず、v69のreplaceItems8を `RedrawResponseAction` で供給する。通常Commandとは別のprivileged入力とし、全選択consume後・各178のDream後に同数のfresh unusedへ置換してから既存incoming bodyへ進める。reservedgiftを置換に混ぜず、置換のgenerator/RNGだけを差し替える。通常step/driver/samplerとlocal redrawは旧経路のまま。rules59/Snapshot59/view57、C ABI2・既存構造体幅は維持し、追加型8/16byteとC/Python入口を公開する。
+
+ActionBatchの疎なresponse_index結果と非再帰redraw_proofを保存し、普通の応答・guardian/payload・phenomenon・Fate・Devil/112・grant interleaveを元actionから再生する。grant_proofとの共存は完全一致を要求し、finish/cutoff/次main/externalのsync/clearを検査する。空置換がdefault0drawと状態同値な場合、呼び出し由来だけの別markerは置かない。入力不足・個数/モデル/fake/padding/extent不正や後段失敗ではworld/RNG/outをcommitしない。
+
+新v70wireは、受信CPU35/slot2の消費copyだけを戻したGF1 scene→launch→178＋供給8枚→別のCPU5在庫差分と本人203通常gift→既存4操作までを8seed×6状態＝48比較する。元のCPU初期draw/order、CPU-vs-viewerの暗黙gift順は復元しない。v69post-scene40も維持するため、同じ受信状態を別経路から検査する重複を含む総312比較となる。観測45のまま、既存178の1例を条件付きnative対象へ移して39、record-only6とする。低CP BUYの多候補selectorは再現しない。
+
+native238callbackは、used置換・複数178・空結果・新208/112のbody接続・cutoff・次main BUYへのproof非干渉・全origin・snapshot偽造・token/update後半失敗・通常step/driverのstate/RNG一致を検査する。C bridgeはnested storageの借用/所有copy、8/16layout、NULL・extent・padding・fake presence・out canary、C/native parityを検査し、Python173methodにはfrozen DTOの所有tuple・実8枚・空/multi/失敗回帰を含む。
+
+Release157/157（18.05秒）、Debug ASan/UBSanの変更3target3/3（18.50秒）、compile warning/error0、C11 -Werrorの新旧型layout/prototype、実行規約のPython使用例、diff-checkが通過した。全SAN/Python SANや公式selector分布の証明ではない。独立read-only監査も通過し、既存v69/pinsは変更せず、新しい再生reportへ検証範囲と結果を保存する。

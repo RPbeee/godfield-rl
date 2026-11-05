@@ -417,3 +417,14 @@ native比較は一新後update2〜6の5状態×既存8seed＝40だけで、178�
 | --- | ---: | --- |
 | `wire-game-updates-v69.json` | 30,371 | `07dc4facb5cb0c3fe6bda23be0a107cf9f9391d3aa0ea27fbb3ed76f7e77c24a` |
 | `live-transition-witnesses-v69.json` | 25,537 | `2aafaafd2904c9dfe447ed2be772c61e6fa0bd5a8650771456724dbb3ededa07` |
+
+
+## v70：既存一新8枚の外部指定再生（新観測なし）
+
+[再生report](supplied-redraw-replay-v70.json)は、v69の受信update1〜6を外部結果付き178応答から再生した範囲を記録する。CPU35/slot2の消費copyだけをイベントから戻してlaunchし、178消費後に受信8枚を指定する。通常補充のCPU5在庫差分と本人203は別に供給する。旧post-scene40比較を保った追加48比較であり、同じ受信状態の重複を含む総312。新しいresponse body・対局・観測は取得していない。
+
+観測45のまま、既存178を外部結果条件付きnative対象へ移して39/record-only6とする。終末の悪魔境界・全一新抽選・BUY商品selectorは未証明である。通常generator/driver/sampler・RNGを変更せず、v59/Snapshot59/view57、新C型8/16byteを追加し既存ABI2と型幅は維持する。Release157/157・重点SAN3/3・C11/layoutとPython使用例が通過した。既存v69のwire/witness・旧pinsは変更しない。
+
+| v70 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `supplied-redraw-replay-v70.json` | 9,363 | `f3a73632f43ffe363050fede8a8dfc812245d24b47c165934a578ce389b4c8cc` |

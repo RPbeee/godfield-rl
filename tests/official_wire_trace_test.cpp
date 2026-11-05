@@ -789,12 +789,48 @@ constexpr std::array checkpoints{
     ReceivedCheckpoint{6,6,2,{{{1,40,10,20,false,p1[4]},{2,13,30,0,false,p2[4]}}},0},
 };
 
-void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed) {
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed,
+             std::uint64_t redraw_count=0) {
     compare_checkpoint(game,slots,checkpoints[checkpoint],PlayerId{2});
     const auto& snap=game.snapshot();
-    check(snap.rng==seed&&!snap.terminated&&!snap.truncated&&snap.redraws==0
+    check(snap.rng==seed&&!snap.terminated&&!snap.truncated&&snap.redraws==redraw_count&&snap.redrawn_items==8*redraw_count
           &&snap.dream_rolls==0&&snap.dream_masks==0,
           "v69 post-redraw projection uses no generated replacement,mask draw or seed fitting");
+}
+void continue_replay(Match& game,SlotMap& slots,std::uint64_t seed,std::uint64_t redraw_count=0) {
+    const auto initial_decisions=game.snapshot().decisions;
+    const Command self{2,CommandKind::play,{consumed_slot(slots,2,2)},2};
+    check(game.legal(self),"v69 face27 self choice is legal with the received actual19");
+    (void)game.step(self);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==35&&game.snapshot().decisions==initial_decisions+1
+          &&game.snapshot().phase==MatchPhase::grant&&game.snapshot().gifts[1]==1
+          &&game.snapshot().queue.empty(),
+          "v69 actual19 deals5 without fake27 absorption or an extra self-defense");
+    v64::receipt(game,slots,2,2,21,21);
+    const Command attack{1,CommandKind::play,{consumed_slot(slots,1,3)},2};
+    check(game.legal(attack),"v69 received CPU47 launch is legal");
+    (void)game.step(attack);roundtrip(game);compare(game,slots,1,seed,redraw_count);
+    const Command defense{2,CommandKind::defend,{consumed_slot(slots,2,6)},{}};
+    check(game.legal(defense),"v69 visibleDEF5 permits the recorded physical response");
+    (void)game.step(defense);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==23,
+          "v69 actual113 DEF1,not face135 DEF5,leaves12 target damage");
+    // The CPU receipt is a positive inventory delta. Its ordering relative to
+    // the explicit viewer gift is not an observed server schedule.
+    v64::receipt(game,slots,1,3,105);v64::receipt(game,slots,2,6,195,196);
+    compare(game,slots,2,seed,redraw_count);
+    const Command exchange{2,CommandKind::exchange,{consumed_slot(slots,2,1)},{},ResourceAllocation{23,30,0}};
+    check(game.legal(exchange),"v69 observed no-fee exchange allocation is legal");
+    (void)game.step(exchange);roundtrip(game);v64::receipt(game,slots,2,1,213);
+    const Command next{1,CommandKind::play,{consumed_slot(slots,1,5)},2};
+    check(game.legal(next),"v69 received CPU35 launch is legal");
+    (void)game.step(next);roundtrip(game);compare(game,slots,3,seed,redraw_count);
+    const Command empty{2,CommandKind::defend,{},{}};
+    check(game.legal(empty),"v69 recorded empty response preserves CP0 and MP30");
+    (void)game.step(empty);roundtrip(game);v64::receipt(game,slots,1,5,142);
+    compare(game,slots,4,seed,redraw_count);
+    // Stop before the multi-candidate BUY selector. The observed positive-price
+    // rejection remains record-only; no seed is selected to mimic its commodity.
 }
 void replay(std::uint64_t seed) {
     MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
@@ -812,38 +848,63 @@ void replay(std::uint64_t seed) {
           &&!match_dream_disguise_supported(27,19),
           "v69 accepted received19-to27 does not change the old generation class or reverse direction");
     game.load_scene(std::move(state),2,seed);compare(game,slots,0,seed);
-    const Command self{2,CommandKind::play,{consumed_slot(slots,2,2)},2};
-    check(game.legal(self),"v69 face27 self choice is legal with the received actual19");
-    (void)game.step(self);roundtrip(game);
-    check(game.snapshot().state.players[1].hp==35&&game.snapshot().decisions==1
-          &&game.snapshot().phase==MatchPhase::grant&&game.snapshot().gifts[1]==1
-          &&game.snapshot().queue.empty(),
-          "v69 actual19 deals5 without fake27 absorption or an extra self-defense");
-    v64::receipt(game,slots,2,2,21,21);
-    const Command attack{1,CommandKind::play,{consumed_slot(slots,1,3)},2};
-    check(game.legal(attack),"v69 received CPU47 launch is legal");
-    (void)game.step(attack);roundtrip(game);compare(game,slots,1,seed);
-    const Command defense{2,CommandKind::defend,{consumed_slot(slots,2,6)},{}};
-    check(game.legal(defense),"v69 visibleDEF5 permits the recorded physical response");
-    (void)game.step(defense);roundtrip(game);
-    check(game.snapshot().state.players[1].hp==23,
-          "v69 actual113 DEF1,not face135 DEF5,leaves12 target damage");
-    // The CPU receipt is a positive inventory delta. Its ordering relative to
-    // the explicit viewer gift is not an observed server schedule.
-    v64::receipt(game,slots,1,3,105);v64::receipt(game,slots,2,6,195,196);
-    compare(game,slots,2,seed);
-    const Command exchange{2,CommandKind::exchange,{consumed_slot(slots,2,1)},{},ResourceAllocation{23,30,0}};
-    check(game.legal(exchange),"v69 observed no-fee exchange allocation is legal");
-    (void)game.step(exchange);roundtrip(game);v64::receipt(game,slots,2,1,213);
-    const Command next{1,CommandKind::play,{consumed_slot(slots,1,5)},2};
-    check(game.legal(next),"v69 received CPU35 launch is legal");
-    (void)game.step(next);roundtrip(game);compare(game,slots,3,seed);
-    const Command empty{2,CommandKind::defend,{},{}};
-    check(game.legal(empty),"v69 recorded empty response preserves CP0 and MP30");
-    (void)game.step(empty);roundtrip(game);v64::receipt(game,slots,1,5,142);
-    compare(game,slots,4,seed);
-    // Stop before the multi-candidate BUY selector. The observed positive-price
-    // rejection remains record-only; no seed is selected to mimic its commodity.
+    continue_replay(game,slots,seed);
+}
+}
+
+// v70 reuses v69 received states; no new official observations.
+namespace v70 {
+constexpr std::array<ReceivedSlot,9> before_cpu{{{1,81},{3,47},{4,129},{5,35},{6,230},{7,15},{8,118},{9,16},{0,0}}};
+constexpr std::array<ReceivedSlot,9> before_viewer{{{1,199},{2,203},{3,180},{4,123},{5,178},{6,148},{7,5},{8,4},{9,5}}};
+constexpr ReceivedCheckpoint before{1,1,1,{{{1,40,10,20,false,before_cpu},{2,40,10,20,false,before_viewer}}},35};
+
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?before_viewer:before_cpu) {
+            if(!row.model)continue;
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        // Reconstruct only the consumed CPU35 copy from the received launch.
+        // Its original initial-draw/order is not known.
+        if(!seat){player.items.push_back({1002,35,{},false});slots[{1,2}]=1002;}
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);
+    const Command launch{1,CommandKind::play,{consumed_slot(slots,1,2)},2};
+    check(game.legal(launch),"v70 reconstructed received CPU35 launch is legal");
+    (void)game.step(launch);roundtrip(game);compare_checkpoint(game,slots,before);
+    const auto fresh=game.snapshot().next_token;
+    RedrawResult replacement;
+    for(std::size_t i=0;i<8;++i) {
+        const auto& row=v69::p2[0][i];
+        replacement.items.push_back({row.model,row.fake?std::optional<CardId>{row.fake}:std::nullopt});
+    }
+    const RedrawResponseAction response{{2,CommandKind::defend,{consumed_slot(slots,2,5)},{}},{replacement}};
+    const auto pending=game.snapshot();
+    check(game.redraw_response_legal(response)&&game.snapshot()==pending,
+          "v70 supplied8 redraw preflight is immutable and accepts the received19/27 and202/202");
+    (void)game.redraw_response_step(response);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==40
+          &&game.snapshot().state.players[1].curses==std::vector<Curse>{Curse::dream}
+          &&game.snapshot().redraws==1&&game.snapshot().redrawn_items==8
+          &&game.snapshot().state.players[1].items.size()==8&&game.snapshot().next_token==fresh+8
+          &&game.snapshot().gifts==std::vector<std::uint32_t>{1,1}
+          &&game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1
+          &&game.snapshot().rng==seed&&game.snapshot().dream_rolls==0&&game.snapshot().dream_masks==0
+          &&game.snapshot().redraw_proof.has_value(),
+          "v70 supplied178 replaces8 physical copies before body and preserves both ordinary debts without selector RNG");
+    for(auto it=slots.begin();it!=slots.end();) {
+        if(it->first.first==2)it=slots.erase(it);else++it;
+    }
+    for(std::size_t i=0;i<8;++i)slots[{2,v69::p2[0][i].slot}]=fresh+i;
+    // CPU5 is a received positive inventory delta. The explicit viewer gift203
+    // is separate from replaceItems8; CPU-vs-viewer receipt order is unobserved.
+    v64::receipt(game,slots,1,2,5);v64::receipt(game,slots,2,9,203);
+    v69::compare(game,slots,0,seed,1);v69::continue_replay(game,slots,seed,1);
 }
 }
 
@@ -853,7 +914,7 @@ int main() {
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -868,4 +929,5 @@ int main() {
     std::cout<<"v66: 2 scenarios x8 seeds x2 state checkpoints; self45 endpoint and self14 two hits/single receipt; absorb intermediate order and unobserved BUY offer excluded\n";
     std::cout<<"v68: 8 seeds x6 received states from initial setup through self27 atHP3 toHP7; five viewer operations and CPU MP recovery; explicit receipts,not a completed game or server RNG proof\n";
     std::cout<<"v69: 8 seeds x5 received post-redraw states; masked19/27 self,113/135 defense,CP0 exchange and empty response;178 generation and multi-candidate BUY selector excluded\n";
+    std::cout<<"v70: 8 seeds x6 reused v69 received states including178 with supplied8 replacements; reserved gifts separate,full private replay; no new observations or selector/RNG equivalence\n";
 }

@@ -419,8 +419,75 @@ void directed_dream_receipt_bridge() {
         gfo_match_destroy(game);
     }
 }
+void redraw_response_bridge() {
+    namespace official=godfield::official;
+    check(gfo_match_redraw_item_size()==8&&gfo_match_redraw_result_size()==16
+        &&offsetof(gfo_match_redraw_item,has_fake)==4&&offsetof(gfo_match_redraw_result,item_count)==8
+        &&std::string(gfo_match_redraw_response_rule())==official::redraw_response_rule,"redraw additive8/16B layout and static rule");
+    for(unsigned scenario=0;scenario<4;++scenario){
+        const unsigned hats=scenario==3?2:1,remaining=scenario==2?8:scenario==0?0:1;
+        gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;
+        config.initial_hp=40;config.initial_mp=10;config.initial_cp=20;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;gfo_match* game=nullptr;gfo_match_status outcome{};
+        check(gfo_match_create(&config,setup.data(),2,42,&game)==0,"supplied redraw C create");
+        std::array<gfo_state_player,2> people{};people[1].id=7;
+        for(auto& player:people){player.hp=40;player.mp=10;player.cp=20;}
+        people[0].item_count=1;people[1].item_offset=1;people[1].item_count=hats+remaining;
+        std::vector<gfo_state_item> items(1+hats+remaining);items[0].model=6;
+        for(unsigned i=0;i<hats+remaining;++i){items[i+1].token=i;items[i+1].model=i<hats?178:i==hats?235:6;items[i+1].used=i==hats;}
+        gfo_state_meta meta{};meta.gf=1;gfo_state* received=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),items.size(),nullptr,0,&received)==0
+            &&gfo_match_load_scene(game,received,0,42,&outcome)==0,"supplied redraw typed initial scene");gfo_state_destroy(received);
+        official::MatchConfig nc;nc.initial_hand=0;nc.external_artifacts=true;nc.max_decisions=64;official::Match native(nc);
+        official::SnapshotState state;state.gf=1;state.players.resize(2);state.players[1].id=7;state.players[0].items={{0,6,{},false}};
+        for(unsigned i=0;i<hats+remaining;++i)state.players[1].items.push_back({i,static_cast<official::CardId>(i<hats?178:i==hats?235:6),{},i==hats});
+        native.load_scene(state,0,42);
+        const auto audit=[&]{official::Match restored;restored.restore(native.snapshot());check(restored.snapshot()==native.snapshot(),"redraw private proof restores at every boundary");
+            check(observe(game,0,0)==native.observe({})&&observe(game,1,7)==native.observe(7),"redraw C/native spectator and own views match");};
+        gfo_match_command launch{};launch.has_target=1;launch.target=7;launch.item_count=1;
+        check(gfo_match_step(game,&launch,&outcome)==0,"redraw incoming weapon launch");native.step({0,official::CommandKind::play,{0},7});audit();
+        gfo_match_command defense{};defense.actor=7;defense.kind=1;defense.item_count=hats;
+        official::RedrawResponseAction native_action;native_action.response={7,official::CommandKind::defend,{}, {}};
+        for(unsigned i=0;i<hats;++i){defense.items[i]=i;native_action.response.items.push_back(i);}
+        std::vector<std::vector<gfo_match_redraw_item>> rows(hats);std::vector<gfo_match_redraw_result> results(hats);
+        const std::array<std::pair<uint16_t,uint16_t>,8> observed{{{3,0},{19,27},{5,0},{202,202},{29,23},{113,135},{196,195},{5,0}}};
+        for(unsigned i=0;i<hats;++i){official::RedrawResult nr;
+            for(unsigned j=0;j<remaining;++j){const auto pair=remaining==8?observed[j]:std::pair<uint16_t,uint16_t>{19,27};
+                rows[i].push_back({pair.first,pair.second,static_cast<uint8_t>(pair.second!=0),{}});
+                nr.items.push_back({pair.first,pair.second?std::optional<official::CardId>{pair.second}:std::nullopt});}
+            results[i]={rows[i].empty()?nullptr:rows[i].data(),rows[i].size()};native_action.results.push_back(std::move(nr));}
+        const auto before=observe(game,1,7);const auto old=status(game);uint8_t legal=77;
+        if(scenario==1){
+            const auto unchanged=[&]{check(equal(status(game),old)&&observe(game,1,7)==before,"redraw invalid C input leaves full state unchanged");};
+            check(gfo_match_redraw_response_legal(nullptr,&defense,results.data(),1,&legal)==-1
+                &&gfo_match_redraw_response_legal(game,nullptr,results.data(),1,&legal)==-1
+                &&gfo_match_redraw_response_legal(game,&defense,results.data(),1,nullptr)==-1&&legal==77,"redraw NULL outputs unchanged");
+            check(gfo_match_redraw_response_legal(game,&defense,reinterpret_cast<const gfo_match_redraw_result*>(1),std::numeric_limits<size_t>::max(),&legal)==-2&&legal==77,"redraw outer extent checked before pointer");
+            gfo_match_redraw_result huge{reinterpret_cast<const gfo_match_redraw_item*>(1),19};
+            check(gfo_match_redraw_response_legal(game,&defense,&huge,1,&legal)==-2&&legal==77,"redraw nested extent checked before pointer");
+            check(gfo_match_redraw_response_legal(game,&defense,nullptr,1,&legal)==-1&&legal==77,"redraw missing result storage");
+            gfo_match_redraw_result null_items{nullptr,1};check(gfo_match_redraw_response_legal(game,&defense,&null_items,1,&legal)==-1&&legal==77,"redraw missing item storage");
+            for(unsigned error=0;error<6;++error){auto bad=rows[0][0];
+                if(error<3)bad.reserved[error]=1;if(error==3)bad.has_fake=2;if(error==4)bad.has_fake=0;if(error==5)bad.fake_model=0;
+                const gfo_match_redraw_result invalid{&bad,1};outcome=old;legal=77;
+                check(gfo_match_redraw_response_legal(game,&defense,&invalid,1,&legal)==-2&&legal==77
+                    &&gfo_match_redraw_response_step(game,&defense,&invalid,1,&outcome)==-2&&equal(outcome,old),"redraw padding/presence errors preserve canaries");unchanged();}
+            outcome=old;check(gfo_match_redraw_response_step(game,&defense,nullptr,0,&outcome)==-2&&equal(outcome,old),"partial supplied result list is rejected atomically");unchanged();
+        }
+        legal=0;check(gfo_match_redraw_response_legal(game,&defense,results.data(),results.size(),&legal)==0&&legal&&observe(game,1,7)==before,"redraw legal is a pure query");
+        check(gfo_match_redraw_response_step(game,&defense,results.data(),results.size(),&outcome)==0,"complete supplied replacement response succeeds");native.redraw_response_step(native_action);
+        for(auto& row:rows)for(auto& item:row)item.model=1; // Borrowed input no longer backs state/proof.
+        audit();check(native.snapshot().rng==42&&native.snapshot().dream_rolls==0&&native.snapshot().dream_masks==0
+            &&native.snapshot().redraws==hats&&native.snapshot().redrawn_items==hats*remaining
+            &&native.snapshot().state.players[1].items.size()==remaining,"supplied zero/eight/multiple replacements do not draw or retain used copies");
+        while(native.snapshot().phase==official::MatchPhase::grant){const auto target=*native.snapshot().pending_grant;gfo_match_artifact_grant_action artifact{};artifact.target=target;artifact.model=6;
+            check(gfo_match_artifact_grant_step(game,&artifact,&outcome)==0,"reserved gifts remain independent after supplied redraw");native.artifact_grant_step({target,6,{}});audit();}
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
+    redraw_response_bridge();
     std::size_t fixed_query_probes = 0;
     check(gfo_match_abi_version() == 2 && gfo_match_config_size() == sizeof(gfo_match_config)
         && gfo_match_player_size() == sizeof(gfo_match_player) && gfo_match_command_size() == sizeof(gfo_match_command)
@@ -456,8 +523,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v58"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v58 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v59"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v59 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
@@ -788,7 +855,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v56\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v57\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

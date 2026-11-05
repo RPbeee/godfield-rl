@@ -3191,3 +3191,43 @@ ruleset57 / Snapshot57（旧1〜56拒否）/ view-v55。構造体のfieldは増�
 closed_state・ArtifactGrant・使用後revealの共有predicateがこの例を受理する。19→27の明示受領はDreamを必要とし、fake presenceをNoneへ潰さず、fresh unused copyとprivate typed journalを保持する。reverse27→19や他の未観測不一致は許可しない。`match_dream_compatible` と `dream_faces` は変更せず、生成候補/eligible数/半coin/乱数/通常配布poolは旧規約を維持する。公式の全偽装候補や50%分布を再現したとは呼ばない。
 
 ruleset58 / Snapshot58（旧1〜57拒否）/ view-v56。C ABI2、Config24・Command184・Grant32・Artifact16 byteは維持する。初期178一新の抽選とCP0 BUYの商品選出は受信記録だけを保持し、after-redraw GF2の受信sceneから自己19/fake27、防御113/fake135、両替23/30/0、空防御を40checkpointで比較する。CPU在庫差分は外部Artifactとして供給し、サーバーの暗黙gift順・native decisionとupdateCountの同一視は避ける。
+
+
+## 対局v59（作業世代v70）：外部結果付き178応答
+
+`RedrawResponseAction{response,results}` はprivilegedな環境結果付き応答であり、通常の `Command` / `PlayerChoice` へ結果を混入させない。`redraw_response_legal` は通常の見かけによる応答検査と、actual178ごとに1件の結果・全選択消費後のphysical枚数・設定pool・fake・fresh token余地を検査する。legal queryはdrawや状態変更を行わない。`redraw_response_step` は全Matchcopy上で、通常の全選択消費→選択順の178ごとのDream→即時置換→incoming body/208/112/counter/FIFOへ進む。余分なdecision/phase/feeは作らない。
+
+各 `RedrawResult` は `RedrawItem{model,optional fake_model}` の順序付き列で、token/owner/usedは供給しない。used miracleを含むその時点の全physicalコピーを同数のfresh unusedへ置換し、予約giftは触らない。複数帽子なら各段の結果を指定し、remaining0の場合も空の結果1件が必要。モデルは設定された通常配布pool（任意207を含む）に限り、悪魔・0・未対応偽装を拒否する。178が付与するDream後の受信fakeには現predicateを使い、19→27や同番号のpresenceも保つ。NoneはDream中でも明示unmaskedである。
+
+置換自身はgame/chance RNGとローカルDream生成統計を使わない。bodyやguardian、後続の通常補充が本来行うdrawは維持する。新しい疎な `ActionBatch.resolved_redraws` と非再帰 `MatchSnapshot.redraw_proof` にresponse index/結果を私的に保持し、通常・guardian・payload・phenomenon・Fate・Devil/死亡・補充interleaveの元actionから全worldを再生する。grant_proofと共存する場合は両journalを一致させる。次のaccepted main/external actionで古いproofをclearする。空置換がdefault0drawと同値な場合、外部API利用の由来だけの別counterは作らない。
+
+不正な個数・モデル・fake・index・順序やtoken不足、後半のupdate失敗ではHP/手札/予約枠/乱数/出力/履歴をcommitしない。公開viewは既存のowner IDだけの `last_redraws` を維持し、供給モデル列や古い未選択手札を新たに公開しない。
+
+C APIは追加の `gfo_match_redraw_item` 8 byte（model/fake/has_fake/padding）と `gfo_match_redraw_result` 16 byte（pointer/count）、通常Command pointer＋結果配列を取るlegal/stepを公開する。旧ABI2・Config24・Command184・Grant32・Artifact16は維持する。C入力はextent・NULL・padding・fake presenceを検査して所有copyへ変換し、statusを作ってからworld/outをcommitする。Pythonはfrozen `RedrawItem` と所有tupleへ正規化した `RedrawResponseAction` を提供する。
+
+```python
+from official_match import (Match, Config, Command, RedrawItem,
+                            RedrawResponseAction, ArtifactGrantAction)
+from official_state import OfficialState
+
+# library引数/既定libraryの設定は通常のMatchと同じ。
+with Match(config=Config(initial_hand=0, external_artifacts=True)) as game:
+    raw = {"gf": 1, "players": [
+        {"id": 0, "hp": 40, "mp": 10, "cp": 20,
+         "items": [{"id": 0, "modelId": 6}]},
+        {"id": 7, "hp": 40, "mp": 10, "cp": 20,
+         "items": [{"id": 0, "modelId": 178}, {"id": 1, "modelId": 199}]}]}
+    with OfficialState(raw) as scene:
+        game.load_scene(scene, 0, 42)
+    game.step(Command(0, "play", (0,), 7))
+    action = RedrawResponseAction(Command(7, "defend", (0,)),
+                                  ((RedrawItem(19, 27),),))
+    game.redraw_response_step(action)
+    # 1枚の置換は完了。source/defenderの通常予約giftは別に供給する。
+    game.artifact_grant_step(ArtifactGrantAction(0, 6))
+    game.artifact_grant_step(ArtifactGrantAction(7, 203))
+```
+
+ruleset59 / Snapshot59（旧1〜58拒否）/ view-v57へ更新する。defaultのCommand/driver/sampler/redraw generatorや候補・率は変更しない。これは結果が既知の場合の条件付き再生であり、公式の選出分布・終末の悪魔境界・一般server scheduleの証明ではない。
+
+検証はRelease157/157（18.05秒）、変更したnative core/C/wireのDebug ASan/UBSan3/3（18.50秒）。native238群・Python173method、C11の8/16と旧184/24layout/prototype、上記Python使用例を通過した。全SAN/Python SANの実行とは区別する。

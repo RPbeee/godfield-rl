@@ -388,3 +388,10 @@ HP0への表示変更でdead・208復活・112攻撃・gift・手番を生成せ
 [受信update5→6](../data/official-v2/wire-game-updates-v68.json)の27は初期HP3・damage7・boostHP7・最終HP7で、`HpDisplay` の検査に3→0→7を追加した。中間HP0を独立した受信Snapshotとして得たのではなく、固定clientのclip算術を受信イベント順に適用した表示値である。対局本体の修正と39の直接自己使用は別のMatchテストで検査し、ruleset57/Snapshot57/view-v55とする。HP部品のschema/APIは維持する。
 
 HP10群と従来2,617行×2分岐を含めRelease157/157、変更したnative4対象のASan/UBSan4/4が通過した。未取得の上限・guardian・復活複合の公式結果は、合成回帰と区別する。
+
+
+## v70：外部一新結果と公開表示の分離
+
+外部結果付き178応答は `RedrawItem` のモデル/fake列をprivate journalとredraw_proofへ保持する。公開表示には既存のowner IDだけの `last_redraws` を使い、old未選択手札・replacementの真値/個数列・response index/proofは追加しない。本人の新手札は通常のDream/fake表示に従い、同番号のpresenceや19→27も保持する。公開JSONの新しい欄 `redraw_response_rule` は静的契約だけである。
+
+通常Command/PlayerChoice/driverのpolicy出力に結果を含めず、privilegedなC++/C/Python入口からだけ指定する。Match viewはv57、対局rules59/Snapshot59。独立read-only State/ActiveDisplay/HpDisplayのschemaは維持する。

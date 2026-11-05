@@ -149,6 +149,41 @@ class ArtifactGrantAction:
     fake_model: int | None = None
 
 @dataclass(frozen=True)
+class RedrawItem:
+    """Supplied fresh unused replacement; None is an explicit absent disguise."""
+    model: int
+    fake_model: int | None = None
+
+    def __post_init__(self):
+        _integer(self.model, "redraw model", 1, 65535)
+        if self.fake_model is not None: _integer(self.fake_model, "redraw face", 1, 65535)
+
+@dataclass(frozen=True)
+class RedrawResponseAction:
+    """One ordinary response plus one owned result list per selected actual178.
+
+    Results replace all remaining physical copies before the attack body.
+    No token, used flag or owner is supplied; ordinary reserved gifts are separate.
+    """
+    response: Command
+    results: tuple[tuple[RedrawItem, ...], ...]
+
+    def __post_init__(self):
+        object.__setattr__(self, "response", _decode_command(_command(self.response)))
+        copied = []
+        try:
+            for result in self.results:
+                if len(copied) == 18: raise InvalidMatchError("at most18 redraw results")
+                items = []
+                for item in result:
+                    if len(items) == 18: raise InvalidMatchError("at most18 redraw items per result")
+                    if type(item) is not RedrawItem: raise InvalidMatchError("redraw items require RedrawItem")
+                    items.append(item)
+                copied.append(tuple(items))
+        except TypeError as error: raise InvalidMatchError("redraw results must be item sequences") from error
+        object.__setattr__(self, "results", tuple(copied))
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -211,6 +246,10 @@ class _FateAction(c.Structure):
                 ("shuffle", _ItemShuffleAction), ("has_shuffle", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _ArtifactGrantAction(c.Structure):
     _fields_ = [("target", c.c_uint64), ("model", c.c_uint16), ("fake_model", c.c_uint16), ("reserved", c.c_uint8 * 4)]
+class _RedrawItem(c.Structure):
+    _fields_ = [("model", c.c_uint16), ("fake_model", c.c_uint16), ("has_fake", c.c_uint8), ("reserved", c.c_uint8 * 3)]
+class _RedrawResult(c.Structure):
+    _fields_ = [("items", c.POINTER(_RedrawItem)), ("item_count", c.c_size_t)]
 class _DevilAction(c.Structure):
     _fields_ = [("target", c.c_uint64), ("removed", c.c_uint64 * 2), ("model", c.c_uint16),
                 ("resource", c.c_uint8), ("has_resource", c.c_uint8), ("removed_count", c.c_uint8), ("reserved", c.c_uint8 * 3)]
@@ -334,6 +373,16 @@ def _artifact_grant_action(value):
         model=_integer(value.model, "artifact model", 1, 65535),
         fake_model=0 if value.fake_model is None else _integer(value.fake_model, "artifact face", 1, 65535))
 
+def _redraw_response_action(value):
+    if type(value) is not RedrawResponseAction: raise InvalidMatchError("operation requires RedrawResponseAction")
+    copied, records = [], []
+    for items in value.results:
+        storage = (_RedrawItem * len(items))(*(_RedrawItem(model=item.model,
+            fake_model=0 if item.fake_model is None else item.fake_model, has_fake=item.fake_model is not None) for item in items))
+        copied.append(storage)
+        records.append(_RedrawResult(items=storage if items else None, item_count=len(items)))
+    return _command(value.response), (_RedrawResult * len(records))(*records), copied
+
 def _resource_action(value, record_type, minimum):
     if not isinstance(value, record_type): raise InvalidMatchError(f"operation requires {record_type.__name__}")
     encoded = _DevilAction(target=_integer(value.target, "recipient"), model=_integer(value.model, "model", minimum, 65535))
@@ -446,18 +495,19 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule", "redraw_response_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size"):
+            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size", "redraw_item_size", "redraw_result_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
         self.self_attack_rule = lib.gfo_match_self_attack_rule().decode()
         self.artifact_grant_rule = lib.gfo_match_artifact_grant_rule().decode()
         self.normal_grant_rule = lib.gfo_match_normal_grant_rule().decode()
+        self.redraw_response_rule = lib.gfo_match_redraw_response_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v58"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v59"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21
@@ -485,6 +535,10 @@ class Match:
             or _DevilAction.model.offset != 24 or _DevilAction.resource.offset != 26
             or _DevilAction.has_resource.offset != 27 or _DevilAction.removed_count.offset != 28 or _DevilAction.reserved.offset != 29
             or lib.gfo_match_grant_action_size() != c.sizeof(_DevilAction)
+            or lib.gfo_match_redraw_item_size() != c.sizeof(_RedrawItem)
+            or c.sizeof(_RedrawItem) != 8 or _RedrawItem.fake_model.offset != 2 or _RedrawItem.has_fake.offset != 4 or _RedrawItem.reserved.offset != 5
+            or lib.gfo_match_redraw_result_size() != c.sizeof(_RedrawResult)
+            or c.sizeof(_RedrawResult) != 16 or _RedrawResult.item_count.offset != 8
             or lib.gfo_match_artifact_grant_action_size() != c.sizeof(_ArtifactGrantAction)
             or c.sizeof(_ArtifactGrantAction) != 16 or _ArtifactGrantAction.model.offset != 8
             or _ArtifactGrantAction.fake_model.offset != 10 or _ArtifactGrantAction.reserved.offset != 12):
@@ -556,6 +610,10 @@ class Match:
         lib.gfo_match_artifact_grant_legal.restype = c.c_int
         lib.gfo_match_artifact_grant_step.argtypes = [c.c_void_p, c.POINTER(_ArtifactGrantAction), c.POINTER(_Status)]
         lib.gfo_match_artifact_grant_step.restype = c.c_int
+        lib.gfo_match_redraw_response_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_RedrawResult), c.c_size_t, c.POINTER(c.c_uint8)]
+        lib.gfo_match_redraw_response_legal.restype = c.c_int
+        lib.gfo_match_redraw_response_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_RedrawResult), c.c_size_t, c.POINTER(_Status)]
+        lib.gfo_match_redraw_response_step.restype = c.c_int
 
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
@@ -764,6 +822,22 @@ class Match:
         self._open(); encoded = _artifact_grant_action(action); result = _Status()
         _check(self._lib.gfo_match_artifact_grant_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
+
+    def redraw_response_legal(self, action):
+        """Validate a complete supplied178 replacement response without drawing."""
+        self._open(); response, results, copied = _redraw_response_action(action); out = c.c_uint8()
+        _check(self._lib.gfo_match_redraw_response_legal(self._handle, c.byref(response), results if len(results) else None, len(results), c.byref(out)))
+        return bool(out.value)
+
+    def redraw_response_step(self, action):
+        """Commit one response and all replacements atomically; no model selector.
+
+        Supplied replacement rows use no game RNG. Body/guardian/followup effects
+        retain their existing RNG behavior, and reserved gifts are not replaced.
+        """
+        self._open(); response, results, copied = _redraw_response_action(action); out = _Status()
+        _check(self._lib.gfo_match_redraw_response_step(self._handle, c.byref(response), results if len(results) else None, len(results), c.byref(out)))
+        return _decode_status(out)
 
     def step(self, command):
         self._open(); encoded = _command(command); result = _Status()

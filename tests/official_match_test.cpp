@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v58"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v59"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v56\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v57\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==58&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==59&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v56")!=std::string::npos
+    check(view.find("official-execution-view-v57")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3694,10 +3694,159 @@ void received_directed19_face27_uses_visible_legality_and_actual_body(){
     check(failed&&atomic.snapshot()==exact,"late use failure preserves hidden actual,face,HP and reveal history");
 }
 
+RedrawResult supplied_items(std::initializer_list<RedrawItem> items){return {std::vector<RedrawItem>(items)};}
+void reject_redraw(Match& game,const RedrawResponseAction& action){const auto before=game.snapshot();check(!game.redraw_response_legal(action),"invalid supplied redraw legal query rejects");bool failed=false;try{game.redraw_response_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==before,"invalid supplied redraw preserves command,inventory,proof and RNG");}
+void drain_supplied_gifts(Match& game){for(unsigned count=0;game.snapshot().phase==MatchPhase::grant;++count){check(count<64,"finite supplied-redraw gift drain");game.artifact_grant_step({*game.snapshot().pending_grant,199,{}});roundtrip(game);}}
+
+void supplied_redraw_received_inventory_privacy_and_completed_proof(){
+    auto state=scene({6},{178,235,6,208});state.players[1].items[1].used=true;
+    state.players[1].curses={Curse::dream};state.players[1].items[2].fake_model=7;
+    MatchConfig config;config.external_artifacts=true;auto game=fixture(state,config);game.step(play(0,{0},7));
+    const auto before=game.snapshot();const auto first=before.next_token;
+    const RedrawResponseAction action{defend(7,{0}),{supplied_items({{19,27},{202,202},{196,195}})}};
+    check(game.redraw_response_legal(action)&&game.snapshot()==before,"supplied result query uses normal visible response validation without mutation");
+    game.redraw_response_step(action);const auto& after=game.snapshot();
+    check(after.phase==MatchPhase::grant&&after.redraw_proof&&after.grant_proof&&*after.redraw_proof==*after.grant_proof
+        &&after.redraws==1&&after.redrawn_items==3&&after.rng==before.rng&&after.dream_rolls==0&&after.dream_masks==0
+        &&after.gifts==std::vector<std::uint32_t>{1,1}&&after.last_redraws==std::vector<PlayerId>{7}&&after.last_reveals.empty(),
+        "physical replacement excludes both reserved gifts and does not reveal old masks or use generator RNG");
+    check(after.state.players[1].items==std::vector<ItemInstance>{{first,19,27,false},{first+1,202,202,false},{first+2,196,195,false}}
+        &&after.state.players[1].hp==40&&after.state.players[1].mp==10,
+        "used miracle and every other old copy are replaced by ordered fresh unused supplied copies before body");
+    const auto public_view=game.observe(0);
+    check(public_view.find("\"last_redraws\":[7]")!=std::string::npos&&public_view.find("resolved_redraws")==std::string::npos
+        &&public_view.find("redraw_proof")==std::string::npos&&public_view.find("\"model\":19")==std::string::npos
+        &&public_view.find(redraw_response_rule)!=std::string::npos,"public redraw notice excludes result identities,counts and private proof");roundtrip(game);
+    game.artifact_grant_step({0,199,{}});roundtrip(game);game.artifact_grant_step({7,5,{}});
+    check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().redraw_proof,
+        "completed ordinary action retains its nonrecursive supplied-redraw proof");roundtrip(game);
+    // BUY is nonattack:178 cannot be selected against it. Purchase is tested
+    // after completion,at its next legitimate main boundary,not via a fake role.
+    const auto buy=game.snapshot().state.players[1].items.back().token;
+    game.step({7,CommandKind::buy,{buy},0});check(!game.snapshot().redraw_proof&&game.snapshot().last_redraws.empty(),
+        "next accepted BUY clears the previous redraw proof");roundtrip(game);
+    const auto before_offer=game.snapshot().rng;game.step(defend(0));
+    check(game.snapshot().phase==MatchPhase::purchase&&game.snapshot().purchase->item.model==199
+        &&game.snapshot().rng==before_offer+0x9e3779b97f4a7c15ULL&&!game.snapshot().redraw_proof,
+        "ordinary singleton BUY still draws once and enters its normal purchase phase");roundtrip(game);
+    game.step({7,CommandKind::decline,{},{}});roundtrip(game);drain_supplied_gifts(game);
+    check(game.snapshot().owner==0&&!game.snapshot().redraw_proof&&game.snapshot().state.players[0].items.front().model==199,
+        "NO returns the ordinary commodity and completes its separate grant proof");roundtrip(game);
+}
+
+void supplied_redraw_multiple_hats_followup_passives_and_cutoff(){
+    MatchConfig config;config.external_artifacts=true;
+    auto multiple=scene({23,203,203,203},{178,178,235});multiple.players[1].hp=3;multiple.players[1].items[2].used=true;
+    auto game=fixture(multiple,config);game.step(play(0,{0,1,2,3},7));const auto rng=game.snapshot().rng;
+    game.redraw_response_step({defend(7,{0,1}),{supplied_items({{112,{}}}),supplied_items({{208,{}}})}});
+    check(game.snapshot().redraws==2&&game.snapshot().redrawn_items==2&&game.snapshot().revivals==1
+        &&game.snapshot().death_bows==0&&game.snapshot().state.players[1].hp==10&&game.snapshot().state.players[1].items.empty()
+        &&game.snapshot().gifts==std::vector<std::uint32_t>{4,3}&&game.snapshot().rng==rng,
+        "all selected hats are consumed first,each replaces the same physical count,and the final new208 rescues the body");roundtrip(game);
+    auto repeated=scene({14,203},{178,235});repeated.players[1].items[1].used=true;
+    auto twice=fixture(repeated,config);twice.step(play(0,{0,1},7));
+    twice.redraw_response_step({defend(7,{0}),{supplied_items({{178,{}}})}});roundtrip(twice);
+    check(twice.snapshot().phase==MatchPhase::response&&twice.snapshot().actor==7&&twice.snapshot().state.players[1].items.size()==1,
+        "new supplied cards are usable in the same original action's later response");
+    const auto hat=twice.snapshot().state.players[1].items.front().token;
+    twice.redraw_response_step({defend(7,{hat}),{supplied_items({})}});
+    check(twice.snapshot().redraws==2&&twice.snapshot().redrawn_items==1&&twice.snapshot().redraw_proof->resolved_redraws.size()==2
+        &&twice.snapshot().state.players[1].hp==40&&twice.snapshot().state.players[1].items.empty(),
+        "second supplied hat accepts an explicit empty result after its own consumption");roundtrip(twice);drain_supplied_gifts(twice);
+    auto fatal=scene({23,203,203},{189,178,235});fatal.players[1].hp=3;fatal.players[1].items[2].used=true;
+    fatal.players.push_back(player(9));fatal.players[0].hp=fatal.players[2].hp=99;
+    fatal.players[0].curses=fatal.players[2].curses={Curse::darkcloud};
+    auto dying=fixture(fatal,config);dying.step(play(0,{0,1,2},7));
+    dying.redraw_response_step({defend(7,{0,1}),{supplied_items({{112,{}}})}});
+    check(dying.snapshot().state.players[1].dead&&dying.snapshot().death_bows==1&&dying.snapshot().death_created==2
+        &&dying.snapshot().queue.front().is_death&&dying.snapshot().queue.front().source==7,
+        "a newly supplied112 is available to the existing post-body death FIFO");roundtrip(dying);
+    while(dying.snapshot().phase==MatchPhase::response){dying.step(defend(*dying.snapshot().actor));roundtrip(dying);}drain_supplied_gifts(dying);
+    MatchConfig cutoff=config;cutoff.max_decisions=2;auto empty=scene({6},{178});empty.players[1].items[0].token=max_wire_integer;
+    auto exhausted=fixture(empty,cutoff);exhausted.step(play(0,{0},7));
+    exhausted.redraw_response_step({defend(7,{max_wire_integer}),{supplied_items({})}});
+    check(exhausted.snapshot().truncated&&exhausted.snapshot().redraws==1&&exhausted.snapshot().next_token==max_wire_integer+1
+        &&exhausted.snapshot().redraw_proof&&exhausted.snapshot().gifts==std::vector<std::uint32_t>{0,0},
+        "zero replacement needs no token budget and completes the body before cutoff cancels gifts");roundtrip(exhausted);
+}
+
+void supplied_redraw_all_origin_factories_and_grant_interleave(){
+    MatchConfig config;config.external_artifacts=true;
+    for(unsigned origin=0;origin<6;++origin){
+        auto state=scene({6},{189,178,235});state.players[1].items[2].used=true;
+        PlayerId owner=0;std::uint64_t seed=1234;
+        if(origin==1)state.players[0].guardian=Guardian::saturn;
+        if(origin==2)state.players[0].guardian=Guardian::earth;
+        if(origin==4)state.players[0].items={{0,207,{},false}};
+        if(origin==5){state.players[0].hp=5;state.players[0].items={{0,112,{},false}};state.players.push_back(player(9));owner=9;
+            state.players[1].hp=state.players[2].hp=99;state.players[1].curses=state.players[2].curses={Curse::darkcloud};}
+        Match game(config);game.load_scene(state,owner,seed);
+        if(origin==0)game.step(play(0,{0},7));
+        if(origin==1)game.guardian_step({0,264,7});
+        if(origin==2)game.guardian_payload_step({0,Guardian::earth,{23},7});
+        if(origin==3)game.phenomenon_step({291,7,{}});
+        if(origin==4)game.fate_step({0,0,{291,7,{}},{}});
+        if(origin==5)game.devil_step({0,240,{},{}});
+        check(game.snapshot().phase==MatchPhase::response&&game.snapshot().actor==7,"every origin reaches a supplied-hat response");roundtrip(game);
+        game.redraw_response_step({defend(7,{0,1}),{supplied_items({{199,{}}})}});roundtrip(game);
+        while(game.snapshot().phase==MatchPhase::response){game.step(defend(*game.snapshot().actor));roundtrip(game);}
+        drain_supplied_gifts(game);
+        check(game.snapshot().redraw_proof&&game.snapshot().redraw_proof->resolved_redraws.size()==1
+            &&game.snapshot().redraws==1&&!game.snapshot().truncated,"each source retains an exact completed supplied-redraw journal");roundtrip(game);
+        if(origin==4)check(game.snapshot().last_fate&&game.snapshot().last_fate_event==FateEvent{0,291},"Fate identity survives supplied result proof");
+        if(origin==5)check(game.snapshot().last_devil&&game.snapshot().last_devil_event->model==240,"Devil identity survives posthumous supplied result proof");
+    }
+    bool found=false;
+    for(std::uint64_t seed=0;seed<512&&!found;++seed){auto state=scene({178,235},{});state.players[0].items[1].used=true;state.players[1].guardian=Guardian::saturn;
+        Match game(config);game.load_scene(state,0,seed);game.step(pray(0));
+        if(game.snapshot().phase!=MatchPhase::response||game.snapshot().actor!=0||game.snapshot().queue.front().models!=std::vector<CardId>{264})continue;
+        found=true;game.redraw_response_step({defend(0,{0}),{supplied_items({{199,{}}})}});roundtrip(game);drain_supplied_gifts(game);
+        check(game.snapshot().auto_guardian_actions==1&&game.snapshot().guardian_actions==0&&game.snapshot().redraw_proof,
+            "automatic guardian response replays from the ordinary owner launch without an external action substitution");roundtrip(game);
+    }
+    check(found,"bounded local fixture reaches a canonical automatic guardian hat response");
+}
+
+void supplied_redraw_shapes_proof_forgery_and_default_transactions(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({6},{178,235});state.players[1].items[1].used=true;
+    auto pending=fixture(state,config);pending.step(play(0,{0},7));
+    const RedrawResponseAction valid{defend(7,{0}),{supplied_items({{199,{}}})}};
+    for(unsigned error=0;error<9;++error){auto bad=valid;
+        if(error==0)bad.results.clear();if(error==1)bad.results.push_back(bad.results.front());
+        if(error==2)bad.results[0].items.clear();if(error==3)bad.results[0].items.push_back({6,{}});
+        if(error==4)bad.results[0].items[0].model=0;if(error==5)bad.results[0].items[0].model=240;
+        if(error==6)bad.results[0].items[0].model=207;if(error==7)bad.results[0].items[0]={27,19};
+        if(error==8)bad.response.actor=0;reject_redraw(pending,bad);
+    }
+    auto game=pending;game.redraw_response_step(valid);const auto saved=game.snapshot();roundtrip(game);
+    for(unsigned error=0;error<10;++error){auto bad=saved;
+        for(auto* journal:{&bad.batch,&bad.grant_proof,&bad.redraw_proof})if(*journal){auto& entry=(**journal).resolved_redraws[0];
+            if(error==0)entry.results[0].items[0].model=196;if(error==1)entry.response_index=1;
+            if(error==2)entry.results.push_back(entry.results.front());if(error==3)entry.results[0].items.clear();
+            if(error==4)entry.results[0].items[0]={27,19};if(error==5)(**journal).responses[0].actor=0;
+        }
+        if(error==6)++bad.next_token;if(error==7)++bad.rng;if(error==8)bad.redraw_proof.reset();if(error==9)bad.grant_proof.reset();
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==saved,"supplied redraw result/index/actor/token/RNG/proof forgery rejects atomically");
+    }
+    auto no_tokens=state;no_tokens.players[1].items[1].token=max_wire_integer;auto exhausted=fixture(no_tokens,config);exhausted.step(play(0,{0},7));reject_redraw(exhausted,valid);
+    auto late=state;late.update_count=max_wire_integer-1;auto update=fixture(late,config);update.step(play(0,{0},7));const auto before=update.snapshot();bool failed=false;
+    try{update.redraw_response_step(valid);}catch(const MatchError&){failed=true;}check(failed&&update.snapshot()==before,"late supplied redraw failure restores consumed hat,old hand,new tokens and proof");
+    auto local=pending,driver=pending;const auto rng=local.snapshot().rng;bool sampled=false;
+    for(std::uint64_t seed=0;seed<64&&!sampled;++seed){auto policy=seed;const auto proposal=local.sample_action(policy);if(proposal.items!=std::vector<ItemToken>{0})continue;
+        sampled=true;local.step(proposal);std::uint64_t driver_policy=seed,chance=99;driver.rollout_step(driver_policy,chance);
+        check(local.snapshot()==driver.snapshot()&&driver_policy==policy&&chance==99&&!local.snapshot().redraw_proof
+            &&local.snapshot().rng!=rng,"ordinary step/driver still use the exact old local redraw RNG path");roundtrip(local);
+    }
+    check(sampled,"local normal policy still selects178 without an external result payload");
+}
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),234> tests{{
+    const std::array<void(*)(),238> tests{{
+        supplied_redraw_received_inventory_privacy_and_completed_proof,
+        supplied_redraw_multiple_hats_followup_passives_and_cutoff,
+        supplied_redraw_all_origin_factories_and_grant_interleave,
+        supplied_redraw_shapes_proof_forgery_and_default_transactions,
         dream_weapon_self_body_and_narrow_routing,
         received_identity_disguise_presence_use_and_replay,
         received_directed19_face27_uses_visible_legality_and_actual_body,

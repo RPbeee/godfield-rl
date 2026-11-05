@@ -74,6 +74,16 @@ typedef struct gfo_match_artifact_grant_action {
     uint16_t model, fake_model;
     uint8_t reserved[4];
 } gfo_match_artifact_grant_action;
+// Replacement results have no caller token/used/owner. Explicit fake presence
+// is retained, including identity faces; absent fake requires fake_model0.
+typedef struct gfo_match_redraw_item {
+    uint16_t model, fake_model;
+    uint8_t has_fake, reserved[3];
+} gfo_match_redraw_item;
+typedef struct gfo_match_redraw_result {
+    const gfo_match_redraw_item* items;
+    size_t item_count;
+} gfo_match_redraw_result;
 typedef struct gfo_match_status {
     uint64_t decisions, owner, actor;
     uint64_t player_ids[9]; // Stable player-vector order for rewards.
@@ -124,6 +134,9 @@ size_t gfo_match_artifact_grant_action_size(void);
 int gfo_match_artifact_grant_supported(uint16_t model);
 const char* gfo_match_artifact_grant_rule(void);
 const char* gfo_match_normal_grant_rule(void);
+size_t gfo_match_redraw_item_size(void);
+size_t gfo_match_redraw_result_size(void);
+const char* gfo_match_redraw_response_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -207,6 +220,15 @@ int gfo_match_grant_step(gfo_match* match, const gfo_match_grant_action* action,
 //207 requires include_fate and no fake; local random Dream choices stay distinct.
 int gfo_match_artifact_grant_legal(const gfo_match* match, const gfo_match_artifact_grant_action* action, uint8_t* out);
 int gfo_match_artifact_grant_step(gfo_match* match, const gfo_match_artifact_grant_action* action, gfo_match_status* out);
+// Atomic supplied178 response. results are in selected actual178 order, one
+// per hat; each replaces all remaining copies after ALL selected consumption.
+// Max18 results /18 items each. NULL is allowed only for a zero extent. Copies
+// are borrowed during this call and deep-copied before mutation. Ordinary
+// reserved gifts remain in their existing phase4/default pump. No new decision.
+int gfo_match_redraw_response_legal(const gfo_match* match, const gfo_match_command* response,
+    const gfo_match_redraw_result* results, size_t result_count, uint8_t* out);
+int gfo_match_redraw_response_step(gfo_match* match, const gfo_match_command* response,
+    const gfo_match_redraw_result* results, size_t result_count, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

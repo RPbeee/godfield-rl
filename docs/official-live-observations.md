@@ -283,3 +283,12 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 一新自体はrecord-onlyである。ネイティブ比較は受信した一新後update2を初期sceneとしてupdate2〜6の5状態だけを既存8seed＝40比較へ展開する。178の8置換抽選を再現したとは数えない。低CP BUYも、複数候補からモデル5を選ぶserver抽選をseed選別で合わせずrecord-onlyへ分ける。CanNotBuyの価格5という条件は既存CP-only affordabilityを支持する有限例であり、全商品・self BUY・一般CP debt順の証明ではない。
 
 新6操作で累計45完了例、native投影対象38例、record-only7例。wire比較は264checkpointとなる。開始〜終局の受信列は従来1対局、全backend内部trace0のまま。固定8seedを8つの公式対局へ読み替えず、CPUの省略gift順・全schedulerを推定しない。
+
+
+## v70：既存一新記録の条件付き再生へ拡張
+
+新しい公式操作・response bodyは取得せず、v69の記録を再利用する。CPU35/slot2の消費コピーだけをuseイベントから戻したsceneをGF1で作り、CPU35をlaunchして最初の受信応答待ちへ合わせる。元のCPU初期draw/orderは復元していない。
+
+外部結果付き178応答へreplaceItemsの8モデル/fakeを渡し、通常補充は別にCPU5/slot2の在庫差分と本人203/slot9を供給する。これにより一新前update1→一新後update2→既存4操作のupdate6まで6状態を、既存8seedで48比較する。v69の一新後sceneからの40比較も残し、同じ受信状態を別の経路から再検査する範囲として数える。
+
+完了観測は45のまま、178の既存1例を外部結果条件付きのnative対象へ移す。native対象39・record-only6、wire比較総312となる。これは新しい公式対局や新規goldenの追加ではない。低CP BUYの商品選出は引き続き範囲外、完了受信start→endは従来1対局のままである。旧v69の当時のcoverage記録とraw出典は変更せず、新しい検証reportへ分ける。

@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "python"))
 from official_data import OfficialData
 from official_state import OfficialState
-from official_match import Match, Config, PlayerSetup, Command, FateRequest, RolloutResult, RolloutError, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, ArtifactGrantAction, MatchError, InvalidMatchError, UnsupportedMatchError
+from official_match import Match, Config, PlayerSetup, Command, FateRequest, RolloutResult, RolloutError, GuardianAction, GuardianPayloadAction, PhenomenonAction, ItemSource, ItemShuffleAction, FateAction, DevilAction, GrantAction, ArtifactGrantAction, RedrawItem, RedrawResponseAction, MatchError, InvalidMatchError, UnsupportedMatchError
 LIBRARY = sys.argv.pop(1) if len(sys.argv) > 1 else None
 
 def choice_envelope_reference(seed, bound):
@@ -108,7 +108,7 @@ class MatchTests(unittest.TestCase):
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
         self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v58"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v59"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v56")
+        self.assertEqual(own["schema"], "official-execution-view-v57")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v56")
+        self.assertEqual(event["schema"], "official-execution-view-v57")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3831,6 +3831,83 @@ class MatchTests(unittest.TestCase):
                              sorted((item.get("fakeModelId", item["modelId"]), "fakeModelId" in item, item.get("used", False))
                                     for item in received["items"]))
         self.assertEqual(game.observe()["board"]["hand"], [])
+
+    def test_supplied_redraw_v69_eight_items_owned_results_and_reserved_gifts(self):
+        raw = {"gf": 1, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 35}]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 178},
+             {"id": 1, "modelId": 235, "used": True}] + [{"id": i, "modelId": 6} for i in range(2, 9)]}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "play", (0,), 7)); before, status = game.observe(7), game.status
+        pairs = ((3, None), (19, 27), (5, None), (202, 202), (29, 23), (113, 135), (196, 195), (5, None))
+        source = [[RedrawItem(model, face) for model, face in pairs]]; tokens = [0]
+        action = RedrawResponseAction(Command(7, "defend", tokens), source)
+        source[0].clear(); source.clear(); tokens.clear()
+        self.assertEqual(action.response.items, (0,)); self.assertEqual(len(action.results[0]), 8)
+        with self.assertRaises(AttributeError): action.results = ()
+        self.assertTrue(game.redraw_response_legal(action))
+        self.assertEqual((game.observe(7), game.status), (before, status))
+        game.redraw_response_step(action); view = game.observe(7)
+        self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 2))
+        self.assertEqual(view["redraw_response_rule"], game.redraw_response_rule)
+        self.assertEqual(view["last_redraws"], [7]); self.assertEqual(view["last_reveals"], [])
+        self.assertEqual(view["board"]["players"][1]["status"]["hp"], 40)
+        self.assertEqual(view["board"]["players"][1]["status"]["curses"], ["dream"])
+        self.assertEqual(view["board"]["players"][1]["used_models"], [])
+        hand = view["board"]["hand"]; self.assertEqual(len(hand), 8)
+        self.assertEqual(sorted((i["face"], i["disguised"]) for i in hand), sorted((face or model, face is not None) for model, face in pairs))
+        self.assertTrue(all(i["token"] >= 9 and not i["used"] for i in hand))
+        self.assertEqual(game.observe(0)["board"]["hand"], [])
+        self.assertEqual(game.observe()["pending_grant"], {"target": 0})
+        game.artifact_grant_step(ArtifactGrantAction(0, 6)); self.assertEqual(game.observe()["pending_grant"], {"target": 7})
+        game.artifact_grant_step(ArtifactGrantAction(7, 203))
+        self.assertEqual((game.status.phase, game.status.owner, game.observe()["board"]["gf"]), ("main", 7, 2))
+        self.assertEqual(len(game.observe(7)["board"]["hand"]), 9)
+
+    def test_supplied_redraw_invalid_partial_and_late_failures_are_atomic(self):
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 6}]},
+                           {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 178}, {"id": 1, "modelId": 235, "used": True}]}]}
+        for failure in (None, "token", "update"):
+            changed = copy.deepcopy(raw)
+            if failure == "token": changed["players"][1]["items"][1]["id"] = 9007199254740991
+            if failure == "update": changed["updateCount"] = 9007199254740990
+            game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+            with OfficialState(changed, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            game.step(Command(0, "play", (0,), 7)); before, status = game.observe(7), game.status
+            if failure:
+                with self.assertRaises(InvalidMatchError): game.redraw_response_step(RedrawResponseAction(Command(7, "defend", (0,)), ((RedrawItem(6),),)))
+                self.assertEqual((game.observe(7), game.status), (before, status)); continue
+            for results in ((), ((),), ((RedrawItem(6), RedrawItem(7)),), ((RedrawItem(6),), (RedrawItem(7),)), ((RedrawItem(19, 45),),)):
+                action = RedrawResponseAction(Command(7, "defend", (0,)), results)
+                self.assertFalse(game.redraw_response_legal(action))
+                with self.assertRaises(MatchError): game.redraw_response_step(action)
+                self.assertEqual((game.observe(7), game.status), (before, status))
+        for args in ((True,), (0,), (65536,), (6, False), (6, 0), (6, 65536)):
+            with self.assertRaises(InvalidMatchError): RedrawItem(*args)
+        for results in ([[]] * 19, [[RedrawItem(6)] * 19], [[6]], None):
+            with self.assertRaises(InvalidMatchError): RedrawResponseAction(Command(7, "defend", (0,)), results)
+
+    def test_supplied_redraw_empty_and_multiple_hats_before_cutoff(self):
+        for hats in (1, 2):
+            for remaining in (0, 1):
+                game = self.match(config=Config(initial_hand=0, max_decisions=2, external_artifacts=True))
+                items = [{"id": i, "modelId": 178} for i in range(hats)]
+                if remaining: items.append({"id": hats, "modelId": 235, "used": True})
+                raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 0, "modelId": 6}]},
+                                   {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": items}]}
+                with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+                game.step(Command(0, "play", (0,), 7))
+                results = tuple((RedrawItem(208 if i + 1 < hats else 112),) if remaining else () for i in range(hats))
+                action = RedrawResponseAction(Command(7, "defend", tuple(range(hats))), results)
+                self.assertTrue(game.redraw_response_legal(action)); game.redraw_response_step(action)
+                view = game.observe(7)
+                self.assertTrue(game.status.truncated); self.assertFalse(game.status.terminated)
+                self.assertEqual(view["last_redraws"], [7] * hats)
+                self.assertEqual(len(view["board"]["hand"]), remaining)
+                self.assertEqual(view["board"]["players"][1]["status"]["hp"], 40)
+                self.assertIsNone(view["pending_grant"])
+                if remaining: self.assertEqual(view["board"]["hand"][0]["face"], 112)
 
     def test_received_dream_19_as27_selects_face_and_executes_actual_without_oracle(self):
         # Direction19→27 is received evidence, not a widened local mask class.

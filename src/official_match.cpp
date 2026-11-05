@@ -114,6 +114,7 @@ Outcome outcome(const SnapshotState& state) {
 }
 void sync_grant_proof(MatchSnapshot& s) {
     if (s.grant_proof && s.batch) s.grant_proof=*s.batch;
+    if (s.redraw_proof && s.batch) s.redraw_proof=*s.batch;
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     sync_grant_proof(s); s.pending_grant.reset();
@@ -189,6 +190,17 @@ void redraw(MatchSnapshot& s, std::size_t seat) {
     owner.items.clear();
     ++s.redraws; s.redrawn_items += count; s.last_redraws.push_back(owner.id);
     for (std::size_t i = 0; i < count; ++i) gift(s, seat);
+}
+void redraw_supplied(MatchSnapshot& s, std::size_t seat, const RedrawResult& result) {
+    auto& owner=s.state.players[seat];
+    require(result.items.size()==owner.items.size(),"supplied redraw physical count changed");
+    const auto count=owner.items.size();
+    owner.items.clear(); // As with local redraw, do not reveal the old private hand.
+    ++s.redraws; s.redrawn_items+=count; s.last_redraws.push_back(owner.id);
+    for(const auto& item:result.items) {
+        require(s.next_token<=max_wire_integer,"scoped item token exhausted");
+        owner.items.push_back({s.next_token++,item.model,item.fake_model,false});
+    }
 }
 
 void request_gift(MatchSnapshot& s, std::size_t seat) {
@@ -321,6 +333,31 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool
     }
     require(magic_cost(models) <= own.mp, "insufficient main MP");
     return actual_models;
+}
+void redraw_result_shape(const MatchSnapshot& s, const RedrawResult& result) {
+    require(result.items.size()<=s.config.hand_limit,"oversized supplied redraw");
+    for(const auto& item:result.items) {
+        if(!gift_model_supported(item.model,s.config.include_fate)) unsupported("redraw model outside configured gift pool");
+        if(item.fake_model && !match_dream_disguise_supported(item.model,*item.fake_model))
+            unsupported("unsupported supplied redraw disguise");
+    }
+}
+void prepare_redraw_response(const MatchSnapshot& s, const Command& command, const std::vector<CardId>& models,
+                            const std::vector<RedrawResult>& results) {
+    require(s.phase==MatchPhase::response && command.kind==CommandKind::defend && s.batch,
+            "supplied redraw needs a normal response boundary");
+    const auto hats=std::count_if(models.begin(),models.end(),[](CardId model){return find_card(model)->ability==Ability::self_curse_and_redraw;});
+    require(hats>0 && results.size()==static_cast<std::size_t>(hats),"one redraw result is required for each selected178");
+    const auto& owner=s.state.players[index(s,command.actor)];
+    const auto removed=std::count_if(models.begin(),models.end(),[](CardId model){return find_card(model)->category!=Category::miracles;});
+    const auto count=owner.items.size()-static_cast<std::size_t>(removed);
+    for(const auto& result:results) {
+        redraw_result_shape(s,result);
+        require(result.items.size()==count,"supplied redraw must replace every remaining physical copy");
+    }
+    const auto tokens=count*results.size(); // At most hand_limit squared.
+    require(!tokens || (s.next_token<=max_wire_integer && tokens<=max_wire_integer+1-s.next_token),
+            "supplied redraw token budget exhausted");
 }
 EffectFrame effect_for(const MatchSnapshot& s, const std::vector<CardId>& models, PlayerId target,
                       const std::vector<ItemToken>& tokens, std::int64_t launch_mp, int random_hp_delta, PlayerId source, Guardian guardian = Guardian::none, bool charge_magic = true) {
@@ -919,7 +956,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset(); s.pending_grant.reset(); s.grant_proof.reset(); s.last_grant.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset(); s.pending_grant.reset(); s.grant_proof.reset(); s.redraw_proof.reset(); s.last_grant.reset();
     s.last_auto_guardians.clear(); s.last_auto_guardian_payloads.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -1140,8 +1177,10 @@ void execute_devil(MatchSnapshot& s, const DevilAction& action) {
     ++s.devil_actions; s.last_devil_event=apply_devil_body(s,action); complete_decision(s,true);
 }
 // Used by both the live transactional step and privileged journal replay.
-void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false) {
+void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false,
+             const std::vector<RedrawResult>* supplied_redraws=nullptr) {
     const auto models = prepare(s, command,confusion_command); const auto seat = index(s, command.actor);
+    if(supplied_redraws) prepare_redraw_response(s,command,models,*supplied_redraws);
     if (s.phase == MatchPhase::main) clear_events(s);
     else if (s.last_fate && s.batch && s.batch->fate_action) s.last_fate->responses.push_back(command);
     else if (s.last_devil && s.batch && s.batch->devil_action) s.last_devil->responses.push_back(command);
@@ -1156,16 +1195,25 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
         complete_purchase(s, command.kind == CommandKind::accept ? PurchaseReason::bought : PurchaseReason::declined);
         completed = true;
     } else if (s.phase == MatchPhase::response) {
+        const auto response_index=s.batch->responses.size();
         s.batch->responses.push_back(command);
+        if(supplied_redraws) {
+            s.batch->resolved_redraws.push_back({response_index,*supplied_redraws});
+            s.redraw_proof=*s.batch;
+        }
         auto& effect = s.queue.front();
         const auto response = apply_response(effect, models);
         change_resource(s.state.players[seat], Resource::mp, -magic_cost(models));
         consume(s, seat, command.items, false);
+        std::size_t redraw_cursor=0;
         for (auto model : models) {
             const auto& card = *find_card(model);
             if (card.ability == Ability::self_curse || card.ability == Ability::self_curse_and_redraw) {
                 add_curse(s.state.players[seat], card.curse);
-                if (card.ability == Ability::self_curse_and_redraw) redraw(s, seat);
+                if (card.ability == Ability::self_curse_and_redraw) {
+                    if(supplied_redraws) redraw_supplied(s,seat,(*supplied_redraws)[redraw_cursor++]);
+                    else redraw(s, seat);
+                }
             }
         }
         if (response.environmental_cancel) {
@@ -1340,6 +1388,13 @@ void replay_launch(MatchSnapshot& replay,const ActionBatch& journal) {
     else if (journal.guardian_action) execute_guardian(replay,*journal.guardian_action);
     else execute(replay,journal.attack,journal.confusion_command);
 }
+void replay_response(MatchSnapshot& replay,const ActionBatch& journal,std::size_t response_index) {
+    const std::vector<RedrawResult>* supplied=nullptr;
+    for(const auto& entry:journal.resolved_redraws) if(entry.response_index==response_index) {
+        supplied=&entry.results; break;
+    }
+    execute(replay,journal.responses[response_index],false,supplied);
+}
 void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
     const auto n = s.state.players.size();
@@ -1358,6 +1413,9 @@ void validate_snapshot(const MatchSnapshot& s) {
     };
     if (s.batch) validate_automatic_payload(*s.batch);
     if (s.grant_proof) validate_automatic_payload(*s.grant_proof);
+    if (s.redraw_proof) validate_automatic_payload(*s.redraw_proof);
+    if(s.batch && !s.batch->resolved_redraws.empty()) require(s.redraw_proof.has_value(),"supplied redraw batch has no proof");
+    if(s.grant_proof && !s.grant_proof->resolved_redraws.empty()) require(s.redraw_proof.has_value(),"supplied redraw grant has no proof");
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
     require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= 2 * player_capacity * s.decisions, "invalid chance attempt counters");
     require(s.chance_forced_hits <= 2 * player_capacity * s.decisions - s.chance_rolls, "invalid forced chance count");
@@ -1376,14 +1434,26 @@ void validate_snapshot(const MatchSnapshot& s) {
         && (!s.grant_devils || devil_grants_enabled(s)),"invalid grant outcome counters");
     require(s.pending_grant.has_value()==(s.phase==MatchPhase::grant)
         && (!(s.pending_grant || s.last_grant) || s.grant_proof.has_value()),"grant phase or notice lacks its journal");
-    if (s.grant_proof) {
-        const auto& journal=*s.grant_proof;
-        require((s.config.external_grants || s.config.external_artifacts) && journal.initial_state.players.size()==n && journal.decisions<s.decisions
+    if (s.grant_proof || s.redraw_proof) {
+        if(s.grant_proof) require(s.config.external_grants || s.config.external_artifacts,"grant proof without external grant mode");
+        if(s.grant_proof && s.redraw_proof) require(*s.grant_proof==*s.redraw_proof,"grant and supplied-redraw journals differ");
+        const auto& journal=s.redraw_proof?*s.redraw_proof:*s.grant_proof;
+        require(s.redraw_proof.has_value()==!journal.resolved_redraws.empty(),"supplied redraw proof/outcomes mismatch");
+        require(s.grant_proof || journal.grants.empty(),"grant entries without grant proof");
+        require(journal.initial_state.players.size()==n && journal.decisions<s.decisions
             && journal.attack.items.size()<=s.config.hand_limit && journal.models.size()<=visible_hand_capacity
             && journal.targets.size()<=2*(n-1) && journal.responses.size()<s.config.max_decisions && journal.grants.size()<s.config.max_decisions
             && journal.responses.size()+journal.grants.size()==s.decisions-journal.decisions-1,"invalid original grant journal shape");
         for (const auto& player:journal.initial_state.players) require(player.items.size()<=s.config.hand_limit,"oversized grant anchor inventory");
         for (const auto& response:journal.responses) require(response.items.size()<=s.config.hand_limit,"oversized grant journal response");
+        require(journal.resolved_redraws.size()<=journal.responses.size(),"too many supplied redraw response entries");
+        std::optional<std::size_t> previous_redraw;
+        for(const auto& entry:journal.resolved_redraws) {
+            require(entry.response_index<journal.responses.size() && (!previous_redraw || entry.response_index>*previous_redraw)
+                &&!entry.results.empty() && entry.results.size()<=s.config.hand_limit,"invalid supplied redraw response index/count");
+            for(const auto& result:entry.results) redraw_result_shape(s,result);
+            previous_redraw=entry.response_index;
+        }
         for (const auto& entry:journal.grants) {
             require(entry.responses_before<=journal.responses.size(),"oversized grant resolution entry");
             if (const auto* ordinary=std::get_if<GrantAction>(&entry.action))
@@ -1398,14 +1468,14 @@ void validate_snapshot(const MatchSnapshot& s) {
         std::size_t response_cursor=0;
         for (const auto& entry:journal.grants) {
             require(entry.responses_before>=response_cursor,"grant journal response prefix moved backwards");
-            while (response_cursor<entry.responses_before) execute(replay,journal.responses[response_cursor++]);
+            while (response_cursor<entry.responses_before) replay_response(replay,journal,response_cursor++);
             std::visit([&](const auto& action) {
                 if constexpr (std::is_same_v<std::decay_t<decltype(action)>,GrantAction>) execute_grant(replay,action);
                 else execute_artifact_grant(replay,action);
             },entry.action);
         }
-        while (response_cursor<journal.responses.size()) execute(replay,journal.responses[response_cursor++]);
-        require(replay.grant_proof && *replay.grant_proof==journal && replay==s,"grant journal does not reproduce the complete snapshot"); return;
+        while (response_cursor<journal.responses.size()) replay_response(replay,journal,response_cursor++);
+        require(replay==s,"external result journal does not reproduce the complete snapshot"); return;
     }
     require(s.last_fate.has_value()==s.last_fate_event.has_value(),"fate notice and launch proof must coexist");
     require(s.last_devil.has_value()==s.last_devil_event.has_value(),"devil notice and launch proof must coexist");
@@ -1693,9 +1763,9 @@ void validate_snapshot(const MatchSnapshot& s) {
         else if (batch.guardian_payload_action) execute_guardian_payload(replay,*batch.guardian_payload_action);
         else if (batch.guardian_action) execute_guardian(replay,*batch.guardian_action);
         else execute(replay, batch.attack,batch.confusion_command);
-        for (const auto& response : batch.responses) {
+        for (std::size_t response_index=0;response_index<batch.responses.size();++response_index) {
             require(replay.batch.has_value(), "action journal continues after its batch ended");
-            execute(replay, response);
+            replay_response(replay,batch,response_index);
         }
         require(replay == s, "action journal does not reproduce full snapshot");
         return;
@@ -1803,6 +1873,16 @@ bool Match::legal(const Command& command) const noexcept { try { (void)prepare(d
 MatchStep Match::step(const Command& command) {
     auto s = data_; execute(s, command);
     const auto output = result(s); data_ = std::move(s); return output;
+}
+bool Match::redraw_response_legal(const RedrawResponseAction& action) const noexcept {
+    try {
+        const auto models=prepare(data_,action.response);
+        prepare_redraw_response(data_,action.response,models,action.results); return true;
+    } catch (...) { return false; }
+}
+MatchStep Match::redraw_response_step(const RedrawResponseAction& action) {
+    auto next=data_; execute(next,action.response,false,&action.results);
+    const auto output=result(next); data_=std::move(next); return output;
 }
 bool Match::choice_legal(const PlayerChoice& choice) const noexcept {
     try {
@@ -2104,7 +2184,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v56\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v57\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -2135,6 +2215,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"overflow_rule\":\""; out += overflow_rule;
     out += "\",\"dream_rule\":\""; out += dream_rule;
     out += "\",\"redraw_rule\":\""; out += redraw_rule;
+    out += "\",\"redraw_response_rule\":\""; out += redraw_response_rule;
     out += "\",\"guardian_rule\":\""; out += guardian_rule;
     out += "\",\"guardian_summon_rule\":\""; out += guardian_summon_rule;
     out += "\",\"guardian_departure_rule\":\""; out += guardian_departure_rule;

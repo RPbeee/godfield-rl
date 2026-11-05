@@ -1,0 +1,211 @@
+{
+  "schema_version": 1,
+  "schema": "official-supplied-redraw-replay-v1",
+  "recorded_on_jst": "2026-11-05",
+  "report_kind": "local_replay_capability_for_existing_official_observations",
+  "new_official_observations": 0,
+  "source_fixtures": [
+    {
+      "path": "wire-game-updates-v69.json",
+      "bytes": 30371,
+      "sha256": "07dc4facb5cb0c3fe6bda23be0a107cf9f9391d3aa0ea27fbb3ed76f7e77c24a",
+      "received_updates_reused": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "retained_but_not_compared_updates": [
+        7
+      ]
+    }
+  ],
+  "source_witness_record": "live-transition-witnesses-v69.json",
+  "immutable_evidence_note": "The v69 received fixture,body provenance,pins and witness record remain unchanged. This report records a new conditional local replay path,not another official game or observation.",
+  "implementation": {
+    "ruleset": "official-execution-subset-v59",
+    "snapshot_version": 59,
+    "observe_schema": "official-execution-view-v57",
+    "cpp_action": "RedrawResponseAction{Command response,vector<RedrawResult> results}",
+    "cpp_entrypoints": [
+      "redraw_response_legal",
+      "redraw_response_step"
+    ],
+    "c_entrypoints": [
+      "gfo_match_redraw_response_legal",
+      "gfo_match_redraw_response_step"
+    ],
+    "c_abi_version": 2,
+    "new_c_redraw_item_bytes": 8,
+    "new_c_redraw_result_bytes": 16,
+    "existing_c_abi_layouts_changed": false,
+    "private_journal": "ActionBatch.resolved_redraws stores supplied result lists at sparse accepted-response indices. MatchSnapshot.redraw_proof retains whole-origin replay through completion;grant_proof must equal it when both exist.",
+    "default_behavior": "Normal Command,player policy sampler,driver and local redraw chooser retain their existing path. Supplied replacement outcomes consume no model/Dream-selection RNG and do not increment local Dream generation statistics. Existing incoming-body,guardian,followup and later ordinary-gift randomness remains in its existing path.",
+    "public_boundary": "The result list and replay proof are privileged inputs. They are excluded from public status/observation and policy choices. The existing public redraw notice exposes owner id only;owner hand projection shows received faces and disguise presence through the existing information boundary."
+  },
+  "reconstruction_boundary": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1,
+    "first_received_update": 1,
+    "first_received_phase": "GF1 CPU35 attack pending viewer response",
+    "prelaunch_authoritative_snapshot_captured": false,
+    "cpu_consumed_copy_reconstructed": {
+      "server_item_id": 2,
+      "model": 35,
+      "purpose": "Reconstruct the one already-consumed launch copy,then execute CPU35 toward viewer2 to reach received update1."
+    },
+    "initial_draw_or_original_inventory_order_reconstructed": false,
+    "token_note": "Received numeric item slots are matched by an explicit local token map. Fresh local tokens do not claim to recover the server allocation history or original order.",
+    "viewer_before_response_physical_count": 9,
+    "selected_hat_server_item_id": 5,
+    "selected_hat_model": 178,
+    "physical_count_after_hat_consumption": 8,
+    "replacement_results": [
+      {
+        "model": 3
+      },
+      {
+        "model": 19,
+        "fake_model": 27
+      },
+      {
+        "model": 5
+      },
+      {
+        "model": 202,
+        "fake_model": 202
+      },
+      {
+        "model": 29,
+        "fake_model": 23
+      },
+      {
+        "model": 113,
+        "fake_model": 135
+      },
+      {
+        "model": 196,
+        "fake_model": 195
+      },
+      {
+        "model": 5
+      }
+    ],
+    "replacement_count": 8,
+    "replacement_fresh_unused": true,
+    "explicit_identity_disguise_preserved": true,
+    "separate_reserved_receipts": [
+      {
+        "player_id": 1,
+        "server_item_id": 2,
+        "model": 5,
+        "evidence": "positive received CPU inventory delta;no corresponding CPU gift event in the viewer event list"
+      },
+      {
+        "player_id": 2,
+        "server_item_id": 9,
+        "model": 203,
+        "evidence": "explicit received gift event,after replaceItems8"
+      }
+    ],
+    "viewer_after_receipts_physical_count": 9,
+    "cpu_versus_viewer_reserved_receipt_order_observed": false,
+    "receipt_order_note": "The local grant pump supplies CPU then viewer as a local completion convention. Received endpoint agreement does not identify the backend receipt scheduler.",
+    "observed_response_result": "DEF14 safely cancels CPU35 ATK10;viewer remains HP40/MP10/CP20,receives Dream,old8 are replaced,and the separate viewer203 receipt yields9 copies at GF2 viewer main.",
+    "following_compared_operations": [
+      "actual19/fake27 self-use",
+      "actual113/fake135 defense against CPU47",
+      "exchange3 allocation to HP23/MP30/CP0",
+      "empty defense against CPU35"
+    ],
+    "excluded_boundary": "Received update7 CP0 BUY selection and the following unanswered CPU BUY are retained evidence only. No selector seed fitting,offer completion or payment is added."
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v70",
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 6,
+    "received_updates_compared": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "random_seed_search_exclusion_or_fitting": false,
+    "comparison_scope": "Resources,GF/actor/pending response,full actual/fake/used inventory identity under a slot map,and snapshot restore. The8 supplied replacements and separate ordinary receipts are explicit external outcomes,not generated server selector results.",
+    "existing_v69_comparisons_preserved": 40,
+    "baseline_cumulative_wire_checkpoint_comparisons": 264,
+    "received_checkpoint_comparisons": 48,
+    "cumulative_wire_checkpoint_comparisons": 312,
+    "local_test_results": {
+      "source": "parent-reported completed local validation;record author did not run builds/tests",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 18.05,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 18.5,
+      "native_registered_callbacks": 238,
+      "python_test_methods": 173,
+      "compile_warnings": 0,
+      "compile_errors": 0,
+      "c11_werror_new_and_existing_layout_and_prototype_check": "passed",
+      "documentation_python_usage_example": "passed"
+    }
+  },
+  "coverage": {
+    "new_completed_official_transition_witnesses": 0,
+    "cumulative_completed_official_transition_witnesses": 45,
+    "baseline_native_projection_covered_completed_witnesses": 38,
+    "baseline_record_only_completed_witnesses": 7,
+    "coverage_change_pending_test_success": false,
+    "new_authoritative_received_snapshots": 0,
+    "new_complete_received_game_update_sequences": 0,
+    "cumulative_complete_received_game_update_sequences": 1,
+    "captured_full_backend_event_traces": 0,
+    "scope": "The previously recorded178 transition gains conditional native projection coverage after successful local tests. The following four operations were already covered by v69 and are not counted again.",
+    "newly_covered_existing_witnesses": 1,
+    "cumulative_native_projection_covered_completed_witnesses": 39,
+    "cumulative_record_only_completed_witnesses": 6
+  },
+  "independent_static_audit": {
+    "build_or_test_performed_by_record_author": false,
+    "clear_issue_found": false,
+    "reviewed_boundaries": [
+      "response-index journal ordering and bounds",
+      "normal/guardian/guardian-payload/phenomenon/Fate/Devil and automatic-guardian origins",
+      "grant interleaving and dual-proof equality",
+      "completion/finish/cutoff synchronization and accepted-next-main clearing",
+      "consume-entire-selection-first,multiple hats,used miracles and empty replacements",
+      "replacement count/configured pool/disguise validation and token budget",
+      "transactional core/C mutation and deeply owned Python input",
+      "public observations and unchanged default policy/chooser RNG paths"
+    ],
+    "conclusion": "No clear defect found in the reviewed diff. This is a static audit;successful runtime validation was separately reported by the parent and is recorded above."
+  },
+  "limitations": [
+    "Conditional supplied-result execution does not establish the official replacement selector,weights,Dream rate or joint actual/face distribution.",
+    "The received pair19/27 and explicit same-model202/202 are preserved through the existing received-disguise path;the default local generator is unchanged.",
+    "The reconstructed CPU35 copy is inferred from the received launch,not an additional captured initial draw.",
+    "Received viewer events are not a complete internal backend event stream;CPU normal receipt evidence remains a snapshot delta.",
+    "No new official observations,complete game lifecycle or exhaustive backend trace are added.",
+    "Official full simulator equivalence remains unestablished."
+  ],
+  "official_full_simulator_equivalence_established": false
+}

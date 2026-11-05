@@ -62,6 +62,9 @@ static_assert(std::is_standard_layout_v<gfo_match_artifact_grant_action>
     && offsetof(gfo_match_artifact_grant_action,fake_model)==10
     && offsetof(gfo_match_artifact_grant_action,reserved)==12);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
+static_assert(sizeof(gfo_match_redraw_item)==8 && offsetof(gfo_match_redraw_item,fake_model)==2
+    && offsetof(gfo_match_redraw_item,has_fake)==4 && offsetof(gfo_match_redraw_item,reserved)==5);
+static_assert(sizeof(gfo_match_redraw_result)==16 && offsetof(gfo_match_redraw_result,item_count)==8);
 namespace {
 template<std::size_t N> bool zero(const uint8_t (&bytes)[N]) { return std::all_of(std::begin(bytes), std::end(bytes), [](auto v) { return v == 0; }); }
 void valid(bool condition) { if (!condition) throw std::invalid_argument("invalid match ABI input"); }
@@ -194,6 +197,30 @@ official::ArtifactGrantAction artifact_grant_action(const gfo_match_artifact_gra
     // Nonzero is presence, including identity faces; never collapse to absent.
     if(input.fake_model)result.fake_model=input.fake_model;
     return result;
+}
+int redraw_storage(const gfo_match_redraw_result* results, std::size_t count) {
+    if(count>official::visible_hand_capacity)return -2;
+    if(count&&!results)return -1;
+    for(std::size_t i=0;i<count;++i){
+        if(results[i].item_count>official::visible_hand_capacity)return -2;
+        if(results[i].item_count&&!results[i].items)return -1;
+    }
+    return 0;
+}
+official::RedrawResponseAction redraw_action(const gfo_match_command& input,
+    const gfo_match_redraw_result* results,std::size_t count) {
+    official::RedrawResponseAction out;out.response=command(input);out.results.reserve(count);
+    for(std::size_t i=0;i<count;++i){
+        official::RedrawResult result;result.items.reserve(results[i].item_count);
+        for(std::size_t j=0;j<results[i].item_count;++j){
+            const auto& item=results[i].items[j];
+            valid(item.model>0 && item.has_fake<=1 && zero(item.reserved)
+                && (item.has_fake ? item.fake_model>0 : item.fake_model==0));
+            result.items.push_back({item.model,item.has_fake?std::optional<official::CardId>{item.fake_model}:std::nullopt});
+        }
+        out.results.push_back(std::move(result));
+    }
+    return out;
 }
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 9
@@ -329,6 +356,9 @@ size_t gfo_match_artifact_grant_action_size(void) { return sizeof(gfo_match_arti
 int gfo_match_artifact_grant_supported(uint16_t model) { return official::match_artifact_grant_supported(model); }
 const char* gfo_match_artifact_grant_rule(void) { return official::artifact_grant_rule; }
 const char* gfo_match_normal_grant_rule(void) { return official::normal_grant_rule; }
+size_t gfo_match_redraw_item_size(void) { return sizeof(gfo_match_redraw_item); }
+size_t gfo_match_redraw_result_size(void) { return sizeof(gfo_match_redraw_result); }
+const char* gfo_match_redraw_response_rule(void) { return official::redraw_response_rule; }
 
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
@@ -538,6 +568,21 @@ int gfo_match_artifact_grant_step(gfo_match* match, const gfo_match_artifact_gra
     try { const auto parsed=artifact_grant_action(*input);auto next=match->value;next.artifact_grant_step(parsed);const auto result=status(next);
         match->value=std::move(next);*out=result;return 0; }
     catch(...) { return error(); }
+}
+int gfo_match_redraw_response_legal(const gfo_match* match,const gfo_match_command* input,
+    const gfo_match_redraw_result* results,size_t count,uint8_t* out) {
+    if(!match||!input||!out)return -1;
+    if(const auto err=redraw_storage(results,count))return err;
+    try { const auto action=redraw_action(*input,results,count);const uint8_t value=match->value.redraw_response_legal(action);*out=value;return 0; }
+    catch(...){return error();}
+}
+int gfo_match_redraw_response_step(gfo_match* match,const gfo_match_command* input,
+    const gfo_match_redraw_result* results,size_t count,gfo_match_status* out) {
+    if(!match||!input||!out)return -1;
+    if(const auto err=redraw_storage(results,count))return err;
+    try { const auto action=redraw_action(*input,results,count);auto next=match->value;next.redraw_response_step(action);const auto value=status(next);
+        match->value=std::move(next);*out=value;return 0; }
+    catch(...){return error();}
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {
     if (!match || !policy_rng || !out) return -1;
