@@ -2235,3 +2235,14 @@ Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 一枚/二枚応答の合法性、二枚step拒否のC出力/Python状態不変は、自己付与後のlocal回帰で検証する。公式UIで防御を実行/拒否された例として加算せず、CPU10未応答のまま終了する。ホーム復帰とNetwork Monitor終了を確認した。
 
 最終Release CTest157/157（29.01秒）が通過した。初回に残っていたCのself70応答1箇所とPython既存2methodの追加defend前提を除き、旧cure/併存の回帰を維持した。この期待修正でruntimeは変えていない。ASan/UBSanは初回3対象中core/wireが通過（run全体14.04秒）し、同じ期待を直したCだけを再実行して1/1（1.44秒）通過した。主要3対象を確認したが、単一clean3/3 run・全SAN suite・Python SANとは区別する。native249 callbacks・Python181 unique methods、全buildのwarning/error0、diff-check正常。
+
+
+## 作業世代v81：CPU先手から属性ワンドまでの受信照合
+
+CPU1先手/viewer2の対局で、最初のauthoritative raw1は29保留、raw2は空応答後HP32、raw3は66自己使用後HP30とCPU196のMP20を示す。29/id4をuseイベントから戻したnative initializerを別扱いにし、196/3の在庫差分と実gift21を供給して固定8seed×3状態＝24比較する。
+
+weapon set_elementだけを直接selfへ追加し、66実測/83同trait推論を明記する。属性・合成・費用・一般抽選算法は変更せず、67/S67/view65・ABI2固定。C/PythonではHP32の単品66→30・追加selfdefend拒否の原子性・通常21接続を回帰確認する。
+
+新2完了viewer操作で累計62/native56/record-only6・wire552、完全start→end2・routing-only1・内部trace0は維持する。native7決定をserver3更新へ読み替えず、CPU196継続・途中退出・失敗したfooter試行を追加観測へ数えない。ホーム復帰とNetwork Monitor終了を確認した。
+
+Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.38秒）が通過した。native250 callbacks・Python182 unique methods、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般属性優先の同値性を示す結果ではない。

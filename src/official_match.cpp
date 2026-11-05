@@ -1321,7 +1321,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             consume(s, index(s, target), {*mortar}, false);
             resolve(s, original, 0); completed = true;
         } else if (command.kind == CommandKind::play && command.target == s.owner && target == s.owner
-            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::bounce_weapon || base.ability == Ability::reflect_weapon || base.ability == Ability::reflect_miracle || base.ability == Ability::block_miracle || base.ability == Ability::cut_cost
+            && ((base.category == Category::weapons && (base.ability == Ability::none || base.ability == Ability::bounce_weapon || base.ability == Ability::reflect_weapon || base.ability == Ability::reflect_miracle || base.ability == Ability::block_miracle || base.ability == Ability::set_element || base.ability == Ability::cut_cost
                     || base.ability == Ability::absorb_hp || base.ability == Ability::attack_twice
                     || base.ability == Ability::atk_by2x_mp || base.ability == Ability::deal_same_damage
                     || (base.ability == Ability::add_curse_on_damage && (base.curse == Curse::dream || base.curse == Curse::darkcloud || base.curse == Curse::cold || base.curse == Curse::fog || base.curse == Curse::flash))))
@@ -2248,7 +2248,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v64\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v65\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

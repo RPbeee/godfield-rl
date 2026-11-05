@@ -461,3 +461,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view64/rules66/Snapshot66へ更新し、独立State/表示componentとC構造体を維持する。本人38/10/20・Flash、CPU40/10/20とCPU10/source2/target1/power2の未応答frameを照合する。FlashはFogのようにCPU statusを隠さず、両者の資源表示を保持する。
 
 消費70/id8と実gift4/id8を別native tokenへ写し、既存4/id6を残す。native/C/Pythonの合成回帰は自己付与Flashから一枚防御の合法性・二枚防御の拒否と状態不変を調べるが、公式UIの追加応答操作ではない。
+
+
+## v81：viewer2の自己66とCPU回復後のmain
+
+対局view65/rules67/Snapshot67へ更新し、独立State/表示componentとC構造体を維持する。raw1のCPU1は29消費後の8正コピー+空行1、viewer2は66を含む9正コピー・HP40である。空応答後raw2は本人32/10/20、自己66とCPU196継続後raw3は本人30/10/20・CPU40/20/20となる。
+
+owner付きslot4はCPU29→196→3という異なるnative tokenへ写し、viewer66/id5→21/id5もfresh tokenにする。196/3はsnapshot差分、21は明示giftである。GF1→2→4とserver update1→2→3、native7決定を同一視しない。C/Pythonの独立body回帰はGF2/HP32からの66→30・gift21までを検証する。

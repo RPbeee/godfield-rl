@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v66"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v67"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v64\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v65\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==66&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==67&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v64")!=std::string::npos
+    check(view.find("official-execution-view-v65")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3945,6 +3945,68 @@ void flash70_self_body_defense_limit_and_narrow_routing(){
     check(failed&&atomic.snapshot()==before,"late failure rolls back self70 damage,Flash,consumption and replacement reservation");
 }
 
+void element_wand_self_body_and_narrow_routing(){
+    std::vector<CardId> traits;
+    for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::set_element)traits.push_back(card.id);
+    check(traits==std::vector<CardId>({66,83}),"setElement self shortcut admits exactly the Fire and Water weapon bases");
+    MatchConfig config;config.external_artifacts=true;
+    for(CardId model:traits){
+        auto state=scene({model,142},{});state.gf=2;state.players[0].hp=32;auto game=fixture(state,config);const auto rng=game.snapshot().rng;
+        game.step(play(0,{0},0));const auto body=game.snapshot();
+        check(body.phase==MatchPhase::grant&&!body.actor&&body.queue.empty()&&body.decisions==1&&body.pending_grant==0
+            &&body.state.players[0].hp==32-find_card(model)->atk&&body.state.players[0].mp==10&&body.state.players[0].cp==20
+            &&body.state.players[0].items==std::vector<ItemInstance>{{1,142,{},false}}
+            &&body.gifts[0]==1&&!body.last_tick&&body.rng==rng,
+            "66 observed atHP32 and83 same-trait inference resolve self damage with one consumption and no defense,tick or RNG");roundtrip(game);
+        reject(game,defend(0));
+        for(unsigned error=0;error<3;++error){auto bad=body;if(error==0)++bad.state.players[0].hp;if(error==1)++bad.rng;if(error==2)bad.batch->models[0]=model==66?CardId{83}:CardId{66};
+            bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==body,"self wand replay rejects forged damage,RNG or base model without changing the pending grant");}
+        game.artifact_grant_step({0,21,{}});
+        check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().state.gf==3
+            &&game.snapshot().state.players[0].hp==32-find_card(model)->atk
+            &&game.snapshot().state.players[0].items.back()==ItemInstance{body.next_token,21,{},false}&&game.snapshot().rng==rng,
+            "explicit gift21 resumes the existing wand body without repeating its damage or spending MP");roundtrip(game);
+    }
+    // These composition/attribute boundaries are synthetic and retain the existing client-derived oracle rules.
+    // An unarmored self hit alone cannot identify elemental precedence in combat.
+    for(bool third:{false,true}){
+        auto state=scene({66,83,66,150},{});state.players[0].hp=32;auto composed=fixture(state,config);
+        const std::vector<CardId> models=third?std::vector<CardId>{66,83,66}:std::vector<CardId>{66,83};
+        const Command command=third?play(0,{0,1,2},0):play(0,{0,1},0);composed.step(command);
+        check(composed.snapshot().state.players[0].hp==32-attack_power(models)&&composed.snapshot().state.players[0].mp==10
+            &&composed.snapshot().gifts[0]==models.size()&&attack_element(models)==(third?Element::fire:Element::water)
+            &&composed.snapshot().batch->models==models&&composed.snapshot().rng==1234,
+            "ordered physical wand composition keeps the existing ATK and last-setter attribute calculation with one gift per selected copy");roundtrip(composed);
+    }
+    for(bool free:{false,true}){
+        auto state=scene({66,231,204},{});auto charged=fixture(state,config);charged.step(free?play(0,{0,1,2},0):play(0,{0,1},0));
+        check(charged.snapshot().state.players[0].hp==36&&charged.snapshot().state.players[0].mp==(free?10:4)
+            &&charged.snapshot().state.players[0].items.front()==ItemInstance{1,231,{},true}
+            &&charged.snapshot().gifts[0]==(free?3u:2u),"self wand retains the existing Aura power,ordered FREE fee and retained-miracle consumption");roundtrip(charged);
+    }
+    auto state=scene({66,142},{});state.players[0].hp=32;MatchConfig cap=config;cap.max_decisions=1;auto cutoff=fixture(state,cap);cutoff.step(play(0,{0},0));
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==30&&cutoff.snapshot().gifts[0]==0
+        &&cutoff.snapshot().state.players[0].items==std::vector<ItemInstance>{{1,142,{},false}}&&cutoff.snapshot().rng==1234,
+        "self wand body precedes cutoff while unperformed gift and defense leave RNG and spare armor unchanged");roundtrip(cutoff);
+    for(CardId model:traits){auto foreign=fixture(scene({model},{}),config);foreign.step(play(0,{0},7));
+        check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7
+            &&foreign.snapshot().queue[0].element==find_card(model)->element&&foreign.snapshot().state.players[1].hp==40,
+            "foreign wand keeps its response and precomputed base element");roundtrip(foreign);foreign.step(defend(7));roundtrip(foreign);}
+    auto reflected=fixture(scene({66},{189,38}),config);reflected.step(play(0,{0},7));reflected.step(defend(7,{0,1}));
+    check(reflected.snapshot().phase==MatchPhase::response&&reflected.snapshot().actor==0&&!reflected.snapshot().queue[0].element
+        &&reflected.snapshot().queue[0].power==2&&reflected.snapshot().state.players[0].hp==40,
+        "filter then reflection of wand66 keeps the existing response and does not recompute its cleared element");roundtrip(reflected);reflected.step(defend(0));roundtrip(reflected);
+    auto wide=fixture(scene({66,232},{}));wide.step(play(0,{0,1},0));
+    check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
+        "Wide wand keeps the enemy roster rather than the ignored self hint");roundtrip(wide);
+    auto payload_state=scene({},{});payload_state.players[0].guardian=Guardian::earth;auto payload=fixture(payload_state);payload.guardian_payload_step({0,Guardian::earth,{66},0});
+    check(payload.snapshot().phase==MatchPhase::response&&payload.snapshot().actor==0&&payload.snapshot().state.players[0].hp==40,
+        "external Earth self wand retains the existing guardian response route");roundtrip(payload);payload.step(defend(0));roundtrip(payload);
+    auto late=state;late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{0},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late failure rolls back wand self damage,consumption and gift reservation");
+}
+
 void received_identity_disguise_presence_use_and_replay(){
     for(const auto& card:catalog()){
         check(!match_dream_compatible(card.id,card.id),"local generation still excludes all identity candidates");
@@ -4345,7 +4407,7 @@ void supplied_purchase_confusion_then_automatic_guardian_replay(){
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),249> tests{{
+    const std::array<void(*)(),250> tests{{
         supplied_purchase_confusion_origin_and_receipt_replay,
         supplied_purchase_confusion_then_automatic_guardian_replay,
         supplied_purchase_cp_zero_token0_and_completed_proof,
@@ -4362,6 +4424,7 @@ int main(){
         cold_weapon_self_body_tick_and_narrow_routing,
         fog72_self_body_privacy_and_narrow_routing,
         flash70_self_body_defense_limit_and_narrow_routing,
+        element_wand_self_body_and_narrow_routing,
         received_identity_disguise_presence_use_and_replay,
         received_directed19_face27_uses_visible_legality_and_actual_body,
         external_artifacts_flags_thresholds_sampler_and_driver,

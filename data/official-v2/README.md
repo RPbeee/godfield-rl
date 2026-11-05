@@ -574,3 +574,19 @@ Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 | --- | ---: | --- |
 | `wire-game-updates-v80.json` | 11,974 | `ca5fdaba0994df099d61e1bc7223ed31e41d323fdacd3aabbf364052e521cf23` |
 | `live-transition-witnesses-v80.json` | 11,907 | `789feabb961e547f0df6f2df60c8bc3928bb6eecf7eb7c18beab52292043acc8` |
+
+
+## v81：viewer2の属性ワンド自己使用とCPU196の継続
+
+[受信更新1/2/3](wire-game-updates-v81.json)と[2操作](live-transition-witnesses-v81.json)を保存する。CPU1先手/viewer2で、最初のraw1はCPU29/id4保留。空応答8被害で本人40→32、66/id5自己使用2被害・実gift21/id5で32→30となり、次CPU196/id4のMP＋10を経てGF4本人mainへ進む。CPU196/3の補充は在庫deltaだけで、明示giftイベントではない。
+
+最初のpendingをnativeで作るため29/id4だけを受信useから戻す。prelaunch sceneの取得・初期配布分布/物理順やserver RNGを再現したとはしない。受信3状態×8固定seed＝24比較で累計62/native56/record-only6・wire重複込み552、完全lifecycle2・routing-only1を維持する。CPU196継続を新viewer操作へ加えない。
+
+weapon set_elementのself routingだけを変更し、66実測/83同trait推論を明記して67/S67/view65へ更新、ABI2/型幅・属性/合成/費用算法を維持する。単品・無防御の自己2被害から属性優先を識別したとはしない。採用sourceは01/03/04、02は01の完全重複として除外。公開JSONから元の名前/userId/updatedAt等を除き、元応答/解析物は0600、旧記録/pinsは維持する。ホーム復帰・Network Monitor終了を確認した。
+
+Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.38秒）が通過した。native250 callbacks・Python182 unique methods、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般属性優先の同値性を示す結果ではない。
+
+| v81 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v81.json` | 17,681 | `6b04773920b4af7d7e22737878169e1f59c4718949f5302b72c364c9b22cf7b1` |
+| `live-transition-witnesses-v81.json` | 13,928 | `6518e363a962f52a8a7fbb606a92b01569f4b4bcb0e8145fec7a75b142fef24d` |

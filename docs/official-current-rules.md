@@ -2224,3 +2224,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信初期1と使用後2](../data/official-v2/wire-game-updates-v80.json)には70/id8使用→target1→dealDamage2→addCurse flash→gift4/id8→advance2→CPU10/id3/target1がある。本人は40/10/20→38/10/20・Flashとなり、追加本人defendは挟まらない。UIも本人へ「まぶしい」と表示した。
 
 70の自己使用を既存direct経路へ加える根拠とする。Hell30・確率奇跡224・他のentryの一般化は行わない。224はCPU手札にあるが使用されていない。一枚応答制限は既存client規則へ接続するlocal検証で、今回の公式UIで二枚を選択/送信したという証拠はない。
+
+
+## v81：発火ワンド66の単品自己使用
+
+[受信更新1/2/3](../data/official-v2/wire-game-updates-v81.json)を取得した。rolesはCPU1/viewer2。最初のraw1は既にCPU29/id4→viewer2が保留で、空useDefense→damage8→advance2で本人40→32となる。CPU196/id4の補充はsnapshot deltaとしてだけ確認する。
+
+次のraw3は66/id5→target2→damage2→gift21/id5→advance1→CPU196/id4使用→boostMP10→advance2を含み、本人30/10/20・CPU40/20/20・GF4となる。CPUの次の3/id4は再びinventory deltaだけである。追加本人defendはなく、66の直接自己使用を修正する。83は同traitの推論で、無防御の自己2被害から属性優先の一般順序や83の実戦結果まで識別したとはしない。

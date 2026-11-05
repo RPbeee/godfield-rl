@@ -701,8 +701,34 @@ void observed_self70_bridge() {
     auto one=pair;one.item_count=1;one.items[1]=0;check(gfo_match_legal(game,&one,&legal)==0&&legal,"one-card Flash defense remains legal but unanswered");audit();gfo_match_destroy(game);
 }
 
+void observed_self66_bridge() {
+    namespace official=godfield::official;
+    gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;config.initial_hp=40;config.initial_mp=10;config.initial_cp=20;
+    std::array<gfo_match_player,2> setup{};setup[1].id=7;gfo_match* game=nullptr;gfo_match_status outcome{};
+    check(gfo_match_create(&config,setup.data(),2,42,&game)==0,"self66 C create");
+    std::array<gfo_state_player,2> people{};people[1].id=7;for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}people[0].hp=32;people[0].item_count=2;people[1].item_offset=2;
+    std::array<gfo_state_item,2> items{};items[0].token=3;items[0].model=66;items[1].token=9;items[1].model=145;
+    gfo_state_meta meta{};meta.gf=2;gfo_state* received=nullptr;
+    check(gfo_state_create(&meta,people.data(),2,items.data(),2,nullptr,0,&received)==0&&gfo_match_load_scene(game,received,0,42,&outcome)==0,"self66 typed scene");gfo_state_destroy(received);
+    official::MatchConfig nc;nc.initial_hand=0;nc.max_decisions=64;nc.external_artifacts=true;official::Match native(nc);official::SnapshotState state;state.gf=2;state.players.resize(2);state.players[1].id=7;
+    state.players[0].items={{3,66,{},false},{9,145,{},false}};state.players[0].hp=32;native.load_scene(state,0,42);
+    const auto audit=[&]{official::Match restored;restored.restore(native.snapshot());check(restored.snapshot()==native.snapshot(),"self66 full proof resumes");
+        check(observe(game,1,0)==native.observe(0)&&observe(game,0,0)==native.observe({}),"self66 C/native projection parity");};
+    gfo_match_command use{};use.has_target=1;use.item_count=1;use.items[0]=3;
+    check(gfo_match_step(game,&use,&outcome)==0,"observed self66 single command");native.step({0,official::CommandKind::play,{3},0});audit();
+    check(outcome.phase==4&&!outcome.has_actor&&outcome.decisions==1&&native.snapshot().queue.empty()&&native.snapshot().state.players[0].hp==30
+        &&native.snapshot().state.players[0].mp==10&&native.snapshot().state.players[0].cp==20
+        &&native.snapshot().state.players[0].curses.empty()
+        &&native.snapshot().state.players[0].items==std::vector<official::ItemInstance>{{9,145,{},false}}
+        &&native.snapshot().gifts[0]==1&&!native.snapshot().last_tick&&native.snapshot().rng==42,"self66 atHP32 deals2 without extra self defense,tick or draw");
+    gfo_match_artifact_grant_action artifact{};artifact.model=21;check(gfo_match_artifact_grant_step(game,&artifact,&outcome)==0,"self66 observed21 receipt");native.artifact_grant_step({0,21,{}});audit();
+    const auto before=observe(game,1,0);const auto old=status(game);gfo_match_command extra{};extra.kind=1;extra.item_count=1;extra.items[0]=9;uint8_t legal=77;outcome=old;
+    check(gfo_match_legal(game,&extra,&legal)==0&&!legal&&gfo_match_step(game,&extra,&outcome)==-2&&equal(outcome,old)&&observe(game,1,0)==before,"self66 extra defense is semantically illegal and atomic");
+    check(old.phase==0&&old.owner==7&&native.snapshot().state.gf==3&&native.snapshot().state.players[0].items.size()==2,"self66 gift advances once");gfo_match_destroy(game);
+}
 }
 int main() {
+    observed_self66_bridge();
     observed_self70_bridge();
     observed_self72_bridge();
     observed_self48_bridge();
@@ -746,9 +772,9 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v66"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v67"
         && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v64 scope");
-    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-hell-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
+    check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-set-element-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-set-element66-raw-self-use-observed-v81-83-same-trait-inference-hell-excluded-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
     for (auto id : {36, 80, 183, 222}) check(gfo_match_supported(id), "Dream scoped models are supported");
@@ -1078,7 +1104,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v64\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v65\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v80.json",
+  "method": "Two actual viewer2 operations with three consecutive authoritative states:empty defense against CPU29 and self66. The first received state already contains the CPU launch;native prelaunch reconstruction is explicitly separate.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. CPU true hand is privileged scenario context only.",
+  "authoritative_fixture": "wire-game-updates-v81.json",
+  "source_body_provenance": [
+    {
+      "label": "initial-pending-cpu29",
+      "response_body_bytes": 27734,
+      "response_body_sha256": "9bb75bda7ac20d436f06a8827344eba965dcafe3986c8242c871c74d19c19da6",
+      "webchannel_frame_count": 16,
+      "included_game_index": 0
+    },
+    {
+      "label": "after-empty-defense29",
+      "response_body_bytes": 15132,
+      "response_body_sha256": "c7d6535e1a320d0960b4dfc8a05ae60b2cb608ee70bbd720b311d9cc42b32ed2",
+      "webchannel_frame_count": 4,
+      "included_game_index": 0
+    },
+    {
+      "label": "after-self66-and-cpu196",
+      "response_body_bytes": 19139,
+      "response_body_sha256": "9ebd5942a8640dc6a1d51af5ca25d6439bc211da02a0c633adcc88b4fc9e36a7",
+      "webchannel_frame_count": 5,
+      "included_game_index": 0
+    }
+  ],
+  "model_provenance": {
+    "29": {
+      "id": 29,
+      "imageName": "final-tusk",
+      "category": "weapons",
+      "atk": 8,
+      "price": 3,
+      "giftRate": 8,
+      "name": "ファイナル牙"
+    },
+    "66": {
+      "id": 66,
+      "imageName": "wand-of-ignition",
+      "category": "weapons",
+      "element": "fire",
+      "atk": 2,
+      "isPlusAtk": true,
+      "ability": "setElement",
+      "price": 15,
+      "giftRate": 1,
+      "name": "発火のワンド"
+    },
+    "83": {
+      "id": 83,
+      "imageName": "wand-of-mystic-water",
+      "category": "weapons",
+      "element": "water",
+      "atk": 5,
+      "isPlusAtk": true,
+      "ability": "setElement",
+      "price": 15,
+      "giftRate": 1,
+      "name": "魔水のワンド"
+    },
+    "196": {
+      "id": 196,
+      "imageName": "heart-flower",
+      "category": "sundries",
+      "ability": "boostMP",
+      "abilityValue": 10,
+      "price": 3,
+      "giftRate": 8,
+      "name": "ハートの花"
+    },
+    "3": {
+      "id": 3,
+      "imageName": "exchange",
+      "category": "trade",
+      "ability": "exchange",
+      "price": 5,
+      "giftRate": 20,
+      "name": "両替"
+    },
+    "21": {
+      "id": 21,
+      "imageName": "bouncing-sword",
+      "category": "weapons",
+      "atk": 5,
+      "ability": "bounceWeapon",
+      "price": 10,
+      "giftRate": 7,
+      "name": "乱弾武剣"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-viewer2-empty-defense-cpu29",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "itemModelIds": [
+              29
+            ],
+            "targetPlayerId": 2,
+            "playerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "defend",
+        "displayed_models": [],
+        "item_ids": [],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 32,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "advanceGF"
+      ],
+      "cpu_inventory_delta": {
+        "player_id": 1,
+        "server_item_id": 4,
+        "model": 196,
+        "received_at_update": 2,
+        "evidence": "positive CPU inventory replacement of the initial pending placeholder;no received gift event"
+      },
+      "catalog_arithmetic": {
+        "cpu29_attack": 8,
+        "defense": 0,
+        "viewer_hp": "40-8=32"
+      },
+      "observation": "Viewer2 allowed the already pending CPU29 attack with an empty response. Received damage8 changedHP40 to32,thenGF2 viewer main followed.",
+      "limits": "CPU196/id4 is a positive received inventory delta,not a captured gift event. The native prelaunch29 reconstruction is not an authoritative initial prelaunch snapshot.",
+      "ui_confirmation_note": "An earlier footer click had no submitting effect;only the later response-pane confirmation was accepted. This case counts the single received empty response,not UI click attempts."
+    },
+    {
+      "id": "training-gf2-viewer2-self-wand-of-ignition",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 32,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "play",
+        "actual_model": 66,
+        "displayed_model": 66,
+        "item_id": 5,
+        "target": 2,
+        "single_card": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 4,
+        "server_update_count": 3,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 20,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 30,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "boostMP",
+        "advanceGF"
+      ],
+      "received_normal_gift": {
+        "playerId": 2,
+        "item": {
+          "modelId": 21,
+          "id": 5
+        }
+      },
+      "cpu_automatic_continuation": {
+        "model": 196,
+        "item_id": 4,
+        "received_boost_mp": 10,
+        "boost_event_player_id_present": false,
+        "cpu_mp_before": 10,
+        "cpu_mp_after": 20,
+        "counted_as_viewer_operation": false
+      },
+      "cpu_inventory_delta": {
+        "player_id": 1,
+        "server_item_id": 4,
+        "model": 3,
+        "received_at_update": 3,
+        "evidence": "positive CPU inventory replacement after use196;no received gift event"
+      },
+      "catalog_arithmetic": {
+        "single66_fire_attack": 2,
+        "viewer_hp": "32-2=30",
+        "viewer_mp_unchanged": 10,
+        "viewer_cp_unchanged": 20
+      },
+      "observation": "Viewer2 used66 alone toward self once,receiving2 damage and explicit gift21/id5. CPU196 then recovered10MP and GF4 viewer main was received.",
+      "limits": "Only66 as the actual self base is observed. Extending the direct route to83 is a same-trait implementation inference;existing attribute arithmetic is unchanged. CPU196 is automatic context,not another viewer operation,and CPU3 receipt is delta-only."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v67",
+    "snapshot_version": 67,
+    "observe_schema": "official-execution-view-v65",
+    "status": "passed",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2,
+      3
+    ],
+    "received_checkpoints_per_replay": 3,
+    "received_checkpoint_comparisons": 24,
+    "baseline_cumulative_wire_checkpoint_comparisons": 528,
+    "initial_scene_authoritative": true,
+    "initial_scene_scope": "Authoritative initial already has CPU29 pending. The earlier native prelaunch scene is reconstructed,not received.",
+    "prelaunch_scene_authoritative": false,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Reconstruct only the event-used CPU29 copy,launch it to the first received pending state,execute viewer empty defense,provideCPU196 delta,execute ordinary self66 and received21 gift,then CPU196 and CPU3 delta. Only the three received boundaries count as checkpoints;CPU policy and implicit gift schedule are not proven.",
+    "passed": true,
+    "cumulative_wire_checkpoint_comparisons": 552,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v81",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/provenance audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 40.74,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.38,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "wire_checkpoint_comparisons_passed": 24,
+      "native_registered_callbacks": 250,
+      "python_test_methods": 182,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Full Release suite and focused native core/C API/wire sanitizer targets passed. No full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 3,
+    "initial_authoritative_game_snapshots": 1,
+    "prelaunch_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 2,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_duplicate_response_count": 1
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit at received GF4 viewer2 main",
+    "extra_viewer_operation_after_self66_observed": false,
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 2,
+  "cumulative_completed_public_transition_witnesses": 62,
+  "new_native_projection_covered_completed_witnesses": 2,
+  "cumulative_native_projection_covered_completed_witnesses": 56,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 24,
+  "cumulative_wire_checkpoint_comparisons": 552,
+  "native_coverage_note": "Two actual viewer2 operations bring completed observations to62 and conditional native-covered observations to56;record-only observations remain6. Three authoritative boundaries are compared across eight fixed seeds. The first boundary already has CPU29 pending;the earlier native prelaunch scene reconstructs only the event-used29 copy and is not an authoritative snapshot. CPU196/3 are supplied inventory deltas,viewer21 is an explicit gift,and CPU196 continuation is not another viewer operation. Complete received lifecycles remain2 and routing-only observations remain1."
+}

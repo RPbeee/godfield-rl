@@ -1405,13 +1405,67 @@ void replay(std::uint64_t seed){
 }
 }
 
+namespace v81 {
+// First authoritative state already contains CPU29 pending. Only its consumed
+// copy is restored from the received use event to construct the native launch.
+constexpr std::array<ReceivedSlot,9> prelaunch_cpu{{{1,3},{2,135},{3,170},{4,29},{5,123},{6,161},{7,57},{8,32},{9,54}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,3},{2,135},{3,170},{5,123},{6,161},{7,57},{8,32},{9,54},{0,0}}};
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,191},{2,73},{3,4},{4,182},{5,66},{6,145},{7,118},{8,198},{9,123}}};
+constexpr std::array<ReceivedSlot,9> after_defense_cpu{{{1,3},{2,135},{3,170},{5,123},{6,161},{7,57},{8,32},{9,54},{4,196}}};
+constexpr std::array<ReceivedSlot,9> final_cpu{{{1,3},{2,135},{3,170},{5,123},{6,161},{7,57},{8,32},{9,54},{4,3}}};
+constexpr std::array<ReceivedSlot,9> final_viewer{{{1,191},{2,73},{3,4},{4,182},{6,145},{7,118},{8,198},{9,123},{5,21}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_cpu},{2,40,10,20,false,initial_viewer}}},29},
+    ReceivedCheckpoint{2,2,2,{{{1,40,10,20,false,after_defense_cpu},{2,32,10,20,false,initial_viewer}}}},
+    ReceivedCheckpoint{3,4,2,{{{1,40,20,20,false,final_cpu},{2,30,10,20,false,final_viewer}}}}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_viewer:prelaunch_cpu){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);
+    (void)game.step({1,CommandKind::play,{consumed_slot(slots,1,4)},2});roundtrip(game);
+    compare_checkpoint(game,slots,checkpoints[0]);
+    (void)game.step({2,CommandKind::defend,{},{}});roundtrip(game);
+    check(game.snapshot().state.players[1].hp==32&&game.snapshot().pending_grant==1,
+          "v81 received empty response takes8 before the CPU replacement pause");
+    // CPU196 and final CPU3 are inventory deltas,not captured gift events.
+    v64::receipt(game,slots,1,4,196);compare_checkpoint(game,slots,checkpoints[1]);
+    const Command self{2,CommandKind::play,{consumed_slot(slots,2,5)},2};
+    check(game.legal(self),"v81 actual66 is legal as the lone self base");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==4&&body.phase==MatchPhase::grant&&body.pending_grant==2&&body.gifts[1]==1
+          &&body.queue.empty()&&body.state.players[1].hp==30&&body.state.players[1].mp==10
+          &&body.state.players[1].cp==20&&body.state.players[1].curses.empty()&&!body.last_tick&&body.rng==seed,
+          "v81 self66 applies2 with no extra defense,resource fee,disease tick or draw before its gift");
+    v64::receipt(game,slots,2,5,21);
+    (void)game.step({1,CommandKind::play,{consumed_slot(slots,1,4)},1});roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1
+          &&game.snapshot().state.players[0].mp==20&&find_card(196)->ability_value==10,
+          "v81 received CPU196 recovery derives its ten MP from the existing catalog body");
+    v64::receipt(game,slots,1,4,3);compare_checkpoint(game,slots,checkpoints[2]);
+    const auto& s=game.snapshot();
+    check(s.decisions==7&&s.rng==seed&&s.chance_rolls==0&&s.counter_rolls==0&&s.dream_rolls==0
+          &&s.dream_masks==0&&s.redraws==0&&s.auto_guardian_actions==0&&s.revivals==0,
+          "v81 seven native decisions compare three received updates without fitting or a prelaunch wire claim");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1436,4 +1490,5 @@ int main() {
     std::cout<<"v78: 8 fixed seeds x2 received states,self53 for14+14 damage and supplied160;CPU19 unanswered,no source-versus-target order,low-HP boundary,initial distribution or server RNG equivalence claim\n";
     std::cout<<"v79: 8 fixed seeds x2 received states,self72/Fog and supplied10;UI hides CPU status while world retains40/10/20,CPU40 unanswered;v77 remains a separate UI-only record,no initial distribution or server RNG equivalence claim\n";
     std::cout<<"v80: 8 fixed seeds x2 selected received states,self70/Flash and supplied4;one-card preflight is local only,CPU10 unanswered,unused224,no fitted outcomes or server RNG equivalence claim\n";
+    std::cout<<"v81: 8 fixed seeds x3 received states,viewer2 empty defense and self66;CPU29 prelaunch copy reconstructed from event,CPU196/3 deltas and actual21 supplied,CPU196 recovery;no prelaunch wire,element-priority or server RNG equivalence claim\n";
 }
