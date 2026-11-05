@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v61` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v62` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3066,3 +3066,12 @@ ruleset60 / Snapshot60 / view-v58、C ABI2と旧構造体幅を維持し、追�
 低HPの45自己吸収は、準備中の致死攻撃により未取得です。追加した混乱BUY・購入後の守護神応答の復元テストは、公式観測へ加算しないローカル回帰です。
 
 検証はRelease全157対象のうち155が初回（38.78秒）に通過し、追加C/Pythonテストのsemantic legal期待を修正後、該当2対象を再実行して2/2（8.05秒）通過した。runtimeはこのテスト修正では変更していない。Debug ASan/UBSanは初回core/wire通過、Cを同じ期待修正後に再実行し1/1（1.29秒）通過し、主要3対象を確認した。単一の全件clean runや全SAN/Python SANとは区別する。native244群・Python176method、両buildのwarning/error0、diff-check通過。
+
+
+## v73：エンゼルアクス55の自己使用と反射された反撃
+
+公式CPU戦で55を自分へ使い、追加の防御入力なしでHP40→25・通常184補充へ進むことを確認しました。武器のblockMiracleを直接自己使用へ追加し、55を実測、42/50/56を同能力への限定一般化として扱います。防具の反応と、他者・反射後・Wide・守護神payloadの経路は維持します。rules62 / Snapshot62 / view-v60、C ABI2と型幅は維持します。
+
+同じ対局の開始から終局まで4受信更新を保存しました。184が11被害から22の反撃を生成し、CPUの190で反射され、空防御により死亡する列を固定8seedで照合します。補充184だけを外部指定し、反撃威力は通常の被害処理から計算します。新3観測で累計52/native対象47/記録のみ5、wire比較は重複込み432。完全な受信start→end列は累計2対局になりました。[受信記録](data/official-v2/wire-game-updates-v73.json)と[観測範囲](data/official-v2/live-transition-witnesses-v73.json)を参照してください。
+
+Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native245群・Python177method、最終両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや、版間の速度比較とは区別する。

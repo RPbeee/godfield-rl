@@ -2170,3 +2170,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [公式CPU受信](../data/official-v2/wire-game-updates-v72.json)のupdate2は、本人41/id8→target1→damage11→addCurse darkcloud→49補充→advanceGF2→CPU92の列である。使用前HP40はUI、使用後HP29/MP10/CP20・DarkCloudは受信gameで確認した。自己防御入力を加えないため、41の旧response待ちを直接DEF0解決へ修正する。初期の権威的gameは取得できず、元手札の順と初期drawは不明である。
 
 続く179防御はDark10をsafe、49自己使用はHP29→16、その後CPU19+43+25/22へ空防御してHP0/dead・endGameとなる。未使用の45を低HP自己使用した実測ではない。単品41以外のaddonや救済順、一般の自己curse武器・病気/守護神scheduleへ新実測を一般化しない。
+
+
+## v73：55自己使用と184/190の有限受信列
+
+[公式CPUの受信update1〜4](../data/official-v2/wire-game-updates-v73.json)では、55自己使用→damage15→184補充→CPU40へ進み、追加self defense/blockイベントは無い。本人40→25、MP10/CP20不変を取得した。武器blockMiracleの直接self経路を追加し、55を実測、42/50/56を同能力への限定一般化とする。
+
+その後184で11被害を受け、受信nextAttackはplayer1/models184/atk22を示す。CPU190がreflectして、current attackはplayer2/target1/reversed:trueとなる。残る165はStoneへの属性防御にもmiracle反応にも適合せず未選択、空防御で22被害・HP0/dead/endGameとなった。非致死11→22の1例であり、clip・死亡したcounter source・複数counter/FIFOやbackendの一般処理順へ広げない。本文の末尾placeholderとnativeの取消済みgiftを区別する。

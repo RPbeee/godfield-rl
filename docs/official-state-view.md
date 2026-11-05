@@ -409,3 +409,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view59/rules61/Snapshot61へ更新する。新しい観測fieldやC構造体は追加しない。41の自己使用で本人HP29とDarkCloudが補充前に確定し、追加のself responseを生成しないことを実受信で確認した。
 
 新しいterminal受信では本人はdead/HP0だが、未使用45を含む正コピー9を保持する。CPUの正コピー6と空行3も保存する。raw UI placeholderとnativeの予約giftは終局後に一致を要求せず、native側では予約を0へ取消す。受信勝利表示と、nativeが生死から計算するwinners/rewardsを区別する。独立State/表示componentのschemaは維持する。
+
+
+## v73：自己block武器と反射されたcounter
+
+対局view60/rules62/Snapshot62へ更新し、観測field/C構造体は増やさない。55のmain自己使用はblock反応を起こさず15被害を適用する。42/50/56は同能力の限定一般化として記録し、防具165等の応答時blockとは役割を区別する。
+
+受信184のatk22は11被害後に動的に示される値で、台帳の通常ATKではない。190反射後も反撃の生成者1を履歴に残し、current source2/target1・armor/Stone/counter2xAtkとして照合する。terminalにはviewer8正コピー+空行1、CPU7正コピー+空行2が残るが、nativeの生きた予約giftは0になる。165は未選択でHP1も観測していない。独立State/表示componentのschemaは維持する。

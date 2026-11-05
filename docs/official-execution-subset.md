@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v61
+# 現行公式データによる限定実行器 v62
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v61` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v62` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3284,3 +3284,16 @@ v72wireは4受信状態を8固定seedで32比較する。初期subscription本�
 新しい完了観測は4例、累計49・条件付きnative対象44・record-only5、wire累計400比較。初期受信が無いため新しい完全start→end列は0で、累計1対局のまま。45の低HP自己吸収・53/58の自己使用は未観測である。混乱BUY→供給商品→YES/NO→内部/外部補充、および既存Saturn自動機会→190反射→応答完了は、別の合成2群でpurchase_proofのorigin/count/後続journalを確認する。有限local seed走査は公式記録へのseed fitではなく、この回帰の到達局面作成にだけ使う。
 
 検証はRelease全157対象のうち155が初回（38.78秒）に通過し、追加C/Pythonテストのsemantic legal期待を修正後、該当2対象を再実行して2/2（8.05秒）通過した。runtimeはこのテスト修正では変更していない。Debug ASan/UBSanは初回core/wire通過、Cを同じ期待修正後に再実行し1/1（1.29秒）通過し、主要3対象を確認した。単一の全件clean runや全SAN/Python SANとは区別する。native244群・Python176method、両buildのwarning/error0、diff-check通過。
+
+
+## 対局v62（作業世代v73）：武器blockMiracleの自己使用と反撃の受信再生
+
+公式のauthoritative初期状態から、55/id3自己使用→target1→damage15→184/id3補充→advance2→CPU40/id5の11攻撃を取得した。自己防御入力やblockイベントはなく、本人はHP40→25・MP10/CP20維持である。明示self・main play・武器base・hitRate0/noWideの直接DEF0経路にblockMiracleを加える。55は実測、同能力の42/50/56は合成回帰による限定一般化とする。追加材・cutoff・208・late failureも合成境界で、他者/190 redirect/Wide/Earth payloadや防具のmain不可・応答blockは既存経路を維持する。
+
+続く本人184/id3は11被害を受けてHP14となり、22のStone反撃をCPUへ生成した。CPU190/id2が反射して本人への22が保留される。ここで165の普通DEF9はStoneへ適合せず、blockMiracleもarmor counterへの反応ではないため選択できなかった。165は未使用で、別の完了操作やrouting-only件数へは加算しない。最後の空防御でHP0/dead/endGameとなり、受信末尾の空行1/2はnativeが終局で取消す予約gift0と分ける。
+
+v73wireは受信initial/update1からupdate4/endまで4状態×8固定seed＝32比較。初期の神器列をload_sceneで入力し、通常Commandと明示Artifact184だけを使う。受信atk22をeffectへ注入せず、通常の11 HP損失×2と190応答からorigin1/current source2/target1を導出する。非致死11の例なので、clip後の損失基準・死亡時counter・多counter/FIFOの一般則を実測したとはしない。各native境界を完全private snapshotから復元し、元slotが新しいlocal tokenへ対応すること、次手番まで補充が保留され終局で取消されることを検査する。
+
+初期drawの分布・CPU方策・backend内イベント全列やserver RNGは再現対象外。CPU207/id4はauthoritativeなprivileged初期手札で、未使用のまま保つ。`include_fate=true` は通常poolの選択であり、この所持207のFate発動を示さない。52完了観測/native対象47/record-only5、wire重複込み432、完全受信start→endは累計2。rules62/Snapshot62（旧1〜61拒否）/view60、既存ABI2/型幅を維持する。
+
+Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native245群・Python177method、最終両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや、版間の速度比較とは区別する。

@@ -306,3 +306,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [4受信更新](../data/official-v2/wire-game-updates-v72.json)と[4操作](../data/official-v2/live-transition-witnesses-v72.json)を取得した。41自己使用は単一操作で11被害・DarkCloud・通常49補充、179/DEF15でCPU92の闇10をsafe、49自己使用で13被害、最後はCPU19+43+25の22に空防御して死亡・終局となる。本人HP列は40(UI初期)→29→29→16→0、MP10/CP20維持である。41の不要なself-defense待ちを修正する。
 
 初期の権威的本文は取得できず、最初のpostから消費41とCPU92を戻した再構成sceneからの検証とする。4状態×固定8seed＝32比較、累計観測49/native対象44/record-only5、wire比較は重複込み400。終局後も未使用45を保持しており、45低HP吸収の観測には数えない。新しい完全な受信start→endは0、従来累計1のままである。終局後のホーム復帰・Network Monitor終了を確認した。
+
+
+## v73：エンゼルアクスと反射された土星の指輪
+
+[4受信更新](../data/official-v2/wire-game-updates-v73.json)と[3完了操作](../data/official-v2/live-transition-witnesses-v73.json)を保存した。authoritativeな初期手札には55があり、自己使用は15被害・184補充へ直接進んだ。続くCPU40/11へ184で応答すると本人25→14、22のStone反撃がCPUへ向かい、CPU190で反射された。165は適合せず未選択で、最後の空防御は22被害→die1→endGameとなった。
+
+初期から終局までの4状態を固定8seedで32比較し、52完了観測中native対象47・record-only5、wire累計432へ更新する。完全な受信start→endは新1/累計2、全backend内部traceは0のままである。初期drawは生成せず受信手札を入力し、CPU207も所持のまま未使用として保つ。初期とpostの取り違えを避けて重複body3件を除外した。terminal画面は途中で終了ボタンへ進んだため撮影せず、死亡/終局の根拠はauthoritativeな本文である。ホーム復帰・Network Monitor終了はUIで確認した。

@@ -35,6 +35,9 @@ struct ReceivedCheckpoint {
     std::array<ReceivedPlayer,2> players; CardId pending = 0;
     std::span<const CardId> pending_models = {};
     bool ended = false;
+    std::optional<PlayerId> pending_origin = {};
+    std::optional<std::int64_t> pending_power = {};
+    bool counter = false;
 };
 constexpr std::array checkpoints{
     ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}},0},
@@ -99,10 +102,10 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         const auto& effect=actual.queue.front();const auto* card=find_card(expected.pending);
         const auto models=expected.pending_models.empty()?std::vector<CardId>{expected.pending}
             :std::vector<CardId>(expected.pending_models.begin(),expected.pending_models.end());
-        check(card&&effect.models==models&&effect.origin==expected.owner&&effect.source==expected.owner&&effect.target==defender
-              &&effect.category==card->category&&effect.power==attack_power(models)&&effect.element==attack_element(models)
+        check(card&&effect.models==models&&effect.origin==expected.pending_origin.value_or(expected.owner)&&effect.source==expected.owner&&effect.target==defender
+              &&effect.category==card->category&&effect.power==expected.pending_power.value_or(attack_power(models))&&effect.element==attack_element(models)
               &&effect.ability==card->ability&&effect.amount==card->ability_value
-              &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
+              &&effect.hit_rate==0&&effect.is_counter==expected.counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
         // Curse is derived from the retained base model, not a separate frame field.
         // The later received Cold state is also checked directly at update3.
         if(expected.pending==62)check(effect.ability==Ability::add_curse_on_damage&&card->curse==Curse::cold,
@@ -1031,13 +1034,85 @@ void replay(std::uint64_t seed){
 }
 }
 
+// v73 has a received initial state and a received end. Initial distribution and
+// CPU decisions are supplied evidence;no local sampling is fitted to the game.
+namespace v73 {
+constexpr std::array<std::array<ReceivedSlot,9>,3> viewer{{
+    {{{1,3},{2,19},{3,55},{4,176},{5,149},{6,138},{7,32},{8,3},{9,165}}},
+    {{{1,3},{2,19},{4,176},{5,149},{6,138},{7,32},{8,3},{9,165},{3,184}}},
+    {{{1,3},{2,19},{4,176},{5,149},{6,138},{7,32},{8,3},{9,165},{0,0}}},
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,3> cpu{{
+    {{{1,35},{2,190},{3,107},{4,207},{5,40},{6,203},{7,21},{8,43},{9,206}}},
+    {{{1,35},{2,190},{3,107},{4,207},{6,203},{7,21},{8,43},{9,206},{0,0}}},
+    {{{1,35},{3,107},{4,207},{6,203},{7,21},{8,43},{9,206},{0,0},{0,0}}},
+}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,viewer[0]},{2,40,10,20,false,cpu[0]}}},0},
+    ReceivedCheckpoint{2,2,2,{{{1,25,10,20,false,viewer[1]},{2,40,10,20,false,cpu[1]}}},40},
+    ReceivedCheckpoint{3,2,2,{{{1,14,10,20,false,viewer[2]},{2,40,10,20,false,cpu[2]}}},184,{},false,PlayerId{1},22,true},
+    ReceivedCheckpoint{4,2,2,{{{1,0,10,20,false,viewer[2],false,true},{2,40,10,20,false,cpu[2]}}},0,{},true},
+};
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed){
+    compare_checkpoint(game,slots,checkpoints[checkpoint]);
+    const auto& s=game.snapshot();
+    check(s.rng==seed&&s.redraws==0&&s.dream_rolls==0&&s.dream_masks==0&&s.auto_guardian_actions==0&&s.revivals==0
+          &&s.chance_rolls==0&&s.counter_rolls==0,"v73 uses the same fixed seeds without chance,RNG or recipient fitting");
+    const auto& other=s.state.players[1].items;
+    check(std::any_of(other.begin(),other.end(),[](const auto& item){return item.model==207&&!item.used;}),
+          "v73 received owned207 remains unused and does not imply a Fate choice or outcome");
+}
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.include_fate=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?cpu[0]:viewer[0]){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare(game,slots,0,seed);
+    const Command self55{1,CommandKind::play,{consumed_slot(slots,1,3)},1};
+    check(game.legal(self55),"v73 actual55 explicit self is a legal single-card main command");
+    (void)game.step(self55);roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1&&game.snapshot().decisions==1
+          &&game.snapshot().state.players[0].hp==25&&game.snapshot().queue.empty(),
+          "v73 actual55 deals15 directly without a self-defense or a block reaction");
+    v64::receipt(game,slots,1,3,184);
+    (void)game.step({2,CommandKind::play,{consumed_slot(slots,2,5)},1});roundtrip(game);compare(game,slots,1,seed);
+    (void)game.step({1,CommandKind::defend,{consumed_slot(slots,1,3)},{}});roundtrip(game);
+    const auto& generated=game.snapshot();
+    check(generated.state.players[0].hp==14&&generated.phase==MatchPhase::response&&generated.actor==2
+          &&generated.queue.size()==1&&generated.queue.front().is_counter
+          &&generated.queue.front().origin==1&&generated.queue.front().source==1&&generated.queue.front().target==2
+          &&generated.queue.front().models==std::vector<CardId>{184}
+          &&generated.queue.front().power==2*(25-generated.state.players[0].hp),
+          "v73 normal184 resolver derives22 from the11 HP loss;received atk22 is never injected");
+    (void)game.step({2,CommandKind::defend,{consumed_slot(slots,2,2)},{}});roundtrip(game);compare(game,slots,2,seed);
+    const auto& reflected=game.snapshot();
+    check(reflected.queue.front().initial_target==2&&reflected.queue.front().redirects.size()==1
+          &&reflected.queue.front().redirects.front().models==std::vector<CardId>{190}
+          &&reflected.queue.front().redirects.front().defender==2&&reflected.queue.front().redirects.front().target==1
+          &&reflected.counter_created==1&&reflected.counter_started==1,
+          "v73 regular190 changes the counter source/target while retaining original generator1");
+    check(!game.legal({1,CommandKind::defend,{slots.at({1,9})},{}}),
+          "v73 unused165 is neither a miracle reaction nor ordinary Wood/Light defense against the Stone counter");
+    (void)game.step({1,CommandKind::defend,{},{}});roundtrip(game);compare(game,slots,3,seed);
+    check(game.snapshot().winners==std::vector<PlayerId>{2}&&game.snapshot().rewards==std::vector<double>{-1,1}
+          &&game.snapshot().decisions==6,
+          "v73 complete received lifecycle ends on the reflected counter before any reserved replacement");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1055,4 +1130,5 @@ int main() {
     std::cout<<"v70: 8 seeds x6 reused v69 received states including178 with supplied8 replacements; reserved gifts separate,full private replay; no new observations or selector/RNG equivalence\n";
     std::cout<<"v71: 8 seeds x7 reused v69 received states,extending supplied178 with supplied seller5 CP0 BUY rejection and237 receipt; final CPU BUY unanswered,no selection seed fitting or probability proof\n";
     std::cout<<"v72: 8 seeds x4 received post-only updates,self41 DarkCloud without self-defense,179 versusDark92,self49 and lethal compound22; pre41 scene reconstructed,no initial-draw/order or low-HP45 claim\n";
+    std::cout<<"v73: 8 seeds x4 received initial-to-end states,self55,11damage-to22counter,190reflection and empty fatal response;initial hand/ordinary184 supplied,no initial distribution,CPU policy or server RNG claim\n";
 }

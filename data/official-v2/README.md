@@ -453,3 +453,17 @@ rules61/Snapshot61/view59、旧C ABI2/型幅と既存抽選は維持する。Rel
 | --- | ---: | --- |
 | `wire-game-updates-v72.json` | 18,684 | `6a86ee820cd7cb985641b1973d68644f1884216c226e0883ca4d6f5547d3dc9d` |
 | `live-transition-witnesses-v72.json` | 21,459 | `fda09abfb80f7619ecb64fa7872391a28e72fbd8be26e1de2ff97aef03bb9a91` |
+
+
+## v73：エンゼルアクス55と反射された反撃の完全受信列
+
+[受信update1〜4](wire-game-updates-v73.json)と[3操作](live-transition-witnesses-v73.json)を保存する。authoritative初期状態の55/id3を自己使用すると、15被害・184補充・次CPU40へ追加self defenseなしで進んだ。これに基づき武器blockMiracleの直接自己使用を修正し、55実測と42/50/56の同能力への限定一般化を区別する。
+
+184は11被害から22のStone反撃を生成し、CPU190で反射され、最後の空防御で本人HP0/dead/endGameとなる。165は不適合で未選択、別の完了操作やrouting件数へ加算しない。terminal画面の撮影は無く、終局は受信bodyで確認する。新4状態×固定8seed＝32比較、旧経路との重複込みwire432。新3完了観測・累計52/native47/record-only5、完全な受信start→end列は新1/累計2。初期handはloadし、配布分布やCPU方策・server RNGを生成したとはしない。207は所持したまま未使用である。末尾の空行1/2とnativeの取消済みgift0を区別する。
+
+rules62/Snapshot62/view60、旧ABI2/型幅維持。Release157/157（39.27秒）・重点ASan/UBSan3/3（14.22秒）、native245群/Python177method、最終compile warning/error0が通過。全SAN/Python SANの実行とは区別する。ホーム復帰・Network Monitor終了を確認し、重複body02/04/06は除外した。旧資料・pinsは変更しない。
+
+| v73 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v73.json` | 18,110 | `f4f82f4319adf7f1a421356ba319a364ba2e55a11158ef71aac34dcee2335ea0` |
+| `live-transition-witnesses-v73.json` | 19,756 | `f20c9a7db82c6f345fc592e40ed4e8389923fade7144a7acb576ce99d35720bf` |

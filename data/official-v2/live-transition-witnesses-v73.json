@@ -1,0 +1,580 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v72.json",
+  "method": "One short CPU training game with authoritative initial update1 and all consecutive received updates through terminal4. Three actual viewer operations are55 self-use,184 counter response and empty response to the reflected counter. Terminal evidence is the received body;no terminal UI frame or victory text was captured.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. CPU true inventory is privileged validation context only.",
+  "authoritative_fixture": "wire-game-updates-v73.json",
+  "model_provenance": {
+    "55": {
+      "id": 55,
+      "imageName": "angel-axe",
+      "category": "weapons",
+      "atk": 15,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルアクス"
+    },
+    "42": {
+      "id": 42,
+      "imageName": "angel-knife",
+      "category": "weapons",
+      "atk": 11,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルナイフ"
+    },
+    "50": {
+      "id": 50,
+      "imageName": "angel-sword",
+      "category": "weapons",
+      "atk": 13,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルソード"
+    },
+    "56": {
+      "id": 56,
+      "imageName": "angel-bow",
+      "category": "weapons",
+      "atk": 15,
+      "isPlusAtk": true,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルの弓"
+    },
+    "184": {
+      "id": 184,
+      "imageName": "saturn-ring",
+      "category": "armor",
+      "element": "stone",
+      "ability": "counter2xAtk",
+      "price": 10,
+      "giftRate": 1,
+      "name": "土星の指輪"
+    },
+    "190": {
+      "id": 190,
+      "imageName": "super-mirror",
+      "category": "armor",
+      "ability": "reflectAnything",
+      "price": 10,
+      "giftRate": 1,
+      "name": "スーパーミラー"
+    },
+    "40": {
+      "id": 40,
+      "imageName": "gravity-mace",
+      "category": "weapons",
+      "atk": 11,
+      "price": 4,
+      "giftRate": 4,
+      "name": "グラビティメイス"
+    },
+    "165": {
+      "id": 165,
+      "imageName": "angel-gauntlet",
+      "category": "armor",
+      "def": 9,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルの小手"
+    },
+    "207": {
+      "id": 207,
+      "imageName": "string-of-fate",
+      "category": "sundries",
+      "ability": "callPhenomenon",
+      "price": 3,
+      "giftRate": 1,
+      "name": "運命のひも"
+    }
+  },
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25256,
+      "response_body_sha256": "7c69a00982241099ff70d533b8849630fe63c9d7f9e88beddc2fc6c2ca421cd8",
+      "webchannel_frame_count": 13
+    },
+    {
+      "label": "after-self55",
+      "response_body_bytes": 19645,
+      "response_body_sha256": "42bf42afc504f086369d18951a95a713b0501f3f4a2ab9534aabbabc3e95501a",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "after-counter-reflect",
+      "response_body_bytes": 19935,
+      "response_body_sha256": "5ef3d4b735632b939cdad47ebbad4fad4018c2c8d8cb6f2892da6aeccc5eb9f8",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "terminal",
+      "response_body_bytes": 15281,
+      "response_body_sha256": "ce0c1b8d7f3cee91077762e605b4e93d93e5cb09c17b77df440ebb70aaeee167",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "cases": [
+    {
+      "id": "training-gf1-self-angel-axe-no-response",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 55,
+        "displayed_model": 55,
+        "item_id": 3,
+        "target": 1,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 25,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "itemModelIds": [
+              40
+            ],
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_normal_gift": {
+        "modelId": 184,
+        "id": 3
+      },
+      "self_response_or_block_event_captured": false,
+      "observation": "Viewer used55 alone toward self once. Received damage15 changed HP40 to25 with MP10/CP20 unchanged;gift184/id3 and GF2 CPU40 attack followed without a self-defense or block event.",
+      "limits": "The observed direct-self weapon is55. Extending its route to other blockMiracle weapons42/50/56 is a trait-based implementation generalization,not additional actual observations. The received event list is not a full backend internal trace."
+    },
+    {
+      "id": "training-gf2-saturn-ring-counter-super-mirror-reflection",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 25,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "itemModelIds": [
+              40
+            ],
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "defend",
+        "actual_models": [
+          184
+        ],
+        "displayed_models": [
+          184
+        ],
+        "item_ids": [
+          3
+        ],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 3,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 14,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 7,
+            "zero_placeholder_rows": 2
+          }
+        ],
+        "pending_attacks": [
+          {
+            "atk": 22,
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              184
+            ],
+            "reversed": true
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "counterAttack",
+        "nextAttack",
+        "setTargetPlayer",
+        "useDefenseItems",
+        "reflect"
+      ],
+      "received_counter_attack": {
+        "playerId": 1,
+        "atk": 22,
+        "itemModelIds": [
+          184
+        ]
+      },
+      "cpu_response": {
+        "actual_model": 190,
+        "item_id": 2,
+        "result": "reflect"
+      },
+      "received_pending_attack": {
+        "atk": 22,
+        "playerId": 2,
+        "targetPlayerId": 1,
+        "itemModelIds": [
+          184
+        ],
+        "reversed": true
+      },
+      "catalog_arithmetic": {
+        "incoming40_attack": 11,
+        "184_defense": 0,
+        "viewer_hp": "25-11=14",
+        "counter2x_damage": "2*11=22"
+      },
+      "viewer_operation_completed_original_batch_still_pending": true,
+      "observation": "Viewer184 response took11 damage,then generated a22 counter. CPU190 reflected that counter,leaving the22 response pending toward viewer1 in the same GF2. No normal replenishment event is in this received update.",
+      "limits": "This records one actual viewer response and its automatic counter/CPU response continuation. It does not count the CPU reflection as another curated viewer operation or assert completion of the original action batch."
+    },
+    {
+      "id": "training-gf2-empty-defense-reflected-saturn-counter-terminal",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 2,
+        "server_update_count": 3,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 14,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 7,
+            "zero_placeholder_rows": 2
+          }
+        ],
+        "pending_attacks": [
+          {
+            "atk": 22,
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              184
+            ],
+            "reversed": true
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "defend",
+        "displayed_models": [],
+        "item_ids": [],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 4,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 0,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1,
+            "dead": true
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 7,
+            "zero_placeholder_rows": 2
+          }
+        ],
+        "isOver": true
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "die",
+        "endGame"
+      ],
+      "received_defense_event_items_key_present": false,
+      "incoming_counter_models": [
+        184
+      ],
+      "incoming_counter_power": 22,
+      "catalog_counter_element": "stone",
+      "165_selected_or_used": false,
+      "received_gift_event_present": false,
+      "terminal_evidence": "authoritative received game update4 only;no visual terminal frame or victory text captured",
+      "observation": "Viewer accepted an empty response to the reflected22 counter. Received damage22 changed HP14 to0,then die1,endGame and isOvertrue were received. Both MP10/CP20 and CPUHP40 remain.",
+      "limits": "165 was only a tooltip probe and was never used. No HP1 defense outcome or later self-attack occurred. Terminal renderer placeholders are retained evidence,not live local gift debts or proof of hidden replenishment."
+    }
+  ],
+  "native_projection_validation": {
+    "status": "passed",
+    "ruleset": "official-execution-subset-v62",
+    "snapshot_version": 62,
+    "observe_schema": "official-execution-view-v60",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_checkpoints_per_replay": 4,
+    "received_checkpoint_comparisons": 32,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "baseline_cumulative_wire_checkpoint_comparisons": 400,
+    "scope": "Actual initial hands are loaded as received context. Received normal artifacts are separate explicit outcomes. Counter power must be derived from the observed parent body and catalog trait,not injected to force a match. No official selector,initial draw or backend scheduling equivalence is claimed.",
+    "received_updates_compared": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "outcome_contract_note": "Native winner2 and rewards[-1,1],if checked,are local evaluation outputs consistent with received die1/endGame;they are not captured UI victory text or raw winner/reward fields.",
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v73",
+    "include_fate": true,
+    "owned207_scope": "CPU207/id4 is an authoritative owned but unused copy. include_fate=true selects the local replenishment pool;no Fate action,outcome or player-policy observation of CPU truth is implied.",
+    "static_inventory_literal_audit": "All four received states and both player inventories match the native expected slot/model/fake/used rows and order exactly. The normal counter resolver derives22 from11 damage,then ordinary190 reverses it;no received power is injected into match execution.",
+    "comparison_scope": "Initial and post resources,GF/owner/response/terminal,curses/death,full actual/fake/used positive inventory under a slot map,live debts excluding terminal UI placeholders,and complete native snapshot restore. Native decisions,server updateCount identity,raw physical token allocation and full internal scheduling remain outside the comparison.",
+    "cumulative_wire_checkpoint_comparisons": 432,
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed read-only source/fixture audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 39.27,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.22,
+      "asan_ubsan_core_seconds": 14.22,
+      "asan_ubsan_c_api_seconds": 1.73,
+      "asan_ubsan_wire_seconds": 1.24,
+      "wire_checkpoint_comparisons_passed": 32,
+      "native_registered_callbacks": 245,
+      "python_test_methods": 177,
+      "final_release_compile_warnings": 0,
+      "final_release_compile_errors": 0,
+      "final_asan_ubsan_compile_warnings": 0,
+      "final_asan_ubsan_compile_errors": 0,
+      "initial_test_source_compile_correction": "An initial root wire-test reference to a nonexistent reflections field was corrected to the actual RedirectFrame representation before the final clean builds. No runtime/API implementation changed for this correction.",
+      "sanitizer_scope": "Focused native core,C API and wire targets only;no full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "authoritative_game_snapshots": 4,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 3,
+    "complete_received_game_update_sequences": 1,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_duplicate_response_count": 3
+  },
+  "session_end_observation": {
+    "terminal_received": true,
+    "terminal_update_count": 4,
+    "terminal_ui_frame_captured": false,
+    "ui_victory_text_observed": false,
+    "terminal_evidence": "authoritative received body",
+    "training_return_confirmed": true,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true
+  },
+  "new_completed_public_transition_witnesses": 3,
+  "cumulative_completed_public_transition_witnesses": 52,
+  "new_native_projection_covered_completed_witnesses": 3,
+  "cumulative_native_projection_covered_completed_witnesses": 47,
+  "cumulative_record_only_completed_witnesses": 5,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 1,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "legality_observations": [
+    {
+      "kind": "ui_unselected_defense_candidate",
+      "after_received_update": 3,
+      "incoming_counter_models": [
+        184
+      ],
+      "incoming_counter_power": 22,
+      "incoming_counter_element_from_catalog": "stone",
+      "attempted_model": 165,
+      "selected_or_used": false,
+      "outgoing_command_captured": false,
+      "ui_observation": "Clicking165 showed its tooltip without selecting it;the response action remained the empty allow action.",
+      "scope": "This is consistent with the existing elemental defense gate for the Stone counter. It is not a submitted server rejection,an actual165 defense,a completed viewer operation or evidence of an API defect."
+    }
+  ],
+  "unobserved_operations": [
+    "165 defense against reflected22",
+    "the hypothetical HP1 endpoint after such a defense",
+    "a later controlled self-attack"
+  ],
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 32,
+  "cumulative_wire_checkpoint_comparisons": 432,
+  "native_coverage_note": "Three new viewer operations bring completed observations to52 and conditional native-covered observations to47;five older compound observations remain record-only. Four authoritative received states from the initial snapshot to endGame are compared across eight fixed seeds,with initial hands and the ordinary184 receipt supplied as evidence. The initial model draw,CPU policy and full backend event trace are not reproduced."
+}

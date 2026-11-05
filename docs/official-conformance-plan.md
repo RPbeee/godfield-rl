@@ -2161,3 +2161,14 @@ update2〜5の4受信終点を、消費41とCPU92だけを戻したGF1再構成s
 混乱を起点とする供給BUYと、購入後の既存Saturn自動応答・190反射のwhole-origin proofを独立した合成2群へ追加する。これは公式の混乱/守護神selectorの再現や、新しい公式観測ではない。
 
 検証はRelease全157対象のうち155が初回（38.78秒）に通過し、追加C/Pythonテストのsemantic legal期待を修正後、該当2対象を再実行して2/2（8.05秒）通過した。runtimeはこのテスト修正では変更していない。Debug ASan/UBSanは初回core/wire通過、Cを同じ期待修正後に再実行し1/1（1.29秒）通過し、主要3対象を確認した。単一の全件clean runや全SAN/Python SANとは区別する。native244群・Python176method、両buildのwarning/error0、diff-check通過。
+
+
+## 作業世代v73：55の直接自己使用と2件目の完全受信列
+
+55の単品自己使用は1操作で15被害・補充となるため、武器blockMiracleの余分なresponse待ちを修正した。55実測と42/50/56の同能力への限定一般化を区別し、roles/foreign/redirect/Wide/guardianを従来経路に保つ。rules62/Snapshot62/view60へ更新、ABI2/型幅は維持する。
+
+今回はauthoritativeなinitial/update1から終局update4まで取得し、固定8seedで32 checkpoint比較する。55→184補充→CPU40→184/11被害/22反撃→CPU190反射→空防御の死亡を、受信ATKの注入やseed選別なしで解決する。初期handとCPU操作・通常184受領は明示入力なので、初期配布分布・CPU選択方策・server RNGの証明ではない。非致死counter1例と、clip/死亡/複数counter/FIFOの未検証部分を分ける。
+
+新3完了操作で観測52/native47/record-only5、wire重複込み432。新たな完全start→endの受信列1対局を加えて累計2とする。165の不適合クリックは未選択で完了件数やrouting-only件数へ加えず、terminalは受信本文で確認する。ホーム復帰とNetwork Monitor終了を確認した。
+
+Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native245群・Python177method、最終両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや、版間の速度比較とは区別する。
