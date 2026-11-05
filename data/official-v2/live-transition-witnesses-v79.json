@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v78.json",
+  "method": "One new actual single72 self-use with authoritative initial and post states. This is a new game rather than recovered v77 data;the next CPU40 remained unanswered before quitting and confirming home/Network cleanup.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. Fog-hidden CPU resources and true hand remain privileged validation context.",
+  "authoritative_fixture": "wire-game-updates-v79.json",
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25393,
+      "response_body_sha256": "ff525e42de694334b03bd5e0cf43b059ebe4c6dd810f96069ae68202bb748010",
+      "webchannel_frame_count": 16
+    },
+    {
+      "label": "after-self72-fog-pending-cpu40",
+      "response_body_bytes": 20259,
+      "response_body_sha256": "08de4042f5ad8bb2c6d752b3d0df0943abda4baeba6d9c8fba2dee3980d1b6c9",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "model_provenance": {
+    "72": {
+      "id": 72,
+      "imageName": "fog-gun",
+      "category": "weapons",
+      "element": "water",
+      "atk": 3,
+      "ability": "addCurseOnDamage",
+      "curse": "fog",
+      "price": 10,
+      "giftRate": 1,
+      "name": "霧鉄砲"
+    },
+    "10": {
+      "id": 10,
+      "imageName": "whip",
+      "category": "weapons",
+      "atk": 2,
+      "price": 1,
+      "giftRate": 4,
+      "name": "ムチ"
+    },
+    "40": {
+      "id": 40,
+      "imageName": "gravity-mace",
+      "category": "weapons",
+      "atk": 11,
+      "price": 4,
+      "giftRate": 4,
+      "name": "グラビティメイス"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-fog-gun-authoritative-new-game",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_and_fog_view_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not the viewer observation",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 72,
+        "displayed_model": 72,
+        "item_id": 5,
+        "target": 1,
+        "single_card": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not the viewer observation",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 37,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "fog"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              40
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "addCurse",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "action": "dealDamage",
+          "damage": 3
+        },
+        {
+          "action": "addCurse",
+          "curse": "fog"
+        },
+        {
+          "action": "gift",
+          "playerId": 1,
+          "item": {
+            "modelId": 10,
+            "id": 5
+          }
+        },
+        {
+          "action": "advanceGF",
+          "playerId": 2
+        }
+      ],
+      "ui_observation": {
+        "cpu_resources_hidden_after_self_fog": true,
+        "received_cpu_values_are_not_public_view_values": true
+      },
+      "catalog_arithmetic": {
+        "single72_water_attack": 3,
+        "viewer_hp": "40-3=37",
+        "mp_unchanged": 10,
+        "cp_unchanged": 20
+      },
+      "following_cpu_launch": {
+        "model": 40,
+        "item_id": 4,
+        "source": 2,
+        "target": 1,
+        "response_observed": false,
+        "result_observed": false
+      },
+      "observation": "A new actual single72 self-use is directly received as damage3 then Fog then gift10/id5. Viewer is37/10/20 with Fog;CPU40 is pending. The CPU raw resources remain40/10/20 while its figures are hidden in the viewer UI.",
+      "limits": "This new game supplies raw support for the finite self72/Fog transition. It does not fill the distinct v77 unknown state or establish general Fog rates,CPU policy,initial draw or backend scheduling. CPU40 response is unobserved."
+    }
+  ],
+  "relation_to_v77": {
+    "record": "live-transition-witnesses-v77.json",
+    "same_game": false,
+    "old_record_modified": false,
+    "old_raw_gap_filled": false,
+    "old_full_native_projection_covered": false,
+    "scope": "Gift10 and privileged values in this new game do not identify the old v77 unknown replacement or hand. Earlier synthetic199 remains synthetic."
+  },
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v65",
+    "snapshot_version": 65,
+    "observe_schema": "official-execution-view-v63",
+    "status": "passed",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "received_checkpoint_comparisons": 16,
+    "baseline_cumulative_wire_checkpoint_comparisons": 496,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load actual initial hands,execute ordinary self72 and the existing Fog projection,supply the actual received10,then execute received CPU40 to its pending response. Compare private received state and the Fog public-resource boundary separately. No received damage,initial distribution or server randomness is injected.",
+    "passed": true,
+    "cumulative_wire_checkpoint_comparisons": 512,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v79",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/provenance audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 38.62,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.23,
+      "asan_ubsan_single_combined_run": true,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 248,
+      "python_test_methods": 180,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Focused native core/C API/wire sanitizer run and full Release suite. No full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_unrelated_preparation_response_bodies": 1,
+    "excluded_preparation_game_documents": 2
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu40_response_observed": false,
+    "cpu40_result_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit while CPU40 response pending",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 59,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 53,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 512,
+  "native_coverage_note": "One new actual self72 game brings completed observations to59 and conditional native-covered observations to53;record-only observations remain6. Initial1 and post2 are compared across eight fixed seeds with actual received10. Private CPU40/10/20 are distinguished from Fog-hidden public resources. CPU40 launch is pending boundary context,not another completed operation. The distinct v77 UI-only case remains uncovered and unchanged. Complete received lifecycles remain2 and routing-only observations remain1.",
+  "provenance_descriptor_note": "Only the description of v77 UI evidence versus v79 raw evidence was corrected. Runtime behavior,schema,API and rules65/Snapshot65/view63 remain unchanged."
+}

@@ -3120,3 +3120,12 @@ Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 累計58観測/native52/記録のみ6・wire重複込み496。自己使用ではsourceとtargetが同じなので、内部の役割別処理順や低HP・復活・死亡まで確定したとは扱いません。CPU19は未応答です。
 
 Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSan1/1（0.72秒）が通過した。両buildのwarning/error0、diff-check正常。native248 callbacks・Python180 unique methodsとruntime/APIは変更せず、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+
+## v79：霧鉄砲72の自己使用を受信データで検証
+
+別の公式CPU戦で72を自己使用し、3被害→霧→通常10補充→CPU40待ちを受信しました。[初期と使用後の記録](data/official-v2/wire-game-updates-v79.json)を固定8seed×2状態で照合します。本人から隠れるCPUの資源と、内部で保持する40/10/20を分けて確認します。
+
+前回v77のUI-only記録はそのまま残し、今回の別対局を新1件として追加します。累計59観測/native53/記録のみ6・wire512。根拠表記だけを更新し、既存rules65/Snapshot65/view63・ABI2と実行挙動は維持します。
+
+Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。

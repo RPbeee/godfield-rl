@@ -3348,3 +3348,12 @@ Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 既存runtime65/Snapshot65/view63・ABI2を変更しない。source/targetはともに本人1なので、その二つの役割の内部順序を区別した証拠ではない。低HPや死亡/復活の処理順、CPU19への応答は未観測。累計58/native52/record-only6・wire496、完全受信lifecycle2を維持する。
 
 Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSan1/1（0.72秒）が通過した。両buildのwarning/error0、diff-check正常。native248 callbacks・Python180 unique methodsとruntime/APIは変更せず、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+
+## 作業世代v79：既存72自己使用とFog投影のraw回帰
+
+新たな別対局で72の自己3被害・Fog・実gift10・次CPU40保留を初期1→使用後2で受信した。既存8固定seed×2状態＝16比較を追加し、nativeの直接自己bodyと通常授与から既存算術で再生する。受信被害や乱数結果を注入しない。本人からはCPU status=nullでも、privileged worldの40/10/20を保持する。
+
+実行挙動は変更せずrules65/Snapshot65/view63・ABI2を維持する。self_attack_ruleの根拠文字列だけを `fog72-ui-observed-v77-and-raw-self-use-observed-v79` へ訂正し、C/Pythonのexact期待を同期する。snapshot構造・保存内容・版gateは不変。v77のUI-only1例を権威的replay済みへ繰り上げず、累計59/native53/record-only6・wire512、完全受信lifecycle2を維持する。
+
+Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。

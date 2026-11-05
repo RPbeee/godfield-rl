@@ -28,7 +28,7 @@ constexpr std::array<ReceivedSlot,9> after_cure_viewer{{{2,61},{3,4},{4,103},{5,
 constexpr std::array<ReceivedSlot,9> after_halberd_cpu{{{1,212},{2,135},{4,161},{6,199},{7,156},{8,68},{9,149},{5,184},{0,0}}};
 struct ReceivedPlayer {
     PlayerId id; int hp, mp, cp; bool cold; std::span<const ReceivedSlot> slots;
-    bool darkcloud = false, dead = false;
+    bool darkcloud = false, dead = false, fog = false;
 };
 struct ReceivedCheckpoint {
     unsigned update; std::int64_t gf; PlayerId owner;
@@ -82,6 +82,7 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         auto curses=want.cold?std::vector<Curse>{Curse::cold}:std::vector<Curse>{};
         if(dream_player==want.id)curses.push_back(Curse::dream);
         if(want.darkcloud)curses.push_back(Curse::darkcloud);
+        if(want.fog)curses.push_back(Curse::fog);
         check(got.curses==curses,"received curse state matches without adding inferred ticks");
         std::size_t positive=0,placeholders=0;
         for(const auto& row:want.slots) {
@@ -1308,13 +1309,62 @@ void replay(std::uint64_t seed){
 }
 }
 
+namespace v79 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,161},{2,113},{3,118},{4,140},{5,72},{6,26},{7,151},{8,140},{9,32}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,236},{2,193},{3,139},{4,40},{5,23},{6,130},{7,40},{8,199},{9,30}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,161},{2,113},{3,118},{4,140},{6,26},{7,151},{8,140},{9,32},{5,10}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,236},{2,193},{3,139},{5,23},{6,130},{7,40},{8,199},{9,30},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,37,10,20,false,after_viewer,false,false,true},{2,40,10,20,false,after_cpu}}},40}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,5)},1};
+    check(game.legal(self),"v79 received72 single self play is legal");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==1&&body.phase==MatchPhase::grant&&body.pending_grant==1&&body.gifts[0]==1
+          &&body.queue.empty()&&body.state.players[0].hp==37&&body.state.players[0].mp==10
+          &&body.state.players[0].cp==20&&body.state.players[0].curses==std::vector<Curse>{Curse::fog}
+          &&!body.last_tick&&!body.last_fog&&body.rng==seed,
+          "v79 raw self72 deals3 and applies Fog before its ordinary gift without self-defense or a target draw");
+    v64::receipt(game,slots,1,5,10);
+    const Command cpu{2,CommandKind::play,{consumed_slot(slots,2,4)},1};
+    check(game.legal(cpu),"v79 received CPU40 copy id4 is legal");
+    (void)game.step(cpu);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& s=game.snapshot();
+    const auto own=project_view(s.state,PlayerId{1}),spectator=project_view(s.state,{});
+    check(own.players[0].status&&own.players[0].status->hp==37
+          &&own.players[1].fogged&&!own.players[1].status&&spectator.players[1].status
+          &&spectator.players[1].status->hp==40&&spectator.players[1].status->mp==10
+          &&spectator.players[1].status->cp==20,
+          "v79 UI-hidden CPU status is separate from the privileged received resources;Fog does not erase the world");
+    check(s.decisions==3&&s.rng==seed&&s.chance_rolls==0&&s.counter_rolls==0&&s.dream_rolls==0
+          &&s.dream_masks==0&&s.redraws==0&&s.auto_guardian_actions==0&&s.revivals==0,
+          "v79 all fixed seeds compare both received states with supplied10 and no fitted outcomes;CPU40 is unanswered");
+    // v77 is a different UI-only game;this raw fixture does not retroactively
+    // identify that game's replacement,CPU inventory or unseen event sequence.
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1337,4 +1387,5 @@ int main() {
     std::cout<<"v75: 8 seeds x2 received states,self58 atMP10 for20 damage/allMP and supplied23 receipt;CPU221 launch remains unanswered,no runtime change,initial distribution or server RNG claim\n";
     std::cout<<"v76: 8 fixed seeds x2 received states,self48 for13 damage/Cold/one1-damage tick before supplied58;CPU4+168 SELL unanswered,no seed fitting,distribution or server RNG equivalence claim\n";
     std::cout<<"v78: 8 fixed seeds x2 received states,self53 for14+14 damage and supplied160;CPU19 unanswered,no source-versus-target order,low-HP boundary,initial distribution or server RNG equivalence claim\n";
+    std::cout<<"v79: 8 fixed seeds x2 received states,self72/Fog and supplied10;UI hides CPU status while world retains40/10/20,CPU40 unanswered;v77 remains a separate UI-only record,no initial distribution or server RNG equivalence claim\n";
 }

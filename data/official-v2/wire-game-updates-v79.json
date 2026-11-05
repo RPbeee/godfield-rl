@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "Two consecutive authoritative states from a new CPU training game:initial1 and post2 after one72 self-use,damage3,Fog,gift10 and the following unanswered CPU40 launch. This is a distinct game from the v77 UI-only record;no terminal or complete received lifecycle was captured.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25393,
+      "response_body_sha256": "ff525e42de694334b03bd5e0cf43b059ebe4c6dd810f96069ae68202bb748010",
+      "webchannel_frame_count": 16
+    },
+    {
+      "label": "after-self72-fog-pending-cpu40",
+      "response_body_bytes": 20259,
+      "response_body_sha256": "08de4042f5ad8bb2c6d752b3d0df0943abda4baeba6d9c8fba2dee3980d1b6c9",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor response-body saves and independent WebChannel/Firestore game-bearing document decoding. One unrelated preparation response containing two other game documents is excluded entirely;none of its states or hashes is published here.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric in-game IDs,models,item IDs,event payloads,received array order and field omissions.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response bodies",
+      "unrelated preparation-game states"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "Received true CPU hand and resources are privileged validation inputs. Although raw CPUHP40/MP10/CP20 are known here,the viewer under Fog sees those resource fields hidden;they must not be copied into a player-policy observation.",
+  "continuity": {
+    "same_training_room_document_confirmed_in_private_sources": true,
+    "server_update_counts": [
+      1,
+      2
+    ],
+    "consecutive_received_update_counts": true,
+    "initial_authoritative_snapshot_captured": true,
+    "initial_model_generation_reproduced": false
+  },
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "players": [
+          {
+            "id": 1,
+            "hp": 40,
+            "items": [
+              {
+                "modelId": 161,
+                "id": 1
+              },
+              {
+                "modelId": 113,
+                "id": 2
+              },
+              {
+                "modelId": 118,
+                "id": 3
+              },
+              {
+                "modelId": 140,
+                "id": 4
+              },
+              {
+                "modelId": 72,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 26
+              },
+              {
+                "modelId": 151,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 140
+              },
+              {
+                "modelId": 32,
+                "id": 9
+              }
+            ],
+            "cp": 20,
+            "mp": 10,
+            "name": "viewer"
+          },
+          {
+            "id": 2,
+            "hp": 40,
+            "items": [
+              {
+                "modelId": 236,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 193
+              },
+              {
+                "modelId": 139,
+                "id": 3
+              },
+              {
+                "modelId": 40,
+                "id": 4
+              },
+              {
+                "modelId": 23,
+                "id": 5
+              },
+              {
+                "modelId": 130,
+                "id": 6
+              },
+              {
+                "modelId": 40,
+                "id": 7
+              },
+              {
+                "modelId": 199,
+                "id": 8
+              },
+              {
+                "modelId": 30,
+                "id": 9
+              }
+            ],
+            "isBot": true,
+            "cp": 20,
+            "mp": 10,
+            "name": "cpu"
+          }
+        ],
+        "attackTurnPlayerId": 1,
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 161,
+              "id": 1
+            },
+            "playerId": 1
+          },
+          {
+            "item": {
+              "modelId": 113,
+              "id": 2
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 118,
+              "id": 3
+            },
+            "playerId": 1
+          },
+          {
+            "item": {
+              "id": 4,
+              "modelId": 140
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 72,
+              "id": 5
+            },
+            "action": "gift"
+          },
+          {
+            "item": {
+              "modelId": 26,
+              "id": 6
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "item": {
+              "id": 7,
+              "modelId": 151
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 140,
+              "id": 8
+            }
+          },
+          {
+            "item": {
+              "modelId": 32,
+              "id": 9
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "updateCount": 1,
+        "diseasePlayerId": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "gf": 1
+      }
+    },
+    {
+      "source_body": "after-self72-fog-pending-cpu40",
+      "game": {
+        "attackTurnPlayerId": 2,
+        "guardianPlayerIds": [
+          1
+        ],
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 72,
+                "id": 5
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "action": "dealDamage",
+            "damage": 3
+          },
+          {
+            "curse": "fog",
+            "action": "addCurse"
+          },
+          {
+            "item": {
+              "modelId": 10,
+              "id": 5
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 2
+          },
+          {
+            "items": [
+              {
+                "modelId": 40,
+                "id": 4
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "setTargetPlayer",
+            "playerId": 1
+          }
+        ],
+        "updateCount": 2,
+        "attacks": [
+          {
+            "targetPlayerId": 1,
+            "playerId": 2,
+            "itemModelIds": [
+              40
+            ]
+          }
+        ],
+        "players": [
+          {
+            "items": [
+              {
+                "modelId": 161,
+                "id": 1
+              },
+              {
+                "modelId": 113,
+                "id": 2
+              },
+              {
+                "modelId": 118,
+                "id": 3
+              },
+              {
+                "modelId": 140,
+                "id": 4
+              },
+              {
+                "modelId": 26,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 151
+              },
+              {
+                "modelId": 140,
+                "id": 8
+              },
+              {
+                "modelId": 32,
+                "id": 9
+              },
+              {
+                "modelId": 10,
+                "id": 5
+              }
+            ],
+            "id": 1,
+            "hp": 37,
+            "curses": [
+              "fog"
+            ],
+            "cp": 20,
+            "mp": 10,
+            "name": "viewer"
+          },
+          {
+            "mp": 10,
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 236,
+                "id": 1
+              },
+              {
+                "modelId": 193,
+                "id": 2
+              },
+              {
+                "modelId": 139,
+                "id": 3
+              },
+              {
+                "modelId": 23,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 130
+              },
+              {
+                "modelId": 40,
+                "id": 7
+              },
+              {
+                "modelId": 199,
+                "id": 8
+              },
+              {
+                "modelId": 30,
+                "id": 9
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "hp": 40,
+            "isBot": true,
+            "id": 2,
+            "name": "cpu"
+          }
+        ],
+        "diseasePlayerId": 2,
+        "gf": 2
+      }
+    }
+  ],
+  "boundary_notes": [
+    "Actual72/id5 is explicitly in the received initial hand. Loading the received hands does not reproduce the initial draw.",
+    "Update2 directly contains self72,target1,damage3,addFog,gift10/id5,advance2,CPU40/id4,target1. No own-defense event intervenes.",
+    "Viewer37/10/20 and Fog are received;CPU40/10/20 are privileged raw values while its resource row is hidden in the viewer UI.",
+    "Gift10/id5 is this new game actual receipt. It is not the unknown v77 replacement or the synthetic199 used in earlier regression examples.",
+    "The previous v77 UI-only record remains immutable with no raw payload and no full native coverage. This new game does not retrospectively supply its hands,resources,replacement or events.",
+    "CPU40 remains unanswered with eight positive copies plus one placeholder. No response,result or terminal update is included.",
+    "Quitting,home return and Network Monitor closure were UI-confirmed without a captured terminal update."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v65",
+    "snapshot_version": 65,
+    "observe_schema": "official-execution-view-v63"
+  },
+  "captured_authoritative_game_snapshot_count": 2,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 1,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "native_projection_validation_record": "live-transition-witnesses-v79.json",
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final"
+}

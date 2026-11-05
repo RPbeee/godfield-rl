@@ -447,3 +447,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view63/rules65/Snapshot65と独立State/表示component・C構造体は維持する。本人53/id3は消費され、通常160/id3をfresh native tokenへ写す。本人HP12/MP10/CP20、CPU40/10/20・正コピー8+空行1とCPU19/source2/target1/power5の保留frameを比較する。
 
 二つのdealDamage14を二回の自己主動作や14のrepeat attackへ読み替えず、source==targetの有限終点として扱う。CPUの181は未使用、反撃・CPU19への応答や死亡は観測していない。
+
+
+## v79：Fog下のCPU表示と受信worldの照合
+
+対局view63/rules65/Snapshot65・独立State/表示component・C構造体を維持する。新対局のraw使用後2は本人37/10/20/FogとCPU40/10/20を持つが、本人UIのCPU statusは非表示である。native検証では本人viewのCPU status=nullと、特権world/spectatorの資源保持を別々に確認する。CPU真手札や検証用spectatorを本人policyの入力へ流用しない。
+
+消費72/id5と実補充10/id5を異なるnative tokenへ写し、CPU40はid4だけを消費してid7の同モデルを保持する。正コピー8と空行1の未応答frameまで比較し、CPU40による被害は適用しない。v77の合成199/176と今回の実gift10は別の根拠である。

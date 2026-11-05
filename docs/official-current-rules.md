@@ -2210,3 +2210,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信初期1と使用後2](../data/official-v2/wire-game-updates-v78.json)には、53/id3使用→target player1→dealDamage14（player省略）→dealDamage14/player1→gift160/id3→advance2→CPU19/id7/target1がある。本人は40/10/20→12/10/20、追加本人defendは挟まらない。
 
 14の二回攻撃とは区別し、53一使用の二つの減算として既存bodyと照合する。本人同士のためこの列からsource/targetの内部計算順を識別しない。低HP、208/112、上限、追加材や反射の一般境界は未確認である。
+
+
+## v79：72自己使用のrawイベントを新対局で取得
+
+[受信初期1と使用後2](../data/official-v2/wire-game-updates-v79.json)に、72/id5使用→target1→dealDamage3→addCurse fog→gift10/id5→advance2→CPU40/id4/target1がある。本人は40/10/20→37/10/20とFog、CPUは内部40/10/20を保持する。追加本人defendは挟まらず、UIではCPU資源欄だけが隠れる。
+
+これはv77とは別の対局で、当時不明だった補充やCPU手札を遡及して確定する根拠ではない。v77の未取得記録は保存したまま、新たな有限のraw証拠を追加する。Fogの一般的な対象抽選・確率武器97・他のentry/終局順を新たに検証したとはしない。

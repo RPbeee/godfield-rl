@@ -542,3 +542,19 @@ Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSa
 | --- | ---: | --- |
 | `wire-game-updates-v78.json` | 11,287 | `3b06e0210b1713c2a4906ed0fc10e780e6e3302ebd8f05dd5d3ded56f8b34b5f` |
 | `live-transition-witnesses-v78.json` | 10,441 | `5df226571c972ceb451bded3bf1cf894248eb5131ce108febfd5411c4b336890` |
+
+
+## v79：新しい72自己使用の受信記録とFog投影
+
+[受信初期1・使用後2](wire-game-updates-v79.json)と[1操作](live-transition-witnesses-v79.json)を保存する。72/id5自己使用→3被害→Fog→実gift10/id5→CPU40/id4待ちを受信し、本人37/10/20と内部CPU40/10/20を確認した。本人のCPU status非表示と、内部資源/真手札保持は別の比較で、特権情報をpolicyへ渡さない。
+
+固定8seed×2状態＝16比較を追加し、累計59/native53/record-only6・wire重複込み512、完全lifecycle2・routing-only1を維持する。v77のUI-only記録は別対局のまま保存し、過去の未知補充を10へ置き換えない。実行挙動・65/S65/view63・ABI2は維持し、根拠ラベルだけをv77 UI/v79 rawへ更新する。
+
+採用sourceはcapture02/03だけで、capture01の別prep-room2状態を含めない。元の名前・userId・updatedAt等を除去し、private元応答/解析物は0600、旧記録・pinsは維持する。CPU40へ応答せず、ホーム復帰とNetwork Monitor終了を確認した。
+
+Release CTest157/157（38.62秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.23秒）が通過した。native248 callbacks・Python180 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや公式RNG・一般Fog分布の同値性を示す結果ではない。
+
+| v79 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v79.json` | 11,470 | `fc8e751a790d2cf437a6f7405994645e211e28c5d8b0a8a8ec71ced002ad01c1` |
+| `live-transition-witnesses-v79.json` | 10,957 | `6477480df9a02c5f536bd537ab37e6c7fd63b422bdd1311047eb8850dca5c955` |

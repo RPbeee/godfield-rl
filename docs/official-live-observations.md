@@ -350,3 +350,10 @@ raw受信本文は保存できず、実補充品・CPU真手札・rawイベン�
 [受信2状態](../data/official-v2/wire-game-updates-v78.json)と[1操作](../data/official-v2/live-transition-witnesses-v78.json)を保存する。本人HP40/MP10/CP20から単品53を自己使用し、14被害2回→HP12/MP10/CP20→通常160補充、追加本人防御なしでCPU19待ちへ進んだ。
 
 CPU19には応答せず途中退出した。初期1/使用後2を8固定seedで16比較、累計58/native52/record-only6・wire496、完全受信lifecycle2を維持する。sourceとtargetが同じなので役割別の減算順や低HP・復活を識別したとは数えない。ホーム復帰・Network Monitor終了を確認した。
+
+
+## v79：霧鉄砲72のraw自己使用とCPU情報の非表示
+
+[新受信2状態](../data/official-v2/wire-game-updates-v79.json)と[1完了操作](../data/official-v2/live-transition-witnesses-v79.json)を保存する。本人40/10/20から72を自己使用し、3被害→Fog→通常10、本人37/10/20・CPU40待ちとなる。UIではCPUの資源欄が隠れるが、rawにはCPU40/10/20と正コピー8+空行1が残る。
+
+初期1/使用後2を8固定seedで16比較、累計59/native53/record-only6・wire512、完全受信lifecycle2を維持する。v77のUI-only記録は今回の別対局で補完せず保持する。prep捕獲01の別room2状態は除外し、CPU40には応答せず、ホーム復帰・Network Monitor終了を確認した。
