@@ -387,3 +387,12 @@ CPU196/3の通常補充はsnapshot deltaだけで、giftイベントを作らな
 今回は新しい公式操作や本文取得を行わず、2026-11-05のv65記録を再利用する。2026-11-06付の[再生報告](../data/official-v2/automatic-guardian-replay-v83.json)で、201召喚から壁233→Neptune276→補充までの3受信状態を固定8seedで比較する。元v65 JSONとv82の召喚部分再生reportは変更しない。
 
 CPU2の同一batchでeligibleな守護神sourceはviewer1/Neptuneだけであり、発動あり・276・target1を外部結果として渡す。受信boostHP5はplayerId省略のまま保持し、viewer資源の40→45から対応を確認する。壁233はMP6を支払いused保持、viewer123/id10は明示gift、CPU200/id2・19/id10は在庫deltaとして供給する。内部抽選・省略CPU補充順の証明とはしない。新観測0、64/native58/record-only6・wire592、完全lifecycle2/routing1/internal trace0。
+
+
+## 作業世代v84：新しい30自己使用で8＋5と175を取得
+
+2026-11-06の修行・2人・終末なしで、最初の配布に30があり、追加の準備操作なしで単品自己使用した。[初期1と使用後2](../data/official-v2/wire-game-updates-v84.json)、[1操作のwitness](../data/official-v2/live-transition-witnesses-v84.json)を保存する。viewer1/CPU2、初期GF1・双方40/10/20から、use30/id6→target1→damage8→addHell→disease1→damage5→gift175/id6→advance2→CPU16/id2→target1が並ぶ。UIでも本人27/10/20・GF2 CPUハチェット4保留を確認した。自己defendイベントは無い。
+
+capture02は初期01の完全重複で除外し、新しいpostは03から採用した。原イベントでplayerIdが省略されている箇所を補記せず、役割と資源からの導出を分ける。本人slot6の再利用は新しい175コピー、CPU16/id1は残存・id2は使用済みではなく消費後の保留である。2状態×既存8seed＝16比較、新1観測で65/native59/record-only6・wire608。病気の一般率や初期抽選・server RNGを同定したとはしない。
+
+前のv82 UI-only例は別対局としてそのまま残し、今回の175やイベント列を遡及して補完しない。CPU16には応答せず通常退出し、ホーム復帰・Network Monitor終了を確認した。終局取得や完全lifecycleの増分は0、累計2のままである。

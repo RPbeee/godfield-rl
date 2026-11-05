@@ -2249,3 +2249,12 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 69/S69/view67・ABI2、64/native58/record-only6・wire592。原v65/v82の証跡は維持し、取得済み1例だけを条件付きnative対象へ移す。
 
 この新入口は当該response stepでstage初到達するordinary batchに限り、local payload設定は対象外である。受理後の固定結果が失効した場合のskip/取消はadapter規約で、公式の一般scheduleの新証明とはしない。
+
+
+## 作業世代v84：30自己使用の本体とHell tickの受信分離
+
+2026-11-06の2人CPU修行・終末なしで、viewer1の30/id6単品自己使用を受信した。初期raw1はGF1本人main・双方40/10/20・guardian/curseなし・双方9正コピーである。更新2はuse30→target1→damage8→Hell付与→player1 disease→damage5→明示gift175/id6→CPU2へGF更新→CPU16/id2→target1で、本人27/10/20・Hell、CPU40/10/20となる。
+
+既存の直接self経路とbody/tick算法はこの有限例と一致した。自己defendイベントは無く、既存8固定seedの初回病気判定はすべて非悪化のため、検索・除外・seed fittingなしで2状態を比較できる。これを公式5%率やserver RNGの同値性へ広げない。CPU16の同型id1は残り、id2が使用されたこと、本人slot6の30と175が別物理コピーであることを区別する。
+
+新1観測で65/native59/record-only6・wire608、69/S69/view67・ABI2と実行挙動は維持する。self_attack_ruleの証拠表記だけv82 UI/v84 rawの両方へ更新する。v82の未知post/補充を新対局から補完せず、既存記録を変更しない。

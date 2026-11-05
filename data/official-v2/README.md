@@ -620,3 +620,19 @@ Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 | v83 artifact | bytes | SHA256 |
 | --- | ---: | --- |
 | `automatic-guardian-replay-v83.json` | 12,093 | `287465f13910b2fd09223413f64b9764bba28e43c26d4b7fa49028aeb99bfe5d` |
+
+
+## v84：30自己使用のHell付与・病気処理・実175補充
+
+[受信初期1・更新2](wire-game-updates-v84.json)と[新1操作](live-transition-witnesses-v84.json)を保存する。viewer1の30/id6単品selfは8被害→Hell→disease1→5被害→明示175/id6で本人40→27、MP10/CP20は維持する。CPU2の16/id2が本人へ保留し、同型16/id1は手札に残る。追加本人応答は無い。
+
+採用01/03の2状態×8固定seed＝16比較、65/native59/record-only6・wire608となる。02は01の完全重複として除外する。両状態の手札は合計36行（35正コピー＋1空行）で、physical tokenとserver slotの再利用を区別する。元応答/解析物は0600、公開JSONは匿名化以外のliteralと省略fieldを保持する。
+
+v82のUI-only2例の補充/イベントを今回から遡及補完せず、旧証跡/pinsは維持する。69/S69/view67・ABI2と実行挙動は変更せず、self descriptorの根拠だけv84 rawを追記する。CPU16未応答のまま退出してホーム復帰・Network Monitorを終了、完全lifecycle2/routing1/internal trace0を維持する。
+
+Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+| v84 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v84.json` | 11,929 | `3d5c1213382bf50ec6c557373ef1adcd27264131a467b637278dd96e5454f7c6` |
+| `live-transition-witnesses-v84.json` | 12,245 | `6ffc6c3f4ed0d7fde96f35dea52ac2265f19a266caadb137cae7296af8b6511a` |

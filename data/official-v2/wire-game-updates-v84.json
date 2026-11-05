@@ -1,0 +1,446 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "scope": "Two consecutive authoritative states of one new no-apocalypse CPU training game:initial1 and post2 after one30 self-use,damage8,Hell,owner disease tick damage5,gift175,and the following unanswered CPU16 launch. This is a distinct game from the v82 UI-only cases;no terminal or complete received lifecycle was captured.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 24975,
+      "response_body_sha256": "73245bed862d341bd06fd0b735897581d63af5fb8896876c2bbe1da864d67350",
+      "webchannel_frame_count": 9
+    },
+    {
+      "label": "after-self30-hell-tick-pending-cpu16",
+      "response_body_bytes": 21193,
+      "response_body_sha256": "8b4c51c5e7a7584843991e0a7c18df97c836d80c7f7387a3ed9fafb5b2ca9adc",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor Save Response As,response bodies only;independent WebChannel/Firestore decoding of game-bearing document changes. One exact duplicate initial response is excluded.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game IDs,model/item IDs,event payloads,received array order,used flags and field omissions.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "Received true CPU hand and resources are privileged validation inputs,never public-player policy observations.",
+  "continuity": {
+    "same_training_room_document_confirmed_in_private_sources": true,
+    "server_update_counts": [
+      1,
+      2
+    ],
+    "consecutive_received_update_counts": true,
+    "initial_authoritative_snapshot_captured": true,
+    "initial_model_generation_reproduced": false,
+    "excluded_duplicate_initial_response_bodies": 1
+  },
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "players": [
+          {
+            "name": "viewer",
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "modelId": 130,
+                "id": 2
+              },
+              {
+                "modelId": 57,
+                "id": 3
+              },
+              {
+                "modelId": 66,
+                "id": 4
+              },
+              {
+                "modelId": 160,
+                "id": 5
+              },
+              {
+                "modelId": 30,
+                "id": 6
+              },
+              {
+                "modelId": 23,
+                "id": 7
+              },
+              {
+                "modelId": 63,
+                "id": 8
+              },
+              {
+                "modelId": 123,
+                "id": 9
+              }
+            ],
+            "mp": 10,
+            "hp": 40,
+            "id": 1
+          },
+          {
+            "items": [
+              {
+                "modelId": 16,
+                "id": 1
+              },
+              {
+                "modelId": 16,
+                "id": 2
+              },
+              {
+                "modelId": 5,
+                "id": 3
+              },
+              {
+                "modelId": 203,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 5
+              },
+              {
+                "modelId": 94,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 35
+              },
+              {
+                "id": 8,
+                "modelId": 113
+              },
+              {
+                "id": 9,
+                "modelId": 210
+              }
+            ],
+            "isBot": true,
+            "name": "cpu",
+            "id": 2,
+            "mp": 10,
+            "hp": 40,
+            "cp": 20
+          }
+        ],
+        "updateCount": 1,
+        "attackTurnPlayerId": 1,
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 195,
+              "id": 1
+            }
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 130,
+              "id": 2
+            },
+            "action": "gift"
+          },
+          {
+            "item": {
+              "modelId": 57,
+              "id": 3
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 66,
+              "id": 4
+            },
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 160,
+              "id": 5
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 30,
+              "id": 6
+            }
+          },
+          {
+            "item": {
+              "id": 7,
+              "modelId": 23
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 63,
+              "id": 8
+            }
+          },
+          {
+            "item": {
+              "modelId": 123,
+              "id": 9
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "guardianPlayerIds": [
+          2
+        ],
+        "gf": 1,
+        "diseasePlayerId": 1
+      }
+    },
+    {
+      "source_body": "after-self30-hell-tick-pending-cpu16",
+      "game": {
+        "diseasePlayerId": 2,
+        "gf": 2,
+        "guardianPlayerIds": [
+          1
+        ],
+        "attackTurnPlayerId": 2,
+        "players": [
+          {
+            "id": 1,
+            "name": "viewer",
+            "mp": 10,
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "modelId": 130,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 57
+              },
+              {
+                "modelId": 66,
+                "id": 4
+              },
+              {
+                "modelId": 160,
+                "id": 5
+              },
+              {
+                "modelId": 23,
+                "id": 7
+              },
+              {
+                "modelId": 63,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 123
+              },
+              {
+                "modelId": 175,
+                "id": 6
+              }
+            ],
+            "cp": 20,
+            "curses": [
+              "hell"
+            ],
+            "hp": 27
+          },
+          {
+            "mp": 10,
+            "items": [
+              {
+                "modelId": 16,
+                "id": 1
+              },
+              {
+                "id": 3,
+                "modelId": 5
+              },
+              {
+                "modelId": 203,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 5
+              },
+              {
+                "modelId": 94,
+                "id": 6
+              },
+              {
+                "modelId": 35,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 113
+              },
+              {
+                "id": 9,
+                "modelId": 210
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "id": 2,
+            "hp": 40,
+            "isBot": true,
+            "name": "cpu",
+            "cp": 20
+          }
+        ],
+        "attacks": [
+          {
+            "playerId": 2,
+            "itemModelIds": [
+              16
+            ],
+            "targetPlayerId": 1
+          }
+        ],
+        "updateCount": 2,
+        "events": [
+          {
+            "items": [
+              {
+                "id": 6,
+                "modelId": 30
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "damage": 8,
+            "action": "dealDamage"
+          },
+          {
+            "curse": "hell",
+            "action": "addCurse"
+          },
+          {
+            "playerId": 1,
+            "action": "disease"
+          },
+          {
+            "playerId": 1,
+            "damage": 5,
+            "action": "dealDamage"
+          },
+          {
+            "item": {
+              "modelId": 175,
+              "id": 6
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 16,
+                "id": 2
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ]
+      }
+    }
+  ],
+  "boundary_notes": [
+    "Initial30/id6 and both complete private hands are received inputs,not generated initial draws.",
+    "Post2 directly receives use30,target1,damage8,addHell,disease1,damage5,gift175/id6,advance2,CPU16/id2,target1. No own-defense event intervenes.",
+    "The received disease event and second damage event identify player1. The first dealDamage and addCurse events omit playerId;their current self-target context and post viewer state supply the association without inserting fields into the raw events.",
+    "Viewer ends27/10/20 with Hell;CPU ends40/10/20 with16 pending. The CPU initially owns two16 copies:id1 remains,while id2 is used for this launch.",
+    "Viewer30 is consumed and175 arrives at the reused server slot6. This is a fresh local physical token,not retained30 identity.",
+    "The separate v82 UI-only empty214 and self30 cases remain unchanged and uncovered. This new game does not supply their missing post states or replacements.",
+    "The observed owner tick is finite evidence for this same action. It does not establish a general disease scheduler,worsening probability,death/revival timing or server RNG equivalence.",
+    "CPU16 remains unanswered with eight positive physical copies plus one zero placeholder. Quit,home return and Network Monitor closure were UI-confirmed;no terminal update was captured."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2
+  },
+  "captured_authoritative_game_snapshot_count": 2,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 1,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "native_projection_validation_record": "live-transition-witnesses-v84.json",
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final"
+}

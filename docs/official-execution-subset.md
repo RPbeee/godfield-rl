@@ -3437,3 +3437,14 @@ match.automatic_guardian_response_step(action)
 `external_artifacts=True` なら、ここでHP45/MP4のまま通常補充を待つ。123/200/19は別の `ArtifactGrantAction` で供給する。実行前のlegal照会はmatch copy上で到達条件まで試すが、元のworld/乱数を変更しない。この入口を通常policyの行動選択へ混ぜない。
 
 Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v84：Hell直接selfの受信証拠を追加
+
+新30単品selfの受信初期1→更新2を取得した。本人40/10/20から8被害→Hell付与→owner disease→5被害→175補充で27/10/20となり、CPU16/id2の4攻撃待ちへ進む。既存の直接self routingとbody/tick算法に変更はなく、self_attack_ruleの根拠だけ `hell30-ui-self-use-observed-v82-and-raw-self-use-observed-v84` へ追記する。rules69/Snapshot69/view67、ABI2とC構造体幅は維持する。
+
+8固定seedすべて初回病気判定が非悪化なので、検索/除外なしに初期から2状態を比較する。175だけを取得済みの外部補充として渡し、ダメージや病気結果を注入して合わせない。CPU16/id1/id2の二コピー、本人slot6の30消費後の新175をowner-qualified mapで区別する。CPU16には応答せず、新たなdeath/revival/反射や次の病気tickを観測したとはしない。
+
+新1観測・16比較で65/native59/record-only6・wire608、完全lifecycle2/routing1/internal trace0は維持する。v82のUI-only記録は別対局のままであり、新postを当時の未知補充へ流用しない。今回はwire再生と根拠ラベルの更新で、通常抽選・病気の5%率・server RNGの同値性は確認していない。
+
+Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。

@@ -1,0 +1,340 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "observation_timestamp_note": "No exact per-action capture timestamp is inferred from HTTP or filesystem metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v82.json",
+  "prior_coverage_report": "automatic-guardian-replay-v83.json",
+  "method": "One new actual single30 self-use with authoritative initial and post states;the received list includes both damage8 and the later owner Hell tick damage5. CPU16 remained unanswered before UI-confirmed quit,home return and Network Monitor closure.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document IDs,transport credentials,HTTP headers and outgoing request payloads are excluded. CPU true hands are privileged validation context only.",
+  "authoritative_fixture": "wire-game-updates-v84.json",
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 24975,
+      "response_body_sha256": "73245bed862d341bd06fd0b735897581d63af5fb8896876c2bbe1da864d67350",
+      "webchannel_frame_count": 9
+    },
+    {
+      "label": "after-self30-hell-tick-pending-cpu16",
+      "response_body_bytes": 21193,
+      "response_body_sha256": "8b4c51c5e7a7584843991e0a7c18df97c836d80c7f7387a3ed9fafb5b2ca9adc",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "model_provenance": {
+    "30": {
+      "id": 30,
+      "imageName": "hell-scissors",
+      "category": "weapons",
+      "atk": 8,
+      "ability": "addCurseOnDamage",
+      "curse": "hell",
+      "price": 15,
+      "giftRate": 1,
+      "name": "地獄のハサミ"
+    },
+    "175": {
+      "id": 175,
+      "imageName": "heat-haze-armor",
+      "category": "armor",
+      "element": "fire",
+      "def": 12,
+      "price": 15,
+      "giftRate": 1,
+      "name": "陽炎のよろい"
+    },
+    "16": {
+      "id": 16,
+      "imageName": "hatchet",
+      "category": "weapons",
+      "atk": 4,
+      "price": 2,
+      "giftRate": 6,
+      "name": "ハチェット"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-hell-scissors-authoritative-new-game",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_and_owner_hell_tick_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 30,
+        "displayed_model": 30,
+        "item_id": 6,
+        "target": 1,
+        "single_card": true,
+        "single_confirmation_observed": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 27,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "hell"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "itemModelIds": [
+              16
+            ],
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "addCurse",
+        "disease",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "damage": 8,
+          "action": "dealDamage"
+        },
+        {
+          "curse": "hell",
+          "action": "addCurse"
+        },
+        {
+          "playerId": 1,
+          "action": "disease"
+        },
+        {
+          "playerId": 1,
+          "damage": 5,
+          "action": "dealDamage"
+        },
+        {
+          "item": {
+            "modelId": 175,
+            "id": 6
+          },
+          "playerId": 1,
+          "action": "gift"
+        },
+        {
+          "playerId": 2,
+          "action": "advanceGF"
+        }
+      ],
+      "catalog_arithmetic": {
+        "viewer_hp_after_body": "40-8=32",
+        "first_owner_hell_tick_damage": 5,
+        "viewer_final_hp": "32-5=27",
+        "mp_unchanged": 10,
+        "cp_unchanged": 20,
+        "single30_neutral_attack": 8
+      },
+      "following_cpu_launch": {
+        "model": 16,
+        "item_id": 2,
+        "source": 2,
+        "target": 1,
+        "same_model_other_copy_id1_retained": true,
+        "response_observed": false,
+        "result_observed": false
+      },
+      "observation": "One actual30 self-use is directly followed in the received event list by damage8,addHell,disease(player1),damage5,gift175/id6 and advance2. The next received CPU16/id2 attack remains pending;viewer is27/10/20 with Hell.",
+      "limits": "This new authoritative game supports the finite same-owner30 body/Hell/tick/gift sequence. It does not fill the distinct v82 post-state gaps,establish all disease scheduling or rates,or measure death/revival boundaries. CPU16 response is unobserved."
+    }
+  ],
+  "relation_to_v82": {
+    "record": "live-transition-witnesses-v82.json",
+    "same_game": false,
+    "old_record_modified": false,
+    "old_raw_gap_filled": false,
+    "old_ui_cases_native_projection_covered": false,
+    "scope": "This new received30/gift175 game is separate from the earlier viewer2 UI-only empty214/self30 game. It does not identify either old replacement or privately hidden post state."
+  },
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2,
+    "status": "passed",
+    "passed": true,
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "fixed_seed_first_local_tick_rolls": [
+      35,
+      65,
+      10,
+      87,
+      13,
+      35,
+      69,
+      13
+    ],
+    "local_tick_branch": "Existing first bounded100 rolls all exceed the local5-percent worsening threshold;the observed Hell branch is matched naturally without injected disease outcomes. This is not an official rate estimate.",
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "baseline_cumulative_wire_checkpoint_comparisons": 592,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "seed_search_skip_or_exclusion": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load actual initial hands,execute ordinary self30 with existing body and disease arithmetic,supply actual175,and execute received CPU16/id2 to its pending response. Compare all private actual/fake/used rows,resources,GF/owner,Hell,pending effect,slot mapping and full native boundary restore. The one local tick draw advances RNG by one SplitMix64 increment;the received damage totals are assertions,not supplied damage or disease outcomes.",
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v84",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/provenance audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 37.14,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_focused_passed": 1,
+      "asan_ubsan_focused_total": 1,
+      "asan_ubsan_seconds": 1.06,
+      "asan_ubsan_targets": [
+        "wire"
+      ],
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 259,
+      "python_test_methods": 187,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Full Release suite and only the newly changed wire target under Debug ASan/UBSan. No new native-core,C API,Python or full-suite sanitizer execution is claimed."
+    },
+    "received_checkpoint_comparisons": 16,
+    "cumulative_wire_checkpoint_comparisons": 608
+  },
+  "source_audit": {
+    "decoded_body_games_equal_private_exports": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "raw_and_private_export_modes_0600": true,
+    "received_inventory_rows_total": 36,
+    "positive_inventory_rows_total": 35,
+    "zero_placeholder_rows_total": 1,
+    "field_omissions_and_array_order_preserved": true,
+    "duplicate_capture02_equal_initial01": true,
+    "build_or_test_performed_by_record_author": false,
+    "independent_parent_sanitized_game_comparisons_passed": 2,
+    "independent_parent_inventory_array_comparisons_passed": 4
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_exact_duplicate_initial_response_bodies": 1
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu16_response_observed": false,
+    "cpu16_result_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit while CPU16 response pending",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 65,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 59,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_record_only_completed_witnesses": 0,
+  "coverage_change_pending_test_success": false,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "provenance_descriptor_only_change": true,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "native_coverage_note": "The new authoritative self30 adds one completed case,bringing observations64 to65 and conditional native coverage58 to59,with old record-only6 unchanged. Wire comparisons increase592 to608;received lifecycles2 and routing-only1 remain unchanged. All eight unchanged fixed seeds naturally match the observed non-worsening Hell branch. No older UI case is retrospectively completed.",
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 608
+}

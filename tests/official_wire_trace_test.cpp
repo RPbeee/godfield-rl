@@ -30,6 +30,7 @@ struct ReceivedPlayer {
     PlayerId id; int hp, mp, cp; bool cold; std::span<const ReceivedSlot> slots;
     bool darkcloud = false, dead = false, fog = false, flash = false;
     Guardian guardian = Guardian::none;
+    bool hell = false;
 };
 struct ReceivedCheckpoint {
     unsigned update; std::int64_t gf; PlayerId owner;
@@ -85,6 +86,7 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         if(want.darkcloud)curses.push_back(Curse::darkcloud);
         if(want.fog)curses.push_back(Curse::fog);
         if(want.flash)curses.push_back(Curse::flash);
+        if(want.hell)curses.push_back(Curse::hell);
         check(got.curses==curses,"received curse state matches without adding inferred ticks");
         std::size_t positive=0,placeholders=0;
         for(const auto& row:want.slots) {
@@ -1563,6 +1565,54 @@ void replay(std::uint64_t seed){
 }
 }
 
+namespace v84 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,195},{2,130},{3,57},{4,66},{5,160},{6,30},{7,23},{8,63},{9,123}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,16},{2,16},{3,5},{4,203},{5,5},{6,94},{7,35},{8,113},{9,210}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,195},{2,130},{3,57},{4,66},{5,160},{7,23},{8,63},{9,123},{6,175}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,16},{3,5},{4,203},{5,5},{6,94},{7,35},{8,113},{9,210},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,27,10,20,false,after_viewer,false,false,false,false,Guardian::none,true},
+                              {2,40,10,20,false,after_cpu}}},16}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,6)},1};
+    check(game.legal(self),"v84 received30 is legal as one explicit self command");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==1&&body.phase==MatchPhase::grant&&body.pending_grant==1&&body.gifts[0]==1
+          &&body.queue.empty()&&body.state.players[0].hp==27&&body.state.players[0].mp==10
+          &&body.state.players[0].cp==20&&body.state.players[0].items.size()==8
+          &&body.state.players[0].curses==std::vector<Curse>{Curse::hell}
+          &&body.last_tick&&body.last_tick->owner==1&&body.last_tick->before==Curse::hell
+          &&body.last_tick->after==Curse::hell&&!body.last_tick->worsened&&!body.last_tick->fallen
+          &&body.last_tick->hp_before==32&&body.last_tick->hp_after==27&&!body.last_tick->revival_token
+          &&body.rng==seed+0x9e3779b97f4a7c15ULL,
+          "v84 self30 applies8 then Hell and one ordinary non-worsening5-damage tick before the actual175 gift");
+    const auto tick_rng=body.rng;
+    v64::receipt(game,slots,1,6,175);
+    const Command cpu{2,CommandKind::play,{consumed_slot(slots,2,2)},1};
+    check(game.legal(cpu),"v84 received CPU16/id2 launch is legal");
+    (void)game.step(cpu);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& final=game.snapshot();
+    check(final.decisions==3&&final.rng==tick_rng&&final.chance_rolls==0&&final.counter_rolls==0
+          &&final.dream_rolls==0&&final.dream_masks==0&&final.redraws==0
+          &&final.guardian_opportunities==0&&final.auto_guardian_actions==0
+          &&final.guardian_departure_rolls==0&&final.revivals==0,
+          "v84 all fixed seeds naturally retain Hell without fitting;only one tick draw is used and CPU16 remains unanswered");
+}
+}
 
 }
 int main() {
@@ -1570,7 +1620,7 @@ int main() {
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1598,4 +1648,5 @@ int main() {
     std::cout<<"v81: 8 fixed seeds x3 received states,viewer2 empty defense and self66;CPU29 prelaunch copy reconstructed from event,CPU196/3 deltas and actual21 supplied,CPU196 recovery;no prelaunch wire,element-priority or server RNG equivalence claim\n";
     std::cout<<"v82: 8 fixed seeds x2 reused v65 received states,ordinary201 with supplied Neptune and actual196,CPU29+231 pending;no new observations,initial distribution,summon selector or automatic276 equivalence claim\n";
     std::cout<<"v83: 8 fixed seeds x3 reused v65 received states,supplied201 Neptune plus wall233 and same-batch automatic276 HP5;explicit viewer123 and CPU200/19 deltas,retained used233/231;no selector,backend receipt order or probability proof\n";
+    std::cout<<"v84: 8 fixed seeds x2 received states,single30 self damage8/Hell/tick5 and actual175 receipt,CPU16 unanswered;ordinary tick draw,no fitted branch,old v82 UI games unchanged,no disease rate or server RNG proof\n";
 }

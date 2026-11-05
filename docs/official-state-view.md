@@ -482,3 +482,10 @@ v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82�
 対局view67/rules69/Snapshot69へ更新し、`automatic_guardian_response_rule` を公開する。供給する発動/不発・技・対象の列とaccepted responseへの接続はprivate journal/proofへ保持し、未発動の将来結果をpolicy viewへ加えない。発動した守護神と実効果は既存の公開表示で扱う。State/表示componentと旧C構造体幅は維持する。
 
 受信v65の3状態を比較し、viewer1のguardian Neptune・HP45/MP4・233 used、CPU2の231 used保持と補充後の全手札を検証する。boostHP eventのplayerId省略を消さず、原literalと導出したtargetを分ける。新しいwire取得・終局・UI観測は無い。
+
+
+## 作業世代v84：Hellと同型二コピーの保留照合
+
+新しい30自己使用の受信2状態を既存8seedで比較する。終点viewer1はHP27/MP10/CP20・Hell・9正コピー、CPU2は40/10/20・8正コピー＋空行1で、16/id2が本人へ保留している。CPU16/id1は別コピーとして残る。viewer30/id6の消費と175/id6の再利用は、owner-qualified slot mapで新しいnative tokenへ対応させる。
+
+公開view・State ABI・対局69/S69/view67は変更せず、自己使用の根拠ラベルだけをv84 rawへ拡張する。初期からの2状態16比較と、v82の未知postを持つUI記録の区分を維持する。CPU16に応答せず、ホーム復帰とNetwork Monitor終了を確認した。

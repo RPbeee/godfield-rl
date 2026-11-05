@@ -3165,3 +3165,12 @@ Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 [既存v65の3受信状態](data/official-v2/automatic-guardian-replay-v83.json)を固定8seedで24比較し、累計64観測/native58/記録のみ6・wire592です。今回は新しい公式観測を増やしていません。rules69/Snapshot69/view67へ更新し、ABI2と旧構造体幅は維持します。
 
 Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。
+
+
+## v84：地獄のハサミの使用後を受信記録で確認
+
+公式CPU修行で30を単品自己使用し、[初期と使用後の2受信状態](data/official-v2/wire-game-updates-v84.json)を保存しました。イベントは8被害→Hell付与→病気処理の5被害→175補充→CPU16の攻撃待ちで、本人HP40→27・MP10/CP20維持と一致します。
+
+固定8seedで16比較を追加し、累計65観測/native59/記録のみ6・wire608です。前回v82の画面のみの記録は別対局として保持し、未知の補充を今回の175で埋めません。実行挙動とrules69/Snapshot69/view67・ABI2は維持し、根拠ラベルだけを追記します。
+
+Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。

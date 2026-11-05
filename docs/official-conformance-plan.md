@@ -2268,3 +2268,14 @@ Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 新入口のstage初到達条件、sourceの過不足/順序/技所属/target pool、不発、future planの非公開、受理後の失効skip/取消、再供給拒否、proof改変・後続補充との再生と原子的失敗を合成回帰で検査する。これらの検査を追加の公式観測へ数えない。local payload設定と既に開始したstageへの再供給は初版の対象外である。
 
 Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v84：Hell自己使用の初期からの受信照合
+
+新しい1対局の初期1→更新2を取得し、30単品selfの8被害・Hell付与・owner disease・5被害・175補充・CPU16保留までを照合する。本人操作は1回だけで、自己防御やCPU16への応答は行っていない。採用sourceはcapture01/03、02は01の全bytes重複として除外する。私有元応答/解析物は0600、公開JSONは名前/userId/updatedAt等を匿名化した上で選んだgame literalを保持する。
+
+2状態×既存8固定seed＝16比較を追加し、65/native59/record-only6・wire608となる。初回病気drawが各固定seedで非悪化なので、seed検索/skip/結果注入を行わない。175は実giftとして供給し、同型CPU16/id1と使用id2、slot6の旧30と新175を物理コピーとして区別する。病気の5%率・一般悪化/death/revival順やserver RNGは確認していない。v82のUI-only2例は別対局のまま保持する。
+
+runtime69/S69/view67・ABI2は維持し、self descriptorの証拠ラベルだけ更新する。完全start→end2・routing-only1・全内部trace0は不変。CPU16は未応答のまま通常退出し、ホーム復帰とNetwork Monitor終了を確認した。
+
+Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
