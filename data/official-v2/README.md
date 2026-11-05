@@ -513,3 +513,16 @@ Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wire
 | --- | ---: | --- |
 | `wire-game-updates-v76.json` | 11,540 | `88127e929cb9f0db14ca9a8e386a6a747bf81c2fb97f6d1c420883feb86a3f81` |
 | `live-transition-witnesses-v76.json` | 12,645 | `3003ccc6c9e7fd949c35ca7e853bdf964391950605d9acc604038a0c06c0aaec` |
+
+
+## v77：72自己使用のUI記録のみを追加
+
+[1操作のUI witness](live-transition-witnesses-v77.json)に72単品自己使用のHP40→37・MP10/CP20維持・追加本人防御なし・次CPU202待ち、FogによるCPU資源非表示を記録する。raw応答本文は未取得なのでwire JSONは作成しない。補充品・CPU真手札・内部イベント順を補わない。
+
+72だけの直接自己経路を修正し65/S65/view63へ更新する。97の確率攻撃や他curse/entryは維持する。native/C/Pythonのbody・Fog表示・授与接続の合成回帰と、権威的state比較を区別する。新1例をrecord-onlyへ加え、観測57/native51/record-only6、wire480・完全lifecycle2・routing-only1を維持する。旧記録・pinsは変更しない。
+
+Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native248 callbacks・Python180 unique methods、両buildのwarning/error0、diff-check正常。既存wire回帰の通過をv77のraw取得・新しい権威的replayへ読み替えず、全SAN suite/Python SANの実行とも区別する。
+
+| v77 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `live-transition-witnesses-v77.json` | 8,933 | `364f77aa693d6565d167a44c5677cb7bdaa25cb456ae25d94f1e8d782a490e47` |

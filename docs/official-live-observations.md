@@ -336,3 +336,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [受信2状態](../data/official-v2/wire-game-updates-v76.json)と[1完了操作](../data/official-v2/live-transition-witnesses-v76.json)を保存した。本人HP40/MP10/CP20から単品48を自己使用し、追加defend無しで13被害→Cold→disease1/1被害→通常58となりHP26へ進む。
 
 次CPUは4+168のSELLを起動するが、本人は応答せず途中退出した。課金/配送/Fever付与・58使用は観測に含まない。固定8seed×2状態＝16比較を追加し、累計56/native51/record-only5・wire480、完全受信lifecycle2を維持する。ホーム復帰とNetwork Monitor終了を確認した。
+
+
+## v77：霧鉄砲72のUI自己使用
+
+[新UI記録](../data/official-v2/live-transition-witnesses-v77.json)では、単品72/ATK3を本人へ使い、追加防御なしでGF1→2・HP40→37・MP10/CP20維持、CPU202待ちへ進んだ。本人FogでCPUの資源欄は非表示となった。
+
+raw受信本文は保存できず、実補充品・CPU真手札・rawイベント順は未取得である。この例はrecord-onlyとし、新たなnative権威的state比較やwire replayを増やさない。累計57/native51/record-only6・wire480。CPU202へ応答せず途中退出し、ホーム復帰とNetwork Monitor終了を確認した。

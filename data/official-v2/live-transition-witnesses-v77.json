@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action wall-clock time is inferred from tool or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v76.json",
+  "method": "Native UI observation only:one confirmed single72 self-use changed viewerHP40 to37 and advanced to GF2 without an extra self-defense. The subsequent CPU202 action remained pending. Six response-body acquisition attempts produced no game body;no authoritative initial or post snapshot is available.",
+  "roles": {
+    "viewer": "self UI participant",
+    "cpu": "opponent UI participant",
+    "server_player_ids_known": false
+  },
+  "privacy": "No original player names,account identifiers,room/document paths,transport credentials,headers,HAR or request payloads are included.",
+  "authoritative_fixtures": [],
+  "source_body_provenance": [],
+  "wire_fixture_created": false,
+  "capture_failure": {
+    "response_body_attempts": 6,
+    "saved_game_bodies": 0,
+    "initial_authoritative_snapshot_captured": false,
+    "post_authoritative_snapshot_captured": false,
+    "observed_failure": "The selected Firestore GET remained pending at roughly25k displayed data;its context menu did not offer response-body saving. The helper attempts reported no game body.",
+    "no_raw_hash_or_byte_count_available": true,
+    "headers_har_or_request_replay_saved": false,
+    "final_completed_stream_retry_status": "failed_no_game_body",
+    "scope": "The attempts are not received responses or game states. No missing raw payload,initial hand,post replacement or event sequence is synthesized."
+  },
+  "model_provenance": {
+    "72": {
+      "id": 72,
+      "imageName": "fog-gun",
+      "category": "weapons",
+      "element": "water",
+      "atk": 3,
+      "ability": "addCurseOnDamage",
+      "curse": "fog",
+      "price": 10,
+      "giftRate": 1,
+      "name": "霧鉄砲"
+    },
+    "202": {
+      "id": 202,
+      "imageName": "thump-thump-tear",
+      "category": "sundries",
+      "ability": "boostHPOrDealDamage",
+      "abilityValue": 10,
+      "price": 1,
+      "giftRate": 2,
+      "name": "ドキドキ涙"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-fog-gun-ui-only",
+      "native_projection_covered": false,
+      "evidence_class": "completed UI transition only;no authoritative received state",
+      "before_ui": {
+        "gf": 1,
+        "owner": "viewer",
+        "viewer": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "private_true_hands_known": false,
+        "server_item_ids_known": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "displayed_model": 72,
+        "model_identification": "UI label/ATK3/damage-adds-Fog matched pinned catalog72",
+        "server_item_id": null,
+        "single_card": true,
+        "explicit_self_target_selected": true,
+        "single_confirmation_observed": true,
+        "outgoing_wire_command_captured": false
+      },
+      "ui_preview": {
+        "attack": 3,
+        "description": "ダメージで霧"
+      },
+      "after_ui": {
+        "gf": 2,
+        "owner": "cpu",
+        "viewer": {
+          "hp": 37,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu": {
+          "name_still_visible": true,
+          "hp": null,
+          "mp": null,
+          "cp": null,
+          "resource_row_visibility": "hidden"
+        },
+        "replacement_model": null,
+        "replacement_server_item_id": null,
+        "true_cpu_inventory": null
+      },
+      "self_defense_ui_observed": false,
+      "raw_use72_damage_or_add_fog_events_captured": false,
+      "fog_evidence": {
+        "resource_row_hidden_after_self_use": true,
+        "interpretation": "The UI projection is consistent with the catalogued Fog-on-damage effect. No raw addCurse event or separately reported status popup is asserted."
+      },
+      "following_cpu_action": {
+        "displayed_model": 202,
+        "displayed_name": "ドキドキ涙",
+        "response_observed": false,
+        "resolved_hp_sign_or_amount_observed": false,
+        "cpu_public_resources_known": false
+      },
+      "catalog_arithmetic": {
+        "single72_attack": 3,
+        "viewer_ui_hp": "40-3=37",
+        "viewer_mp_unchanged": 10,
+        "viewer_cp_unchanged": 20
+      },
+      "observation": "Single72 was explicitly aimed at self and confirmed once. The UI advanced fromGF1 toGF2 with viewer37/10/20 and no own-defense prompt;the CPU resource row became hidden while its name remained visible. CPU202 was pending when the room was quit.",
+      "limits": "This supports the finite UI self-routing/damage/Fog projection only. No raw event order,unknown replacement,true CPU hand,hidden CPU post resources,CPU202 result or50% probability is filled in. Other Fog weapons and general scheduling are implementation inferences,not additional measured cases."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v65",
+    "snapshot_version": 65,
+    "observe_schema": "official-execution-view-v63",
+    "full_native_projection_status": "not_covered_ui_only_missing_private_state",
+    "full_native_projection_covered": false,
+    "received_checkpoint_comparisons": 0,
+    "fixed_received_state_replays": 0,
+    "scope": "Local synthetic core/API tests may validate the intended rule separately. They do not reconstruct this official game,its initial hands,replacement,hidden CPU resources or a received checkpoint. No native full-case coverage or wire comparison is added.",
+    "local_synthetic_test_results_status": "passed",
+    "raw_use_unavailable": true,
+    "synthetic_fixture_note": "C/Python regression examples use spare176 and replacement199 only as local synthetic inputs. Neither is claimed to be this official game inventory or its unknown replacement.",
+    "local_synthetic_test_results": {
+      "source": "Parent-reported completed local validation;record author did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 38.74,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.22,
+      "asan_ubsan_single_combined_run": true,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "native_registered_callbacks": 248,
+      "python_test_methods": 180,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "new_official_received_checkpoint_comparisons": 0,
+      "scope": "These are local synthetic rule/API regressions plus existing wire tests. They do not cover this UI-only official game as a full native projection. No full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 0,
+    "initial_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 0,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu202_response_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "status": "cleanup_complete_ui_only",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 57,
+  "new_native_projection_covered_completed_witnesses": 0,
+  "cumulative_native_projection_covered_completed_witnesses": 51,
+  "new_record_only_completed_witnesses": 1,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_wire_checkpoint_comparisons": 0,
+  "cumulative_wire_checkpoint_comparisons": 480,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "coverage_note": "One completed UI observation brings total observations to57. Full native-covered cases remain51,record-only cases become6,and wire checkpoint comparisons remain480. The observed public self72/Fog projection is not substituted for unknown initial hands,replacement,hidden CPU resources or a received server state. Complete received lifecycles remain2 and routing-only observations remain1."
+}

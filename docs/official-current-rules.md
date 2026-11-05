@@ -2196,3 +2196,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [受信初期1と使用後2](../data/official-v2/wire-game-updates-v76.json)には、48/id7使用→本人target→dealDamage13→addCurse cold→disease player1→dealDamage1→gift58/id7→advanceGF2→CPU4+168 SELLがある。本人はHP26/MP10/CP20・Cold。追加本人防御は挟まらない。
 
 48の単品非致死例としてCold武器の直接自己経路を修正する。33/62への適用は同traitの限定一般化である。初期配布・悪化5%分布・病気cursorの一般scheduleを確定せず、CPU売却の成立・課金・熱病付与も観測していない。
+
+
+## v77：72自己使用のUI証拠
+
+公式CPU修行のUIで霧鉄砲72/ATK3を単品で自己選択し、一度の確定後にGF1→2・本人40/10/20→37/10/20・CPU202待ちを確認した。追加本人防御は挟まらず、CPUの名前は残るがHP/MP/CP欄は隠れた。
+
+受信中のFirestore応答には本文保存の操作が現れず、権威的game初期/使用後の本文は取得できていない。補充品・CPU真手札・raw use/addCurse/gift順、server乱数消費を推測で埋めない。UIの有限例を根拠に72の直接自己経路を修正し、表示非公開化は既存Fog投影を維持する。
