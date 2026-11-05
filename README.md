@@ -2991,3 +2991,10 @@ ruleset55 / Snapshot55 / view-v53、Config24 byte・Match ABI2を維持します
 公式CPU修行で、80夢の木づちの自己使用が防御入力なしにHP40→36・Dream付与まで進み、補充が `modelId=135, fakeModelId=135` になる例を取得しました。自己使用経路をDream付与武器へ広げ、受信した同一番号の偽装を明示unmaskedと区別して保持します。ローカルDream抽選の候補・率は変更しません。
 
 ruleset56 / Snapshot56 / view-v54、Match ABI2と既存構造体幅を維持します。実測は80、同じ能力の36への適用は限定一般化です。[差分表](docs/official-spec-gap.md)と[観測記録](docs/official-live-observations.md)に、受信後状態1件と復元初期sceneの境界を記録します。公式完全対応は継続中です。
+
+
+## v64：Dream偽装の受領から実使用まで
+
+公式CPU修行で135/135防具と195/195の花を実際に使用し、さらに見かけ195（MP＋5）・実体197（MP＋15）の使用でMP20→35を確認しました。受信update4〜7を保存し、再構成sceneから既存実装と照合します。新しい異番号pairは既存の9key互換範囲内です。
+
+今回は公式記録と回帰テストの拡充で、runtimeはruleset56 / Snapshot56 / view-v54を維持します。[観測記録](docs/official-live-observations.md)と[差分表](docs/official-spec-gap.md)へ反映し、ブラウザでホーム復帰とNetwork Monitorの終了まで確認しました。

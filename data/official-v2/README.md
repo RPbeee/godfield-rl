@@ -353,3 +353,15 @@ runtimeはruleset56/Snapshot56/view-v54。同番号fakeのpresenceを保ち、�
 | --- | ---: | --- |
 | `wire-game-updates-v63.json` | 8,525 | `ed52d185c30650490e657f7c0160d5451cccfd339ae2a3850a2cbb6c50826101` |
 | `live-transition-witnesses-v63.json` | 7,455 | `9faafbc7ce558b2289c74bca809cf08b7c76c25623f9283b2c1ed32afae7fffb` |
+
+
+## v64：Dream偽装の使用と異番号の回復量
+
+[wire-game-updates-v64.json](wire-game-updates-v64.json)は同じ終末なしCPU修行の連続受信update4〜7、[live-transition-witnesses-v64.json](live-transition-witnesses-v64.json)は4完了操作と範囲を保存する。135/135防御・195/195自己使用、見かけ195/MP＋5から実197のMP＋15、CPU両替と花の後続を取得した。最初のGF3 sceneはUI資源と消費前copyを戻した再構成であり、game3や元の初期draw/orderは未取得である。
+
+runtime56/Snapshot56/view-v54を変更せず固定8seed×4受信checkpointを比較する。CPU188/196/202は在庫差分の結果で、eventsに無いgift/retryやbackend順を作らない。旧pins/記録を保持し、CPU真手札はprivileged検証専用とする。GF9で退出しホーム復帰・Network Monitor終了を確認した。
+
+| v64 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v64.json` | 19,912 | `c7714518c9b542062699740b6115dfb3facc6bb0e9daa18b116381b64f331fb0` |
+| `live-transition-witnesses-v64.json` | 7,819 | `ce55a7a85db9a7e2c6850cc6e4460bcecc27b51e1dfbf8ae507269e53257ec78` |

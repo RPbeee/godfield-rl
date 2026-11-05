@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "Local session date;precise per-action wall-clock timestamps were not captured.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v63.json",
+  "method": "Official no-apocalypse CPU training via native UI;selected actual hand slots and self targets,no human multiplayer or crafted network requests.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "All original names/userIds/updatedAt and transport identifiers excluded. Received CPU true hands are privileged validation data,not policy observations.",
+  "authoritative_fixture": "wire-game-updates-v64.json",
+  "source_body_provenance": [
+    {
+      "label": "before-identity-defense",
+      "response_body_bytes": 20031,
+      "response_body_sha256": "4fc1a7c85d5dde94024fe17ea10263519e866101ab846fd3419186f0a30ca0f4",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-identity-defense",
+      "response_body_bytes": 17553,
+      "response_body_sha256": "58364006dbb247bc9ccd2bb280280fd4e95f91552d27851e5eee7f270d639f25",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-identity-flower",
+      "response_body_bytes": 19650,
+      "response_body_sha256": "318b3754f4a5c6eac955d93c84e19ef740b9b1d5af01baf94a194196378651ca",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-different-flower",
+      "response_body_bytes": 19423,
+      "response_body_sha256": "0a8e6e6d527041e64a28a87de188d1d58e70c0115a8c7fb5f6f714b50240de9c",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "cases": [
+    {
+      "id": "ordinary195-self-to-identity195-receipt",
+      "native_projection_covered": true,
+      "before": {
+        "source": "UI plus reconstructed pre-play scene",
+        "gf": 3,
+        "viewer_resources": [
+          35,
+          10,
+          20
+        ],
+        "viewer_curses": [
+          "dream"
+        ],
+        "cpu_resources": [
+          40,
+          10,
+          20
+        ]
+      },
+      "confirmed_choice": {
+        "viewer_model": 195,
+        "received_slot": 3,
+        "target_player_id": 1,
+        "fake_model_present": false
+      },
+      "received_updates": [
+        4
+      ],
+      "observed_effects": [
+        "boostMP5:viewer10->15",
+        "gift viewer195/fake195 slot3",
+        "advance GF to CPU",
+        "CPU23/id6 launch toward viewer"
+      ],
+      "limits": "CPU64/id2 was already present before this reconstructed start;the preceding empty response at GF2 was UI-observed but is not counted separately."
+    },
+    {
+      "id": "identity135-defense-use",
+      "native_projection_covered": true,
+      "before": {
+        "source": "received update4",
+        "gf": 4,
+        "viewer_resources": [
+          35,
+          15,
+          20
+        ],
+        "pending_models": [
+          23
+        ],
+        "incoming_atk": 6
+      },
+      "confirmed_choice": {
+        "viewer_model": 135,
+        "fake_model": 135,
+        "received_slot": 1,
+        "role": "defense",
+        "visible_defense": 5
+      },
+      "received_updates": [
+        4,
+        5
+      ],
+      "observed_effects": [
+        "useDefenseItems retains model135/fake135",
+        "dealDamage1:viewer35->34",
+        "viewer gift213 without fake",
+        "CPU188/id6 positive inventory delta",
+        "GF5 viewer main"
+      ],
+      "limits": "The same-valued fake field is explicit in useDefenseItems. A separate server reveal event is not present;native last_reveals is its local public representation."
+    },
+    {
+      "id": "identity195-self-use-to-different197-195",
+      "native_projection_covered": true,
+      "before": {
+        "source": "received update5",
+        "gf": 5,
+        "viewer_resources": [
+          34,
+          15,
+          20
+        ]
+      },
+      "confirmed_choice": {
+        "viewer_model": 195,
+        "fake_model": 195,
+        "received_slot": 3,
+        "target_player_id": 1,
+        "visible_mp_gain": 5
+      },
+      "received_updates": [
+        5,
+        6
+      ],
+      "observed_effects": [
+        "useAttackItems retains195/fake195",
+        "boostMP5:viewer15->20",
+        "viewer gift197/fake195 slot3",
+        "CPU3/id8 exchange to HP30/MP30/CP10",
+        "CPU196/id8 positive inventory delta",
+        "GF7 viewer main"
+      ],
+      "limits": "The CPU exchange endpoint is received;the native ResourceAllocation uses that endpoint. CPU receipt events are not captured."
+    },
+    {
+      "id": "different197-195-visible5-actual15",
+      "native_projection_covered": true,
+      "before": {
+        "source": "received update6 and UI preview",
+        "gf": 7,
+        "viewer_resources": [
+          34,
+          20,
+          20
+        ],
+        "cpu_resources": [
+          30,
+          30,
+          10
+        ]
+      },
+      "confirmed_choice": {
+        "viewer_model": 197,
+        "fake_model": 195,
+        "received_slot": 3,
+        "target_player_id": 1,
+        "visible_name": "スマイルの花",
+        "visible_mp_gain": 5,
+        "actual_mp_gain": 15
+      },
+      "received_updates": [
+        6,
+        7
+      ],
+      "observed_effects": [
+        "useAttackItems retains actual197/fake195",
+        "boostMP15:viewer20->35",
+        "viewer gift13/fake13 slot3",
+        "CPU195/id1 self boostMP5:30->35",
+        "CPU202/id1 positive inventory delta",
+        "GF9 viewer main"
+      ],
+      "limits": "One compatible different-model pair and its self-use are confirmed. Both models are zero-cost MP sundries;incompatible input,nonzero-cost differences and full pair probabilities remain unverified."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false,
+    "fixed_reconstruction_replays": 8,
+    "received_checkpoints_per_replay": 4,
+    "received_checkpoint_comparisons": 32,
+    "initial_scene_authoritative": false,
+    "random_seed_fitting": false,
+    "scope": "Reconstructed GF3 pre-play scene to received updates4-7,explicit observed artifact results and inventory-delta CPU completions;not original draw/order,server RNG or backend gift-order equivalence."
+  },
+  "capture_counts": {
+    "authoritative_game_snapshots": 4,
+    "initial_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 4,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "last_observed_gf": 9,
+    "additional_gameplay_commands_after_boundary": false
+  },
+  "new_completed_public_transition_witnesses": 4,
+  "cumulative_completed_public_transition_witnesses": 28,
+  "new_native_projection_covered_completed_witnesses": 4,
+  "cumulative_native_projection_covered_completed_witnesses": 25,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "native_coverage_note": "Four viewer choices are counted once each. Automatic CPU follow-ups are part of their composite checkpoints. The preceding GF2 empty defense is not another completed witness in this generation. Old15x72 projections,72routing,72redraw-component checks and v59/v60/v62/v63 checkpoint counts remain separate.",
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

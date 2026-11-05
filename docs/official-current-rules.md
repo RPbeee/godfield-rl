@@ -2142,3 +2142,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [post-onlyの実受信](../data/official-v2/wire-game-updates-v63.json)で、80の明示自己使用後にdamage4・Dream・gift135/fake135が並び、次CPU60の攻撃へ進んだ。追加のself防御入力は行っていない。従来のローカルdistinct-only判定はこの受信状態を拒否するため、受信maskの許可条件へsupported identityを加える。生成器の候補や率にはこの変更を適用しない。Noneとfake==actualを区別し、元の受信presenceを保持する。
 
 権威的初期gameは未取得であり、1受信後状態からの再構成比較である。自己36は同能力による限定一般化、同番号防具の後の使用・費用・quote等は合成回帰である。実際に受信した80の有限列とこれらを区別する。一般の異番号互換外pair・全Dream分布・病気/補充/守護神の一般schedulerは残件のままとする。
+
+
+## v64：Dreamの見かけでの選択と実体の回復量
+
+[受信update4〜7](../data/official-v2/wire-game-updates-v64.json)では、135/fake135の防御使用・195/fake195の自己使用を実測し、fake presenceがuseイベントにも残ることを確認した。さらに実197/fake195の選択プレビューは195/MP＋5、使用イベントは実197/fake195、受信boostMPは15、UIもMP20→35となった。これは既存互換クラス内の「見かけで入力・実体で効果」を直接支持する1例である。zero-cost同カテゴリ以外の費用・合法性差には一般化しない。
+
+通常195→同番号195、同番号195→異番号197/195、異番号197/195→同番号13という受領を取得したが、候補集合・率・乱数器を推定する母集団とはしない。CPU188/196/202の補充は在庫差分であり、受信eventsに無いgift/retryを補完しない。初期sceneの再構成と4受信終点の比較であり、game3・元draw/orderやbackend schedulerの一般的同値性は未取得のままである。対局runtime56/Snapshot56/view-v54・旧oracleを維持する。

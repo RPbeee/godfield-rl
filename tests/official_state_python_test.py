@@ -143,6 +143,36 @@ class OfficialStateTests(unittest.TestCase):
                 for player in raw["players"]:
                     self.assertEqual(received.view(player_id=player["id"]), strict.view(player_id=player["id"]))
 
+    def test_received_v64_dream_presence_visible_faces_and_privileged_evidence(self):
+        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v64.json").read_text())
+        expected = ((4, 4, 35, 15, 195), (5, 5, 34, 15, 195),
+                    (6, 7, 34, 20, 197), (7, 9, 34, 35, 13))
+        self.assertEqual(len(report["updates"]), len(expected))
+        for entry, (update, gf, hp, mp, actual) in zip(report["updates"], expected):
+            with self.subTest(update=update):
+                raw = entry["game"]; received = self.received(raw); own = received.view(player_id=1)
+                self.assertEqual((raw["updateCount"], own["gf"]), (update, gf))
+                self.assertEqual((own["players"][0]["status"]["hp"], own["players"][0]["status"]["mp"]), (hp, mp))
+                self.assertEqual(received.raw_snapshot, raw)
+                self.assertEqual(received.empty_slots, (EmptySlot(2, 8),) if update == 4 else ())
+                hand = {item["token"]: item for item in own["hand"]}
+                self.assertEqual(len(hand), 9)
+                expected_face = 13 if update == 7 else 195
+                self.assertEqual((hand[3]["face"], hand[3]["reference"], hand[3]["disguised"], hand[3]["used"]),
+                                 (expected_face, expected_face, True, False))
+                evidence = next(item for item in received.physical_snapshot["players"][0]["items"] if item["id"] == 3)
+                self.assertEqual((evidence["modelId"], evidence["fakeModelId"]), (actual, expected_face))
+                if update == 4:
+                    self.assertEqual((hand[1]["face"], hand[1]["reference"], hand[1]["disguised"]), (135, 135, True))
+                    self.assertEqual(received.active_attack()["models"], [23])
+                    self.assertEqual(received.active_attack()["summary"]["power"], 6)
+                else:
+                    self.assertEqual((hand[1]["face"], hand[1]["disguised"]), (213, False))
+                    self.assertIsNone(received.active_attack())
+                self.assertEqual(received.view(spectator=True)["hand"], [])
+                self.assertNotIn("events", own)
+                self.assertNotIn("empty_slots", own)
+
     def test_projection_ownership_tokens_and_raw_preservation(self):
         raw = fixture(); saved = copy.deepcopy(raw); state = self.state(raw)
         raw["players"][0]["hp"] = 1

@@ -3137,3 +3137,13 @@ ruleset56 / Snapshot56（旧1〜55拒否）/ view-v54。C Config24 byte、GrantA
 
 
 検証はRelease全156対象とSAN重点8対象が通過した。native231 callbacks・Python163 methods、受信post-only比較は8seed×1checkpointである。詳細と未検証範囲は[適合計画v63](official-conformance-plan.md)へ記録する。
+
+
+## 作業世代v64：Dream受領・使用の追加適合記録
+
+runtimeは対局v56/Snapshot56/view-v54のままで、公式の4受信境界に対する再現テストを加える。135/fake135の防御、195/fake195の回復、197/fake195の真回復量15、13/fake13の受領を、既存ArtifactGrant・通常Command・private proofで照合する。生成器・旧9key互換・同番号受信条件・ABI幅を変更しない。
+
+GF3の初期sceneはUI資源・受信残在庫・消費イベントからの再構成である。通常補充結果は既知actual/fakeを外部入力し、CPUの省略giftは在庫差分だけをcompletionへ使う。8seed×4checkpointを元の初期抽選やserver RNGへ合わせた再生とは呼ばない。実測の回復例はzero-cost同カテゴリの互換pairであり、一般の互換外処理は引き続きunsupportedである。
+
+
+検証はRelease全156対象とASan/UBSanの更新wire1対象が通過した。新しい4checkpoint×8seed、Python State19・Match164、独立したraw匿名化・数値転記の監査結果と検証範囲は[適合計画v64](official-conformance-plan.md)へ記録する。

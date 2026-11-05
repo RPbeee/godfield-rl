@@ -3677,6 +3677,38 @@ class MatchTests(unittest.TestCase):
             with self.assertRaises(InvalidMatchError): game.rollout_step(17, 123)
             self.assertEqual((game.observe(0), game.status), (before, status))
 
+    def test_v64_received_different_dream_flower_uses_actual_gain(self):
+        report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/wire-game-updates-v64.json").read_text())
+        before, expected = (entry["game"] for entry in report["updates"][2:])
+        self.assertEqual((before["updateCount"], expected["updateCount"]), (6, 7))
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        # Explicit quiescent scene import, not an implicit received-pending resume.
+        with OfficialState(before, library=LIBRARY) as state:
+            game.load_scene(state, 1, 42)
+        visible = next(item for item in game.observe(1)["board"]["hand"] if item["token"] == 3)
+        self.assertEqual((visible["face"], visible["reference"], visible["disguised"]), (195, 195, True))
+        self.assertEqual(next(item for item in before["players"][0]["items"] if item["id"] == 3)["modelId"], 197)
+        self.assertTrue(game.legal(Command(1, "play", (3,), 1)))
+        game.step(Command(1, "play", (3,), 1))
+        view = game.observe(1)
+        self.assertEqual((game.status.phase, game.actor, view["board"]["players"][0]["status"]["mp"]), ("grant", None, 35))
+        self.assertEqual(view["last_reveals"], [{"owner": 1, "face": 195, "model": 197}])
+        game.artifact_grant_step(ArtifactGrantAction(1, 13, 13))
+        self.assertEqual((game.status.owner, game.observe()["board"]["gf"]), (2, 8))
+        game.step(Command(2, "play", (1,), 2))
+        # CPU202 is an inventory-delta completion; no omitted server events inferred.
+        game.artifact_grant_step(ArtifactGrantAction(2, 202))
+        self.assertEqual((game.status.phase, game.status.owner, game.observe()["board"]["gf"]), ("main", 1, 9))
+        for seat, received in enumerate(expected["players"]):
+            own = game.observe(received["id"])["board"]
+            status = own["players"][seat]["status"]
+            self.assertEqual(tuple(status[key] for key in ("hp", "mp", "cp")),
+                             tuple(received[key] for key in ("hp", "mp", "cp")))
+            self.assertEqual(sorted((item["face"], item["disguised"], item["used"]) for item in own["hand"]),
+                             sorted((item.get("fakeModelId", item["modelId"]), "fakeModelId" in item, item.get("used", False))
+                                    for item in received["items"]))
+        self.assertEqual(game.observe()["board"]["hand"], [])
+
     def test_identity_dream_artifact_presence_privacy_reveal_and_late_atomicity(self):
         raw = {"gf": 0, "players": [
             {"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"]},

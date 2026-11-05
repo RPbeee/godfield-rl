@@ -187,3 +187,23 @@ updateCount2の順は、本人198/id9使用→target1→MP＋20→Heaven付与�
 初期のNetwork応答はpendingで本文を取得できず、この対局の権威的初期snapshotは無い。別の探索対局の初期記録やgameを含まない162 byteの応答を混ぜない。native比較は受信post在庫に消費80/id1とCPU60/id2を戻した再構成sceneから行い、原初期draw・配列順を証明しない。受信後のブラウザ操作がwindow-not-foundとなり、CPU60への防御や新135の使用結果は未観測のままである。退出やホーム復帰も確認できていない。
 
 1自己使用を新しい完了例として累計24例・native対象21例へ追加する。旧固定8seed×1受信checkpoint＝8比較を別枠で加え、1080投影・72routing・72一新部分検証・v59/v60各32checkpoint・v62の16checkpointを保つ。開始〜終局の受信game列1対局分・全backend内部trace0は維持する。同一番号の受領1例から全候補・50%率・異番号互換外の使用処理を一般化しない。
+
+
+## v64：同番号偽装の使用と実体197のMP＋15
+
+2026年11月5日、Firefoxの操作が復旧し、v63と同じ終末なしCPU修行を再開した。GF2のCPU60へ空防御して本人HP36→35、GF3本人mainとなった。この先行操作のgame3応答は保存できていないため、以下の4操作とは別に完了件数へ加算しない。
+
+[保存したupdate4〜7](../data/official-v2/wire-game-updates-v64.json)は、本人の通常195自己使用から、同番号135防御、同番号195自己使用、異番号197/fake195自己使用までを保持する。
+
+| 受信update | 本人の確定操作と結果 | CPUの後続・次の境界 |
+| --- | --- | --- |
+| 4 | 通常195/id3を自己使用、MP10→15。gift195/fake195/id3 | CPU23/id6の無属性ATK6、GF4本人の防御待ち |
+| 5 | 135/fake135/id1を防御使用、DEF5・被害1でHP35→34。gift213/id1（fakeなし） | CPU188/id6は在庫差分。GF5本人main |
+| 6 | 195/fake195/id3を自己使用、MP15→20。gift197/fake195/id3 | CPU3/id8の両替で40/10/20→30/30/10。CPU196/id8は在庫差分。GF7本人main |
+| 7 | 見かけ195「スマイルの花・MP＋5」を自己使用。受信実体197・boostMP15でMP20→35。gift13/fake13/id3 | CPU195/id1を自己使用しMP30→35。CPU202/id1は在庫差分。GF9本人main |
+
+useDefenseItemsには135/fake135、useAttackItemsには195/fake195と197/fake195がそれぞれ明示されている。same-modelでもfake fieldを消さず保持する前版の処理を実使用まで検証する。異番号197/195は共にzero-costのboostMP雑貨で既存9key互換内であり、ここでは回復量が見かけと実体で異なる。一般の互換外pairやコスト・category違い、全50%分布を証明したものではない。serverの独立したrevealイベントは受信列に無く、nativeのlast_revealsは使用時のローカル公開表現である。
+
+初期通信は今回も復元しない。再現用GF3 sceneはupdate4の本人gift195/fake195を消費前の195/Noneへ戻し、CPU空枠を消費23/id6へ戻して構成する。本人35/10/20・DreamはUI、CPU64/id2は既に届いていた受信在庫を使う。原配列順・初期draw・game3は不明で、CPU通常補充の省略イベントやretry列を作らない。recipientごとのlocal補充順をbackend順へ読み替えない。
+
+新4操作で累計28完了例・native対象25例とする。固定8seed×4受信checkpoint＝32比較を追加し、以前の投影・routing・一新部分検証・各世代checkpointは別集計を保つ。開始〜終局の受信game列は累計1対局分、全backend内部traceは0である。GF9から退出し、ホーム復帰とNetwork Monitor閉鎖を確認した。[機械可読の観測範囲](../data/official-v2/live-transition-witnesses-v64.json)へ固定する。

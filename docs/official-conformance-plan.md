@@ -2058,3 +2058,21 @@ PythonからSAN版libraryを使う追加試行は、指定した `DYLD_INSERT_LI
 最終Release CTestは156/156（16.39秒）通過。native Matchは231 unique callbacks、Python Matchは163 unique methodsである。ASan/UBSanは本体1/1（12.66秒）、C API・driver・live・wireの4/4（2.47秒）、driver/grant/grant sampler benchmarkの3/3（7.56秒）を合わせ重点8対象が通過した。更新したwireも再確認で通過した。最終Release/SAN buildのwarning/errorは0件。全legacy SAN suiteやPython SANを再実行した意味ではない。
 
 nativeではself80/36の一入力解決と無RNG・予約補充、foreignへの適合Stone防御・Cold/Wide除外、同番号受信とNoneの本人表示差・他者非漏洩、使用/reveal・全解除、pendingからの再開・grant proof改変拒否を検証した。C/Pythonは外部同番号授与・無RNG・fresh unused・実体DEF・公開reveal、型/NULL/旧幅、late failure原子性を含む。旧Dream生成器の参照比較と全旧Releaseテストを維持し、合成回帰を公式の追加使用観測へ数えない。
+
+
+## v64：Dream偽装の実使用と4受信checkpoint
+
+runtimeを変更せず、公式CPU修行のupdate4〜7を新たに保存した。通常195の自己使用と195/195受領、135/135のDEF5応答、195/195の自己回復、197/fake195の自己回復を4完了例として数える。CPU自動後続を独立例へ重複加算せず、累計28完了例・native対象25例とする。先行GF2空防御は今回の独立完了件数へ加えない。
+
+見かけ195/MP＋5に対し実197でMP＋15となる受信例を得た。135/195同番号の使用も受信fake field付きで確認したが、異番号pairは旧9key互換内である。候補集合・全50%分布・不適合入力・非zeroコスト差への一般化は行わない。CPU188/196/202は在庫差分からの明示completion、recipient順はローカル規約のままである。
+
+テストは再構成GF3 sceneから4受信checkpointを既存固定8seedで32比較する。全物理モデル・fake presence・unused・資源・Dream・GF/owner/pendingを照合し、各native境界のsnapshot/restoreと使用時公開を検査する。原初期draw/order・game3・server updateCountとnative decision数・CPU内部gift/retry順は比較対象外である。公式の連続した開始〜終局game列1対局分・全backend内部trace0、旧世代資料・pins・legacy37を維持する。
+
+ReceivedStateも同じ4記録を直接読み込み、135/135・195/195・13/13のpresenceと197/fake195の真値保持、本人のface/referenceが195のままであること、CPU空slot1→0、先頭攻撃23と後続main、spectator手札なしを回帰検査する。Python Stateのunique methodsは18→19、Matchは163→164、native231は変更しない。これらは受信frameの読み取り・投影の検査で、pending Matchを暗黙再開する入口ではない。
+
+Python Matchには受信update6のquiescent sceneを明示importし、197/fake195の本人face/reference195→自己使用MP35・公開reveal→13/13補充→CPU195自己使用と202差分補充→update7の資源と両者の手札投影を比較する回帰を加える。これは先行4checkpointのnative再生とは別の、既存C/Python接口を通す1区間の検査である。
+
+
+最終Release CTestは156/156（16.82秒）通過。更新したwire targetはRelease1/1（0.29秒）、ASan/UBSan1/1（0.47秒）通過し、今回の両wire buildのwarning/errorは0件。Python State19・Match164 unique methodsを含む全Releaseを確認した。runtime本体の変更はなく、SAN全suiteやPython SANを再実行した意味ではない。
+
+独立監査では、再構成前の両18行・4終点の両72行をfixtureと機械照合し、model/fake/used・受信順・再構成slot順が一致した。4 private原本からの匿名化も全件差分0、公開artifactのbytes/SHA256はデータREADMEと照合した。旧世代の記録・oracleは変更していない。

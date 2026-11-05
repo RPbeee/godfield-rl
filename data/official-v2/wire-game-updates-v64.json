@@ -1,0 +1,823 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "Four consecutive received game updates4-7 from the same no-apocalypse CPU training game as v63. The first pre-play scene is reconstructed;this is not a complete lifecycle or exhaustive backend trace.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "before-identity-defense",
+      "response_body_bytes": 20031,
+      "response_body_sha256": "4fc1a7c85d5dde94024fe17ea10263519e866101ab846fd3419186f0a30ca0f4",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-identity-defense",
+      "response_body_bytes": 17553,
+      "response_body_sha256": "58364006dbb247bc9ccd2bb280280fd4e95f91552d27851e5eee7f270d639f25",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-identity-flower",
+      "response_body_bytes": 19650,
+      "response_body_sha256": "318b3754f4a5c6eac955d93c84e19ef740b9b1d5af01baf94a194196378651ca",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-different-flower",
+      "response_body_bytes": 19423,
+      "response_body_sha256": "0a8e6e6d527041e64a28a87de188d1d58e70c0115a8c7fb5f6f714b50240de9c",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor UI,Save Response As for response bodies only. No constructed/replayed HTTP requests,headers,HAR or outgoing command payload capture.",
+  "sanitization": {
+    "removed": [
+      "all original player names",
+      "players[].userId",
+      "game.updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Numeric game fields,field omissions,received player/item/event array order,slot reuse,zero placeholders and explicit fakeModelId presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "HTTP headers",
+      "query/session/resume tokens",
+      "request payloads",
+      "raw transport bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "Received CPU true models are privileged validation fixtures,never public-player policy input.",
+  "continuity": {
+    "same_game_as": "wire-game-updates-v63.json",
+    "prior_received_update": 2,
+    "uncaptured_update_counts": [
+      3
+    ],
+    "current_received_update_counts": [
+      4,
+      5,
+      6,
+      7
+    ],
+    "initial_authoritative_snapshot_available": false
+  },
+  "updates": [
+    {
+      "source_body": "before-identity-defense",
+      "game": {
+        "events": [
+          {
+            "items": [
+              {
+                "id": 3,
+                "modelId": 195
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "boostMP",
+            "mp": 5
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "fakeModelId": 195,
+              "id": 3,
+              "modelId": 195
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 23,
+                "id": 6
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "gf": 4,
+        "attacks": [
+          {
+            "itemModelIds": [
+              23
+            ],
+            "playerId": 2,
+            "targetPlayerId": 1
+          }
+        ],
+        "guardianPlayerIds": [
+          1
+        ],
+        "attackTurnPlayerId": 2,
+        "players": [
+          {
+            "mp": 15,
+            "cp": 20,
+            "id": 1,
+            "name": "viewer",
+            "items": [
+              {
+                "id": 2,
+                "modelId": 20
+              },
+              {
+                "modelId": 135,
+                "id": 4
+              },
+              {
+                "modelId": 170,
+                "id": 5
+              },
+              {
+                "modelId": 144,
+                "id": 6
+              },
+              {
+                "modelId": 19,
+                "id": 7
+              },
+              {
+                "modelId": 193,
+                "id": 8
+              },
+              {
+                "modelId": 162,
+                "id": 9
+              },
+              {
+                "fakeModelId": 135,
+                "id": 1,
+                "modelId": 135
+              },
+              {
+                "modelId": 195,
+                "fakeModelId": 195,
+                "id": 3
+              }
+            ],
+            "hp": 35,
+            "curses": [
+              "dream"
+            ]
+          },
+          {
+            "hp": 40,
+            "isBot": true,
+            "cp": 20,
+            "id": 2,
+            "name": "cpu",
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 195
+              },
+              {
+                "modelId": 94,
+                "id": 3
+              },
+              {
+                "modelId": 14,
+                "id": 4
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 3,
+                "id": 8
+              },
+              {
+                "modelId": 166,
+                "id": 9
+              },
+              {
+                "modelId": 64,
+                "id": 2
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ]
+          }
+        ],
+        "updateCount": 4,
+        "diseasePlayerId": 2
+      }
+    },
+    {
+      "source_body": "after-identity-defense",
+      "game": {
+        "updateCount": 5,
+        "players": [
+          {
+            "hp": 34,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "id": 2,
+                "modelId": 20
+              },
+              {
+                "id": 4,
+                "modelId": 135
+              },
+              {
+                "modelId": 170,
+                "id": 5
+              },
+              {
+                "modelId": 144,
+                "id": 6
+              },
+              {
+                "modelId": 19,
+                "id": 7
+              },
+              {
+                "modelId": 193,
+                "id": 8
+              },
+              {
+                "modelId": 162,
+                "id": 9
+              },
+              {
+                "fakeModelId": 195,
+                "id": 3,
+                "modelId": 195
+              },
+              {
+                "modelId": 213,
+                "id": 1
+              }
+            ],
+            "name": "viewer",
+            "cp": 20,
+            "id": 1,
+            "mp": 15
+          },
+          {
+            "name": "cpu",
+            "isBot": true,
+            "hp": 40,
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 195
+              },
+              {
+                "modelId": 94,
+                "id": 3
+              },
+              {
+                "modelId": 14,
+                "id": 4
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 3,
+                "id": 8
+              },
+              {
+                "modelId": 166,
+                "id": 9
+              },
+              {
+                "modelId": 64,
+                "id": 2
+              },
+              {
+                "id": 6,
+                "modelId": 188
+              }
+            ],
+            "cp": 20,
+            "id": 2
+          }
+        ],
+        "gf": 5,
+        "diseasePlayerId": 1,
+        "attackTurnPlayerId": 1,
+        "events": [
+          {
+            "items": [
+              {
+                "id": 1,
+                "fakeModelId": 135,
+                "modelId": 135
+              }
+            ],
+            "action": "useDefenseItems"
+          },
+          {
+            "damage": 1,
+            "action": "dealDamage"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 213,
+              "id": 1
+            },
+            "action": "gift"
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 1
+          }
+        ],
+        "guardianPlayerIds": [
+          2
+        ]
+      }
+    },
+    {
+      "source_body": "after-identity-flower",
+      "game": {
+        "guardianPlayerIds": [
+          2
+        ],
+        "attackTurnPlayerId": 1,
+        "updateCount": 6,
+        "players": [
+          {
+            "mp": 20,
+            "curses": [
+              "dream"
+            ],
+            "items": [
+              {
+                "modelId": 20,
+                "id": 2
+              },
+              {
+                "modelId": 135,
+                "id": 4
+              },
+              {
+                "modelId": 170,
+                "id": 5
+              },
+              {
+                "modelId": 144,
+                "id": 6
+              },
+              {
+                "modelId": 19,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 193
+              },
+              {
+                "modelId": 162,
+                "id": 9
+              },
+              {
+                "id": 1,
+                "modelId": 213
+              },
+              {
+                "modelId": 197,
+                "fakeModelId": 195,
+                "id": 3
+              }
+            ],
+            "cp": 20,
+            "id": 1,
+            "name": "viewer",
+            "hp": 34
+          },
+          {
+            "cp": 10,
+            "id": 2,
+            "mp": 30,
+            "isBot": true,
+            "hp": 30,
+            "name": "cpu",
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "modelId": 94,
+                "id": 3
+              },
+              {
+                "modelId": 14,
+                "id": 4
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "modelId": 3,
+                "id": 7
+              },
+              {
+                "modelId": 166,
+                "id": 9
+              },
+              {
+                "modelId": 64,
+                "id": 2
+              },
+              {
+                "modelId": 188,
+                "id": 6
+              },
+              {
+                "modelId": 196,
+                "id": 8
+              }
+            ]
+          }
+        ],
+        "gf": 7,
+        "diseasePlayerId": 1,
+        "events": [
+          {
+            "items": [
+              {
+                "fakeModelId": 195,
+                "modelId": 195,
+                "id": 3
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "boostMP",
+            "mp": 5
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 197,
+              "fakeModelId": 195,
+              "id": 3
+            }
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "modelId": 3,
+                "id": 8
+              }
+            ]
+          },
+          {
+            "hp": 30,
+            "action": "exchange",
+            "cp": 10,
+            "mp": 30
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ]
+      }
+    },
+    {
+      "source_body": "after-different-flower",
+      "game": {
+        "gf": 9,
+        "updateCount": 7,
+        "events": [
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "fakeModelId": 195,
+                "id": 3,
+                "modelId": 197
+              }
+            ]
+          },
+          {
+            "mp": 15,
+            "action": "boostMP"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "fakeModelId": 13,
+              "modelId": 13,
+              "id": 3
+            }
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          },
+          {
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "mp": 5,
+            "action": "boostMP"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "players": [
+          {
+            "mp": 35,
+            "name": "viewer",
+            "cp": 20,
+            "id": 1,
+            "items": [
+              {
+                "modelId": 20,
+                "id": 2
+              },
+              {
+                "modelId": 135,
+                "id": 4
+              },
+              {
+                "modelId": 170,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 144
+              },
+              {
+                "id": 7,
+                "modelId": 19
+              },
+              {
+                "id": 8,
+                "modelId": 193
+              },
+              {
+                "id": 9,
+                "modelId": 162
+              },
+              {
+                "modelId": 213,
+                "id": 1
+              },
+              {
+                "modelId": 13,
+                "id": 3,
+                "fakeModelId": 13
+              }
+            ],
+            "curses": [
+              "dream"
+            ],
+            "hp": 34
+          },
+          {
+            "items": [
+              {
+                "id": 3,
+                "modelId": 94
+              },
+              {
+                "modelId": 14,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 3
+              },
+              {
+                "id": 7,
+                "modelId": 3
+              },
+              {
+                "id": 9,
+                "modelId": 166
+              },
+              {
+                "modelId": 64,
+                "id": 2
+              },
+              {
+                "modelId": 188,
+                "id": 6
+              },
+              {
+                "modelId": 196,
+                "id": 8
+              },
+              {
+                "modelId": 202,
+                "id": 1
+              }
+            ],
+            "name": "cpu",
+            "hp": 30,
+            "mp": 35,
+            "isBot": true,
+            "cp": 10,
+            "id": 2
+          }
+        ],
+        "diseasePlayerId": 1,
+        "attackTurnPlayerId": 1,
+        "guardianPlayerIds": [
+          2
+        ]
+      }
+    }
+  ],
+  "reconstructed_initial_scene": {
+    "authoritative": false,
+    "gf": 3,
+    "attackTurnPlayerId": 1,
+    "players": [
+      {
+        "mp": 10,
+        "cp": 20,
+        "id": 1,
+        "name": "viewer",
+        "items": [
+          {
+            "fakeModelId": 135,
+            "id": 1,
+            "modelId": 135
+          },
+          {
+            "id": 2,
+            "modelId": 20
+          },
+          {
+            "modelId": 195,
+            "id": 3
+          },
+          {
+            "modelId": 135,
+            "id": 4
+          },
+          {
+            "modelId": 170,
+            "id": 5
+          },
+          {
+            "modelId": 144,
+            "id": 6
+          },
+          {
+            "modelId": 19,
+            "id": 7
+          },
+          {
+            "modelId": 193,
+            "id": 8
+          },
+          {
+            "modelId": 162,
+            "id": 9
+          }
+        ],
+        "hp": 35,
+        "curses": [
+          "dream"
+        ]
+      },
+      {
+        "hp": 40,
+        "isBot": true,
+        "cp": 20,
+        "id": 2,
+        "name": "cpu",
+        "mp": 10,
+        "items": [
+          {
+            "id": 1,
+            "modelId": 195
+          },
+          {
+            "modelId": 64,
+            "id": 2
+          },
+          {
+            "modelId": 94,
+            "id": 3
+          },
+          {
+            "modelId": 14,
+            "id": 4
+          },
+          {
+            "modelId": 3,
+            "id": 5
+          },
+          {
+            "id": 6,
+            "modelId": 23
+          },
+          {
+            "modelId": 3,
+            "id": 7
+          },
+          {
+            "modelId": 3,
+            "id": 8
+          },
+          {
+            "modelId": 166,
+            "id": 9
+          }
+        ]
+      }
+    ],
+    "reconstruction_basis": [
+      "The first received update4 supplies all remaining physical copies and the next CPU23 launch.",
+      "UI before the ordinary195 self play showed viewer HP35/MP10/CP20/Dream at GF3;the event reports boostMP5.",
+      "Replace the received195/fake195 in viewer slot3 by the consumed ordinary195 without a fake field.",
+      "Remove the CPU zero placeholder and restore event-consumed23/id6. CPU64/id2 is a positive copy already present in the received update4;its earlier receipt event was not captured."
+    ],
+    "order_policy": "Local initializer sorts item slots numerically;the original pre-play array order,draw order and native physical identities are unknown.",
+    "not_reconstructed": [
+      "initial game subscription snapshot",
+      "update3",
+      "original draw/order",
+      "initial server updateCount",
+      "backend RNG",
+      "hidden CPU gift event order"
+    ]
+  },
+  "boundary_notes": [
+    "Viewer same-model fake135 and fake195 presence is retained through the corresponding useDefenseItems/useAttackItems events.",
+    "Received197/fake195 is a different-model pair within the existing nine-key compatibility class;the visible195 preview is +MP5,but use reports boostMP15. This is not evidence for incompatible pairs or the full Dream distribution.",
+    "Viewer gifts are explicit received events. CPU188/id6,196/id8 and202/id1 are inferred from positive inventory deltas only;their omitted gift/retry events and backend order are not invented.",
+    "The CPU64/id2 receipt preceded the reconstructed scene;the finite replay starts after that receipt.",
+    "Received slot reuse does not imply continued physical identity;every supplied native artifact receives a fresh token.",
+    "The native input-seat grant order is a local completion law,not a captured backend ordering result.",
+    "updateCount groups multiple viewer/CPU actions;it is not the native command/decision counter."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v56",
+    "snapshot_version": 56,
+    "observe_schema": "official-execution-view-v54",
+    "runtime_changed": false
+  },
+  "captured_authoritative_game_snapshot_count": 4,
+  "initial_authoritative_game_snapshot_count": 0,
+  "bounded_authoritative_game_update_batch_count": 4,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "official_full_simulator_equivalence_established": false
+}

@@ -368,13 +368,131 @@ void replay_v63(std::uint64_t seed) {
     // CPU true inventory is privileged fixture evidence, never policy input.
 }
 
+
+// v64: four received updates, after a reconstructed GF3 pre-play scene.
+// Numeric copies below retain the received model/fake/used values. The local
+// initializer uses slot order only as a deterministic fixture convention.
+namespace v64 {
+constexpr std::array<ReceivedSlot,9> before_viewer{{{1,135,135},{2,20},{3,195},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162}}};
+constexpr std::array<std::array<ReceivedSlot,9>,4> after_viewer{{
+    {{{2,20},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162},{1,135,135},{3,195,195}}},
+    {{{2,20},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162},{3,195,195},{1,213}}},
+    {{{2,20},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162},{1,213},{3,197,195}}},
+    {{{2,20},{4,135},{5,170},{6,144},{7,19},{8,193},{9,162},{1,213},{3,13,13}}}
+}};
+constexpr std::array<ReceivedSlot,9> before_cpu{{{1,195},{2,64},{3,94},{4,14},{5,3},{6,23},{7,3},{8,3},{9,166}}};
+constexpr std::array<std::array<ReceivedSlot,9>,4> after_cpu{{
+    {{{1,195},{3,94},{4,14},{5,3},{7,3},{8,3},{9,166},{2,64},{0,0}}},
+    {{{1,195},{3,94},{4,14},{5,3},{7,3},{8,3},{9,166},{2,64},{6,188}}},
+    {{{1,195},{3,94},{4,14},{5,3},{7,3},{9,166},{2,64},{6,188},{8,196}}},
+    {{{3,94},{4,14},{5,3},{7,3},{9,166},{2,64},{6,188},{8,196},{1,202}}}
+}};
+
+void receipt(Match& game,SlotMap& slots,PlayerId owner,std::uint16_t slot,CardId model,CardId face=0) {
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==owner,
+          "v64 recorded recipient has an ordinary debt at the local boundary");
+    check(slots.find({owner,slot})==slots.end(),"v64 reused slot is free after its previous copy was consumed");
+    const auto rng=game.snapshot().rng;const auto fresh=game.snapshot().next_token;
+    const ArtifactGrantAction action{owner,model,face?std::optional<CardId>{face}:std::nullopt};
+    check(game.artifact_grant_legal(action),"v64 received actual/fake result is legal");
+    (void)game.artifact_grant_step(action);slots[{owner,slot}]=fresh;
+    check(game.snapshot().rng==rng&&game.snapshot().dream_rolls==0&&game.snapshot().dream_masks==0,
+          "v64 explicit receipts leave game RNG and local generation statistics unchanged");roundtrip(game);
+}
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed) {
+    const auto& snap=game.snapshot();constexpr std::array gf{4,5,7,9};
+    constexpr std::array hp{35,34,34,34},mp{15,15,20,35};
+    constexpr std::array cpu_hp{40,40,30,30},cpu_mp{10,10,30,35},cpu_cp{20,20,10,10};
+    check(snap.state.gf==gf[checkpoint]&&snap.owner==(checkpoint?1:2)&&!snap.state.is_over
+          &&!snap.terminated&&!snap.truncated&&snap.state.players.size()==2,"v64 received GF/owner/nonterminal roster match");
+    check(snap.rng==seed&&snap.dream_rolls==0&&snap.dream_masks==0,
+          "v64 no seed fitting or local body/mask draws are needed for these finite results");
+    std::size_t total=0;
+    for(std::size_t seat=0;seat<2;++seat) {
+        const auto& player=snap.state.players[seat];const auto& rows=seat?after_cpu[checkpoint]:after_viewer[checkpoint];
+        check(player.id==seat+1&&player.hp==(seat?cpu_hp[checkpoint]:hp[checkpoint])
+              &&player.mp==(seat?cpu_mp[checkpoint]:mp[checkpoint])&&player.cp==(seat?cpu_cp[checkpoint]:20),
+              "v64 both received resource triples match");
+        check(!player.dead&&player.team==Team::solo&&player.guardian==Guardian::none&&player.confusion_count==0
+              &&player.curses==(seat?std::vector<Curse>{}:std::vector<Curse>{Curse::dream}),
+              "v64 received live/team/guardian/curse defaults match");
+        std::size_t positive=0,empty=0;
+        for(const auto& row:rows) {
+            if(!row.model){check(row.slot==0,"v64 canonical received empty slot");++empty;continue;}
+            ++positive;const auto mapping=slots.find({player.id,row.slot});check(mapping!=slots.end(),"v64 received slot has its current native token");
+            const auto item=std::find_if(player.items.begin(),player.items.end(),[&](const auto& x){return x.token==mapping->second;});
+            check(item!=player.items.end()&&item->model==row.model&&item->fake_model.value_or(0)==row.fake
+                  &&item->fake_model.has_value()==(row.fake!=0)&&item->used==row.used,
+                  "v64 all positive models, explicit fake presence and used status match");
+        }
+        check(player.items.size()==positive&&snap.gifts[seat]==empty,"v64 positive copies and live placeholder debts match");total+=positive;
+    }
+    check(slots.size()==total,"v64 no stale consumed slot mappings remain");
+    if(checkpoint==0) {
+        check(snap.phase==MatchPhase::response&&snap.actor==1&&snap.queue.size()==1,"v64 update4 waits for viewer defense");
+        const auto& attack=snap.queue.front();
+        check(attack.models==std::vector<CardId>{23}&&attack.origin==2&&attack.source==2&&attack.target==1
+              &&attack.category==Category::weapons&&attack.power==6&&!attack.element&&attack.ability==Ability::none
+              &&attack.hit_rate==0&&!attack.is_death&&!attack.is_counter&&!attack.environmental,
+              "v64 pending neutral CPU23 is derived from the received launch model");
+    } else check(snap.phase==MatchPhase::main&&snap.actor==1&&snap.queue.empty(),"v64 later checkpoints are viewer main");
+    // Excluded: server updateCount vs native decisions, initial draws/order,
+    // permanent slot identity and the omitted CPU gift/retry event ordering.
+    roundtrip(game);
+}
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SlotMap slots;SnapshotState state;state.gf=3;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;
+        if(!seat){player.hp=35;player.curses={Curse::dream};}
+        const auto& rows=seat?before_cpu:before_viewer;
+        for(const auto& row:rows) {
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,row.fake?std::optional<CardId>{row.fake}:std::nullopt,row.used});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);roundtrip(game);
+    const auto play_slot=[&](PlayerId owner,std::uint16_t slot,PlayerId target) {
+        const Command action{owner,CommandKind::play,{consumed_slot(slots,owner,slot)},target};
+        check(game.legal(action),"v64 received player choice is legal using its visible face");(void)game.step(action);roundtrip(game);
+    };
+    play_slot(1,3,1);receipt(game,slots,1,3,195,195);
+    play_slot(2,6,1);compare(game,slots,0,seed);
+    const Command defense{1,CommandKind::defend,{consumed_slot(slots,1,1)},{}};
+    check(game.legal(defense),"v64 received identity135 DEF5 selection is legal");(void)game.step(defense);roundtrip(game);
+    check(game.snapshot().state.players[0].hp==34&&game.snapshot().last_reveals==std::vector<RevealedItem>{{1,135,135,false}},
+          "v64 identity defense consumes actual DEF5 and publishes the same-model reveal");
+    receipt(game,slots,1,1,213);receipt(game,slots,2,6,188);compare(game,slots,1,seed);
+    play_slot(1,3,1);
+    check(game.snapshot().state.players[0].mp==20&&game.snapshot().last_reveals==std::vector<RevealedItem>{{1,195,195,false}},
+          "v64 identity195 self use applies MP5 and retains explicit presence in its use reveal");
+    receipt(game,slots,1,3,197,195);
+    const auto public_hand=project_view(game.snapshot().state,1).hand;
+    const auto visible=std::find_if(public_hand.begin(),public_hand.end(),[&](const auto& x){return x.token==slots.at({1,3});});
+    check(visible!=public_hand.end()&&visible->face==195&&visible->reference==195&&visible->disguised
+          &&match_dream_compatible(197,195),"v64 actual197 remains hidden behind compatible face195 before use");
+    const Command exchange{2,CommandKind::exchange,{consumed_slot(slots,2,8)},{},ResourceAllocation{30,30,10}};
+    check(game.legal(exchange),"v64 received CPU exchange conserves the resource sum");(void)game.step(exchange);roundtrip(game);
+    receipt(game,slots,2,8,196);compare(game,slots,2,seed);
+    play_slot(1,3,1);
+    check(game.snapshot().state.players[0].mp==35&&game.snapshot().last_reveals==std::vector<RevealedItem>{{1,195,197,false}},
+          "v64 visible MP5 flower resolves actual197 MP15 and publishes the different-model reveal");
+    receipt(game,slots,1,3,13,13);play_slot(2,1,2);receipt(game,slots,2,1,202);compare(game,slots,3,seed);
+    // CPU188/196/202 are inventory-delta completions, not captured gift events.
+    // The next CPU main clears native per-action notices, unlike a server batch
+    // which can aggregate both commands. Reveal assertions are made before it.
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -384,4 +502,5 @@ int main() {
     std::cout<<"v62: existing 8 fixed seeds x2 received checkpoints, no-apocalypse198/191 plays and explicit191/207 receipts; "
              <<"all seeds match the observed non-worsening Heaven branch without search or skip; not server RNG equivalence\n";
     std::cout<<"v63: existing 8 seeds x1 received post-only checkpoint; reconstructed pre-play copies, self80 and explicit135/135; no original initial draw/order or server RNG claim\n";
+    std::cout<<"v64: existing 8 seeds x4 received checkpoints; reconstructed GF3, identity135/195 use and actual197/fake195 MP15; explicit artifacts and CPU inventory-delta completions, not backend order or RNG equivalence\n";
 }
