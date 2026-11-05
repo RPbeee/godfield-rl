@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "schema": "official-supplied-automatic-guardian-replay-v1",
+  "recorded_on_jst": "2026-11-06",
+  "source_observed_on_jst": "2026-11-05",
+  "report_kind": "local_replay_capability_for_existing_official_observations",
+  "record_status": "final",
+  "new_official_observations": 0,
+  "new_authoritative_received_snapshots": 0,
+  "source_fixtures": [
+    {
+      "path": "wire-game-updates-v65-guardian.json",
+      "bytes": 14174,
+      "sha256": "a519d83eb558c1653db01ca33aa8afdfb7e7df286facb80cfc7daea35ce13938",
+      "received_updates_reused": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "source_witness_record": "live-transition-witnesses-v65.json",
+  "source_witness_id": "233-wall-before-neptune276-and-gifts",
+  "previous_replay_report": "summon-replay-v82.json",
+  "immutable_evidence_note": "The v65 fixture,witness,raw provenance and pins and the v82 partial replay report remain unchanged. This report adds a conditional replay path for existing evidence;it records no new official game or operation.",
+  "implementation": {
+    "status": "saved_source_reviewed_and_runtime_validation_passed",
+    "cpp_action": "AutomaticGuardianResponseAction{Command response;vector<AutomaticGuardianOutcome> outcomes}",
+    "cpp_outcome": "AutomaticGuardianOutcome{PlayerId source;CardId model;optional<PlayerId> target};model0 denotes a supplied nonactivation",
+    "cpp_entrypoints": [
+      "automatic_guardian_response_legal",
+      "automatic_guardian_response_step"
+    ],
+    "action_scope": "An ordinary batch response before its automatic guardian stage starts;the accepted step must actually reach that stage. local_guardian_payloads=true is unsupported.",
+    "outcome_validation": "At first stage entry,exactly cover the alive enemy guardian sources in input order. Each supplied activation must have the canonical source guardian move and a legal friendly/hostile target;only global280 omits a target. A supplied model0 represents no activation.",
+    "rng_scope": "Only the supplied opportunity,canonical move selection and target selection draws are omitted. Hit,departure,disease and downstream gift paths retain their existing behavior.",
+    "default_behavior": "Ordinary Command,driver,sampler and unsupplied automatic-guardian selection retain their existing path.",
+    "plan_cancellation_rule": "If later work loses its source/target or the batch owner dies,the accepted plan can skip or cancel its remaining tail without a replacement draw. This is a local execution convention,not a branch measured by the v65 self-heal observation.",
+    "private_journal": "ActionBatch.resolved_automatic_guardians stores the supplied response_index/outcomes and ActionBatch.automatic_guardian_outcomes retains the active fixed plan. MatchSnapshot.automatic_guardian_proof carries the same whole-action journal through responses,grants and completion;all other present result proofs must agree. These fields remain privileged and add no independent player decision.",
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2,
+    "new_c_outcome_struct_bytes": 24,
+    "existing_c_abi_layouts_changed": false
+  },
+  "received_replay_boundary": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2,
+    "initial_received_update": 1,
+    "final_received_update": 3,
+    "initial_authoritative": true,
+    "initial_hands_given_not_generated": true,
+    "prefix": "Reuse the v82 ordinary singleton201 summon with supplied Neptune,explicit viewer196 receipt,and received CPU29+231 launch. This is also rerun separately as the retained v82 two-checkpoint path.",
+    "response": {
+      "player_id": 1,
+      "kind": "defend",
+      "server_item_id": 4,
+      "actual_model": 233,
+      "retained_used": true,
+      "incoming_cpu_models": [
+        29,
+        231
+      ],
+      "derived_incoming_power": 16,
+      "mp_before": 10,
+      "mp_after": 4,
+      "blocked": true
+    },
+    "automatic_guardian": {
+      "batch_owner_player_id": 2,
+      "eligible_sources": [
+        1
+      ],
+      "source_player_id": 1,
+      "source_guardian": "neptune",
+      "supplied_model": 276,
+      "supplied_target_player_id": 1,
+      "effect": "HP+5:viewer40 to45,without a new player decision",
+      "target_evidence": "The received guardian attack names source1 and model276 but omits a targetPlayerId;boostHP also omits playerId. Target1 is consistent with the source-relative friendly pool,which contains only viewer1,and with the received HP delta.",
+      "scheduler_scope": "The automatic action follows block in the original CPU2 batch before its reserved gifts. guardianPlayerIds and diseasePlayerId in the wire are not substituted for actual players[].guardian ownership."
+    },
+    "post_response_received_events": [
+      {
+        "items": [
+          {
+            "modelId": 233,
+            "id": 4
+          }
+        ],
+        "action": "useDefenseItems"
+      },
+      {
+        "action": "block"
+      },
+      {
+        "attack": {
+          "itemModelIds": [
+            276
+          ],
+          "guardian": "neptune",
+          "playerId": 1
+        },
+        "action": "attackByGuardian"
+      },
+      {
+        "hp": 5,
+        "action": "boostHP"
+      },
+      {
+        "item": {
+          "modelId": 123,
+          "id": 10
+        },
+        "action": "gift",
+        "playerId": 1
+      },
+      {
+        "playerId": 1,
+        "action": "advanceGF"
+      }
+    ],
+    "separate_normal_receipts": [
+      {
+        "player_id": 1,
+        "server_item_id": 10,
+        "model": 123,
+        "evidence": "explicit received gift event"
+      },
+      {
+        "player_id": 2,
+        "server_item_id": 2,
+        "model": 200,
+        "evidence": "positive received inventory delta only;no CPU gift event"
+      },
+      {
+        "player_id": 2,
+        "server_item_id": 10,
+        "model": 19,
+        "evidence": "positive received inventory delta only;no CPU gift event"
+      }
+    ],
+    "local_receipt_order_is_server_order_proof": false,
+    "final_gf": 3,
+    "final_owner_player_id": 1,
+    "final_resources": {
+      "1": {
+        "hp": 45,
+        "mp": 4,
+        "cp": 20
+      },
+      "2": {
+        "hp": 40,
+        "mp": 4,
+        "cp": 20
+      }
+    },
+    "final_guardians": {
+      "1": "neptune",
+      "2": "none"
+    },
+    "final_physical_counts": {
+      "viewer_positive": 10,
+      "cpu_positive": 10,
+      "zero_placeholders": 0
+    },
+    "physical_mapping": "Viewer233/id4 and CPU231/id5 retain their existing native tokens and used status. Server slot2 is reused for a fresh CPU200 token;new slot10 entries receive fresh tokens. A server slot is not a permanent physical identity.",
+    "source_array_order_and_omissions_preserved_in_pinned_fixture": true,
+    "native_comparison_excludes_server_array_order_and_transaction_count": true,
+    "terminal_or_complete_lifecycle_observed": false
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v83",
+    "shared_prefix_namespace": "v82::replay_prefix",
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 3,
+    "received_updates_compared": [
+      1,
+      2,
+      3
+    ],
+    "random_seed_search_exclusion_or_fitting": false,
+    "comparison_scope": "Resources,GF/owner/response,guardian assignment,full CPU/viewer actual/fake/used inventory under a qualified slot map,retained used233/231,and full private native snapshot restoration at launch,response and grant boundaries.",
+    "separate_paths_retained": {
+      "v82_two_checkpoint_comparisons": 16,
+      "old_neptune276_body_only_component_checks": 8,
+      "component_checks_added_to_wire_count": false
+    },
+    "baseline_cumulative_wire_checkpoint_comparisons": 568,
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;artifact author did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 64.93,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 32.27,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "native_registered_callbacks": 259,
+      "python_test_methods": 187,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "builds_checked": [
+        "library",
+        "Release",
+        "Debug ASan/UBSan"
+      ],
+      "c11_werror_old_layout_sizes_checked": [
+        24,
+        184,
+        248
+      ],
+      "c11_new_outcome_struct_bytes": 24,
+      "c11_new_outcome_struct_offsets_checked": true,
+      "c11_new_function_prototypes_checked": 4,
+      "c11_layout_and_prototype_check": "passed",
+      "python_new_api_usage_example": "passed:active276 outcome and no-eligible-source empty plan(NULL,0)",
+      "new_received_checkpoint_comparisons_passed": 24,
+      "scope": "Full Release and focused core/C API/wire sanitizer validation. No full sanitizer suite or Python sanitizer execution is claimed."
+    },
+    "received_checkpoint_comparisons": 24,
+    "cumulative_wire_checkpoint_comparisons": 592
+  },
+  "coverage": {
+    "new_completed_official_transition_witnesses": 0,
+    "cumulative_completed_official_transition_witnesses": 64,
+    "baseline_native_projection_covered_completed_witnesses": 57,
+    "baseline_record_only_completed_witnesses": 7,
+    "coverage_change_pending_test_success": false,
+    "cumulative_native_projection_covered_completed_witnesses": 58,
+    "cumulative_record_only_completed_witnesses": 6,
+    "new_complete_received_game_update_sequences": 0,
+    "cumulative_complete_received_game_update_sequences": 2,
+    "captured_full_backend_event_traces": 0,
+    "routing_only_witnesses": 1,
+    "scope": "The existing233-wall/Neptune276/gifts case gains conditional projection coverage after successful fixed8-seed tests. The earlier201 summon case stays covered through its retained v82 path. No source evidence or historical witness is rewritten.",
+    "newly_covered_existing_witnesses": 1
+  },
+  "source_audit": {
+    "status": "numeric_source_values_and_boundaries_checked",
+    "source_game_inventory_values": "All six player inventories across updates1/2/3,including used231,used233,zero placeholders and reused slots,match the expected C++ rows. Post3 reuses the pinned v65 component arrays without modifying their separate component test.",
+    "received_update3_event_count": 6,
+    "raw_input_or_identity_data_added_to_repository": false,
+    "build_or_test_performed_by_report_author": false,
+    "independent_parent_full_inventory_literal_comparisons_passed": 6
+  },
+  "limitations": [
+    "No new official observation,capture or source hash is added. The source observation remains dated2026-11-05;this local replay report is dated2026-11-06.",
+    "Supplied Neptune activation/model/target and explicit normal receipts are conditional inputs. No automatic opportunity rate,move weight,target selector,initial distribution,CPU policy or official RNG equivalence is established.",
+    "CPU200 and19 are supported by inventory deltas only. Their local external-grant order does not reveal omitted backend gift,retry or slot-assignment order.",
+    "The source only measures one nondamaging automatic Neptune self-heal after Wall. Multiple sources,activation failure,death/cancellation,hit chances,departure and Earth/Moon payload behavior are not additional official observations.",
+    "The existing276 body-only8 checks retain their separate component scope;they are not new full received-state comparisons.",
+    "The received game ends at GF3 main,without a terminal state or complete lifecycle. Official full simulator equivalence remains unestablished."
+  ],
+  "official_full_simulator_equivalence_established": false
+}

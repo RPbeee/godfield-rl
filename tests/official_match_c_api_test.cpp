@@ -791,8 +791,68 @@ void observed_self30_bridge() {
     check(gfo_match_legal(game,&extra,&legal)==0&&!legal&&gfo_match_step(game,&extra,&outcome)==-2&&equal(outcome,old)&&observe(game,1,0)==before,"self30 extra defense is semantically illegal and atomic");
     check(old.phase==0&&old.owner==7&&native.snapshot().state.gf==3&&native.snapshot().state.players[0].items.size()==2,"self30 gift advances once");gfo_match_destroy(game);
 }
+void supplied_automatic_guardian_bridge() {
+    namespace official=godfield::official;
+    check(gfo_match_automatic_guardian_outcome_size()==24
+        &&offsetof(gfo_match_automatic_guardian_outcome,target)==8&&offsetof(gfo_match_automatic_guardian_outcome,model)==16
+        &&offsetof(gfo_match_automatic_guardian_outcome,has_target)==18&&offsetof(gfo_match_automatic_guardian_outcome,reserved)==19
+        &&std::string(gfo_match_automatic_guardian_response_rule())==official::automatic_guardian_response_rule,"automatic outcome additive24B layout/rule");
+    // Small component corresponding to v65; no summon/selector is reproduced.
+    // Subsequent123/200/19 receipts are explicit synthetic completion inputs.
+    for(unsigned scenario=0;scenario<3;++scenario){
+        const bool active=scenario!=0;const uint64_t source=scenario==2?0:1;
+        gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;config.initial_hp=40;config.initial_mp=10;config.initial_cp=20;
+        std::array<gfo_match_player,2> setup{};setup[0].id=source;setup[1].id=2;gfo_match* game=nullptr;gfo_match_status outcome{};
+        check(gfo_match_create(&config,setup.data(),2,42,&game)==0,"supplied automatic C create");
+        std::array<gfo_state_player,2> people{};people[0].id=source;people[1].id=2;for(auto& p:people){p.hp=40;p.mp=10;p.cp=20;}
+        people[0].guardian=static_cast<uint8_t>(official::Guardian::neptune);people[0].item_count=1;people[1].item_offset=1;people[1].item_count=2;
+        std::array<gfo_state_item,3> items{};items[0].token=4;items[0].model=233;items[1].token=2;items[1].model=29;items[2].token=5;items[2].model=231;
+        gfo_state_meta meta{};meta.gf=2;gfo_state* received=nullptr;
+        check(gfo_state_create(&meta,people.data(),2,items.data(),3,nullptr,0,&received)==0&&gfo_match_load_scene(game,received,2,42,&outcome)==0,"supplied automatic typed component");gfo_state_destroy(received);
+        official::MatchConfig nc;nc.initial_hand=0;nc.max_decisions=64;nc.external_artifacts=true;official::Match native(nc);
+        official::SnapshotState state;state.gf=2;state.players.resize(2);state.players[0].id=source;state.players[0].guardian=official::Guardian::neptune;state.players[0].items={{4,233,{},false}};
+        state.players[1].id=2;state.players[1].items={{2,29,{},false},{5,231,{},false}};native.load_scene(state,2,42);
+        const auto audit=[&]{official::Match restored;restored.restore(native.snapshot());check(restored.snapshot()==native.snapshot(),"automatic supplied plan and later grant proof restore");
+            check(observe(game,1,source)==native.observe(source)&&observe(game,0,0)==native.observe({}),"automatic C/native observer parity");};
+        gfo_match_command launch{};launch.actor=2;launch.has_target=1;launch.target=source;launch.item_count=2;launch.items[0]=2;launch.items[1]=5;
+        check(gfo_match_step(game,&launch,&outcome)==0,"CPU29+231 component launch");native.step({2,official::CommandKind::play,{2,5},source});audit();
+        gfo_match_command response{};response.actor=source;response.kind=1;response.item_count=1;response.items[0]=4;
+        gfo_match_automatic_guardian_outcome selected{};selected.source=source;selected.model=active?276:0;selected.has_target=active;selected.target=active?source:0;
+        const auto before=observe(game,1,source);const auto old=status(game);uint8_t legal=77;
+        if(scenario==1){
+            check(gfo_match_automatic_guardian_response_legal(nullptr,&response,&selected,1,&legal)==-1
+                &&gfo_match_automatic_guardian_response_legal(game,nullptr,&selected,1,&legal)==-1
+                &&gfo_match_automatic_guardian_response_legal(game,&response,&selected,1,nullptr)==-1&&legal==77,"automatic NULL legal outputs preserved");
+            check(gfo_match_automatic_guardian_response_step(game,&response,nullptr,1,&outcome)==-1&&equal(outcome,old),"automatic nonempty NULL storage rejected atomically");
+            check(gfo_match_automatic_guardian_response_legal(game,&response,reinterpret_cast<const gfo_match_automatic_guardian_outcome*>(1),std::numeric_limits<size_t>::max(),&legal)==-2&&legal==77,"automatic extent checked before dereference");
+            for(unsigned error=0;error<10;++error){auto bad=selected;
+                if(error<5)bad.reserved[error]=1;if(error==5)bad.has_target=2;if(error==6){bad.has_target=0;bad.target=7;}
+                if(error==7)bad.model=0;if(error==8)bad.source=official::max_wire_integer+1;if(error==9)bad.target=official::max_wire_integer+1;
+                legal=77;outcome=old;
+                check(gfo_match_automatic_guardian_response_legal(game,&response,&bad,1,&legal)==-2&&legal==77
+                    &&gfo_match_automatic_guardian_response_step(game,&response,&bad,1,&outcome)==-2&&equal(outcome,old)
+                    &&observe(game,1,source)==before,"automatic invalid padding/presence/unsafe IDs preserve world and outputs");}
+            outcome=old;check(gfo_match_automatic_guardian_response_step(game,&response,nullptr,0,&outcome)==-2&&equal(outcome,old)&&observe(game,1,source)==before,"missing eligible outcome is a semantic atomic rejection");
+        }
+        legal=0;check(gfo_match_automatic_guardian_response_legal(game,&response,&selected,1,&legal)==0&&legal&&observe(game,1,source)==before,"automatic supplied plan preflight is pure");
+        check(gfo_match_automatic_guardian_response_step(game,&response,&selected,1,&outcome)==0,"automatic supplied wall response succeeds");
+        native.automatic_guardian_response_step({{source,official::CommandKind::defend,{4},{}},{{source,static_cast<official::CardId>(active?276:0),active?std::optional<official::PlayerId>{source}:std::nullopt}}});
+        selected.source=99;selected.model=0;selected.target=0;selected.has_target=0;audit(); // Caller storage is no longer live proof storage.
+        check(outcome.phase==4&&!outcome.has_actor&&outcome.owner==2&&outcome.decisions==2
+            &&native.snapshot().state.players[0].hp==(active?45:40)&&native.snapshot().state.players[0].mp==4
+            &&native.snapshot().state.players[1].hp==40&&native.snapshot().state.players[1].mp==4
+            &&native.snapshot().state.players[0].items==std::vector<official::ItemInstance>{{4,233,{},true}}
+            &&native.snapshot().state.players[1].items==std::vector<official::ItemInstance>{{5,231,{},true}}
+            &&native.snapshot().rng==42&&native.snapshot().last_auto_guardians.size()==(active?1u:0u),"wall/Neptune or none outcome preserve fees,holdings and no choice RNG");
+        for(const auto& receipt:std::array<std::pair<uint64_t,uint16_t>,3>{{{source,123},{2,200},{2,19}}}){
+            gfo_match_artifact_grant_action artifact{};artifact.target=receipt.first;artifact.model=receipt.second;
+            check(gfo_match_artifact_grant_step(game,&artifact,&outcome)==0,"synthetic component reserved receipt");native.artifact_grant_step({receipt.first,receipt.second,{}});audit();}
+        check(outcome.phase==0&&outcome.owner==source&&native.snapshot().state.gf==3,"automatic component advances original turn once after all gifts");gfo_match_destroy(game);
+    }
+}
 }
 int main() {
+    supplied_automatic_guardian_bridge();
     supplied_summon_bridge();
     observed_self30_bridge();
     observed_self66_bridge();
@@ -839,7 +899,7 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v68"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v69"
         && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v64 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-set-element-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-hell-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-set-element66-raw-self-use-observed-v81-83-same-trait-inference-hell30-ui-self-use-observed-v82-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
@@ -1171,7 +1231,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v66\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v67\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,

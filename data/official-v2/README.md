@@ -607,3 +607,16 @@ Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 | `summon-replay-v82.json` | 9,243 | `6c689df87080ce95d2e5f4540671977ce729bd8d8faefb0283b7571d8f67f85f` |
 | `wire-game-updates-v82-hell.json` | 8,069 | `17cce4bb23c65a3ad4b2103529e3bdf5ebdccb430e893f55e125bef787bbecc9` |
 | `live-transition-witnesses-v82.json` | 10,631 | `5fdee5b617dfcd44441aaedb9797b20fcfa6b829913dd1508c227d83aa7120ff` |
+
+
+## v83：壁233から自動Neptune276と補充までの再生
+
+[再生report](automatic-guardian-replay-v83.json)は、既存v65の固定済み3状態を通常応答と同一batchの自動守護神結果で再生する。source1/Neptuneの発動276/target1を供給し、壁233のMP6/used保持、本人40→45、明示gift123、CPU200/19の在庫delta、GF3本人mainまで照合する。CPU内部の補充順・retryは受信証明ではない。
+
+新しい公式観測/本文取得は0。原観測日は2026-11-05のまま、report記録日は2026-11-06である。3状態×既存8seed＝24追加比較で64/native58/record-only6・wire592となる。v82 partial16と276効果単体8、旧証跡/pinsは維持する。69/S69/view67・ABI2/旧構造体幅、完全lifecycle2/routing1/internal trace0。
+
+Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。
+
+| v83 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `automatic-guardian-replay-v83.json` | 12,093 | `287465f13910b2fd09223413f64b9764bba28e43c26d4b7fa49028aeb99bfe5d` |

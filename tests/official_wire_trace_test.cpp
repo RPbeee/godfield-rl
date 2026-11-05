@@ -1472,9 +1472,8 @@ constexpr std::array checkpoints{
     ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
     ReceivedCheckpoint{2,2,2,{{{1,40,10,20,false,after_viewer,false,false,false,false,Guardian::neptune},{2,40,4,20,false,after_cpu}}},29,pending_models}
 };
-void replay(std::uint64_t seed){
-    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
-    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+void replay_prefix(Match& game,SlotMap& slots,std::uint64_t seed){
+    SnapshotState state;state.gf=1;
     for(std::size_t seat=0;seat<2;++seat){
         PlayerState player;player.id=seat+1;
         for(const auto& row:seat?initial_cpu:initial_viewer){
@@ -1510,7 +1509,60 @@ void replay(std::uint64_t seed){
     // Do not defend233 here:the later automatic Neptune276 selection needs its
     // own same-batch supplied-outcome API and remains a separate component.
 }
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SlotMap slots;replay_prefix(game,slots,seed);
 }
+}
+
+// v83 adds a separate full three-state replay of the same v65 game. The old
+// v82 two-state path and independent276 body-only components remain separate.
+namespace v83 {
+constexpr std::array checkpoints{
+    v82::checkpoints[0],v82::checkpoints[1],
+    ReceivedCheckpoint{3,3,1,{{{1,45,4,20,false,v65::component_viewer,false,false,false,false,Guardian::neptune},
+                              {2,40,4,20,false,v65::component_cpu}}}}
+};
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SlotMap slots;v82::replay_prefix(game,slots,seed);
+    // Wall233 is a retained used miracle,not a consumed/replenished physical
+    // copy. Actual source1 is the only enemy guardian of batch owner2.
+    const auto wall_token=slots.at({1,4});
+    const auto aura_token=slots.at({2,5});
+    const AutomaticGuardianResponseAction response{{1,CommandKind::defend,{wall_token},{}},{{1,276,1}}};
+    const auto before=game.snapshot();
+    check(game.automatic_guardian_response_legal(response)&&game.snapshot()==before,
+          "v83 wall response and exact single Neptune outcome preflight without mutation");
+    (void)game.automatic_guardian_response_step(response);roundtrip(game);
+    const auto& body=game.snapshot();
+    const auto wall=std::find_if(body.state.players[0].items.begin(),body.state.players[0].items.end(),
+                                 [&](const auto& item){return item.token==wall_token;});
+    check(body.decisions==before.decisions+1&&body.owner==2&&body.phase==MatchPhase::grant
+          &&body.pending_grant==1&&body.gifts[0]==1&&body.gifts[1]==2
+          &&body.state.players[0].hp==45&&body.state.players[0].mp==4&&body.state.players[0].cp==20
+          &&body.state.players[0].guardian==Guardian::neptune
+          &&body.state.players[1].hp==40&&body.state.players[1].mp==4&&body.state.players[1].cp==20
+          &&wall!=body.state.players[0].items.end()&&wall->model==233&&wall->used&&!wall->fake_model
+          &&body.guardian_summons==1&&body.guardian_opportunities==1&&body.auto_guardian_actions==1
+          &&body.last_auto_guardians==std::vector<GuardianAction>{{1,276,1}}
+          &&body.queue.empty()&&body.rng==seed,
+          "v83 wall blocks16 and spends6MP before the same CPU batch's supplied Neptune HP5 and separate gifts");
+    // Viewer123 is an explicit received gift. CPU200/19 are positive inventory
+    // deltas only;this local debt order does not claim omitted backend events.
+    v64::receipt(game,slots,1,10,123);
+    v64::receipt(game,slots,2,2,200);
+    v64::receipt(game,slots,2,10,19);
+    compare_checkpoint(game,slots,checkpoints[2]);
+    const auto& final=game.snapshot();
+    check(slots.at({1,4})==wall_token&&slots.at({2,5})==aura_token
+          &&slots.at({2,2})!=2002&&slots.at({1,10})!=1010&&slots.at({2,10})!=2010
+          &&final.guardian_opportunities==1&&final.auto_guardian_actions==1&&final.rng==seed
+          &&final.decisions==before.decisions+4,
+          "v83 both used miracles retain physical tokens while received new/reused slots map to fresh artifacts");
+}
+}
+
 
 }
 int main() {
@@ -1518,7 +1570,7 @@ int main() {
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1545,4 +1597,5 @@ int main() {
     std::cout<<"v80: 8 fixed seeds x2 selected received states,self70/Flash and supplied4;one-card preflight is local only,CPU10 unanswered,unused224,no fitted outcomes or server RNG equivalence claim\n";
     std::cout<<"v81: 8 fixed seeds x3 received states,viewer2 empty defense and self66;CPU29 prelaunch copy reconstructed from event,CPU196/3 deltas and actual21 supplied,CPU196 recovery;no prelaunch wire,element-priority or server RNG equivalence claim\n";
     std::cout<<"v82: 8 fixed seeds x2 reused v65 received states,ordinary201 with supplied Neptune and actual196,CPU29+231 pending;no new observations,initial distribution,summon selector or automatic276 equivalence claim\n";
+    std::cout<<"v83: 8 fixed seeds x3 reused v65 received states,supplied201 Neptune plus wall233 and same-batch automatic276 HP5;explicit viewer123 and CPU200/19 deltas,retained used233/231;no selector,backend receipt order or probability proof\n";
 }

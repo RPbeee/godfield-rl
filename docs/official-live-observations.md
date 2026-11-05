@@ -380,3 +380,10 @@ CPU196/3の通常補充はsnapshot deltaだけで、giftイベントを作らな
 [初期受信の文脈](../data/official-v2/wire-game-updates-v82-hell.json)と[2操作のUI記録](../data/official-v2/live-transition-witnesses-v82.json)を分ける。02/03/05は01全体の重複、04はkeepaliveだけであり、post受信状態は0。通常補充とCPU在庫変化は不明のままにする。HP13減少は既存の本体8＋Hell非悪化tick5と一致するが、病気付与や減算のraw列を取得した証拠ではない。再読込で生誕画面へ戻り、Network Monitorを閉じた。通常の退出操作や終局取得をしたとはしない。
 
 別に、既存v65の201召喚1例はNeptuneを外部結果として条件付き再生する。[再生報告](../data/official-v2/summon-replay-v82.json)で原記録と区別し、2状態×8seed＝16比較を追加する。新2観測と既存1例の移行により累計64/native57/record-only7・wire568、完全受信lifecycle2/routing1/internal trace0。
+
+
+## 作業世代v83：既存Neptune276例の条件付き再生への移行
+
+今回は新しい公式操作や本文取得を行わず、2026-11-05のv65記録を再利用する。2026-11-06付の[再生報告](../data/official-v2/automatic-guardian-replay-v83.json)で、201召喚から壁233→Neptune276→補充までの3受信状態を固定8seedで比較する。元v65 JSONとv82の召喚部分再生reportは変更しない。
+
+CPU2の同一batchでeligibleな守護神sourceはviewer1/Neptuneだけであり、発動あり・276・target1を外部結果として渡す。受信boostHP5はplayerId省略のまま保持し、viewer資源の40→45から対応を確認する。壁233はMP6を支払いused保持、viewer123/id10は明示gift、CPU200/id2・19/id10は在庫deltaとして供給する。内部抽選・省略CPU補充順の証明とはしない。新観測0、64/native58/record-only6・wire592、完全lifecycle2/routing1/internal trace0。

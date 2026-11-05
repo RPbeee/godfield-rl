@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v68
+# 現行公式データによる限定実行器 v69
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v68` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v69` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -3407,3 +3407,33 @@ match.artifact_grant_step(ArtifactGrantAction(0, 196))
 ```
 
 この196はv65の取得済み結果であり、v82 Hellの未知の補充へ流用しない。
+
+
+## 作業世代v83：通常応答へ自動守護神の結果を供給
+
+`AutomaticGuardianOutcome{source, model, target}` と `AutomaticGuardianResponseAction{response, outcomes}` は、通常応答後の自動守護神結果を供給するprivilegedな入口である。model0は不発、非zeroは対応するcanonical技と対象を指定する。発動機会/技/対象の選出を置換し、既存の効果計算、命中や離脱等の後続乱数、病気、反撃/死亡、予約補充と手番は元の処理を使う。独立した守護神decisionを挿入しない。通常Command/sampler/driverの自動守護神抽選は維持する。
+
+Cには24byteのoutcome型とsize/rule getter、pointer/countを受ける `gfo_match_automatic_guardian_response_legal/step` を追加する。最大9件を借用中に検査・所有copyし、不正なextent/NULL/padding/presence/安全整数や意味的に不正な結果を拒否する。Pythonはfrozenのoutcomeと応答/結果列の所有copyを扱う。ABI2と旧型幅は維持する。
+
+v65の初期から召喚Neptuneを供給し、CPU29＋231へ233を使う応答にsource1/model276/target1を供給する。回復とviewer123・CPU200/19補充後のGF3まで3状態×8seed＝24比較。これは取得済み1例の条件付き再生で、公式の発動率・技分布・RNG・CPU内部補充順を証明しない。69/S69/view67、64/native58/record-only6・wire592、完全lifecycle2/routing1/internal trace0。
+
+初版の範囲は、ordinary batchの通常responseで、当該step中に自動守護神stageへ初めて到達する場合に限る。Fate/外部guardian/payload/phenomenon/devilのbatch、既にstage開始済みの応答、`local_guardian_payloads=True` は対象外である。redirectや途中counter等でstageへ届かない応答は、この入口では原子的に拒否し、通常 `step` を使う。
+
+到達時の生存した敵guardian sourceを入力配列順で過不足なく覆い、各modelが所持guardianのcanonical技であることと、通常の敵/味方target poolを検査する。280の全体CPだけtargetを持たず、不発model0にもtargetを持たせない。固定planを受理した後、後続応答でsource/予定targetが死亡・離脱等により無効になった分は再抽選せずskipし、owner死亡・終局・cutoffで残りを取り消す。これは外部結果adapterの実験規約であり、v65の自己回復1件から一般の取消順を確認したとはしない。future plan自体は公開viewへ出さない。
+
+使用例（owner2の29＋231がviewer1へ保留し、viewer1がNeptuneと未使用233の `wall_token` を持つscene）:
+
+```python
+from official_match import Command, AutomaticGuardianOutcome, AutomaticGuardianResponseAction
+
+action = AutomaticGuardianResponseAction(
+    Command(1, "defend", (wall_token,)),
+    (AutomaticGuardianOutcome(1, 276, 1),),
+)
+assert match.automatic_guardian_response_legal(action)
+match.automatic_guardian_response_step(action)
+```
+
+`external_artifacts=True` なら、ここでHP45/MP4のまま通常補充を待つ。123/200/19は別の `ArtifactGrantAction` で供給する。実行前のlegal照会はmatch copy上で到達条件まで試すが、元のworld/乱数を変更しない。この入口を通常policyの行動選択へ混ぜない。
+
+Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。

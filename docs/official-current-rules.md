@@ -2238,3 +2238,14 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 既存v65の201→Neptuneを、`SummonResultAction` の通常単品201/239 mainに限った外部結果で再生する。選出guardianだけを指定し、対象・費用・保持・授与・進行をcallerに指定させない。通常selectorと後続の自動守護神抽選は従来どおりで、公式選出分布を再現したとはしない。v65の壁233後の自動Neptune276は別の残件である。
 
 公式CPU修行で30単品自己使用の本人HP32→19・MP10/CP20維持・追加本人応答なし・GF3 CPU鎖ガマ5保留をUIで確認した。初期raw1はCPU214の保留で、空応答後の32と自己30後の19はUIのみ。postの重複本文/keepaliveを受信更新として扱わず、補充とCPU真手札を埋めない。8本体＋5 Hell tickは既存算法が説明する内訳で、rawイベント順の新証明ではない。Hell武器baseだけ直接selfへ加え、病気/悪化/費用算法を変えない。68/S68/view66・ABI2、64/native57/record-only7・wire568。
+
+
+## 作業世代v83：壁233後の自動Neptune276を条件付き再生
+
+既存v65のupdate3はuseDefenseItems233→block→NeptuneのattackByGuardian276→boostHP5→viewer123のgift→advanceGFという6イベントである。boostHPのplayerIdは省略されているが、受信資源からviewer1の40→45を確認できる。CPU2は40/4/20のまま、viewerはMP10→4・233 used保持となる。
+
+`AutomaticGuardianResponseAction` は通常応答と守護神の外部結果を同一batchへ接続し、発動機会・技・対象の選出だけを供給する。standalone guardian行動の追加ではなく、既存schedulerの処理位置を使う。普通の抽選・費用・保持・病気・効果・補充・手番を別の規則へ置換しない。ここでの有限結果はsource1/Neptune/model276/target1の1件だけで、発動率や公式技分布を示すものではない。CPU200/19は在庫deltaで、明示gift123と区別する。
+
+69/S69/view67・ABI2、64/native58/record-only6・wire592。原v65/v82の証跡は維持し、取得済み1例だけを条件付きnative対象へ移す。
+
+この新入口は当該response stepでstage初到達するordinary batchに限り、local payload設定は対象外である。受理後の固定結果が失効した場合のskip/取消はadapter規約で、公式の一般scheduleの新証明とはしない。

@@ -213,6 +213,42 @@ class SummonResultAction:
             raise InvalidMatchError("summon guardian must be one of the ten guardian names")
 
 @dataclass(frozen=True)
+class AutomaticGuardianOutcome:
+    """Privileged opportunity result; model0 means no activation, never a draw."""
+    source: int
+    model: int = 0
+    target: int | None = None
+
+    def __post_init__(self):
+        _integer(self.source, "automatic guardian source")
+        _integer(self.model, "automatic guardian model", 0, 65535)
+        if self.target is not None: _integer(self.target, "automatic guardian target")
+        if self.model == 0 and self.target is not None:
+            raise InvalidMatchError("inactive automatic guardian has no target")
+
+@dataclass(frozen=True)
+class AutomaticGuardianResponseAction:
+    """An ordinary response and owned, ordered automatic opportunity results.
+
+    The first automatic stage must be reached in this response transaction.
+    Local guardian payload mode is unsupported; existing phases are unchanged.
+    """
+    response: Command
+    outcomes: tuple[AutomaticGuardianOutcome, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "response", _decode_command(_command(self.response)))
+        copied = []
+        try:
+            for outcome in self.outcomes:
+                if len(copied) == 9: raise InvalidMatchError("at most9 automatic guardian outcomes")
+                if type(outcome) is not AutomaticGuardianOutcome:
+                    raise InvalidMatchError("automatic guardian outcomes require AutomaticGuardianOutcome")
+                copied.append(outcome)
+        except TypeError as error: raise InvalidMatchError("automatic guardian outcomes must be a sequence") from error
+        object.__setattr__(self, "outcomes", tuple(copied))
+
+@dataclass(frozen=True)
 class MatchStatus:
     decisions: int
     owner: int
@@ -275,6 +311,9 @@ class _FateAction(c.Structure):
                 ("shuffle", _ItemShuffleAction), ("has_shuffle", c.c_uint8), ("reserved", c.c_uint8 * 7)]
 class _ArtifactGrantAction(c.Structure):
     _fields_ = [("target", c.c_uint64), ("model", c.c_uint16), ("fake_model", c.c_uint16), ("reserved", c.c_uint8 * 4)]
+class _AutomaticGuardianOutcome(c.Structure):
+    _fields_ = [("source", c.c_uint64), ("target", c.c_uint64), ("model", c.c_uint16),
+                ("has_target", c.c_uint8), ("reserved", c.c_uint8 * 5)]
 class _RedrawItem(c.Structure):
     _fields_ = [("model", c.c_uint16), ("fake_model", c.c_uint16), ("has_fake", c.c_uint8), ("reserved", c.c_uint8 * 3)]
 class _RedrawResult(c.Structure):
@@ -425,6 +464,14 @@ def _summon_result_action(value):
         raise InvalidMatchError("summon guardian must be one of the ten guardian names")
     return _command(value.command), _GUARDIAN_NAMES.index(value.guardian)+1
 
+def _automatic_guardian_response_action(value):
+    if type(value) is not AutomaticGuardianResponseAction:
+        raise InvalidMatchError("operation requires AutomaticGuardianResponseAction")
+    records = (_AutomaticGuardianOutcome * len(value.outcomes))(*(_AutomaticGuardianOutcome(
+        source=item.source, target=0 if item.target is None else item.target,
+        model=item.model, has_target=item.target is not None) for item in value.outcomes))
+    return _command(value.response), records
+
 def _resource_action(value, record_type, minimum):
     if not isinstance(value, record_type): raise InvalidMatchError(f"operation requires {record_type.__name__}")
     encoded = _DevilAction(target=_integer(value.target, "recipient"), model=_integer(value.model, "model", minimum, 65535))
@@ -537,9 +584,9 @@ class Match:
         try:
             for name in ("abi_version", "catalog_count", "gift_weight", "driver_api_version"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_int
-            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule", "redraw_response_rule", "purchase_response_rule", "summon_result_rule"):
+            for name in ("ruleset", "scope", "choice_rule", "driver_rule", "self_attack_rule", "artifact_grant_rule", "normal_grant_rule", "redraw_response_rule", "purchase_response_rule", "summon_result_rule", "automatic_guardian_response_rule"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_char_p
-            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size", "redraw_item_size", "redraw_result_size", "purchase_selection_size"):
+            for name in ("config_size", "player_size", "command_size", "choice_size", "status_size", "guardian_action_size", "guardian_payload_action_size", "phenomenon_action_size", "item_source_size", "item_shuffle_action_size", "fate_action_size", "devil_action_size", "grant_action_size", "artifact_grant_action_size", "redraw_item_size", "redraw_result_size", "purchase_selection_size", "automatic_guardian_outcome_size"):
                 fn = getattr(lib, "gfo_match_" + name); fn.argtypes = []; fn.restype = c.c_size_t
         except AttributeError as error: raise MatchError("library does not support experimental match ABI") from error
         self.ruleset = lib.gfo_match_ruleset().decode(); self.scope = lib.gfo_match_scope().decode()
@@ -549,9 +596,10 @@ class Match:
         self.redraw_response_rule = lib.gfo_match_redraw_response_rule().decode()
         self.purchase_response_rule = lib.gfo_match_purchase_response_rule().decode()
         self.summon_result_rule = lib.gfo_match_summon_result_rule().decode()
+        self.automatic_guardian_response_rule = lib.gfo_match_automatic_guardian_response_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v68"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v69"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21
@@ -561,6 +609,10 @@ class Match:
             or self.driver_api_version != 1 or lib.gfo_match_choice_size() != c.sizeof(_Choice)
             or c.sizeof(_Choice) != 208 or _Choice.fate_actor.offset != 184 or _Choice.fate_token.offset != 192
             or _Choice.kind.offset != 200 or _Choice.reserved.offset != 201
+            or lib.gfo_match_automatic_guardian_outcome_size() != c.sizeof(_AutomaticGuardianOutcome)
+            or c.sizeof(_AutomaticGuardianOutcome) != 24 or _AutomaticGuardianOutcome.target.offset != 8
+            or _AutomaticGuardianOutcome.model.offset != 16 or _AutomaticGuardianOutcome.has_target.offset != 18
+            or _AutomaticGuardianOutcome.reserved.offset != 19
             or lib.gfo_match_guardian_action_size() != c.sizeof(_GuardianAction)
             or lib.gfo_match_guardian_payload_action_size() != c.sizeof(_GuardianPayloadAction)
             or _GuardianPayloadAction.models.offset != 16 or _GuardianPayloadAction.guardian.offset != 52
@@ -668,6 +720,10 @@ class Match:
         lib.gfo_match_summon_result_legal.restype = c.c_int
         lib.gfo_match_summon_result_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.c_uint8, c.POINTER(_Status)]
         lib.gfo_match_summon_result_step.restype = c.c_int
+        lib.gfo_match_automatic_guardian_response_legal.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_AutomaticGuardianOutcome), c.c_size_t, c.POINTER(c.c_uint8)]
+        lib.gfo_match_automatic_guardian_response_legal.restype = c.c_int
+        lib.gfo_match_automatic_guardian_response_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_AutomaticGuardianOutcome), c.c_size_t, c.POINTER(_Status)]
+        lib.gfo_match_automatic_guardian_response_step.restype = c.c_int
 
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
@@ -915,6 +971,24 @@ class Match:
         """Apply one main command with its supplied summon selector result."""
         self._open(); encoded, guardian = _summon_result_action(action); out = _Status()
         _check(self._lib.gfo_match_summon_result_step(self._handle, c.byref(encoded), guardian, c.byref(out)))
+        return _decode_status(out)
+
+    def automatic_guardian_response_legal(self, action):
+        """Validate supplied automatic opportunities without changing match state."""
+        self._open(); response, outcomes = _automatic_guardian_response_action(action); out = c.c_uint8()
+        _check(self._lib.gfo_match_automatic_guardian_response_legal(self._handle, c.byref(response), outcomes if len(outcomes) else None, len(outcomes), c.byref(out)))
+        return bool(out.value)
+
+    def automatic_guardian_response_step(self, action):
+        """Commit one response and supplied opportunities atomically.
+
+        Supplied opportunity/move/target choices do not consume game RNG;
+        unrelated body, death, counter and gift behavior remains native.
+        The first automatic stage must be reached by this response; local
+        guardian payload mode is unsupported. Failed transactions roll back.
+        """
+        self._open(); response, outcomes = _automatic_guardian_response_action(action); out = _Status()
+        _check(self._lib.gfo_match_automatic_guardian_response_step(self._handle, c.byref(response), outcomes if len(outcomes) else None, len(outcomes), c.byref(out)))
         return _decode_status(out)
 
     def step(self, command):

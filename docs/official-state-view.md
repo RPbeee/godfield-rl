@@ -475,3 +475,10 @@ owner付きslot4はCPU29→196→3という異なるnative tokenへ写し、view
 対局view66/rules68/Snapshot68へ更新し、公開 `summon_result_rule` を追加する。`SummonResultAction` の結果guardianはprivilegedなaccepted journalへ保存し、pending中の未来の結果をpolicy viewへ追加しない。実際の召喚時のguardian変化は既存の公開表示で扱う。独立State/表示component、C ABI2と旧構造体幅は維持する。
 
 v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82の30確認は初期rawだけが得られ、使用後HP32→19はUI観測である。未取得の補充/CPU在庫をfresh viewで補完せず、ここから新しいwire比較を増やさない。
+
+
+## 作業世代v83：自動守護神の外部結果とprivate journal
+
+対局view67/rules69/Snapshot69へ更新し、`automatic_guardian_response_rule` を公開する。供給する発動/不発・技・対象の列とaccepted responseへの接続はprivate journal/proofへ保持し、未発動の将来結果をpolicy viewへ加えない。発動した守護神と実効果は既存の公開表示で扱う。State/表示componentと旧C構造体幅は維持する。
+
+受信v65の3状態を比較し、viewer1のguardian Neptune・HP45/MP4・233 used、CPU2の231 used保持と補充後の全手札を検証する。boostHP eventのplayerId省略を消さず、原literalと導出したtargetを分ける。新しいwire取得・終局・UI観測は無い。

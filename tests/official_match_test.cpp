@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v68"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v69"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v66\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v67\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==68&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==69&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v66")!=std::string::npos
+    check(view.find("official-execution-view-v67")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -4406,6 +4406,127 @@ void supplied_purchase_confusion_then_automatic_guardian_replay(){
 }
 void reject_summon_result(Match& game,const SummonResultAction& action){const auto before=game.snapshot();check(!game.summon_result_legal(action)&&game.snapshot()==before,"invalid supplied summon query is pure");bool failed=false;try{game.summon_result_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==before,"invalid supplied summon leaves the entire action and RNG unchanged");}
 
+void reject_automatic_guardian_response(Match& game,const AutomaticGuardianResponseAction& action){const auto before=game.snapshot();check(!game.automatic_guardian_response_legal(action)&&game.snapshot()==before,"invalid automatic stage preflight is pure");bool failed=false;try{game.automatic_guardian_response_step(action);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==before,"invalid supplied automatic stage rolls back the entire response and outputs");}
+
+void supplied_automatic_guardian_wall_heal_none_and_summon_origin(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({6},{233});state.players[1].guardian=Guardian::neptune;
+    auto pending=fixture(state,config);pending.step(play(0,{0},7));const auto before=pending.snapshot();
+    for(bool activate:{false,true}){auto game=pending;
+        const AutomaticGuardianResponseAction action{defend(7,{0}),{{7,static_cast<CardId>(activate?276:0),activate?std::optional<PlayerId>{7}:std::nullopt}}};
+        check(game.automatic_guardian_response_legal(action)&&game.snapshot()==before,"one Neptune stage result is checked after the wall body without mutating the pending response");
+        game.automatic_guardian_response_step(action);const auto after=game.snapshot();
+        check(after.phase==MatchPhase::grant&&after.pending_grant==0&&after.decisions==2&&after.state.players[1].hp==(activate?45:40)
+            &&after.state.players[1].mp==4&&after.state.players[1].items==std::vector<ItemInstance>{{0,233,{},true}}
+            &&after.gifts==std::vector<std::uint32_t>{1,1}&&after.rng==before.rng&&after.guardian_opportunities==1
+            &&after.auto_guardian_actions==(activate?1u:0u)&&after.automatic_guardian_proof
+            &&*after.automatic_guardian_proof==*after.grant_proof&&*after.automatic_guardian_proof==*after.batch
+            &&after.automatic_guardian_proof->resolved_automatic_guardians==std::vector<AutomaticGuardianResolution>{{0,action.outcomes}},
+            "wall cost and retention precede the explicit heal or inactive opportunity,without any selector draw or extra decision");roundtrip(game);
+        game.artifact_grant_step({0,199,{}});roundtrip(game);game.artifact_grant_step({7,123,{}});
+        check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().automatic_guardian_proof
+            &&game.snapshot().rng==before.rng,"supplied automatic stage proof survives both ordinary grants through completion");roundtrip(game);
+    }
+    auto normal=pending;normal.step(defend(7,{0}));check(!normal.snapshot().automatic_guardian_proof&&normal.snapshot().rng!=before.rng,
+        "ordinary response retains the old quarter/move/target selector path");roundtrip(normal);
+    auto summoning=fixture(scene({201},{}),config);summoning.summon_result_step({play(0,{0},7),Guardian::neptune});
+    summoning.automatic_guardian_response_step({defend(7),{{7,276,7}}});
+    check(summoning.snapshot().state.players[1].hp==45&&summoning.snapshot().guardian_summons==1
+        &&summoning.snapshot().summon_proof&&*summoning.snapshot().summon_proof==*summoning.snapshot().automatic_guardian_proof
+        &&summoning.snapshot().rng==1234,"stage eligibility is derived after the original supplied summon body,with both proofs replaying together");roundtrip(summoning);
+    state.players[0].curses={Curse::cold};Match tick(config);tick.load_scene(state,0,42);tick.step(play(0,{0},7));tick.automatic_guardian_response_step({defend(7,{0}),{{7,276,7}}});
+    check(tick.snapshot().state.players[0].hp==39&&tick.snapshot().last_tick&&tick.snapshot().state.players[1].hp==45
+        &&tick.snapshot().rng==42+0x9e3779b97f4a7c15ULL,"ordinary owner disease RNG runs before stage results and is not replaced");roundtrip(tick);
+}
+
+void supplied_automatic_guardian_shapes_and_stage_reachability(){
+    MatchConfig config;config.external_artifacts=true;auto state=scene({6},{233});state.players[1].guardian=Guardian::neptune;
+    auto pending=fixture(state,config);pending.step(play(0,{0},7));
+    for(const auto& outcomes:std::vector<std::vector<AutomaticGuardianOutcome>>{{},{{0,0,{}}},{{7,0,7}},{{7,276,{}}},{{7,276,0}},{{7,245,0}},{{7,299,7}},{{999,0,{}}},{{7,0,{}},{7,0,{}}}})
+        reject_automatic_guardian_response(pending,{defend(7,{0}),outcomes});
+    state.players.push_back(player(9));state.players[2].guardian=Guardian::neptune;auto ordered=fixture(state,config);ordered.step(play(0,{0},7));
+    reject_automatic_guardian_response(ordered,{defend(7,{0}),{{9,0,{}},{7,0,{}}}});
+    reject_automatic_guardian_response(ordered,{defend(7,{0}),{{7,0,{}}}});
+    ordered.automatic_guardian_response_step({defend(7,{0}),{{7,0,{}},{9,0,{}}}});
+    check(ordered.snapshot().guardian_opportunities==2&&ordered.snapshot().auto_guardian_actions==0&&ordered.snapshot().rng==1234,
+        "all eligible sources are covered exactly once in input order,including explicit inactive outcomes");roundtrip(ordered);
+    auto global_state=scene({6},{233});global_state.players[1].guardian=Guardian::venus;auto global=fixture(global_state,config);global.step(play(0,{0},7));
+    reject_automatic_guardian_response(global,{defend(7,{0}),{{7,280,7}}});global.automatic_guardian_response_step({defend(7,{0}),{{7,280,{}}}});
+    check(global.snapshot().state.players[0].cp==21&&global.snapshot().state.players[1].cp==21&&global.snapshot().rng==1234,
+        "global280 alone omits its target and retains its canonical all-alive CP body");roundtrip(global);
+    MatchConfig payloads=config;payloads.local_guardian_payloads=true;auto unsupported=fixture(state,payloads);unsupported.step(play(0,{0},7));
+    reject_automatic_guardian_response(unsupported,{defend(7,{0}),{{7,0,{}},{9,0,{}}}});
+    auto reflected=fixture(scene({6},{190}),config);reflected.step(play(0,{0},7));reject_automatic_guardian_response(reflected,{defend(7,{0}),{}});
+    check(reflected.legal(defend(7,{0})),"ordinary reflection remains legal when a result wrapper cannot yet reach the stage");reflected.step(defend(7,{0}));roundtrip(reflected);
+    auto counter_state=scene({6},{184});counter_state.players[1].guardian=Guardian::neptune;auto counter=fixture(counter_state,config);counter.step(play(0,{0},7));
+    reject_automatic_guardian_response(counter,{defend(7,{0}),{{7,0,{}}}});
+    counter.step(defend(7,{0}));check(counter.snapshot().queue[0].is_counter,"ordinary counter response is not suppressed by the new wrapper");roundtrip(counter);
+    MatchConfig cap=config;cap.max_decisions=2;auto cutoff=fixture(scene({6},{233}),cap);cutoff.step(play(0,{0},7));
+    reject_automatic_guardian_response(cutoff,{defend(7,{0}),{}});cutoff.step(defend(7,{0}));check(cutoff.snapshot().truncated,"pre-stage cutoff uses the unchanged ordinary step instead");roundtrip(cutoff);
+}
+
+void supplied_automatic_guardian_hit_redraw_and_proof_transactions(){
+    MatchConfig config;config.external_artifacts=true;
+    for(bool dark:{false,true}){auto state=scene({6},{233});state.players[1].guardian=Guardian::mars;if(dark)state.players[0].curses={Curse::darkcloud};auto game=fixture(state,config);game.step(play(0,{0},7));
+        game.automatic_guardian_response_step({defend(7,{0}),{{7,245,0}}});
+        check(game.snapshot().auto_guardian_actions==1&&game.snapshot().chance_rolls==(dark?0u:1u)
+            &&game.snapshot().chance_forced_hits==(dark?1u:0u)&&game.snapshot().rng==(dark?1234:1234+0x9e3779b97f4a7c15ULL)
+            &&game.snapshot().phase==(dark?MatchPhase::response:MatchPhase::grant),
+            "supplied source/move/target still uses the ordinary75percent hit draw or DarkCloud no-draw force");roundtrip(game);
+        if(dark){reject_automatic_guardian_response(game,{defend(0),{}});game.step(defend(0));roundtrip(game);}
+    }
+    auto state=scene({6,178,235},{233});state.players[0].hp=99;state.players[0].items[2].used=true;state.players[1].guardian=Guardian::saturn;
+    auto game=fixture(state,config);game.step(play(0,{0},7));game.automatic_guardian_response_step({defend(7,{0}),{{7,264,0}}});const auto pending=game.snapshot();roundtrip(game);
+    for(unsigned error=0;error<8;++error){auto bad=pending;
+        for(auto* proof:{&bad.batch,&bad.automatic_guardian_proof})if(*proof){
+            if(error==0)(**proof).automatic_guardian_outcomes->at(0).source=0;
+            if(error==1)(**proof).resolved_automatic_guardians[0].response_index=1;
+            if(error==2)(**proof).resolved_automatic_guardians[0].outcomes[0].model=263;
+            if(error==3)(**proof).guardian_stage_started=false;
+            if(error==4)(**proof).guardian_cursor=0;
+        }
+        if(error==5)bad.automatic_guardian_proof.reset();if(error==6)++bad.rng;if(error==7)bad.queue[0].power=1;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}check(failed&&game.snapshot()==pending,"supplied automatic source,index,plan,stage,cursor,RNG and payload forgeries roll back");
+    }
+    RedrawResult replacement;replacement.items.push_back({150,{}});game.redraw_response_step({defend(0,{1}),{replacement}});
+    check(game.snapshot().redraws==1&&game.snapshot().automatic_guardian_proof&&game.snapshot().redraw_proof
+        &&*game.snapshot().automatic_guardian_proof==*game.snapshot().redraw_proof&&*game.snapshot().automatic_guardian_proof==*game.snapshot().grant_proof,
+        "later supplied178 response and reserved grants share the same complete automatic stage proof");roundtrip(game);drain_supplied_gifts(game);roundtrip(game);
+    game.step(pray(7));check(!game.snapshot().automatic_guardian_proof&&!game.snapshot().redraw_proof,
+        "next accepted main clears the completed stage and redraw proofs");roundtrip(game);
+    auto late=state;late.update_count=max_wire_integer-1;auto atomic=fixture(late,config);atomic.step(play(0,{0},7));const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.automatic_guardian_response_step({defend(7,{0}),{{7,264,0}}});}catch(const MatchError&){failed=true;}check(failed&&atomic.snapshot()==before,
+        "late update failure restores response payment,retention,stage proof and RNG");
+}
+
+void supplied_automatic_guardian_owner_death_cancels_tail(){
+    MatchConfig config;config.external_artifacts=true;SnapshotState state;state.players={player(0,{6,112}),player(7,{233}),player(9)};
+    state.players[0].hp=1;for(std::size_t seat=1;seat<3;++seat){state.players[seat].hp=99;state.players[seat].curses={Curse::darkcloud};}
+    state.players[1].guardian=Guardian::saturn;state.players[2].guardian=Guardian::neptune;
+    auto game=fixture(state,config);game.step(play(0,{0},7));game.automatic_guardian_response_step({defend(7,{0}),{{7,264,0},{9,276,9}}});roundtrip(game);
+    game.step(defend(0));check(game.snapshot().state.players[0].dead&&game.snapshot().queue[0].is_death,
+        "death112 FIFO runs after a supplied guardian kills the ordinary owner");roundtrip(game);
+    while(game.snapshot().phase==MatchPhase::response){game.step(defend(*game.snapshot().actor));roundtrip(game);}
+    check(game.snapshot().auto_guardian_actions==1&&game.snapshot().guardian_opportunities==1
+        &&game.snapshot().last_auto_guardians==std::vector<GuardianAction>{{7,264,0}}
+        &&game.snapshot().automatic_guardian_proof->automatic_guardian_outcomes->size()==2
+        &&game.snapshot().gifts[0]==0,"owner death cancels the remaining fixed Neptune outcome normally instead of rejecting later responses");
+    drain_supplied_gifts(game);check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().automatic_guardian_proof,
+        "canceled tail and completed death responses remain replayable after surviving recipients receive their gifts");roundtrip(game);
+    SnapshotState targets;targets.players={player(0,{6}),player(7,{233}),player(8),player(9)};
+    targets.players[1].guardian=targets.players[3].guardian=Guardian::saturn;targets.players[2].hp=1;
+    auto skipped=fixture(targets,config);skipped.step(play(0,{0},7));
+    skipped.automatic_guardian_response_step({defend(7,{0}),{{7,264,8},{9,264,8}}});roundtrip(skipped);
+    check(skipped.snapshot().actor==8,"first explicit guardian targets the still-live third participant");skipped.step(defend(8));
+    check(!skipped.snapshot().state.players[0].dead&&skipped.snapshot().state.players[2].dead
+        &&skipped.snapshot().guardian_opportunities==2&&skipped.snapshot().auto_guardian_actions==1
+        &&skipped.snapshot().last_auto_guardians==std::vector<GuardianAction>{{7,264,8}}
+        &&skipped.snapshot().phase==MatchPhase::grant&&skipped.snapshot().rng==1234,
+        "a later planned dead target is skipped without a replacement target,selector draw or owner death");roundtrip(skipped);
+    drain_supplied_gifts(skipped);check(skipped.snapshot().phase==MatchPhase::main&&skipped.snapshot().automatic_guardian_proof
+        &&skipped.snapshot().automatic_guardian_proof->automatic_guardian_outcomes->size()==2,
+        "the skipped dead-target outcome remains privately replayable after grant completion");roundtrip(skipped);
+}
+
 void hell30_self_body_tick_and_narrow_routing(){
     std::vector<CardId> traits;
     for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::add_curse_on_damage&&card.curse==Curse::hell)traits.push_back(card.id);
@@ -4571,7 +4692,11 @@ void supplied_summon_invalid_proof_cutoff_and_atomicity(){
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),255> tests{{
+    const std::array<void(*)(),259> tests{{
+        supplied_automatic_guardian_wall_heal_none_and_summon_origin,
+        supplied_automatic_guardian_shapes_and_stage_reachability,
+        supplied_automatic_guardian_hit_redraw_and_proof_transactions,
+        supplied_automatic_guardian_owner_death_cancels_tail,
         hell30_self_body_tick_and_narrow_routing,
         supplied_summon_self_cost_results_and_normal_selector,
         supplied_summon_foreign_reflection_cancel_and_auto_isolation,

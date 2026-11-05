@@ -2257,3 +2257,14 @@ Release CTest157/157（40.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 68/S68/view66・ABI2/旧型幅を維持し、累計64/native57/record-only7・wire568、完全start→end2・routing-only1・全内部trace0。元資料・旧pinsを変更しない。
 
 Release CTest157/157（38.31秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（13.87秒）が通過した。native255 callbacks・Python185 unique methods、両buildのwarning/error0、C11 -Werrorの旧24/184/248byte layoutと新入口prototype、Python召喚結果API使用例、diff-checkも確認した。全SAN suite/Python SANや、公式召喚分布・病気の一般率の適合を示す結果ではない。
+
+
+## 作業世代v83：通常応答と自動守護神の同一batch再生
+
+既存v65の `233-wall-before-neptune276-and-gifts` を、通常233応答にsource1/model276/target1の結果を供給して再生する。初期から201→Neptuneを既存SummonResultActionで指定し、196補充とCPU29＋231保留、233遮断と276回復、viewer123とCPU200/19の補充、GF3 viewer mainまで3状態×固定8seed＝24比較を追加する。
+
+新観測0、既存1例の対象移行だけで64/native58/record-only6・wire592となる。v82 partial16と276効果単体8、旧post経路を消さず、重複比較を新しい公式対局へ読み替えない。viewer123は明示gift、CPU200/19は在庫deltaであり、CPUの内部補充順・retry・selectorを新証明として記録しない。発動率・技分布・サーバーRNGは未再現である。69/S69/view67・ABI2、完全lifecycle2/routing1/internal trace0。
+
+新入口のstage初到達条件、sourceの過不足/順序/技所属/target pool、不発、future planの非公開、受理後の失効skip/取消、再供給拒否、proof改変・後続補充との再生と原子的失敗を合成回帰で検査する。これらの検査を追加の公式観測へ数えない。local payload設定と既に開始したstageへの再供給は初版の対象外である。
+
+Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（32.27秒）が通過した。native259 callbacks・Python187 unique methods、両最終buildのwarning/error0、C11 -Werrorで新24byte/各offset・旧24/184/248byte layoutと新4prototype、Python新API使用例（276発動とeligible source無しの空plan）も確認した。全SAN suite/Python SANや、公式の発動率・技分布・一般scheduleの適合を示す結果ではない。経過時間を版間の速度比較には使わない。

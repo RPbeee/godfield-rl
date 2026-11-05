@@ -62,6 +62,9 @@ static_assert(std::is_standard_layout_v<gfo_match_artifact_grant_action>
     && offsetof(gfo_match_artifact_grant_action,fake_model)==10
     && offsetof(gfo_match_artifact_grant_action,reserved)==12);
 static_assert(std::is_nothrow_move_assignable_v<official::Match>);
+static_assert(sizeof(gfo_match_automatic_guardian_outcome)==24
+    &&offsetof(gfo_match_automatic_guardian_outcome,target)==8&&offsetof(gfo_match_automatic_guardian_outcome,model)==16
+    &&offsetof(gfo_match_automatic_guardian_outcome,has_target)==18&&offsetof(gfo_match_automatic_guardian_outcome,reserved)==19);
 static_assert(sizeof(gfo_match_redraw_item)==8 && offsetof(gfo_match_redraw_item,fake_model)==2
     && offsetof(gfo_match_redraw_item,has_fake)==4 && offsetof(gfo_match_redraw_item,reserved)==5);
 static_assert(sizeof(gfo_match_redraw_result)==16 && offsetof(gfo_match_redraw_result,item_count)==8);
@@ -232,6 +235,16 @@ official::PurchaseResponseAction purchase_response_action(const gfo_match_comman
     if(selection.has_commodity)out.commodity=selection.commodity;
     return out;
 }
+official::AutomaticGuardianResponseAction automatic_guardian_response_action(const gfo_match_command& input,
+    const gfo_match_automatic_guardian_outcome* outcomes,std::size_t count) {
+    official::AutomaticGuardianResponseAction out;out.response=command(input);out.outcomes.reserve(count);
+    for(std::size_t i=0;i<count;++i){const auto& item=outcomes[i];
+        valid(item.source<=official::max_wire_integer&&item.target<=official::max_wire_integer&&item.has_target<=1&&zero(item.reserved)
+            &&(item.has_target||item.target==0)&&(item.model!=0||!item.has_target));
+        out.outcomes.push_back({item.source,item.model,item.has_target?std::optional<official::PlayerId>{item.target}:std::nullopt});
+    }
+    return out;
+}
 gfo_match_command encode(const official::Command& c) {
     valid(c.items.size() <= official::visible_hand_capacity && static_cast<unsigned>(c.kind) <= 9
         && (c.kind == official::CommandKind::exchange) == c.allocation.has_value()
@@ -372,6 +385,8 @@ const char* gfo_match_redraw_response_rule(void) { return official::redraw_respo
 size_t gfo_match_purchase_selection_size(void) { return sizeof(gfo_match_purchase_selection); }
 const char* gfo_match_purchase_response_rule(void) { return official::purchase_response_rule; }
 const char* gfo_match_summon_result_rule(void) { return official::summon_result_rule; }
+size_t gfo_match_automatic_guardian_outcome_size(void) { return sizeof(gfo_match_automatic_guardian_outcome); }
+const char* gfo_match_automatic_guardian_response_rule(void) { return official::automatic_guardian_response_rule; }
 
 int gfo_match_create(const gfo_match_config* c, const gfo_match_player* players, size_t count, uint64_t seed, gfo_match** out) {
     if (!out || (!players && count)) return -1;
@@ -622,6 +637,23 @@ int gfo_match_summon_result_step(gfo_match* match,const gfo_match_command* input
     if(!match||!input||!out)return -1;
     try { valid(guardian>=1&&guardian<=10);const official::SummonResultAction action{command(*input),static_cast<official::Guardian>(guardian)};
         auto next=match->value;next.summon_result_step(action);const auto value=status(next);match->value=std::move(next);*out=value;return 0; }
+    catch(...){return error();}
+}
+int gfo_match_automatic_guardian_response_legal(const gfo_match* match,const gfo_match_command* input,
+    const gfo_match_automatic_guardian_outcome* outcomes,size_t count,uint8_t* out) {
+    if(!match||!input||!out)return -1;
+    if(count>official::player_capacity)return -2;
+    if(count&&!outcomes)return -1;
+    try{const auto action=automatic_guardian_response_action(*input,outcomes,count);const uint8_t value=match->value.automatic_guardian_response_legal(action);*out=value;return 0;}
+    catch(...){return error();}
+}
+int gfo_match_automatic_guardian_response_step(gfo_match* match,const gfo_match_command* input,
+    const gfo_match_automatic_guardian_outcome* outcomes,size_t count,gfo_match_status* out) {
+    if(!match||!input||!out)return -1;
+    if(count>official::player_capacity)return -2;
+    if(count&&!outcomes)return -1;
+    try{const auto action=automatic_guardian_response_action(*input,outcomes,count);auto next=match->value;next.automatic_guardian_response_step(action);const auto value=status(next);
+        match->value=std::move(next);*out=value;return 0;}
     catch(...){return error();}
 }
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {

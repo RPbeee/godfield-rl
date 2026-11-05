@@ -41,6 +41,13 @@ typedef struct gfo_match_guardian_action {
     uint16_t model;
     uint8_t has_target, reserved[5];
 } gfo_match_guardian_action;
+// Privileged automatic opportunity result. Model0 means no activation and
+// requires an absent target; source0 and present target0 are real player IDs.
+typedef struct gfo_match_automatic_guardian_outcome {
+    uint64_t source, target;
+    uint16_t model;
+    uint8_t has_target, reserved[5];
+} gfo_match_automatic_guardian_outcome;
 typedef struct gfo_match_guardian_payload_action {
     uint64_t source, target;
     uint16_t models[18];
@@ -146,6 +153,8 @@ const char* gfo_match_redraw_response_rule(void);
 size_t gfo_match_purchase_selection_size(void);
 const char* gfo_match_purchase_response_rule(void);
 const char* gfo_match_summon_result_rule(void);
+size_t gfo_match_automatic_guardian_outcome_size(void);
+const char* gfo_match_automatic_guardian_response_rule(void);
 // Status0 success/-1 NULL/-2 invalid/-3 exception/-4 short buffer/-5 unsupported.
 // Every error leaves the complete mutable match, policy RNG and all outputs
 // unchanged. Storage must be valid, nonoverlapping caller objects. Zero padding.
@@ -252,6 +261,15 @@ int gfo_match_summon_result_legal(const gfo_match* match, const gfo_match_comman
     uint8_t guardian, uint8_t* out);
 int gfo_match_summon_result_step(gfo_match* match, const gfo_match_command* command,
     uint8_t guardian, gfo_match_status* out);
+// One ordinary response plus externally selected automatic guardian outcomes.
+// Up to9 entries, copied in supplied order. NULL outcomes is allowed for count0.
+// This is a privileged environment input, not a public-player policy action.
+// The first automatic stage must be reached in this response transaction;
+// local_guardian_payloads=true is unsupported. Failure preserves state/output.
+int gfo_match_automatic_guardian_response_legal(const gfo_match* match, const gfo_match_command* response,
+    const gfo_match_automatic_guardian_outcome* outcomes, size_t count, uint8_t* out);
+int gfo_match_automatic_guardian_response_step(gfo_match* match, const gfo_match_command* response,
+    const gfo_match_automatic_guardian_outcome* outcomes, size_t count, gfo_match_status* out);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

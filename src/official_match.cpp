@@ -117,6 +117,7 @@ void sync_grant_proof(MatchSnapshot& s) {
     if (s.redraw_proof && s.batch) s.redraw_proof=*s.batch;
     if (s.purchase_proof && s.batch) s.purchase_proof=*s.batch;
     if (s.summon_proof && s.batch) s.summon_proof=*s.batch;
+    if (s.automatic_guardian_proof && s.batch) s.automatic_guardian_proof=*s.batch;
 }
 void finish(MatchSnapshot& s, const Outcome& result) {
     sync_grant_proof(s); s.pending_grant.reset();
@@ -340,6 +341,41 @@ void prepare_summon_result(const MatchSnapshot& s,const Command& command,const s
     require(s.phase==MatchPhase::main && command.kind==CommandKind::play && command.items.size()==1
         && models.size()==1 && (models.front()==201 || models.front()==239),"supplied summon requires a single ordinary201 or239 main play");
     require(static_cast<unsigned>(guardian)>=1 && static_cast<unsigned>(guardian)<=10,"supplied summon needs a known nonempty guardian");
+}
+void automatic_guardian_plan_shape(const MatchSnapshot& s,const std::vector<AutomaticGuardianOutcome>& outcomes) {
+    require(outcomes.size()<=player_capacity,"oversized automatic guardian result plan");
+    for(const auto& outcome:outcomes) {
+        (void)index(s,outcome.source);
+        require((outcome.model==0 || match_guardian_supported(outcome.model)) && (outcome.model || !outcome.target),"invalid canonical automatic guardian result");
+        if(outcome.target) (void)index(s,*outcome.target);
+    }
+}
+void prepare_automatic_guardian_response(const MatchSnapshot& s,const std::vector<AutomaticGuardianOutcome>& outcomes) {
+    if(s.config.local_guardian_payloads) unsupported("supplied canonical guardian stage does not support local payload mode");
+    require(s.phase==MatchPhase::response && s.batch && !s.batch->guardian_stage_started
+        && !s.batch->automatic_guardian_outcomes && s.batch->resolved_automatic_guardians.empty()
+        && !s.batch->guardian_action && !s.batch->guardian_payload_action && !s.batch->phenomenon_action
+        && !s.batch->devil_action && !s.batch->fate_action,"supplied guardian outcomes require an ordinary response before the first stage");
+    automatic_guardian_plan_shape(s,outcomes);
+}
+void validate_automatic_guardian_entry(const MatchSnapshot& s,const std::vector<AutomaticGuardianOutcome>& outcomes) {
+    automatic_guardian_plan_shape(s,outcomes);
+    const auto& owner=s.state.players[index(s,s.batch->owner)];require(!owner.dead,"supplied guardian stage has no live original owner");
+    std::size_t cursor=0;
+    for(const auto& source:s.state.players) {
+        if(source.dead || source.guardian==Guardian::none || !is_enemy(source,owner)) continue;
+        require(cursor<outcomes.size() && outcomes[cursor].source==source.id,"automatic guardian results do not cover eligible sources in input order");
+        const auto& outcome=outcomes[cursor++];if(!outcome.model) continue;
+        const auto& card=*find_card(outcome.model);require(card.guardian==source.guardian,"automatic result belongs to a different guardian");
+        if(card.ability==Ability::boost_cp_of_everybody) require(!outcome.target,"global guardian result must be targetless");
+        else {
+            require(outcome.target.has_value(),"automatic guardian result needs a target");
+            const auto& target=s.state.players[index(s,*outcome.target)];
+            const bool hostile=card.atk>0 || card.ability==Ability::add_curse || card.ability==Ability::boost_cp_to_enemy || card.ability==Ability::take_cp;
+            require(!target.dead && is_enemy(source,target)==hostile,"automatic guardian target is outside its normal alive target pool");
+        }
+    }
+    require(cursor==outcomes.size(),"unused extra automatic guardian source result");
 }
 void redraw_result_shape(const MatchSnapshot& s, const RedrawResult& result) {
     require(result.items.size()<=s.config.hand_limit,"oversized supplied redraw");
@@ -900,7 +936,9 @@ const std::vector<CardId>& guardian_moves(Guardian guardian) {
     return moves[static_cast<std::size_t>(guardian)];
 }
 bool next_automatic_guardian(MatchSnapshot& s) {
-    auto& batch=*s.batch; batch.guardian_stage_started=true;
+    auto& batch=*s.batch;
+    if(!batch.guardian_stage_started && batch.automatic_guardian_outcomes) validate_automatic_guardian_entry(s,*batch.automatic_guardian_outcomes);
+    batch.guardian_stage_started=true;
     for (;;) {
         if (s.state.players[index(s,batch.owner)].dead) { batch.automatic_payload.reset(); batch.guardian_cursor=s.state.players.size(); return false; }
         if (batch.automatic_payload) {
@@ -933,8 +971,16 @@ bool next_automatic_guardian(MatchSnapshot& s) {
         const auto seat=batch.guardian_cursor++; const auto& source=s.state.players[seat];
         if (source.dead || source.guardian==Guardian::none || !is_enemy(source,s.state.players[index(s,batch.owner)])) continue;
         ++s.guardian_opportunities;
-        if (bounded(s.rng,100)>=25) continue;
-        if (s.config.local_guardian_payloads && (source.guardian==Guardian::earth || source.guardian==Guardian::moon)) {
+        const AutomaticGuardianOutcome* supplied=nullptr;
+        if(batch.automatic_guardian_outcomes) {
+            const auto& outcomes=*batch.automatic_guardian_outcomes;
+            const auto it=std::find_if(outcomes.begin(),outcomes.end(),[&](const auto& outcome){return outcome.source==source.id;});
+            require(it!=outcomes.end(),"eligible source is absent from supplied guardian plan"); supplied=&*it;
+            if(!supplied->model) continue;
+            if(find_card(supplied->model)->guardian!=source.guardian
+                || (supplied->target && s.state.players[index(s,*supplied->target)].dead)) continue;
+        } else if (bounded(s.rng,100)>=25) continue;
+        if (!supplied && s.config.local_guardian_payloads && (source.guardian==Guardian::earth || source.guardian==Guardian::moon)) {
             auto action=select_guardian_payload(s,source.id,s.rng);
             const auto ability=find_card(action.models.front())->ability;
             AutomaticGuardianPayload launch{action,source.mp,ability==Ability::boost_hp_or_deal_damage?(bounded(s.rng,2)==0?10:-10):0,0};
@@ -942,9 +988,9 @@ bool next_automatic_guardian(MatchSnapshot& s) {
             ++s.auto_guardian_actions; s.last_auto_guardian_payloads.push_back(std::move(action));
             batch.automatic_payload=std::move(launch); continue;
         }
-        const auto& moves=guardian_moves(source.guardian); const auto model=moves[bounded(s.rng,moves.size())];
-        const auto& card=*find_card(model); GuardianAction action{source.id,model,{}};
-        if (card.ability!=Ability::boost_cp_of_everybody) {
+        const auto& moves=guardian_moves(source.guardian); const auto model=supplied?supplied->model:moves[bounded(s.rng,moves.size())];
+        const auto& card=*find_card(model); GuardianAction action{source.id,model,supplied?supplied->target:std::optional<PlayerId>{}};
+        if (!supplied && card.ability!=Ability::boost_cp_of_everybody) {
             const auto hostile=card.atk>0 || card.ability==Ability::add_curse || card.ability==Ability::boost_cp_to_enemy || card.ability==Ability::take_cp;
             std::array<PlayerId,player_capacity> targets{}; std::size_t count=0;
             for (const auto& target:s.state.players) if (!target.dead && is_enemy(source,target)==hostile) targets[count++]=target.id;
@@ -997,7 +1043,7 @@ void reserve_counters(MatchSnapshot& s, const EffectFrame& incoming, const Comma
 }
 void clear_events(MatchSnapshot& s) {
     s.last_danger.reset(); s.last_removal.reset(); s.last_sale.reset(); s.last_purchase.reset();
-    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset(); s.pending_grant.reset(); s.grant_proof.reset(); s.redraw_proof.reset(); s.purchase_proof.reset(); s.summon_proof.reset(); s.last_grant.reset();
+    s.last_tick.reset(); s.last_fog.reset(); s.last_reveals.clear(); s.last_redraws.clear(); s.last_guardian.reset(); s.last_guardian_payload.reset(); s.last_phenomenon.reset(); s.last_item_shuffle.reset(); s.last_fate.reset(); s.last_fate_event.reset(); s.last_devil.reset(); s.last_devil_event.reset(); s.pending_grant.reset(); s.grant_proof.reset(); s.redraw_proof.reset(); s.purchase_proof.reset(); s.summon_proof.reset(); s.automatic_guardian_proof.reset(); s.last_grant.reset();
     s.last_auto_guardians.clear(); s.last_auto_guardian_payloads.clear(); s.last_guardian_changes.clear();
 }
 ActionBatch action_anchor(const MatchSnapshot& s) {
@@ -1221,11 +1267,13 @@ void execute_devil(MatchSnapshot& s, const DevilAction& action) {
 void execute(MatchSnapshot& s, const Command& command, bool confusion_command=false,
              const std::vector<RedrawResult>* supplied_redraws=nullptr,
              const std::optional<ItemToken>* supplied_purchase=nullptr,
-             std::optional<Guardian> supplied_summon={}) {
+             std::optional<Guardian> supplied_summon={},
+             const std::vector<AutomaticGuardianOutcome>* supplied_automatic_guardians=nullptr) {
     const auto models = prepare(s, command,confusion_command); const auto seat = index(s, command.actor);
     if(supplied_redraws) prepare_redraw_response(s,command,models,*supplied_redraws);
     if(supplied_purchase) prepare_purchase_response(s,command,models,*supplied_purchase);
     if(supplied_summon) { require(!confusion_command,"supplied summon is an ordinary main command"); prepare_summon_result(s,command,models,*supplied_summon); }
+    if(supplied_automatic_guardians) prepare_automatic_guardian_response(s,*supplied_automatic_guardians);
     SuppliedPurchaseSelection purchase_selection{supplied_purchase,false};
     if (s.phase == MatchPhase::main) clear_events(s);
     else if (s.last_fate && s.batch && s.batch->fate_action) s.last_fate->responses.push_back(command);
@@ -1244,6 +1292,11 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
     } else if (s.phase == MatchPhase::response) {
         const auto response_index=s.batch->responses.size();
         s.batch->responses.push_back(command);
+        if(supplied_automatic_guardians) {
+            s.batch->automatic_guardian_outcomes=*supplied_automatic_guardians;
+            s.batch->resolved_automatic_guardians.push_back({response_index,*supplied_automatic_guardians});
+            s.automatic_guardian_proof=*s.batch;
+        }
         if(supplied_redraws) {
             s.batch->resolved_redraws.push_back({response_index,*supplied_redraws});
             s.redraw_proof=*s.batch;
@@ -1372,6 +1425,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
     }
     require(!supplied_purchase || purchase_selection.used,"supplied purchase selection was not executed");
     complete_decision(s, completed);
+    if(supplied_automatic_guardians) require(s.automatic_guardian_proof && s.automatic_guardian_proof->guardian_stage_started,"supplied guardian stage was not reached by this response");
 }
 void prepare_grant(const MatchSnapshot& s, const GrantAction& action) {
     require(s.phase==MatchPhase::grant && !s.actor && s.pending_grant==action.target && s.batch
@@ -1449,7 +1503,9 @@ void replay_response(MatchSnapshot& replay,const ActionBatch& journal,std::size_
     for(const auto& entry:journal.resolved_purchases) if(entry.response_index==response_index) {
         purchase=&entry.commodity; break;
     }
-    execute(replay,journal.responses[response_index],false,supplied,purchase);
+    const std::vector<AutomaticGuardianOutcome>* automatic=nullptr;
+    for(const auto& entry:journal.resolved_automatic_guardians) if(entry.response_index==response_index) { automatic=&entry.outcomes; break; }
+    execute(replay,journal.responses[response_index],false,supplied,purchase,{},automatic);
 }
 void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
@@ -1472,10 +1528,12 @@ void validate_snapshot(const MatchSnapshot& s) {
     if (s.redraw_proof) validate_automatic_payload(*s.redraw_proof);
     if (s.purchase_proof) validate_automatic_payload(*s.purchase_proof);
     if (s.summon_proof) validate_automatic_payload(*s.summon_proof);
-    for(const auto* journal:{&s.batch,&s.grant_proof,&s.redraw_proof,&s.purchase_proof,&s.summon_proof})if(*journal) {
+    if (s.automatic_guardian_proof) validate_automatic_payload(*s.automatic_guardian_proof);
+    for(const auto* journal:{&s.batch,&s.grant_proof,&s.redraw_proof,&s.purchase_proof,&s.summon_proof,&s.automatic_guardian_proof})if(*journal) {
         if(!(**journal).resolved_redraws.empty()) require(s.redraw_proof.has_value(),"supplied redraw outcomes have no proof");
         if(!(**journal).resolved_purchases.empty()) require(s.purchase_proof.has_value(),"supplied purchase outcomes have no proof");
         if((**journal).supplied_summon) require(s.summon_proof.has_value(),"supplied summon result has no proof");
+        if((**journal).automatic_guardian_outcomes || !(**journal).resolved_automatic_guardians.empty()) require(s.automatic_guardian_proof.has_value(),"automatic guardian outcomes have no proof");
     }
     require(s.gifts.size() == n && s.rewards.size() == n && s.decisions <= s.config.max_decisions, "invalid snapshot dimensions/counters");
     require(s.chance_hits <= s.chance_rolls && s.chance_rolls <= 2 * player_capacity * s.decisions, "invalid chance attempt counters");
@@ -1495,14 +1553,23 @@ void validate_snapshot(const MatchSnapshot& s) {
         && (!s.grant_devils || devil_grants_enabled(s)),"invalid grant outcome counters");
     require(s.pending_grant.has_value()==(s.phase==MatchPhase::grant)
         && (!(s.pending_grant || s.last_grant) || s.grant_proof.has_value()),"grant phase or notice lacks its journal");
-    if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof) {
+    if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof || s.automatic_guardian_proof) {
         if(s.grant_proof) require(s.config.external_grants || s.config.external_artifacts,"grant proof without external grant mode");
-        const auto& journal=s.purchase_proof?*s.purchase_proof:s.redraw_proof?*s.redraw_proof:s.summon_proof?*s.summon_proof:*s.grant_proof;
-        for(const auto* proof:{&s.grant_proof,&s.redraw_proof,&s.purchase_proof,&s.summon_proof})if(*proof)
+        const auto& journal=s.purchase_proof?*s.purchase_proof:s.redraw_proof?*s.redraw_proof:s.summon_proof?*s.summon_proof:s.automatic_guardian_proof?*s.automatic_guardian_proof:*s.grant_proof;
+        for(const auto* proof:{&s.grant_proof,&s.redraw_proof,&s.purchase_proof,&s.summon_proof,&s.automatic_guardian_proof})if(*proof)
             require(**proof==journal,"external result journals differ");
         require(s.redraw_proof.has_value()==!journal.resolved_redraws.empty(),"supplied redraw proof/outcomes mismatch");
         require(s.purchase_proof.has_value()==!journal.resolved_purchases.empty(),"supplied purchase proof/outcomes mismatch");
         require(s.summon_proof.has_value()==journal.supplied_summon.has_value(),"supplied summon proof/result mismatch");
+        require(s.automatic_guardian_proof.has_value()==!journal.resolved_automatic_guardians.empty()
+            && journal.automatic_guardian_outcomes.has_value()==!journal.resolved_automatic_guardians.empty(),"automatic guardian proof/plan mismatch");
+        require(journal.resolved_automatic_guardians.size()<=1,"multiple supplied guardian stages in one batch");
+        if(journal.automatic_guardian_outcomes) {
+            const auto& entry=journal.resolved_automatic_guardians.front();
+            require(entry.response_index<journal.responses.size() && entry.outcomes==*journal.automatic_guardian_outcomes
+                && journal.guardian_stage_started && !s.config.local_guardian_payloads,"invalid supplied guardian stage journal");
+            automatic_guardian_plan_shape(s,entry.outcomes);
+        }
         require(s.grant_proof || journal.grants.empty(),"grant entries without grant proof");
         require(journal.initial_state.players.size()==n && journal.decisions<s.decisions
             && journal.attack.items.size()<=s.config.hand_limit && journal.models.size()<=visible_hand_capacity
@@ -1973,6 +2040,14 @@ MatchStep Match::summon_result_step(const SummonResultAction& action) {
     auto next=data_; execute(next,action.command,false,nullptr,nullptr,action.guardian);
     const auto output=result(next); data_=std::move(next); return output;
 }
+bool Match::automatic_guardian_response_legal(const AutomaticGuardianResponseAction& action) const noexcept {
+    try { auto next=data_; execute(next,action.response,false,nullptr,nullptr,{},&action.outcomes); return true; }
+    catch (...) { return false; }
+}
+MatchStep Match::automatic_guardian_response_step(const AutomaticGuardianResponseAction& action) {
+    auto next=data_; execute(next,action.response,false,nullptr,nullptr,{},&action.outcomes);
+    const auto output=result(next); data_=std::move(next); return output;
+}
 bool Match::choice_legal(const PlayerChoice& choice) const noexcept {
     try {
         if (const auto* command=std::get_if<Command>(&choice)) { (void)prepare(data_,*command); return true; }
@@ -2273,7 +2348,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v66\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v67\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;
@@ -2306,6 +2381,7 @@ std::string Match::observe(std::optional<PlayerId> viewer) const {
     out += "\",\"redraw_rule\":\""; out += redraw_rule;
     out += "\",\"redraw_response_rule\":\""; out += redraw_response_rule;
     out += "\",\"summon_result_rule\":\""; out += summon_result_rule;
+    out += "\",\"automatic_guardian_response_rule\":\""; out += automatic_guardian_response_rule;
     out += "\",\"purchase_response_rule\":\""; out += purchase_response_rule;
     out += "\",\"guardian_rule\":\""; out += guardian_rule;
     out += "\",\"guardian_summon_rule\":\""; out += guardian_summon_rule;
