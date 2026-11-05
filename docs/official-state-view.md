@@ -402,3 +402,10 @@ HP10群と従来2,617行×2分岐を含めRelease157/157、変更したnative4�
 対局view-v58に `purchase_response_rule` を追加する。供給commodity token、疎なresolved_purchases、purchase_proofはprivilegedな入力/保存状態であり、観測・PlayerChoiceへ追加しない。通常のBUY公開・quote表示と直近購入結果の投影を維持する。売り手全手札が必要な再生fixtureを公開プレイヤーのpolicy入力へ渡さない。
 
 rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplayのschemaは維持する。既存v69のupdate7は、返却後すぐ同じ商品が次のCPU BUYで消費された状態なので、受信終点のplaceholderを返却失敗や新規コピーと解釈しない。
+
+
+## v72：DarkCloud自己使用と終局の空行
+
+対局view59/rules61/Snapshot61へ更新する。新しい観測fieldやC構造体は追加しない。41の自己使用で本人HP29とDarkCloudが補充前に確定し、追加のself responseを生成しないことを実受信で確認した。
+
+新しいterminal受信では本人はdead/HP0だが、未使用45を含む正コピー9を保持する。CPUの正コピー6と空行3も保存する。raw UI placeholderとnativeの予約giftは終局後に一致を要求せず、native側では予約を0へ取消す。受信勝利表示と、nativeが生死から計算するwinners/rewardsを区別する。独立State/表示componentのschemaは維持する。

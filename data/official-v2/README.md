@@ -439,3 +439,17 @@ native比較は一新後update2〜6の5状態×既存8seed＝40だけで、178�
 | v71 artifact | bytes | SHA256 |
 | --- | ---: | --- |
 | `supplied-purchase-replay-v71.json` | 12,012 | `de32668f6486893c989f850efe0fe269f62fc91387647ab8ace5699cb4f2499b` |
+
+
+## v72：六角凶41の自己使用と部分受信列の終局
+
+[受信update2〜5](wire-game-updates-v72.json)と[4操作のwitness](live-transition-witnesses-v72.json)を保存する。41自己使用は11被害・DarkCloud付与・49補充まで追加の防御入力なしで解決し、旧nativeの余分なresponse待ちを修正した。179/DEF15でCPU92の闇10を防ぎ、自己49/13被害後にCPU19+43+25の22へ空防御して終局する。本人HP列は初期UI40→29→29→16→0、MP10/CP20維持。終局時に未使用45を保持するため、45の低HP吸収は未観測である。
+
+最初の権威的gameは取得できず、postから消費41とCPU92を戻したGF1 sceneを再構成する。受信4終点×固定8seed＝32追加比較、重複込みwire400。新完了観測4・累計49/native44/record-only5、新しい完全start→end受信0・従来累計1を維持する。CPU35は在庫差分で、授与順は推定しない。terminalのCPU空行3はnativeの生きた補充予約0と区別する。ホーム復帰・Network Monitor終了を確認した。
+
+rules61/Snapshot61/view59、旧C ABI2/型幅と既存抽選は維持する。Release初回155/157通過後、追加C/Pythonのsemantic legal期待を修正して2対象とも再実行通過し、最終157対象を確認。重点SANはcore/wire通過後にCを同様に再確認して主要3対象を確認した。単一の全件clean run、全SAN/Python SANの実行とは区別する。native244群/Python176method、compile warning/error0。旧pins・記録は変更しない。
+
+| v72 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v72.json` | 18,684 | `6a86ee820cd7cb985641b1973d68644f1884216c226e0883ca4d6f5547d3dc9d` |
+| `live-transition-witnesses-v72.json` | 21,459 | `fda09abfb80f7619ecb64fa7872391a28e72fbd8be26e1de2ff97aef03bb9a91` |

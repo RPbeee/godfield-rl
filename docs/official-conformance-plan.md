@@ -2150,3 +2150,14 @@ Release157/157（18.05秒）、Debug ASan/UBSanの変更3target3/3（18.50秒）
 新しい公式観測は0。既存v69の7受信状態を一新前から8固定seedで56比較し、商品5のCP0拒否・同コピー返却・237補充・返却品による次のCPU BUY保留までを条件付き再生する。v70とv69の独立経路も維持するため、重複込みでwire累計368比較。観測45例中のnative対象を40へ、record-onlyを5へ更新する。最終CPU BUYの応答、商品選出分布、一般server scheduleは未検証のまま、start→end受信列も従来1対局である。
 
 検証はRelease CTest157/157（39.39秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.55秒）が通過。native241群・Python175method、compile warning/error0、C11 -Werrorの新旧layout/prototypeと実行規約に掲載した購入APIのPython使用例も確認した。時間はsuiteの経過で、速度比較には使わない。全SAN suite/Python SANの実行とは区別する。
+
+
+## 作業世代v72：41の直接自己使用と4受信終点
+
+公式CPUの単品41自己使用で、防御を挟まず11被害・暗雲付与・補充となることを取得し、旧追加response待ちを修正する。41だけの新trait経路をrules61/Snapshot61/view59へ固定し、ABI2/型幅・生成器は維持する。追加材・cutoff・208・foreign/redirect等はnative/C/Python合成境界と区別する。
+
+update2〜5の4受信終点を、消費41とCPU92だけを戻したGF1再構成sceneから8seedで32比較する。179で闇10を防ぎ、49の自己13被害後、CPU19+43+25の22へ空防御して終局する。初期wire/元draw/orderとbackend補充順は未取得で、完全start→endの累計1は増やさない。新観測4・累計49、native対象44・記録のみ5、wire重複込み400。低HP45の検証は準備中の致死攻撃で未成立と記録する。
+
+混乱を起点とする供給BUYと、購入後の既存Saturn自動応答・190反射のwhole-origin proofを独立した合成2群へ追加する。これは公式の混乱/守護神selectorの再現や、新しい公式観測ではない。
+
+検証はRelease全157対象のうち155が初回（38.78秒）に通過し、追加C/Pythonテストのsemantic legal期待を修正後、該当2対象を再実行して2/2（8.05秒）通過した。runtimeはこのテスト修正では変更していない。Debug ASan/UBSanは初回core/wire通過、Cを同じ期待修正後に再実行し1/1（1.29秒）通過し、主要3対象を確認した。単一の全件clean runや全SAN/Python SANとは区別する。native244群・Python176method、両buildのwarning/error0、diff-check通過。

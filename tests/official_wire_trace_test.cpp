@@ -28,10 +28,13 @@ constexpr std::array<ReceivedSlot,9> after_cure_viewer{{{2,61},{3,4},{4,103},{5,
 constexpr std::array<ReceivedSlot,9> after_halberd_cpu{{{1,212},{2,135},{4,161},{6,199},{7,156},{8,68},{9,149},{5,184},{0,0}}};
 struct ReceivedPlayer {
     PlayerId id; int hp, mp, cp; bool cold; std::span<const ReceivedSlot> slots;
+    bool darkcloud = false, dead = false;
 };
 struct ReceivedCheckpoint {
     unsigned update; std::int64_t gf; PlayerId owner;
     std::array<ReceivedPlayer,2> players; CardId pending = 0;
+    std::span<const CardId> pending_models = {};
+    bool ended = false;
 };
 constexpr std::array checkpoints{
     ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}},0},
@@ -67,14 +70,15 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
                         std::optional<PlayerId> dream_player = {}) {
     const auto& actual=game.snapshot();
     check(actual.state.gf==expected.gf&&actual.owner==expected.owner,"observed GF and turn owner match checkpoint");
-    check(!actual.state.is_over&&actual.state.players.size()==2,"both received participants remain in a nonterminal match");
+    check(actual.state.is_over==expected.ended&&actual.state.players.size()==2,"received terminal flag and roster match");
     std::size_t total_positive=0;
     for(std::size_t seat=0;seat<expected.players.size();++seat) {
         const auto& want=expected.players[seat];const auto& got=actual.state.players[seat];
         check(got.id==want.id&&got.hp==want.hp&&got.mp==want.mp&&got.cp==want.cp,"received gameplay resources match");
-        check(got.team==Team::solo&&!got.dead&&got.guardian==Guardian::none&&got.confusion_count==0,"received default team, alive and guardian state match");
+        check(got.team==Team::solo&&got.dead==want.dead&&got.guardian==Guardian::none&&got.confusion_count==0,"received default team, life and guardian state match");
         auto curses=want.cold?std::vector<Curse>{Curse::cold}:std::vector<Curse>{};
         if(dream_player==want.id)curses.push_back(Curse::dream);
+        if(want.darkcloud)curses.push_back(Curse::darkcloud);
         check(got.curses==curses,"received curse state matches without adding inferred ticks");
         std::size_t positive=0,placeholders=0;
         for(const auto& row:want.slots) {
@@ -85,7 +89,7 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
             check(found!=got.items.end()&&found->model==row.model&&found->fake_model.value_or(0)==row.fake&&found->used==row.used,
                   "positive inventory model/fake/used match independently of server slot identity");
         }
-        check(got.items.size()==positive&&actual.gifts[seat]==placeholders,"received model0 placeholders match local reserved debts, not physical copies");
+        check(got.items.size()==positive&&actual.gifts[seat]==(expected.ended?0:placeholders),"physical inventory matches; terminal UI placeholders retain no live local debts");
         total_positive+=positive;
     }
     check(slots.size()==total_positive,"slot map contains no consumed stale slot or placeholder");
@@ -93,15 +97,19 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         const auto defender=expected.players[0].id==expected.owner?expected.players[1].id:expected.players[0].id;
         check(actual.phase==MatchPhase::response&&actual.actor==defender&&actual.queue.size()==1,"pending CPU action has viewer as response actor");
         const auto& effect=actual.queue.front();const auto* card=find_card(expected.pending);
-        check(card&&effect.models==std::vector<CardId>{expected.pending}&&effect.origin==expected.owner&&effect.source==expected.owner&&effect.target==defender
-              &&effect.category==card->category&&effect.power==card->atk&&effect.element==card->element
+        const auto models=expected.pending_models.empty()?std::vector<CardId>{expected.pending}
+            :std::vector<CardId>(expected.pending_models.begin(),expected.pending_models.end());
+        check(card&&effect.models==models&&effect.origin==expected.owner&&effect.source==expected.owner&&effect.target==defender
+              &&effect.category==card->category&&effect.power==attack_power(models)&&effect.element==attack_element(models)
               &&effect.ability==card->ability&&effect.amount==card->ability_value
               &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
         // Curse is derived from the retained base model, not a separate frame field.
         // The later received Cold state is also checked directly at update3.
         if(expected.pending==62)check(effect.ability==Ability::add_curse_on_damage&&card->curse==Curse::cold,
                                      "pending62 retains the on-damage Cold payload through its model");
-    } else check(actual.phase==MatchPhase::main&&actual.actor==expected.owner&&actual.queue.empty(),"quiescent received boundary is main with no pending attack");
+    } else if(expected.ended) check(actual.phase==MatchPhase::finished&&actual.terminated&&!actual.truncated&&actual.queue.empty()
+        &&!actual.batch&&!actual.pending_grant,"received end has no remaining response,batch or live grant");
+    else check(actual.phase==MatchPhase::main&&actual.actor==expected.owner&&actual.queue.empty(),"quiescent received boundary is main with no pending attack");
     // Deliberately excluded: native update_count/decisions/RNG/cumulative counters,
     // server transaction grouping, raw slot identity and raw inventory order.
     roundtrip(game);
@@ -951,13 +959,85 @@ void replay(std::uint64_t seed,bool supplied_purchase=false) {
 }
 }
 
+// v72 starts from a reconstructed pre41 scene,not a received initial game.
+// It compares the four saved updates2..5,including the final empty defense.
+namespace v72 {
+constexpr std::array<std::array<ReceivedSlot,9>,3> viewer{{
+    {{{1,45},{2,191},{3,6},{4,16},{5,116},{6,5},{7,179},{9,206},{8,49}}},
+    {{{1,45},{2,191},{3,6},{4,16},{5,116},{6,5},{9,206},{8,49},{7,44}}},
+    {{{1,45},{2,191},{3,6},{4,16},{5,116},{6,5},{9,206},{7,44},{8,199}}},
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,3> cpu{{
+    {{{1,90},{2,39},{3,183},{4,21},{5,19},{6,156},{7,43},{8,25},{0,0}}},
+    {{{1,90},{2,39},{3,183},{4,21},{5,19},{6,156},{7,43},{8,25},{9,35}}},
+    {{{1,90},{2,39},{3,183},{4,21},{6,156},{9,35},{0,0},{0,0},{0,0}}},
+}};
+constexpr std::array<CardId,3> compound{19,43,25};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{2,2,2,{{{1,29,10,20,false,viewer[0],true},{2,40,10,20,false,cpu[0]}}},92},
+    ReceivedCheckpoint{3,3,1,{{{1,29,10,20,false,viewer[1],true},{2,40,10,20,false,cpu[1]}}},0},
+    ReceivedCheckpoint{4,4,2,{{{1,16,10,20,false,viewer[2],true},{2,40,10,20,false,cpu[2]}}},19,compound},
+    ReceivedCheckpoint{5,4,2,{{{1,0,10,20,false,viewer[2],true,true},{2,40,10,20,false,cpu[2]}}},0,{},true},
+};
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed){
+    compare_checkpoint(game,slots,checkpoints[checkpoint]);
+    const auto& s=game.snapshot();
+    check(s.rng==seed&&s.redraws==0&&s.dream_rolls==0&&s.dream_masks==0&&s.guardian_actions==0
+          &&s.auto_guardian_actions==0&&s.revivals==0,"v72 deterministic received projection has no fitted selection,chance,guardian or revival draws");
+    const auto saved45=std::find_if(s.state.players[0].items.begin(),s.state.players[0].items.end(),
+                                  [](const auto& item){return item.model==45;});
+    check(saved45!=s.state.players[0].items.end()&&!saved45->used,"v72 retained45 is never used;low-HP absorption remains unobserved");
+}
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?cpu[0]:viewer[0]){
+            if(!row.model)continue;
+            const auto model=!seat&&row.slot==8?CardId{41}:row.model;
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,model,{},false});
+        }
+        if(seat){player.items.push_back({2009,92,{},false});slots[{2,9}]=2009;}
+        // Initial physical order and draw history were not captured.
+        std::sort(player.items.begin(),player.items.end(),[](const auto& a,const auto& b){return a.token<b.token;});
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);
+    const Command self41{1,CommandKind::play,{consumed_slot(slots,1,8)},1};
+    check(game.legal(self41),"v72 received41 explicit self command is legal");
+    (void)game.step(self41);roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1
+          &&game.snapshot().state.players[0].hp==29&&game.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}
+          &&game.snapshot().decisions==1&&game.snapshot().queue.empty(),
+          "v72 actual41 resolves11 damage and DarkCloud immediately without an extra self-defense");
+    v64::receipt(game,slots,1,8,49);
+    (void)game.step({2,CommandKind::play,{consumed_slot(slots,2,9)},1});roundtrip(game);compare(game,slots,0,seed);
+    (void)game.step({1,CommandKind::defend,{consumed_slot(slots,1,7)},{}});roundtrip(game);
+    check(game.snapshot().state.players[0].hp==29,"v72 actual179 DEF15 safely cancels Dark10");
+    // CPU35 is a positive inventory delta,not a received viewer gift event.
+    // The local seat-order pump is not evidence for backend receipt order.
+    v64::receipt(game,slots,1,7,44);v64::receipt(game,slots,2,9,35);compare(game,slots,1,seed);
+    (void)game.step({1,CommandKind::play,{consumed_slot(slots,1,8)},1});roundtrip(game);
+    check(game.snapshot().state.players[0].hp==16&&game.snapshot().queue.empty(),"v72 self49 immediately applies13 without a defensive use of its DEF1");
+    v64::receipt(game,slots,1,8,199);
+    std::vector<ItemToken> additions;
+    for(const auto slot:{5,7,8})additions.push_back(consumed_slot(slots,2,slot));
+    (void)game.step({2,CommandKind::play,additions,1});roundtrip(game);compare(game,slots,2,seed);
+    (void)game.step({1,CommandKind::defend,{},{}});roundtrip(game);compare(game,slots,3,seed);
+    check(game.snapshot().winners==std::vector<PlayerId>{2}&&game.snapshot().rewards==std::vector<double>{-1,1},
+          "v72 empty defense against actual22 ends the reconstructed sequence with CPU2 winning");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -974,4 +1054,5 @@ int main() {
     std::cout<<"v69: 8 seeds x5 received post-redraw states; masked19/27 self,113/135 defense,CP0 exchange and empty response;178 generation and multi-candidate BUY selector excluded\n";
     std::cout<<"v70: 8 seeds x6 reused v69 received states including178 with supplied8 replacements; reserved gifts separate,full private replay; no new observations or selector/RNG equivalence\n";
     std::cout<<"v71: 8 seeds x7 reused v69 received states,extending supplied178 with supplied seller5 CP0 BUY rejection and237 receipt; final CPU BUY unanswered,no selection seed fitting or probability proof\n";
+    std::cout<<"v72: 8 seeds x4 received post-only updates,self41 DarkCloud without self-defense,179 versusDark92,self49 and lethal compound22; pre41 scene reconstructed,no initial-draw/order or low-HP45 claim\n";
 }

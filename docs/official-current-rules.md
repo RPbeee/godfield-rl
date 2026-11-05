@@ -2163,3 +2163,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [45自己使用の受信](../data/official-v2/wire-game-updates-v66-absorb.json)はdealDamage12の後にboostHP12を置き、通常161補充へ進んだ。これは現ローカルbodyの先healと異なる表示順である。HP40ではどちらも最終40になるため、受信eventからserver内部のclip/死亡確定順まで決めない。上限・低HPを区別する実測が無いまま演算順を入れ替える変更は行わない。
 
 [14自己使用の受信](../data/official-v2/wire-game-updates-v66-twice.json)は3被害→nextAttack14→再target2→3被害、一消費と一giftを示した。次CPUの191自己回復を経てGF4本人HP34となる。有限の単品・非致死例であり、合成列、復活/死亡や中断時の全scheduleを検証したものではない。自己使用が未実測だった6種のうち45/14の経路を新たに実測し、27/216/58/53は引き続き未実測である。
+
+
+## v72：六角凶41の直接自己使用
+
+[公式CPU受信](../data/official-v2/wire-game-updates-v72.json)のupdate2は、本人41/id8→target1→damage11→addCurse darkcloud→49補充→advanceGF2→CPU92の列である。使用前HP40はUI、使用後HP29/MP10/CP20・DarkCloudは受信gameで確認した。自己防御入力を加えないため、41の旧response待ちを直接DEF0解決へ修正する。初期の権威的gameは取得できず、元手札の順と初期drawは不明である。
+
+続く179防御はDark10をsafe、49自己使用はHP29→16、その後CPU19+43+25/22へ空防御してHP0/dead・endGameとなる。未使用の45を低HP自己使用した実測ではない。単品41以外のaddonや救済順、一般の自己curse武器・病気/守護神scheduleへ新実測を一般化しない。

@@ -1,0 +1,692 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from file or transport metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v69.json",
+  "prior_coverage_reports": [
+    "supplied-redraw-replay-v70.json",
+    "supplied-purchase-replay-v71.json"
+  ],
+  "method": "One actual CPU training game with four completed viewer operations and four consecutive authoritative post-only updates2..5 through defeat. Initial wire acquisition was unsuccessful;the companion GF1 scene is reconstructed from UI values and the first received use/gift events,not a captured authoritative initial state.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original player names,userId,updatedAt,room/document identifiers and transport credentials are excluded. CPU true inventory is privileged validation context only.",
+  "authoritative_fixture": "wire-game-updates-v72.json",
+  "model_provenance": {
+    "41": {
+      "id": 41,
+      "imageName": "hexagon-doom",
+      "category": "weapons",
+      "atk": 11,
+      "ability": "addCurseOnDamage",
+      "curse": "darkcloud",
+      "price": 15,
+      "giftRate": 1,
+      "name": "六角凶"
+    },
+    "45": {
+      "id": 45,
+      "imageName": "real-ghost-sword",
+      "category": "weapons",
+      "atk": 12,
+      "ability": "absorbHP",
+      "price": 15,
+      "giftRate": 1,
+      "name": "リアルゴーストソード"
+    },
+    "49": {
+      "id": 49,
+      "imageName": "legendary-scabbard",
+      "category": "weapons",
+      "atk": 13,
+      "def": 1,
+      "price": 3,
+      "giftRate": 1,
+      "name": "伝説の剣のさや"
+    },
+    "92": {
+      "id": 92,
+      "imageName": "death-s-scythe",
+      "category": "weapons",
+      "element": "darkness",
+      "atk": 10,
+      "price": 20,
+      "giftRate": 1,
+      "name": "死神のカマ"
+    },
+    "179": {
+      "id": 179,
+      "imageName": "angel-armor",
+      "category": "armor",
+      "def": 15,
+      "ability": "blockMiracle",
+      "price": 15,
+      "giftRate": 1,
+      "name": "エンゼルアーマー"
+    },
+    "44": {
+      "id": 44,
+      "imageName": "direct-smash-axe",
+      "category": "weapons",
+      "atk": 12,
+      "price": 4,
+      "giftRate": 4,
+      "name": "もろぶっこみアクス"
+    },
+    "35": {
+      "id": 35,
+      "imageName": "wonder-sword",
+      "category": "weapons",
+      "atk": 10,
+      "price": 4,
+      "giftRate": 7,
+      "name": "ワンダーソード"
+    },
+    "199": {
+      "id": 199,
+      "imageName": "smile-shell",
+      "category": "sundries",
+      "ability": "removeMildCurses",
+      "price": 5,
+      "giftRate": 12,
+      "name": "スマイルの貝がら"
+    },
+    "19": {
+      "id": 19,
+      "imageName": "kusarigama",
+      "category": "weapons",
+      "atk": 5,
+      "price": 2,
+      "giftRate": 7,
+      "name": "鎖ガマ"
+    },
+    "43": {
+      "id": 43,
+      "imageName": "horror-wheel",
+      "category": "weapons",
+      "atk": 11,
+      "isPlusAtk": true,
+      "price": 10,
+      "giftRate": 1,
+      "name": "恐怖の車輪"
+    },
+    "25": {
+      "id": 25,
+      "imageName": "jet-yo-yo",
+      "category": "weapons",
+      "atk": 6,
+      "isPlusAtk": true,
+      "price": 6,
+      "giftRate": 1,
+      "name": "ジェットヨーヨー"
+    }
+  },
+  "source_body_provenance": [
+    {
+      "label": "after-self41",
+      "response_body_bytes": 20396,
+      "response_body_sha256": "532686eb9fbbae77101458a1f0d67182fb1777fe8fa285e25283dd5966e4be95",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-dark-defense-final",
+      "response_body_bytes": 17001,
+      "response_body_sha256": "54696f6db267c96ba7911e91c7d5c68f001fb53d9c842625d7c0aef51019d26e",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "after-self49-final",
+      "response_body_bytes": 21311,
+      "response_body_sha256": "618f2a03e320e4cd71b7cd6bc2b9c4c35fb15313ca64d278a6c80cdc7b8abbea",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "terminal",
+      "response_body_bytes": 15743,
+      "response_body_sha256": "cae5f45cb36a0337baa304c28d82aa04ae918d87e3806826062ee5e7eba2d69e",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "cases": [
+    {
+      "id": "training-gf1-self-hexagon-doom-darkcloud",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_reconstructed_scene_projection",
+      "before": {
+        "gf": 1,
+        "owner_player_id": 1,
+        "authoritative_received": false,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 41,
+        "displayed_model": 41,
+        "item_id": 8,
+        "target": 1,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 29,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "server_update_count": 2,
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              92
+            ],
+            "playerId": 2
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "addCurse",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "observation": "Viewer41 was explicitly self-targeted once. Received damage11 and DarkCloud followed before gift49/id8 and advance to CPU92 pending response. The native direct-self route previously excluded41;this observation motivates its limited correction.",
+      "limits": "The initial full wire was not captured. Before values are UI evidence and a reconstructed local scene;the post state and event payloads are authoritative. Other same-ability curse weapons remain an implementation generalization,not additional observations.",
+      "received_normal_gift": {
+        "modelId": 49,
+        "id": 8
+      }
+    },
+    {
+      "id": "training-gf2-angel-armor-blocks-dark-scythe",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_reconstructed_scene_projection",
+      "before": {
+        "gf": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 29,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "server_update_count": 2,
+        "pending_attacks": [
+          {
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              92
+            ],
+            "playerId": 2
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "defend",
+        "actual_models": [
+          179
+        ],
+        "displayed_models": [
+          179
+        ],
+        "item_ids": [
+          7
+        ],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 29,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "server_update_count": 3
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "safe",
+        "gift",
+        "advanceGF"
+      ],
+      "observation": "Viewer179 DEF15 safely defended the CPU92 DarkATK10 without HP loss. Viewer44/id7 arrived and GF3 viewer main followed.",
+      "limits": "CPU35/id9 is a positive inventory delta between received snapshots,not a received CPU gift event. No general hidden grant order or guardian schedule is inferred.",
+      "received_normal_gift": {
+        "modelId": 44,
+        "id": 7
+      },
+      "cpu_normal_snapshot_delta": {
+        "modelId": 35,
+        "id": 9,
+        "corresponding_received_gift_event_present": false
+      }
+    },
+    {
+      "id": "training-gf3-self-legendary-scabbard",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_reconstructed_scene_projection",
+      "before": {
+        "gf": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 29,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "server_update_count": 3
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 49,
+        "displayed_model": 49,
+        "item_id": 8,
+        "target": 1,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 4,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 16,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 6,
+            "zero_placeholder_rows": 3
+          }
+        ],
+        "server_update_count": 4,
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              19,
+              43,
+              25
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "observation": "Viewer49 self-use dealt13 to HP29,leaving16 and preserving MP10/CP20 and DarkCloud. Gift199/id8 followed before the next CPU compound19+43+25 launch.",
+      "limits": "This is the actual preparatory self-use. The next CPU ATK22 prevented the intended low-HP45 experiment;45 must not be counted as used.",
+      "received_normal_gift": {
+        "modelId": 199,
+        "id": 8
+      }
+    },
+    {
+      "id": "training-gf4-empty-defense-terminal-compound22",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_reconstructed_scene_projection",
+      "before": {
+        "gf": 4,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "server_update_count": 4,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 16,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 6,
+            "zero_placeholder_rows": 3
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              19,
+              43,
+              25
+            ]
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "defend",
+        "displayed_models": [],
+        "item_ids": [],
+        "outgoing_wire_command_captured": false
+      },
+      "incoming_actual_models": [
+        19,
+        43,
+        25
+      ],
+      "incoming_power": 22,
+      "after": {
+        "gf": 4,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "server_update_count": 5,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 0,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "darkcloud"
+            ],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0,
+            "dead": true
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 6,
+            "zero_placeholder_rows": 3
+          }
+        ],
+        "isOver": true
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "die",
+        "endGame"
+      ],
+      "received_defense_event_items_key_present": false,
+      "unused45_remains_in_terminal_inventory": true,
+      "received_gift_event_present": false,
+      "observation": "An empty viewer defense against the received CPU compoundATK22 caused damage22,HP16 to0,die1 and endGame. CPU remains40/10/20;viewer MP10/CP20 remain. No45 self-use occurred.",
+      "limits": "The player did not obtain the planned low-HP45 test. Terminal placeholders are retained raw-derived rows,not generalized as live grant debt. No new gift event is captured after the fatal body."
+    }
+  ],
+  "native_projection_validation": {
+    "status": "passed",
+    "ruleset": "official-execution-subset-v61",
+    "snapshot_version": 61,
+    "observe_schema": "official-execution-view-v59",
+    "fixed_reconstruction_replays": 8,
+    "received_checkpoints_per_replay": 4,
+    "received_checkpoint_comparisons": 32,
+    "initial_scene_authoritative": false,
+    "random_seed_fitting": false,
+    "scope": "Conditional comparison starts from the reconstructed GF1 before self41. Explicit received ordinary artifacts and CPU positive inventory deltas are external outcomes. No original initial draw/order,server RNG or complete internal scheduling equivalence is claimed.",
+    "received_updates_compared": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "baseline_cumulative_wire_checkpoint_comparisons": 368,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "outcome_contract_note": "Native winners[2] and rewards[-1,1] are local evaluation outputs consistent with the observed viewer death/endGame,not literal received winner/reward fields.",
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "static_inventory_literal_audit": "All four states and both players match the native expected slot/model/fake/used rows and order exactly. Terminal placeholders remain raw renderer rows while native live gift debts are0.",
+    "cumulative_wire_checkpoint_comparisons": 400,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v72",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed only source/fixture static audits,not builds/tests.",
+      "release_initial_full_run": {
+        "passed": 155,
+        "total": 157,
+        "seconds": 38.78,
+        "failed_targets": [
+          "C API test",
+          "Python test"
+        ],
+        "failure_scope": "Two new test expectations asserted the wrong legal-query contract."
+      },
+      "test_expectation_correction": "Only test assertions were corrected;no runtime or API implementation changed.",
+      "release_targeted_after_test_correction": {
+        "passed": 2,
+        "total": 2,
+        "seconds": 8.05,
+        "c_api_seconds": 0.3,
+        "targets": [
+          "C API test",
+          "Python test"
+        ]
+      },
+      "release_final_unique_targets_verified": 157,
+      "release_single_clean_full_157_of_157_run": false,
+      "asan_ubsan_initial_focused_run": {
+        "passed": 2,
+        "total": 3,
+        "seconds": 14.13,
+        "passed_targets": [
+          "core",
+          "wire"
+        ],
+        "failed_targets": [
+          "C API test"
+        ],
+        "failure_scope": "The new incorrect test expectation,subsequently corrected."
+      },
+      "asan_ubsan_targeted_after_test_correction": {
+        "passed": 1,
+        "total": 1,
+        "seconds": 1.29,
+        "targets": [
+          "C API test"
+        ]
+      },
+      "asan_ubsan_final_unique_focused_targets_verified": 3,
+      "asan_ubsan_single_clean_three_target_run": false,
+      "wire_release_seconds": 0.28,
+      "wire_asan_ubsan_seconds": 1.04,
+      "wire_checkpoint_comparisons_passed": 32,
+      "native_registered_callbacks": 244,
+      "python_test_methods": 176,
+      "compile_warnings": 0,
+      "compile_errors": 0,
+      "verification_scope": "All157 Release targets and focused native core/C API/wire3 sanitizer targets are verified across the initial and targeted reruns. This is not a single clean full-suite run and does not claim a full sanitizer suite or Python sanitizer execution."
+    }
+  },
+  "capture_counts": {
+    "authoritative_game_snapshots": 4,
+    "initial_authoritative_game_snapshots": 0,
+    "bounded_authoritative_game_update_batches": 4,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "terminal_received": true,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "terminal_update_count": 5,
+    "partial_received_sequence_only": true
+  },
+  "new_completed_public_transition_witnesses": 4,
+  "cumulative_completed_public_transition_witnesses": 49,
+  "new_native_projection_covered_completed_witnesses": 4,
+  "cumulative_native_projection_covered_completed_witnesses": 44,
+  "cumulative_record_only_completed_witnesses": 5,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "captured_full_server_event_traces": 0,
+  "planned_low_hp45_self_use_observed": false,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "scope_limitations": [
+    "45 remains unused in terminal inventory;the intended low-HP45 observation is not counted.",
+    "53 and58 actual self-use remain unobserved.",
+    "Four captured post states include endGame but omit the initial authoritative snapshot;no new complete received lifecycle is counted.",
+    "The initial six-event self41 operation prefix and following two-event CPU launch share update2. The49 self-operation prefix and nextCPU compound launch share update4."
+  ],
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 32,
+  "cumulative_wire_checkpoint_comparisons": 400,
+  "native_coverage_note": "Four new actual viewer operations bring completed observations to49 and conditionally native-covered observations to44;five older compound observations remain record-only. Eight fixed seeds compare received updates2..5 from a reconstructed GF1 initializer,not an authoritative initial wire. The unused45 low-HP experiment is not counted."
+}

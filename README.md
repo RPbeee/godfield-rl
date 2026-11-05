@@ -31,7 +31,7 @@ Python `official_state.py` は入力スナップショットの読み取り・vi
 | ルールセット / API | 用途 | 神器・接口 |
 | --- | --- | --- |
 | `official-catalog-client-rules-v2` / fresh state view | 現行公式の台帳・公開clientの表示計算、最大9人の状態の部分投影と見かけに基づく選択照会。対局実行不可 | 296モデル、`gfo_*` ABI1と `gfo_state_*` / Python `OfficialData`・`official_state.py` |
-| `official-execution-subset-v60` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
+| `official-execution-subset-v61` | 公式データによる実験規約の2〜9人/チーム対局。公式serverとの同等性未検証 | 既定236/499・任意設定237/500、全7属性・単純回復・奇跡保持・反射/消去/遮断/跳ね返し・FREE/属性付替/倍化・単純確率攻撃・攻撃/資源反撃4種・HP吸収/同被害・閃光/暗雲・除去2種・MP武器58/二回攻撃14・全敵化232・HP増減202・自動復活208・杵94/臼209・両替3・直近除去結果の公開・売却4・自己照会を含む購入5・病気4状態/付与6種・168/198・Fog4種・死亡時攻撃112・Dream4種・178redrawと互換クラス限定mask・201/239召喚・canonical42自動行動/離脱と外部指定行動/typed Earth・Moon payload・別入口のglobal現象5種/sourceなし現象3種/typed磁気嵐295/混乱289・外部指定主動作・ローカル混乱サンプラー/外部結果付き207/外部指定の悪魔5種/終末閾値とささげる/opt-in補充chance phase4と公開率によるローカルサンプラー、`gfo_match_*` ABI2 / Python `Match` |
 | `legacy-dying-weapon-subset-v37` | 死亡時効果117の到達不能性を固定したduelで、光ATK1・75%の通常使用を追加 | 231種、1368特徴、88byte行動、`g37_*` |
 | `legacy-status-miracles-subset-v36` | 解除202/211とDarkCloud208・Cold212・Heaven224の保持・FREE・27種忘却を加えた旧版の部分実装 | 230種、1345特徴、88byte行動、`g36_*` |
 | `legacy-sundry-boost-subset-v35` | SUNDRY238の物理boost10と順序付き追加・57リセット・売買を加えた旧版の部分実装 | 225種、1317特徴、88byte行動、`g35_*` |
@@ -3055,3 +3055,14 @@ v69の一新前から7状態を固定8seedで再生し、CP0で価格5の商品�
 ruleset60 / Snapshot60 / view-v58、C ABI2と旧構造体幅を維持し、追加の購入選出型は16 byteです。[再生report](data/official-v2/supplied-purchase-replay-v71.json)へ範囲を記録します。
 
 検証はRelease CTest157/157（39.39秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.55秒）が通過。native241群・Python175method、compile warning/error0、C11 -Werrorの新旧layout/prototypeと実行規約に掲載した購入APIのPython使用例も確認した。時間はsuiteの経過で、速度比較には使わない。全SAN suite/Python SANの実行とは区別する。
+
+
+## v72：六角凶41の直接自己使用を修正
+
+公式CPU戦で41を自分へ使い、防御入力なしの1操作で11被害・DarkCloud付与・通常補充まで進むことを確認しました。従来の追加防御待ちを省き、既存の被害・呪い・復活・補充処理へ直接つなぎます。ruleset61 / Snapshot61 / view-v59、既存C ABI2と型幅は維持します。
+
+4受信更新から、41自己使用・179による闇92防御・49自己使用・22の複合攻撃への空防御と終局を固定8seedで照合します。初期の受信本文は取得できず、消費品をイベントから戻した再構成sceneからの比較です。観測49例中のnative対象44例、記録のみ5例となり、重複を含むwire比較は400 checkpointです。[受信記録](data/official-v2/wire-game-updates-v72.json)と[観測範囲](data/official-v2/live-transition-witnesses-v72.json)を保存します。
+
+低HPの45自己吸収は、準備中の致死攻撃により未取得です。追加した混乱BUY・購入後の守護神応答の復元テストは、公式観測へ加算しないローカル回帰です。
+
+検証はRelease全157対象のうち155が初回（38.78秒）に通過し、追加C/Pythonテストのsemantic legal期待を修正後、該当2対象を再実行して2/2（8.05秒）通過した。runtimeはこのテスト修正では変更していない。Debug ASan/UBSanは初回core/wire通過、Cを同じ期待修正後に再実行し1/1（1.29秒）通過し、主要3対象を確認した。単一の全件clean runや全SAN/Python SANとは区別する。native244群・Python176method、両buildのwarning/error0、diff-check通過。

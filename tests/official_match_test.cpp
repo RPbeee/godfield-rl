@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v60"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v61"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v58\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v59\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -3082,7 +3082,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==60&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==61&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3092,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v58")!=std::string::npos
+    check(view.find("official-execution-view-v59")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;
@@ -3612,6 +3612,61 @@ void dream_weapon_self_body_and_narrow_routing(){
     check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,"Wide Dream column remains an enemy response rather than a direct self body");roundtrip(wide);
 }
 
+void darkcloud41_self_body_and_narrow_routing(){
+    std::vector<CardId> traits;
+    for(const auto& card:catalog())if(card.category==Category::weapons&&card.ability==Ability::add_curse_on_damage&&card.curse==Curse::darkcloud)traits.push_back(card.id);
+    check(traits==std::vector<CardId>{41},"DarkCloud on-damage self routing admits only41 in the pinned weapon catalog");
+    MatchConfig config;config.external_artifacts=true;
+    auto state=scene({41,150},{});Match game(config);game.load_scene(state,0,7);game.step(play(0,{0},0));const auto body=game.snapshot();
+    check(body.phase==MatchPhase::grant&&!body.actor&&body.queue.empty()&&body.decisions==1&&body.pending_grant==0
+        &&body.state.players[0].hp==29&&body.state.players[0].mp==10&&body.state.players[0].cp==20
+        &&body.state.players[0].curses==std::vector<Curse>{Curse::darkcloud}
+        &&body.state.players[0].items==std::vector<ItemInstance>{{1,150,{},false}}&&body.gifts[0]==1&&body.rng==7,
+        "observed self41 deals11 and installs DarkCloud without an extra defense or consumption of available armor");roundtrip(game);
+    game.artifact_grant_step({0,49,{}});
+    check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().state.gf==1
+        &&game.snapshot().state.players[0].hp==29&&game.snapshot().state.players[0].items.back()==ItemInstance{body.next_token,49,{},false}
+        &&game.snapshot().rng==7,"explicit observed gift49 follows the self body through the existing normal grant schedule");roundtrip(game);
+    // Composition, revival and cutoff are local regression boundaries, not additional live41 observations.
+    auto combined=scene({41,162,150},{});auto composed=fixture(combined,config);composed.step(play(0,{0,1},0));
+    check(composed.snapshot().phase==MatchPhase::grant&&composed.snapshot().decisions==1
+        &&composed.snapshot().state.players[0].hp==40-attack_power(std::array<CardId,2>{41,162})
+        &&composed.snapshot().state.players[0].mp==10&&composed.snapshot().gifts[0]==2
+        &&composed.snapshot().state.players[0].items==std::vector<ItemInstance>{{2,150,{},false}}
+        &&composed.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud},
+        "synthetic ordinary addon composition preserves the existing power and one gift per consumed physical copy");roundtrip(composed);
+    composed.artifact_grant_step({0,199,{}});roundtrip(composed);composed.artifact_grant_step({0,199,{}});roundtrip(composed);
+    MatchConfig cap=config;cap.max_decisions=1;auto cutoff=fixture(state,cap);const auto rng=cutoff.snapshot().rng;cutoff.step(play(0,{0},0));
+    check(cutoff.snapshot().truncated&&cutoff.snapshot().state.players[0].hp==29
+        &&cutoff.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}
+        &&cutoff.snapshot().gifts[0]==0&&cutoff.snapshot().rng==rng,"self41 body precedes decision cutoff and its unperformed gift is canceled");roundtrip(cutoff);
+    auto dying=scene({41,208},{});dying.players[0].hp=5;auto revived=fixture(dying,config);revived.step(play(0,{0},0));
+    check(revived.snapshot().revivals==1&&revived.snapshot().state.players[0].hp==10
+        &&revived.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud}
+        &&revived.snapshot().gifts[0]==2,"self41 retains the existing whole-body curse,revival and two reserved gifts");roundtrip(revived);
+    auto foreign=fixture(scene({41},{150,150}));foreign.step(play(0,{0},7));
+    check(foreign.snapshot().phase==MatchPhase::response&&foreign.snapshot().actor==7,"foreign41 retains its defense window");
+    foreign.step(defend(7,{0,1}));check(foreign.snapshot().state.players[1].hp==40&&foreign.snapshot().state.players[1].curses.empty(),
+        "fully defended foreign41 does not install DarkCloud without positive target damage");roundtrip(foreign);
+    auto reflected=fixture(scene({41},{190}));reflected.step(play(0,{0},7));reflected.step(defend(7,{0}));
+    check(reflected.snapshot().phase==MatchPhase::response&&reflected.snapshot().actor==0&&reflected.snapshot().state.players[0].hp==40,
+        "redirected41 still requires its existing response rather than entering the main explicit-self shortcut");roundtrip(reflected);
+    reflected.step(defend(0));check(reflected.snapshot().state.players[0].hp==29
+        &&reflected.snapshot().state.players[0].curses==std::vector<Curse>{Curse::darkcloud},"reflected41 keeps existing damage and curse arithmetic");roundtrip(reflected);
+    for(CardId model:{CardId{62},CardId{70},CardId{72}}){auto special=fixture(scene({model},{}));special.step(play(0,{0},0));
+        check(special.snapshot().phase==MatchPhase::response&&special.snapshot().actor==0&&special.snapshot().state.players[0].hp==40,
+            "Cold,Flash and Fog self weapons remain outside the observed Dream/DarkCloud shortcut");roundtrip(special);}
+    auto wide_state=scene({41,232},{});wide_state.players[0].mp=99;auto wide=fixture(wide_state);wide.step(play(0,{0,1},0));
+    check(wide.snapshot().phase==MatchPhase::response&&wide.snapshot().actor==7&&wide.snapshot().state.players[0].hp==40,
+        "Wide41 column keeps the enemy roster response route");roundtrip(wide);
+    auto payload_state=scene({},{});payload_state.players[0].guardian=Guardian::earth;auto payload=fixture(payload_state);payload.guardian_payload_step({0,Guardian::earth,{41},0});
+    check(payload.snapshot().phase==MatchPhase::response&&payload.snapshot().actor==0&&payload.snapshot().state.players[0].hp==40,
+        "external Earth self41 retains the prior guardian payload response schedule");roundtrip(payload);
+    auto late=state;late.update_count=max_wire_integer;auto atomic=fixture(late,config);const auto before=atomic.snapshot();bool failed=false;
+    try{atomic.step(play(0,{0},0));}catch(const MatchError&){failed=true;}
+    check(failed&&atomic.snapshot()==before,"late update failure rolls back self41 consumption,damage,curse and gift reservation");
+}
+
 void received_identity_disguise_presence_use_and_replay(){
     for(const auto& card:catalog()){
         check(!match_dream_compatible(card.id,card.id),"local generation still excludes all identity candidates");
@@ -3932,10 +3987,89 @@ void supplied_purchase_empty_cutoff_proof_and_default_transactions(){
         &&ordinary.snapshot().rng==pending.snapshot().rng+0x9e3779b97f4a7c15ULL,
         "normal step and driver retain the old singleton purchase selector and policy entropy");roundtrip(ordinary);
 }
+
+void supplied_purchase_confusion_origin_and_receipt_replay(){
+    for(bool external:{false,true})for(bool accept:{false,true}){
+        MatchConfig config;config.external_artifacts=external;
+        auto state=scene({5},{19,235});state.players[0].confusion_count=state.players[1].confusion_count=3;
+        state.players[1].items[1].used=true;
+        auto game=fixture(state,config);const Command launch{0,CommandKind::buy,{0},7};
+        reject(game,launch);check(game.confusion_legal(launch),"supplied purchase starts from a legal externally resolved confused BUY");
+        game.confusion_step(launch);const auto pending=game.snapshot();roundtrip(game);
+        check(pending.batch->confusion_command&&pending.batch->initial_state.players[0].confusion_count==3
+            &&pending.state.players[0].confusion_count==2&&pending.state.players[1].confusion_count==3,
+            "confused BUY anchors the original count before its single launch debit");
+        const PurchaseResponseAction supplied{defend(7),ItemToken{0}};
+        check(game.purchase_response_legal(supplied)&&game.snapshot()==pending,"supplied selection query does not debit confusion or mutate the response");
+        game.purchase_response_step(supplied);const auto quote=game.snapshot();roundtrip(game);
+        check(quote.phase==MatchPhase::purchase&&quote.rng==pending.rng&&quote.purchase->item==ItemInstance{0,19,{},false}
+            &&quote.purchase_proof->confusion_command&&quote.purchase_proof->resolved_purchases==std::vector<PurchaseResolution>{{0,ItemToken{0}}}
+            &&quote.state.players[0].confusion_count==2&&quote.state.players[1].confusion_count==3,
+            "confusion-origin supplied offer preserves the pre-debit journal and skips only commodity-selection RNG");
+        auto bad=quote;bad.batch->confusion_command=false;bad.purchase_proof->confusion_command=false;
+        bool failed=false;try{game.restore(bad);}catch(const MatchError&){failed=true;}
+        check(failed&&game.snapshot()==quote,"purchase replay rejects removal of the original confusion launch marker");
+        Match resumed(config);resumed.restore(quote);
+        const Command decision{0,accept?CommandKind::accept:CommandKind::decline,{},{}};
+        check(game.step(decision)==resumed.step(decision)&&game.snapshot()==resumed.snapshot(),
+            "supplied confusion quote resumes to the exact YES/NO receipt or return");roundtrip(game);
+        const auto& after=game.snapshot();
+        check(after.last_purchase->reason==(accept?PurchaseReason::bought:PurchaseReason::declined)
+            &&after.state.players[0].cp==20-(accept?find_card(19)->price:0)
+            &&after.state.players[1].cp==20+(accept?find_card(19)->price:0)
+            &&after.state.players[0].confusion_count==2&&after.state.players[1].confusion_count==3
+            &&after.state.players[1].items.back()==ItemInstance{1,235,{},true},
+            "buyer decision keeps actual-price transfer, retained seller miracle and both remaining confusion counts");
+        if(accept)check(std::find(after.state.players[0].items.begin(),after.state.players[0].items.end(),ItemInstance{quote.next_token,19,{},false})
+            !=after.state.players[0].items.end(),"accepted commodity is a fresh unused receipt even with ordinary internal gift completion");
+        else check(after.state.players[1].items.front()==ItemInstance{0,19,{},false},"declined commodity returns to its original token and slot");
+        if(external){check(after.phase==MatchPhase::grant&&after.rng==quote.rng,"external ordinary gift pause follows the purchase decision without a second confusion debit");drain_supplied_gifts(game);}
+        check(game.snapshot().phase==MatchPhase::main&&game.snapshot().owner==7&&game.snapshot().decisions==3+(external?1:0)
+            &&game.snapshot().purchase_proof&&game.snapshot().purchase_proof->confusion_command
+            &&game.snapshot().purchase_proof->responses==std::vector<Command>{defend(7),decision}
+            &&game.snapshot().state.players[0].confusion_count==2&&game.snapshot().state.players[1].confusion_count==3,
+            "completed confused BUY proof survives default or supplied gift completion without spending a second confused turn");roundtrip(game);
+    }
+}
+
+void supplied_purchase_confusion_then_automatic_guardian_replay(){
+    bool witnessed=false;
+    // Local scheduler fixtures exercise a legal follow-up; this is not a fit to an official selector or recording.
+    for(std::uint64_t seed=0;seed<64&&!witnessed;++seed){
+        auto state=scene({5,190},{6});for(auto& p:state.players){p.hp=99;p.confusion_count=3;}
+        state.players[1].guardian=Guardian::saturn;
+        Match game;game.load_scene(state,0,seed);game.confusion_step({0,CommandKind::buy,{0},7});
+        game.purchase_response_step({defend(7),ItemToken{0}});const auto quote=game.snapshot();roundtrip(game);
+        const Command accept{0,CommandKind::accept,{},{}};game.step(accept);
+        if(game.snapshot().phase!=MatchPhase::response)continue;
+        witnessed=true;const auto automatic=game.snapshot();
+        check(automatic.auto_guardian_actions==1&&automatic.guardian_opportunities==1&&automatic.guardian_payload_actions==0
+            &&automatic.queue.front().guardian==Guardian::saturn&&automatic.queue.front().source==7&&automatic.actor==0
+            &&automatic.batch->confusion_command&&automatic.purchase_proof&&*automatic.purchase_proof==*automatic.batch
+            &&automatic.gifts[0]==1&&automatic.state.gf==0&&automatic.decisions==3,
+            "completed supplied BUY legally enters the ordinary enemy guardian stage before its reserved operation gift");roundtrip(game);
+        Match resumed;resumed.restore(quote);resumed.step(accept);check(resumed.snapshot()==automatic,"restored supplied quote reproduces the same automatic guardian payload and draws");
+        for(const auto response:{defend(0,{1}),defend(7)}){
+            check(game.step(response)==resumed.step(response)&&game.snapshot()==resumed.snapshot(),
+                "purchase proof replays the automatic guardian reflection and final response from the original confused BUY");roundtrip(game);
+        }
+        const auto& completed=game.snapshot();
+        check(completed.phase==MatchPhase::main&&completed.owner==7&&completed.state.gf==1&&completed.decisions==5
+            &&completed.state.players[0].confusion_count==2&&completed.state.players[1].confusion_count==3
+            &&completed.auto_guardian_actions==1&&completed.guardian_opportunities==1&&completed.purchase_proof
+            &&completed.purchase_proof->confusion_command
+            &&completed.purchase_proof->resolved_purchases==std::vector<PurchaseResolution>{{0,ItemToken{0}}}
+            &&completed.purchase_proof->responses==std::vector<Command>{defend(7),accept,defend(0,{1}),defend(7)},
+            "automatic responses finish once, preserve the sparse purchase outcome and never debit confused participants again");roundtrip(game);
+    }
+    check(witnessed,"bounded local fixture reaches a canonical Saturn follow-up after the supplied purchase");
+}
 }
 int main(){
     // Keep independently registered tests out of main's combined ASan stack frame.
-    const std::array<void(*)(),241> tests{{
+    const std::array<void(*)(),244> tests{{
+        supplied_purchase_confusion_origin_and_receipt_replay,
+        supplied_purchase_confusion_then_automatic_guardian_replay,
         supplied_purchase_cp_zero_token0_and_completed_proof,
         supplied_purchase_quotes_return_reflection_and_self_boundaries,
         supplied_purchase_empty_cutoff_proof_and_default_transactions,
@@ -3944,6 +4078,7 @@ int main(){
         supplied_redraw_all_origin_factories_and_grant_interleave,
         supplied_redraw_shapes_proof_forgery_and_default_transactions,
         dream_weapon_self_body_and_narrow_routing,
+        darkcloud41_self_body_and_narrow_routing,
         received_identity_disguise_presence_use_and_replay,
         received_directed19_face27_uses_visible_legality_and_actual_body,
         external_artifacts_flags_thresholds_sampler_and_driver,

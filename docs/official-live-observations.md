@@ -299,3 +299,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [再生report](../data/official-v2/supplied-purchase-replay-v71.json)は既存v69のupdate1〜7を対象とする。178の8枚を供給するv70経路から続け、BUY応答時のCPU商品5/slot2を明示する。CP0では確認画面へ進まず同じコピーが返り、本人237の通常gift後、CPUが返却品を使った次BUY保留まで比較する。CP/HP/MP、Dream、全正コピーとfake presence、placeholder、GF/owner/response、各private snapshotの復元を検査する。
 
 7状態×固定8seed＝56比較を加え、重複を含むwire累計368比較とする。新規観測0・完了観測45例を維持し、既存BUY拒否の1例を条件付きnative対象へ移して40/record-only5。元v69のwire/witnessと当時のcoverageは変更しない。公式の商品selector分布・乱数器、次CPU BUYへの応答/支払いは再現対象外である。
+
+
+## v72：六角凶の自己使用・闇防御・自己49・終局
+
+[4受信更新](../data/official-v2/wire-game-updates-v72.json)と[4操作](../data/official-v2/live-transition-witnesses-v72.json)を取得した。41自己使用は単一操作で11被害・DarkCloud・通常49補充、179/DEF15でCPU92の闇10をsafe、49自己使用で13被害、最後はCPU19+43+25の22に空防御して死亡・終局となる。本人HP列は40(UI初期)→29→29→16→0、MP10/CP20維持である。41の不要なself-defense待ちを修正する。
+
+初期の権威的本文は取得できず、最初のpostから消費41とCPU92を戻した再構成sceneからの検証とする。4状態×固定8seed＝32比較、累計観測49/native対象44/record-only5、wire比較は重複込み400。終局後も未使用45を保持しており、45低HP吸収の観測には数えない。新しい完全な受信start→endは0、従来累計1のままである。終局後のホーム復帰・Network Monitor終了を確認した。
