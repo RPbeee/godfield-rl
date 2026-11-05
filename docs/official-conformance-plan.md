@@ -2172,3 +2172,12 @@ update2〜5の4受信終点を、消費41とCPU92だけを戻したGF1再構成s
 新3完了操作で観測52/native47/record-only5、wire重複込み432。新たな完全start→endの受信列1対局を加えて累計2とする。165の不適合クリックは未選択で完了件数やrouting-only件数へ加えず、terminalは受信本文で確認する。ホーム復帰とNetwork Monitor終了を確認した。
 
 Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native245群・Python177method、最終両buildのwarning/error0、diff-check正常。全SAN suite/Python SANや、版間の速度比較とは区別する。
+
+
+## 作業世代v74：21の自己使用と欠番付きendpoint
+
+21のself40→35・追加防御無し・次CPU BUY待ちをUIで観測し、武器bounceWeaponだけを直接自己使用へ追加する。34/bounceMiracle、応答/redirect/Wide/guardianは維持する。rules63/Snapshot63/view61へ更新し、ABI2/型幅と通常の弾き選出/商品selectorは変更しない。
+
+authoritative更新は1と3のみで、missing2を明示する。初期手札から21操作、44在庫差分、CPU BUY5、正確なseller23 token、CPUの購入成立、13在庫差分を入力し、更新3のCP22/18・seller手札8/buyer10へ再生する。8固定seed×受信2状態＝16比較、21直後とquoteはlocal中間検査である。新2completed UI観測で累計54/native49/record-only5・wire448、新しい完全受信lifecycle0/累計2を維持する。raw use21/gift44やCPU launchを取得済みと表現しない。
+
+Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.14秒）が通過。native246群・Python178 unique method、両buildのwarning/error0、diff-check正常。全SAN/Python SAN、一般の商品分布・server RNGの同値性とは区別する。

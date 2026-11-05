@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact UI capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v73.json",
+  "method": "Two completed viewer operations in one CPU training game:direct UI self21 and an empty response to CPU BUY. Only authoritative updates1 and3 were captured;update2 and direct raw self21/gift44/CPU5-launch events are absent.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. CPU true hand is privileged validation input only.",
+  "authoritative_fixture": "wire-game-updates-v74.json",
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25421,
+      "response_body_sha256": "cd90bbd40a0db76a223aded382b1f823059903ea6280a8dbb84b15cc39f80f74",
+      "webchannel_frame_count": 16
+    },
+    {
+      "label": "after-accepted-cpu-buy",
+      "response_body_bytes": 16363,
+      "response_body_sha256": "858c8e00dc39dec49a54dcc3b52f0c1f558df31940963d119c98c6550c80aa4f",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "model_provenance": {
+    "21": {
+      "id": 21,
+      "imageName": "bouncing-sword",
+      "category": "weapons",
+      "atk": 5,
+      "ability": "bounceWeapon",
+      "price": 10,
+      "giftRate": 7,
+      "name": "乱弾武剣"
+    },
+    "23": {
+      "id": 23,
+      "imageName": "hard-hammer",
+      "category": "weapons",
+      "atk": 6,
+      "price": 2,
+      "giftRate": 8,
+      "name": "硬いつち"
+    },
+    "44": {
+      "id": 44,
+      "imageName": "direct-smash-axe",
+      "category": "weapons",
+      "atk": 12,
+      "price": 4,
+      "giftRate": 4,
+      "name": "もろぶっこみアクス"
+    },
+    "5": {
+      "id": 5,
+      "imageName": "buy",
+      "category": "trade",
+      "ability": "buy",
+      "price": 5,
+      "giftRate": 20,
+      "name": "買う"
+    },
+    "13": {
+      "id": 13,
+      "imageName": "punch",
+      "category": "weapons",
+      "atk": 3,
+      "price": 1,
+      "giftRate": 5,
+      "name": "パンチ"
+    },
+    "97": {
+      "id": 97,
+      "imageName": "fog-fan",
+      "category": "weapons",
+      "element": "water",
+      "atk": 3,
+      "hitRate": 50,
+      "ability": "addCurseOnDamage",
+      "curse": "fog",
+      "price": 8,
+      "giftRate": 1,
+      "name": "霧の扇"
+    },
+    "75": {
+      "id": 75,
+      "imageName": "star-staff",
+      "category": "weapons",
+      "element": "light",
+      "atk": 3,
+      "price": 3,
+      "giftRate": 1,
+      "name": "スタースタッフ"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-bounce-weapon21-ui-endpoint",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_ui_and_received_endpoint_projection",
+      "evidence_class": "completed UI transition with surrounding authoritative endpoints and a missing direct post-action update",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 21,
+        "displayed_model": 21,
+        "item_id": 3,
+        "target": 1,
+        "outgoing_wire_command_captured": false
+      },
+      "after_ui": {
+        "authoritative_received_snapshot": false,
+        "missing_update_count": 2,
+        "viewer_operation": "single21/id3 explicitly toward self",
+        "viewer_hp_before": 40,
+        "viewer_hp_after": 35,
+        "self_defense_or_bounce_ui_observed": false,
+        "following_cpu_buy5_pending_ui_observed": true,
+        "scope": "This is a UI observation,not a synthesized received update2 or a raw event list."
+      },
+      "later_authoritative_endpoint": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 35,
+            "mp": 10,
+            "cp": 22,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 18,
+            "curses": [],
+            "positive_model_copies": 10,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "direct_authoritative_post_case_snapshot_captured": false,
+      "raw_use21_or_gift44_event_captured": false,
+      "snapshot_delta_input": {
+        "player_id": 1,
+        "server_item_id": 3,
+        "model": 44,
+        "evidence": "Initial21/id3 is absent at update3,where44/id3 is present;no received gift event or exact acquisition time was captured."
+      },
+      "observation": "A single self21 use was observed in the UI to reduce viewerHP40 to35,without an own-defense or bounce interaction;the next CPU BUY became pending.",
+      "limits": "Update2 was not captured. Update3 already includes the later purchase,so its CP22 state is not the immediate self21 result. Native coverage is conditional given the observed UI command/result and explicit44 inventory delta,not a replay of captured use21/gift44 events."
+    },
+    {
+      "id": "training-gf2-cpu-buys-hard-hammer-after-empty-response",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_endpoint_projection",
+      "before": {
+        "authoritative_received": false,
+        "basis": "UI CPU BUY pending after self21 plus surrounding authoritative inventories;update2 missing",
+        "buyer_player_id": 2,
+        "seller_player_id": 1
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "defend",
+        "displayed_models": [],
+        "item_ids": [],
+        "outgoing_wire_command_captured": false
+      },
+      "received_selected_seller_copy": {
+        "modelId": 23,
+        "id": 6
+      },
+      "received_bought_buyer_copy": {
+        "modelId": 23,
+        "id": 9,
+        "bought": true
+      },
+      "catalog_price": 2,
+      "price_field_in_received_buy_event": false,
+      "cpu_acceptance_evidence": "received setBought bought:true;not a viewer YES/NO decision",
+      "after": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 35,
+            "mp": 10,
+            "cp": 22,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 18,
+            "curses": [],
+            "positive_model_copies": 10,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "buy",
+        "setBought",
+        "advanceGF"
+      ],
+      "cpu_normal_snapshot_delta": {
+        "player_id": 2,
+        "server_item_id": 10,
+        "model": 13,
+        "evidence": "positive received inventory addition at update3;no received gift event"
+      },
+      "observation": "Viewer empty response was followed by received selection23/id6 and setBought true23/id9. ViewerCP rose20→22,CPUCP fell20→18,and GF3 viewer main was received. CPU ends with ten positive copies.",
+      "limits": "The actual commodity selection and payment are directly received. The missing CPU5 launch and implicit13 replenishment are separate conditional-replay inputs. CPU acceptance is an automatic continuation,not an additional curated viewer operation."
+    }
+  ],
+  "native_projection_validation": {
+    "status": "passed",
+    "ruleset": "official-execution-subset-v63",
+    "snapshot_version": 63,
+    "observe_schema": "official-execution-view-v61",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      3
+    ],
+    "received_checkpoints_per_replay": 2,
+    "received_checkpoint_comparisons": 16,
+    "baseline_cumulative_wire_checkpoint_comparisons": 432,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "scope": "Conditional replay from actual initial hands:observed self21 command,explicit44 inventory delta,UI CPU BUY launch,supplied exact seller23 token,CPU accept and explicit13 inventory delta. Only initial1 and received3 are authoritative comparison checkpoints;local intermediate restores do not create received update2.",
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v74",
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "static_inventory_literal_audit": "All four player inventories at the two authoritative endpoints match native expected slot/model/fake/used rows and order exactly. Native intermediate self21 and purchase quotes are only local restore checks.",
+    "comparison_scope": "Authoritative endpoints1 and3 only:resources,GF/owner/main,curses/death,actual/fake/used positive inventory under an explicit slot map and snapshot restore. No received update2,initial draw,CPU policy or selector distribution is reproduced.",
+    "delta_schedule_note": "Delivering44 before the UI CPU BUY and13 after acceptance is an endpoint-compatible local completion. Missing update2 and absent gift events do not establish the precise backend receipt order or provenance of both additions.",
+    "passed": true,
+    "cumulative_wire_checkpoint_comparisons": 448,
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/fixture static audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 39.4,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 14.14,
+      "asan_ubsan_core_seconds": 14.14,
+      "asan_ubsan_c_api_seconds": 1.43,
+      "asan_ubsan_wire_seconds": 1.01,
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 246,
+      "python_test_methods": 178,
+      "python_method_count_independently_confirmed": "Read-only AST inventory confirms178 distinct MatchTests methods.",
+      "final_release_compile_warnings": 0,
+      "final_release_compile_errors": 0,
+      "final_asan_ubsan_compile_warnings": 0,
+      "final_asan_ubsan_compile_errors": 0,
+      "sanitizer_scope": "Focused native core,C API and wire targets only;no full sanitizer suite or Python sanitizer execution is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "missing_server_update_counts": [
+      2
+    ],
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_duplicate_response_count": 2,
+    "excluded_unrelated_game_response_count": 1
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit/forfeit without a captured terminal game update",
+    "quit_counted_as_completed_viewer_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 2,
+  "cumulative_completed_public_transition_witnesses": 54,
+  "new_native_projection_covered_completed_witnesses": 2,
+  "cumulative_native_projection_covered_completed_witnesses": 49,
+  "cumulative_record_only_completed_witnesses": 5,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 448,
+  "native_coverage_note": "Two completed viewer observations bring the total to54 and conditional native-covered observations to49;five older compound observations remain record-only. Self21 is a directly observed UI result with missing raw update2,not merely a routing-only observation. Two authoritative endpoints1 and3 are compared across eight fixed seeds,using explicit44/13 inventory deltas and privileged exact seller23 selection. Intermediate self/quote checks add no received checkpoints. Complete received lifecycles remain2 and routing-only observations remain1."
+}

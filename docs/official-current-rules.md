@@ -2177,3 +2177,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [公式CPUの受信update1〜4](../data/official-v2/wire-game-updates-v73.json)では、55自己使用→damage15→184補充→CPU40へ進み、追加self defense/blockイベントは無い。本人40→25、MP10/CP20不変を取得した。武器blockMiracleの直接self経路を追加し、55を実測、42/50/56を同能力への限定一般化とする。
 
 その後184で11被害を受け、受信nextAttackはplayer1/models184/atk22を示す。CPU190がreflectして、current attackはplayer2/target1/reversed:trueとなる。残る165はStoneへの属性防御にもmiracle反応にも適合せず未選択、空防御で22被害・HP0/dead/endGameとなった。非致死11→22の1例であり、clip・死亡したcounter source・複数counter/FIFOやbackendの一般処理順へ広げない。本文の末尾placeholderとnativeの取消済みgiftを区別する。
+
+
+## v74：21自己使用のUI観測と購入成立
+
+[新受信記録](../data/official-v2/wire-game-updates-v74.json)はauthoritative初期/update1と購入後/update3だけで、update2は欠落する。UIでは21自己使用が追加防御なしで40→35となり、次のCPU BUYが待機した。この観測に基づき21の直接self routingを修正する。raw use21/gift44/CPU5 launchや、backendのbounce乱数消費を確定する根拠とはしない。
+
+受信3にはempty useDefense・buy seller23/id6・setBought true buyer23/id9・advance1がある。価格2の支払でCPU20→18・本人20→22となりHP/MP維持、本人8枚・CPU10枚を受信した。44と13は在庫差分で、明示gift eventは取得していない。通常手数料やseller補償を加える変更は行わず、既存CP-only/配送/予約補充処理を条件付きで照合する。

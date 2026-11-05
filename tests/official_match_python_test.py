@@ -107,8 +107,8 @@ class MatchTests(unittest.TestCase):
 
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
-        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-block-miracle55-observed42-50-56-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v62"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-reflect-weapon-reflect-miracle-block-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-observed-no-raw-use-event-bounce-miracle-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
+        self.assertEqual(match.ruleset, "official-execution-subset-v63"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v60")
+        self.assertEqual(own["schema"], "official-execution-view-v61")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v60")
+        self.assertEqual(event["schema"], "official-execution-view-v61")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -639,6 +639,31 @@ class MatchTests(unittest.TestCase):
                 self.assertTrue(alias.observe()["board"]["players"][0]["dead"])
             else:
                 self.assertEqual((result.phase, result.actor), ("main", 1))
+
+    def test_observed_self21_does_not_request_defense_or_bounce(self):
+        # UI confirms the use/routing;44 is an inventory-delta result, not a
+        # captured gift event. No selector seed is fitted to that receipt.
+        raw = {"gf": 1, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 3, "modelId": 21}, {"id": 9, "modelId": 142}]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        before, status = game.observe(0), game.status
+        invalid = Command(0, "play", (3,), 0, (40, 10, 20))
+        self.assertFalse(game.legal(invalid))
+        with self.assertRaises(InvalidMatchError): game.step(invalid)
+        self.assertEqual((game.observe(0), game.status), (before, status))
+        game.step(Command(0, "play", (3,), 0)); view = game.observe(0)
+        self.assertEqual((game.status.phase, game.actor, game.status.decisions), ("grant", None, 1))
+        self.assertIsNone(view["pending"])
+        self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"]) for p in view["board"]["players"]], [(35, 10, 20), (40, 10, 20)])
+        self.assertEqual([(i["token"], i["face"], i["used"]) for i in view["board"]["hand"]], [(9, 142, False)])
+        self.assertFalse(game.legal(Command(0, "defend", (9,))))
+        self.assertEqual(view["pending_grant"], {"target": 0})
+        game.artifact_grant_step(ArtifactGrantAction(0, 44))
+        self.assertEqual((game.status.phase, game.status.owner, game.observe()["board"]["gf"], game.status.decisions), ("main", 7, 2, 2))
+        self.assertEqual(len(game.observe(0)["board"]["hand"]), 2)
+        self.assertEqual(game.observe()["board"]["players"][0]["status"]["hp"], 35)
 
     def test_observed_self55_is_damage_not_a_self_block_or_defense_request(self):
         raw = {"gf": 1, "players": [

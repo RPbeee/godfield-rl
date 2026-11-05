@@ -1106,13 +1106,78 @@ void replay(std::uint64_t seed){
 }
 }
 
+// v74 has received updates1 and3. The intervening self21 operation is observed
+// in the UI;its raw use event and update2 were not captured or reconstructed.
+namespace v74 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,142},{2,93},{3,21},{4,4},{5,124},{6,23},{7,210},{8,154},{9,4}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,97},{2,75},{3,132},{4,118},{5,187},{6,118},{7,3},{8,118},{9,5}}};
+constexpr std::array<ReceivedSlot,8> final_viewer{{{1,142},{2,93},{4,4},{5,124},{7,210},{8,154},{9,4},{3,44}}};
+constexpr std::array<ReceivedSlot,10> final_cpu{{{1,97},{2,75},{3,132},{4,118},{5,187},{6,118},{7,3},{8,118},{9,23},{10,13}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}},0},
+    ReceivedCheckpoint{3,3,1,{{{1,35,10,22,false,final_viewer},{2,40,10,18,false,final_cpu}}},0},
+};
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed){
+    compare_checkpoint(game,slots,checkpoints[checkpoint]);
+    const auto& s=game.snapshot();
+    check(s.rng==seed&&s.chance_rolls==0&&s.counter_rolls==0&&s.dream_rolls==0&&s.dream_masks==0
+          &&s.redraws==0&&s.auto_guardian_actions==0&&s.revivals==0,
+          "v74 supplied commodity and ordinary deltas use the fixed seeds without fitting or unobserved chance branches");
+}
+void replay(std::uint64_t seed){
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare(game,slots,0,seed);
+    const Command self21{1,CommandKind::play,{consumed_slot(slots,1,3)},1};
+    check(game.legal(self21),"v74 UI-observed single21 self command is legal");
+    (void)game.step(self21);roundtrip(game);
+    check(game.snapshot().decisions==1&&game.snapshot().state.players[0].hp==35
+          &&game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1&&game.snapshot().queue.empty()
+          &&game.snapshot().rng==seed,
+          "v74 UI-observed self21 applies5 without an extra self-defense or a local bounce draw");
+    // Neither the44 gift event nor the CPU5 launch was received as raw update2.
+    // The UI shows the launch;44 and13 are separate inventory-delta inputs.
+    v64::receipt(game,slots,1,3,44);
+    (void)game.step({2,CommandKind::buy,{consumed_slot(slots,2,9)},1});roundtrip(game);
+    const auto commodity=slots.at({1,6});
+    const PurchaseResponseAction selected{{1,CommandKind::defend,{},{}},commodity};
+    check(game.purchase_response_legal(selected),"v74 received seller23 copy is an eligible supplied commodity");
+    (void)game.purchase_response_step(selected);roundtrip(game);
+    const auto& quoted=game.snapshot();
+    check(quoted.phase==MatchPhase::purchase&&quoted.actor==2&&quoted.purchase
+          &&quoted.purchase->item.model==23&&quoted.purchase->item.token==commodity&&find_card(23)->price==2,
+          "v74 supplied23 result uses the existing affordable quote;no raw quote checkpoint is claimed");
+    (void)consumed_slot(slots,1,6);
+    const auto delivered=game.snapshot().next_token;
+    (void)game.step({2,CommandKind::accept,{},{}});roundtrip(game);slots[{2,9}]=delivered;
+    check(game.snapshot().state.players[1].items.size()==9&&game.snapshot().gifts[1]==1
+          &&game.snapshot().last_purchase&&game.snapshot().last_purchase->reason==PurchaseReason::bought
+          &&game.snapshot().last_purchase->model==23&&game.snapshot().last_purchase->price==2
+          &&game.snapshot().state.players[0].cp==22&&game.snapshot().state.players[1].cp==18,
+          "v74 ordinary accept transfers2 CP and a fresh product without a seller replacement or extra operation fee");
+    v64::receipt(game,slots,2,10,13);compare(game,slots,1,seed);
+    check(game.snapshot().state.players[0].items.size()==8&&game.snapshot().state.players[1].items.size()==10
+          &&game.snapshot().purchase_proof&&game.snapshot().grant_proof
+          &&*game.snapshot().purchase_proof==*game.snapshot().grant_proof&&game.snapshot().decisions==6,
+          "v74 purchase plus normal13 receipt preserves the whole private proof and the received ten-copy buyer hand");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1131,4 +1196,5 @@ int main() {
     std::cout<<"v71: 8 seeds x7 reused v69 received states,extending supplied178 with supplied seller5 CP0 BUY rejection and237 receipt; final CPU BUY unanswered,no selection seed fitting or probability proof\n";
     std::cout<<"v72: 8 seeds x4 received post-only updates,self41 DarkCloud without self-defense,179 versusDark92,self49 and lethal compound22; pre41 scene reconstructed,no initial-draw/order or low-HP45 claim\n";
     std::cout<<"v73: 8 seeds x4 received initial-to-end states,self55,11damage-to22counter,190reflection and empty fatal response;initial hand/ordinary184 supplied,no initial distribution,CPU policy or server RNG claim\n";
+    std::cout<<"v74: 8 seeds x2 received endpoints1 and3 with missing rawupdate2;UI-observed self21,supplied23 BUY and normal44/13 deltas;no fabricated update2,complete lifecycle or selection distribution claim\n";
 }

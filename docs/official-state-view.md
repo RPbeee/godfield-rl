@@ -416,3 +416,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view60/rules62/Snapshot62へ更新し、観測field/C構造体は増やさない。55のmain自己使用はblock反応を起こさず15被害を適用する。42/50/56は同能力の限定一般化として記録し、防具165等の応答時blockとは役割を区別する。
 
 受信184のatk22は11被害後に動的に示される値で、台帳の通常ATKではない。190反射後も反撃の生成者1を履歴に残し、current source2/target1・armor/Stone/counter2xAtkとして照合する。terminalにはviewer8正コピー+空行1、CPU7正コピー+空行2が残るが、nativeの生きた予約giftは0になる。165は未選択でHP1も観測していない。独立State/表示componentのschemaは維持する。
+
+
+## v74：21の直接selfと購入後10枚の投影
+
+対局view61/rules63/Snapshot63へ更新する。21のmain自己使用は5被害を直接解決し、追加の本人応答とbounce drawを作らない。これはUIの直接観測と前後の受信endpointで検証し、未取得のraw更新2を補完した履歴とは区別する。34と、21を防具として応答した場合の既存弾き経路は維持する。
+
+購入後のraw3ではsellerの23/id6が消え、buyerには23/id9と13/id10がある。server slotをowner付きlocal tokenへ写像し、配送は新しいunused token、通常13は別の予約giftとする。所持10枚を9へ切り詰めず、既存18枠の制約で保持する。独立State/表示componentやC構造体のschemaは維持する。

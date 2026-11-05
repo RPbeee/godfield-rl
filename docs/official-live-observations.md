@@ -313,3 +313,12 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [4受信更新](../data/official-v2/wire-game-updates-v73.json)と[3完了操作](../data/official-v2/live-transition-witnesses-v73.json)を保存した。authoritativeな初期手札には55があり、自己使用は15被害・184補充へ直接進んだ。続くCPU40/11へ184で応答すると本人25→14、22のStone反撃がCPUへ向かい、CPU190で反射された。165は適合せず未選択で、最後の空防御は22被害→die1→endGameとなった。
 
 初期から終局までの4状態を固定8seedで32比較し、52完了観測中native対象47・record-only5、wire累計432へ更新する。完全な受信start→endは新1/累計2、全backend内部traceは0のままである。初期drawは生成せず受信手札を入力し、CPU207も所持のまま未使用として保つ。初期とpostの取り違えを避けて重複body3件を除外した。terminal画面は途中で終了ボタンへ進んだため撮影せず、死亡/終局の根拠はauthoritativeな本文である。ホーム復帰・Network Monitor終了はUIで確認した。
+
+
+## v74：21のUI自己使用と23の購入成立
+
+[受信update1と3](../data/official-v2/wire-game-updates-v74.json)と[2操作](../data/official-v2/live-transition-witnesses-v74.json)を保存する。21をself単品で使うUI操作では本人40→35・MP10/CP20維持、追加本人defend無しでCPU BUYへ進んだ。raw更新2/use21/gift44/CPU5 launchは取得できていない。
+
+そのBUYへ空応答すると、受信3はseller23/id6の選出とbuyer23/id9へのsetBought trueを示し、本人CP20→22・CPU20→18、HP/MP維持となった。本人44/id3とCPU13/id10はイベント取得ではなくinventorydeltaとして扱う。buyer10枚目の13とseller8枚を保ち、初期→購入後の2endpointを固定8seedで16比較する。途中quoteを受信stateに加えない。
+
+新completed UI観測2・累計54/native49/record-only5・wire448。欠番2を作らず、新しい完全受信lifecycleは0、従来累計2のまま。重複02/03と別prep-room05を除外し、途中退出は完了操作に数えない。ホーム復帰とNetwork Monitor終了を確認した。

@@ -467,3 +467,19 @@ rules62/Snapshot62/view60、旧ABI2/型幅維持。Release157/157（39.27秒）�
 | --- | ---: | --- |
 | `wire-game-updates-v73.json` | 18,110 | `f4f82f4319adf7f1a421356ba319a364ba2e55a11158ef71aac34dcee2335ea0` |
 | `live-transition-witnesses-v73.json` | 19,756 | `f20c9a7db82c6f345fc592e40ed4e8389923fade7144a7acb576ce99d35720bf` |
+
+
+## v74：21のUI自己使用と欠番を含む購入後の受信
+
+[受信update1と3](wire-game-updates-v74.json)と[2操作のwitness](live-transition-witnesses-v74.json)を保存する。21自己使用のHP40→35・追加本人defend無し・次CPU BUY待ちはUIの直接観測である。raw update2/use21/gift44/CPU5 launchは未取得で、欠番2を作らない。武器bounceWeapon（21だけ）を直接自己使用へ追加し、34と応答時の弾きは維持する。
+
+受信3はempty useDefense→seller23/id6選出→buyer23/id9へsetBought true→advance1。本人35/10/22・手札8、CPU40/10/18・手札10（23/id9と13/id10）を確認した。44と13は明示gift eventではなく在庫差分として供給し、既存の商品外部指定と通常acceptでCP2の移動・fresh配送・通常補充まで進める。21直後と購入quoteはlocal/private中間検査で、受信checkpointに加算しない。
+
+受信2状態×固定8seed＝16比較、重複込みwire448。新completed UI観測2・累計54/native49/record-only5。非連続の部分受信列で、新しい完全start→endは0・累計2、routing-only累計1を維持する。重複02/03と別prep-room05を除外し、途中退出を完了操作に数えない。ホーム復帰とNetwork Monitor終了を確認した。
+
+rules63/Snapshot63/view61、旧C ABI2/型幅・容量18・通常selectorを維持。Release157/157（39.40秒）・重点ASan/UBSan3/3（14.14秒）、native246群/Python178method、compile warning/error0。全SAN/Python SAN、初期draw・商品選出分布・server RNGの同値性は主張しない。旧pins・記録は変更しない。
+
+| v74 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v74.json` | 11,619 | `96813bc97e94ca6dd7e5c76a1b6aed855845efb521473a227e638fbdc9f43369` |
+| `live-transition-witnesses-v74.json` | 13,990 | `5afa660b4421bb7f72356ac1e981195cf83df7e95a2f50df2a48be163f729377` |
