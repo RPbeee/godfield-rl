@@ -1,0 +1,883 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No per-action exact wall-clock time is inferred from transport/file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v68.json",
+  "method": "One ongoing CPU training session with native UI preview/confirmation and seven consecutive authoritative received updates. Six curated operations are178 redraw,masked self-use,masked defense,exchange,empty defense and an unaffordable BUY. The following CPU BUY remains unanswered.",
+  "privacy": "Names,userIds,updatedAt,room/document identifiers and transport tokens are excluded. Received true CPU inventory and actual models are privileged validation inputs,not policy observations.",
+  "authoritative_fixtures": [
+    "wire-game-updates-v69.json"
+  ],
+  "cases": [
+    {
+      "id": "training-gf1-dreaming-hat-authoritative-eight-replacements",
+      "native_projection_covered": false,
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              35
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [
+          178
+        ],
+        "item_ids": [
+          5
+        ],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "safe",
+        "selfCurse",
+        "addCurse",
+        "redraw",
+        "replaceItems",
+        "gift",
+        "advanceGF"
+      ],
+      "received_replace_items": [
+        {
+          "modelId": 3,
+          "id": 1
+        },
+        {
+          "id": 2,
+          "fakeModelId": 27,
+          "modelId": 19
+        },
+        {
+          "modelId": 5,
+          "id": 3
+        },
+        {
+          "fakeModelId": 202,
+          "modelId": 202,
+          "id": 4
+        },
+        {
+          "id": 5,
+          "modelId": 29,
+          "fakeModelId": 23
+        },
+        {
+          "fakeModelId": 135,
+          "modelId": 113,
+          "id": 6
+        },
+        {
+          "modelId": 196,
+          "fakeModelId": 195,
+          "id": 7
+        },
+        {
+          "id": 8,
+          "modelId": 5
+        }
+      ],
+      "following_normal_gift": {
+        "id": 9,
+        "modelId": 203
+      },
+      "observation": "CPU35 neutral ATK10 was answered with178 Wood DEF14. The response was safe,viewer Dream was added,and the received replaceItems event supplies exactly eight replacement rows,followed by gift203/id9 and GF2 viewer main.",
+      "dream_pair_evidence": {
+        "incompatible_under_prior_nine_key_rule": {
+          "actual": 19,
+          "face": 27,
+          "difference": "actual has no ability;face has absorbHP"
+        },
+        "identity_alias": {
+          "actual": 202,
+          "face": 202,
+          "explicit_fake_field_present": true
+        },
+        "other_received_pairs": [
+          {
+            "actual": 29,
+            "face": 23
+          },
+          {
+            "actual": 113,
+            "face": 135
+          },
+          {
+            "actual": 196,
+            "face": 195
+          }
+        ]
+      },
+      "limits": "This authoritative eight-row outcome is one observed redraw result. The local immediate redraw chooser and its fake distribution are not replayed as this exact list. It does not prove redraw probabilities,all candidate pair laws,or a general exclusion of devils."
+    },
+    {
+      "id": "training-gf2-incompatible-ghost-face-real-kusarigama-self",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "play",
+        "actual_model": 19,
+        "displayed_model": 27,
+        "item_id": 2,
+        "target": "viewer",
+        "outgoing_wire_command_captured": false
+      },
+      "visible_preview": {
+        "power": 7,
+        "ability": "absorbHP"
+      },
+      "after": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 35,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              47
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "received_used_item": {
+        "id": 2,
+        "modelId": 19,
+        "fakeModelId": 27
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_damage": 5,
+      "received_heal_event_present": false,
+      "received_normal_gift": {
+        "id": 2,
+        "modelId": 21,
+        "fakeModelId": 21
+      },
+      "following_cpu_launch": {
+        "playerId": 1,
+        "targetPlayerId": 2,
+        "itemModelIds": [
+          47
+        ]
+      },
+      "observation": "One explicit self-use selected the ghost-sword face27/ATK7/absorption,but the received used item is actual19/fake27. Damage5 without a healing event changed viewer HP40 to35,consistent with actual19 neutral ATK5 and no absorption.",
+      "limits": "The native regression starts from the received post-redraw state;it does not regenerate the actual/fake pair. The original fake field is preserved in received evidence,not assumed erased by a reveal animation. No distribution or RNG equivalence is established."
+    },
+    {
+      "id": "training-gf3-masked-iron-face-real-leather-cap-defense",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 35,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              47
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "actual_model": 113,
+        "displayed_model": 135,
+        "item_id": 6,
+        "outgoing_wire_command_captured": false
+      },
+      "visible_preview": {
+        "defense": 5
+      },
+      "after": {
+        "gf": 4,
+        "server_update_count": 4,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 23,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_used_item": {
+        "id": 6,
+        "modelId": 113,
+        "fakeModelId": 135
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "gift",
+        "advanceGF"
+      ],
+      "catalog_arithmetic": {
+        "incoming_cpu47_attack": 13,
+        "actual113_defense": 1,
+        "positive_remainder": 12,
+        "viewer_hp": "35-12=23"
+      },
+      "received_normal_gift": {
+        "id": 6,
+        "modelId": 195,
+        "fakeModelId": 196
+      },
+      "cpu_normal_snapshot_delta": {
+        "id": 3,
+        "modelId": 105,
+        "corresponding_received_gift_event_present": false
+      },
+      "observation": "Visible iron armor135 showed DEF5,but the received response uses leather cap113/fake135. Received damage12 and HP35 to23 match actual DEF1 against CPU47 ATK13.",
+      "limits": "The actual/fake pair is observed input rather than a regenerated mask. CPU105 is privileged snapshot-delta information,not an emitted CPU gift or policy-visible inventory."
+    },
+    {
+      "id": "training-gf4-dream-exchange-to-zero-cp",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 4,
+        "server_update_count": 4,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 23,
+            "mp": 10,
+            "cp": 20,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "exchange",
+        "actual_model": 3,
+        "displayed_model": 3,
+        "item_id": 1,
+        "allocation": {
+          "hp": 23,
+          "mp": 30,
+          "cp": 0
+        },
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 5,
+        "server_update_count": 5,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 23,
+            "mp": 30,
+            "cp": 0,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              35
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "exchange",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_exchange_event": {
+        "action": "exchange",
+        "hp": 23,
+        "mp": 30
+      },
+      "received_exchange_cp_field_present": false,
+      "allocation_from_authoritative_post": {
+        "hp": 23,
+        "mp": 30,
+        "cp": 0
+      },
+      "received_normal_gift": {
+        "modelId": 213,
+        "id": 1,
+        "fake_field_present": false
+      },
+      "following_cpu_launch": {
+        "playerId": 1,
+        "targetPlayerId": 2,
+        "itemModelIds": [
+          35
+        ]
+      },
+      "observation": "Viewer exchanged23HP/10MP/20CP into23HP/30MP/0CP under Dream. The event omits the zero CP field,while the authoritative post explicitly gives CP0. Gift213/id1 has no fake field and the next CPU35 launch is included.",
+      "limits": "The raw exchange omission is preserved;CP0 comes from the snapshot rather than an inserted event field. The unmasked gift result is observed,not a mask-rate or RNG measurement."
+    },
+    {
+      "id": "training-gf5-wonder-sword-empty-defense-before-buy",
+      "native_projection_covered": true,
+      "before": {
+        "gf": 5,
+        "server_update_count": 5,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 23,
+            "mp": 30,
+            "cp": 0,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              35
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "defend",
+        "displayed_models": [],
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 6,
+        "server_update_count": 6,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 13,
+            "mp": 30,
+            "cp": 0,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "advanceGF"
+      ],
+      "catalog_arithmetic": {
+        "incoming_cpu35_attack": 10,
+        "defense": 0,
+        "viewer_hp": "23-10=13"
+      },
+      "cpu_normal_snapshot_delta": {
+        "modelId": 142,
+        "id": 5,
+        "corresponding_received_gift_event_present": false
+      },
+      "observation": "An empty defense against CPU35 neutral ATK10 changed viewer HP23 to13,leaving MP30/CP0 and Dream. GF6 viewer main followed.",
+      "limits": "CPU142 is a privileged inventory delta,not a received CPU gift event. The later BUY observation is not part of this operation."
+    },
+    {
+      "id": "training-gf6-zero-cp-buy-refusal-returned-buy",
+      "native_projection_covered": false,
+      "before": {
+        "gf": 6,
+        "server_update_count": 6,
+        "owner_player_id": 2,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 13,
+            "mp": 30,
+            "cp": 0,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "attacks_field_present": false
+      },
+      "confirmed_choice": {
+        "actor": "viewer",
+        "kind": "buy",
+        "actual_model": 5,
+        "displayed_model": 5,
+        "item_id": 3,
+        "target": "cpu",
+        "outgoing_wire_command_captured": false
+      },
+      "cpu_response_observation": {
+        "displayed_defense_models": [],
+        "received_useDefenseItems_items_key_present": false
+      },
+      "received_buy_event": {
+        "action": "buy",
+        "item": {
+          "modelId": 5,
+          "id": 2
+        }
+      },
+      "received_refusal_event": {
+        "action": "canNotBuy",
+        "item": {
+          "modelId": 5,
+          "id": 2
+        }
+      },
+      "quoted_price": 5,
+      "quoted_price_evidence": [
+        "UI quote",
+        "catalog model5 price5"
+      ],
+      "quoted_price_field_present_in_received_buy_event": false,
+      "yes_no_choice_observed": false,
+      "after": {
+        "gf": 7,
+        "server_update_count": 7,
+        "owner_player_id": 1,
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "received_item_rows": 9,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 13,
+            "mp": 30,
+            "cp": 0,
+            "curses": [
+              "dream"
+            ],
+            "received_item_rows": 9,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 1,
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              5
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "useDefenseItems",
+        "buy",
+        "canNotBuy",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_normal_gift": {
+        "modelId": 237,
+        "id": 3,
+        "fake_field_present": false
+      },
+      "following_cpu_launch": {
+        "source_player_id": 1,
+        "target_player_id": 2,
+        "displayed_models": [
+          5
+        ],
+        "item_id": 2,
+        "viewer_response_observed": false
+      },
+      "observation": "With viewer HP13/MP30/CP0,BUY5 toward CPU was answered by CPU empty defense. CPU item5/id2 was quoted at price5,then canNotBuy named that same item. Public resources stayed unchanged,viewer received237/id3,and CPU immediately used the returned5/id2 as a new BUY toward viewer.",
+      "limits": "This is record-only because the CPU had multiple eligible selectable items. No native seed is fitted to choose model5. No YES/NO input or response to the following CPU BUY was observed. The refusal does not count as a manually declined affordable purchase."
+    }
+  ],
+  "source_body_provenance": [
+    {
+      "label": "redraw-before",
+      "response_body_bytes": 27466,
+      "response_body_sha256": "d4df98e1bffa9901651b7aed987863588d68cf715af94d9e3e81f447b949ec5e",
+      "webchannel_frame_count": 10
+    },
+    {
+      "label": "redraw-after",
+      "response_body_bytes": 24453,
+      "response_body_sha256": "e7a40c44d70b9ad1c68df5c7627ce5b164f6cfb551f171e1ff3238cdd1df4bd8",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "masked-self-after-final",
+      "response_body_bytes": 21061,
+      "response_body_sha256": "9aa8907a73875ca63e6c2d187ba47d3662c3a53aca760d14edb2a8f1f8bbc9d1",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "masked-defense-after",
+      "response_body_bytes": 18184,
+      "response_body_sha256": "27dd268c89eee1812a1e568b092e392063235b14e63d3927934b1e5b46a95e46",
+      "webchannel_frame_count": 4
+    },
+    {
+      "label": "exchange-after",
+      "response_body_bytes": 20463,
+      "response_body_sha256": "86344e3d4e8e6664ed8d02bdd565f3e491255a5be2ae84ba8f54747208169321",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "buy-before",
+      "response_body_bytes": 16387,
+      "response_body_sha256": "89d31256883b17123bfc8d7c71a628281153da7f8dfbe336dae712fcd2d918bd",
+      "webchannel_frame_count": 5
+    },
+    {
+      "label": "buy-after",
+      "response_body_bytes": 22180,
+      "response_body_sha256": "7bbca8595207c22cfd7e3bc7ada143190cd652d140a6e27bed0d66b6f69f69ab",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v58",
+    "snapshot_version": 58,
+    "observe_schema": "official-execution-view-v56",
+    "fixed_replays": 8,
+    "received_checkpoints_per_replay": 5,
+    "received_checkpoint_comparisons": 40,
+    "received_updates_compared": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "raw_only_boundary_updates": [
+      1,
+      7
+    ],
+    "random_seed_fitting": false,
+    "scope": "The four post-redraw viewer operations pass from received update2 through6 with explicit observed actual/fake pairs and normal outcomes. The native run does not generate the178 replacement list or fit the CP0 BUY selector. Initial update1 and final BUY update7 remain raw retained boundaries outside native checkpoint comparisons.",
+    "local_test_results": {
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "native_registered_callbacks": 234,
+      "python_test_methods": 170,
+      "compile_warnings": 0,
+      "compile_errors": 0
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 7,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 6,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "following_cpu_buy_response_observed": false,
+    "following_cpu_buy_offer_observed": false,
+    "following_cpu_buy_payment_observed": false,
+    "scope": "Exit/cleanup was directly confirmed. The final CPU BUY was not answered;no subsequent offer/payment or terminal game update was captured."
+  },
+  "new_completed_public_transition_witnesses": 6,
+  "cumulative_completed_public_transition_witnesses": 45,
+  "new_native_projection_covered_completed_witnesses": 4,
+  "cumulative_native_projection_covered_completed_witnesses": 38,
+  "new_record_only_completed_witnesses": 2,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 1,
+  "captured_full_server_event_traces": 0,
+  "official_full_simulator_equivalence_established": false,
+  "cumulative_record_only_completed_witnesses": 7,
+  "new_wire_checkpoint_comparisons": 40,
+  "cumulative_wire_checkpoint_comparisons": 264
+}

@@ -263,3 +263,23 @@ CPU修行で吸収27/45/216と両替3を利用できる局面を探したが、�
 新規5操作で累計39完了例、native状態投影対象34例、複合record-only5例。wireは固定8seed×6状態＝48比較を加えて総224checkpointであり、8つの公式対局を得たわけではない。CPUの省略gift順、server乱数、diseasePlayerId/guardianPlayerIds等の全schedulerを再現したとも扱わない。最後はホーム復帰とNetwork Monitor終了を確認した。
 
 準備の39＋162にも実装差があった。旧direct-self allowlistは38の `reflect_weapon` のみを含み、39の `reflect_miracle` は自己防御を待っていた。今回の1commandで25被害・2補充という受信結果に基づき、武器baseの `reflect_miracle` も直接経路へ追加した。該当武器は39であり、156/167/174等の防具や190の一般経路を追加したものではない。5操作の先頭をこの新しい回帰として含め、件数を別途加算しない。
+
+
+## v69：非終末一新・能力の異なる偽装・低CP購入
+
+[同一CPU修行の受信7更新](../data/official-v2/wire-game-updates-v69.json)と[6操作](../data/official-v2/live-transition-witnesses-v69.json)を保存した。最初のupdate1はCPU35の攻10への本人応答待ちで、元のCPU初期draw/orderは取得していない。終末は無し、本人はplayer2である。最後のCPU BUYには応答せず、ホーム復帰・Network Monitor終了まで確認した。
+
+| 操作 | 受信結果と境界 |
+| --- | --- |
+| CPU35に178単品DEF14 | safe→本人Dream→redraw→replaceItems8→gift203/slot9→GF2。本人40/10/20・9枚。全8置換と1補充を区別できたが、終末・使用済み奇跡・複数帽子は未測定 |
+| 実19/face27を自己使用 | プレビューはゴーストソード攻7・吸収。useAttackItemsは19/fake27、dealDamage5のみでHP40→35。回復なし。21/fake21補充後、CPU47の攻13開始 |
+| 実113/face135でCPU47へ防御 | プレビューDEF5、実DEF1でdamage12、本人HP35→23。195/fake196を補充、CPU105は在庫差分 |
+| 両替3 | 23/10/20→23/30/0。exchangeイベントにはhp23/mp30がありcpは省略。213をunmasked受領、CPU35の攻10開始 |
+| CPU35に空防御 | 本人HP23→13、MP30/CP0維持。CPU142は在庫差分、GF6本人 |
+| CP0・MP30で他者BUY | CPU空応答後、価格5のモデル5をbuy→canNotBuyで返却。HP13/MP30/CP0と相手40/10/20を維持、237補充後、次CPU BUY開始。YES/NO入力・購入支払はない |
+
+replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake195を含む。19→27だけが旧9field互換外で、ability none→absorbHPが異なる。202の同番号偽装はsingletonでの受信例でもある。これを8回中のmask率から一般分布を推定する根拠にはしない。生成候補・コイン・draw数は変更せず、受信predicateへ方向限定19→27を足し、既存のclosed-state・明示ArtifactGrant・reveal/private proofへ通す。真値を見た追加の先行合法性gateは導入しない。
+
+一新自体はrecord-onlyである。ネイティブ比較は受信した一新後update2を初期sceneとしてupdate2〜6の5状態だけを既存8seed＝40比較へ展開する。178の8置換抽選を再現したとは数えない。低CP BUYも、複数候補からモデル5を選ぶserver抽選をseed選別で合わせずrecord-onlyへ分ける。CanNotBuyの価格5という条件は既存CP-only affordabilityを支持する有限例であり、全商品・self BUY・一般CP debt順の証明ではない。
+
+新6操作で累計45完了例、native投影対象38例、record-only7例。wire比較は264checkpointとなる。開始〜終局の受信列は従来1対局、全backend内部trace0のまま。固定8seedを8つの公式対局へ読み替えず、CPUの省略gift順・全schedulerを推定しない。

@@ -2117,3 +2117,14 @@ Python Stateは両対局4状態を直接読み、viewerが1/2の両配置、slot
 新しいnative群を含む233callback、Cのtyped低HP/上限/208112/phase・出力原子性、Python168methodを検査する。合成境界は45/216、99上限、nominal192、counterのtarget実損失基準、Heavenfall prefixHP0、208/112、未選択防具、38維持と防具非拡張を含む。これらを新たな公式実測へ加算しない。独立HP reducerは10群となり、v68の受信3→0→7と従来HP2,617行×2分岐を検査する。
 
 Release全CTest157/157（17.96秒）、Debug ASan/UBSanの変更4target（core/C API/wire/HP）4/4（18.07秒）、compile warning/error0、`git diff --check`通過。両build/suiteを別directoryで並行実行し、全SAN suiteやPython SANを実行したとは主張しない。最終native/C/Python・fixtureは独立のread-only監査も受け、raw source6件のhash、mode0600、匿名化以外のgame literal一致を確認した。旧世代pins・records・legacy37は保持する。
+
+
+## 作業世代v69：受信19/fake27と一新後の局所再現
+
+公式CPU修行の7受信更新に、非終末178（safe→Dream→replaceItems8→gift1）、19/fake27自己使用、113/fake135防御、両替、空防御、CP0の他者BUY拒否という6操作を保存した。実19/face27は旧9fieldのabilityが一致せず、見かけ攻7/吸収から実5被害・回復なしで解決する。この方向だけ受信predicateへ追加し、選択前の真値gateを増やさず、通常generatorは旧9key・候補・率・乱数消費を維持する。v58/Snapshot58/view-v56、既存ABI2と型幅を維持する。
+
+新native wireは受信update2（一新後GF2）を初期sceneとしてupdate2〜6の5状態×既存固定8seed＝40比較。一新の8drawと偽装、複数候補からモデル5を選んだBUYをreplayするためのseed探索や未観測結果の注入は行わない。CPU105/142は在庫差分として供給し、server内のgift順を推定しない。資源・原所有者/応答者・Dream/fake presence・全positive在庫・placeholder・slot再利用と各native境界の完全private restoreが一致する。
+
+native234 callbackとC/Python回帰は、typed19→27受領、同face27で異なるactual19/27の公開view/合法性/policy sampleの非干渉、実5被害・reveal・消費、reverse/他pair/noDreamの拒否・原子性を検査する。Pythonは170 method。CPU修行では所持金0・MP30で価格5のモデル5がbuy→canNotBuyとなりHP13/MP30/CP0を維持したため、既存CP-only gateを変更しない。この1例を全商品・self BUY・一般CP debt順の同値性へ拡張しない。
+
+Release CTest157/157（16.60秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（18.41秒）、compile warning/error0、diff-check通過。全SAN suite/Python SANの実行とは区別する。fixtureはraw7sourceのhash/mode0600と匿名化以外のgame literal完全一致を確認し、独立read-only監査も受けた。完了観測45・native対象38・record-only7・wire264checkpoint、完全なstart→end受信列は従来1対局のまま。最終CPU BUYは未応答で退出・ホーム復帰・Network Monitor終了を確認した。

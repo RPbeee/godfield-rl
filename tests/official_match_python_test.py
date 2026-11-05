@@ -108,7 +108,7 @@ class MatchTests(unittest.TestCase):
     def test_descriptor_and_public_observation(self):
         match = self.match(players=[PlayerSetup(0, "A\0B"), PlayerSetup(77, "相手")])
         self.assertEqual(match.self_attack_rule, "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route")
-        self.assertEqual(match.ruleset, "official-execution-subset-v57"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
+        self.assertEqual(match.ruleset, "official-execution-subset-v58"); self.assertIn("236-default-or237-opt-in", match.scope); self.assertIn("not-official-server-equivalence", match.scope)
         self.assertEqual((len(match.supported_models), match.gift_weight), (236, 499))
         report = json.loads((Path(__file__).resolve().parents[1] / "data/official-v2/dream-compatibility-v32.json").read_text())
         self.assertEqual(tuple(report["supported_ids"]), match.supported_models)
@@ -116,7 +116,7 @@ class MatchTests(unittest.TestCase):
         self.assertIn(212, match.supported_models); self.assertIn(112, match.supported_models); self.assertIn(222, match.supported_models)
         self.assertEqual(match.status.player_ids, (0, 77)); self.assertEqual(match.actor, 0)
         own = match.observe(0); spectator = match.observe()
-        self.assertEqual(own["schema"], "official-execution-view-v55")
+        self.assertEqual(own["schema"], "official-execution-view-v56")
         facts = OfficialData(LIBRARY)
         self.assertEqual(own["catalog_version"], "official-v2")
         self.assertEqual(own["catalog_sha256"], facts.catalog_sha256)
@@ -376,7 +376,7 @@ class MatchTests(unittest.TestCase):
         self.assertEqual((match.observe(1), match.status), (before, status))
         self.assertEqual(match.step(bounce), reference.step(bounce))
         event = match.observe(1); pending = event["pending"]
-        self.assertEqual(event["schema"], "official-execution-view-v55")
+        self.assertEqual(event["schema"], "official-execution-view-v56")
         self.assertEqual(event["bounce_target_rule"], "experimental:uniform-all-alive-in-input-order;includes-self-and-teammates")
         self.assertEqual((event["phase"], event["owner"]), ("response", 0))
         self.assertIn(event["actor"], (0, 1))
@@ -3831,6 +3831,63 @@ class MatchTests(unittest.TestCase):
                              sorted((item.get("fakeModelId", item["modelId"]), "fakeModelId" in item, item.get("used", False))
                                     for item in received["items"]))
         self.assertEqual(game.observe()["board"]["hand"], [])
+
+    def test_received_dream_19_as27_selects_face_and_executes_actual_without_oracle(self):
+        # Direction19→27 is received evidence, not a widened local mask class.
+        raw = {"gf": 1, "players": [
+            {"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"]},
+            {"id": 7, "hp": 40, "mp": 10, "cp": 20, "items": [{"id": 10, "modelId": 152}]}]}
+        worlds = []
+        for actual in (19, 27):
+            game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+            with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+            game.step(Command(0, "pray"))
+            self.assertTrue(game.artifact_grant_legal(ArtifactGrantAction(0, actual, 27)))
+            game.artifact_grant_step(ArtifactGrantAction(0, actual, 27))
+            game.step(Command(7, "discard", (10,)))
+            item, = game.observe(0)["board"]["hand"]
+            self.assertEqual((item["face"], item["reference"], item["disguised"], item["used"]), (27, 27, True, False))
+            worlds.append((game, item["token"]))
+        left, token = worlds[0]; right, other_token = worlds[1]
+        self.assertEqual(token, other_token)
+        for viewer in (None, 0, 7): self.assertEqual(left.observe(viewer), right.observe(viewer))
+        for seed in range(32):
+            a, next_a = left.sample_action(seed); b, next_b = right.sample_action(seed)
+            self.assertEqual((a, next_a), (b, next_b))
+            self.assertTrue(left.legal(a)); self.assertTrue(right.legal(b))
+        for target in (0, 7): self.assertEqual(left.legal(Command(0, "play", (token,), target)), right.legal(Command(0, "play", (token,), target)))
+        before = left.observe(0), left.status
+        left.step(Command(0, "play", (token,), 0)); view = left.observe(0)
+        self.assertEqual((left.status.phase, left.actor, left.status.decisions), ("grant", None, 4))
+        self.assertIsNone(view["pending"])
+        self.assertEqual([(p["status"]["hp"], p["status"]["mp"], p["status"]["cp"]) for p in view["board"]["players"]], [(35, 10, 20), (40, 10, 20)])
+        self.assertEqual(view["last_reveals"], [{"owner": 0, "face": 27, "model": 19}])
+        self.assertEqual(view["board"]["hand"], [])
+        self.assertNotEqual((view, left.status), before)
+        left.artifact_grant_step(ArtifactGrantAction(0, 21, 21))
+        self.assertEqual((left.status.phase, left.status.owner, left.observe()["board"]["gf"]), ("main", 7, 4))
+        item, = left.observe(0)["board"]["hand"]
+        self.assertNotEqual(item["token"], token)
+        self.assertEqual((item["face"], item["disguised"]), (21, True))
+        self.assertEqual(left.observe()["board"]["players"][0]["status"]["hp"], 35)
+
+    def test_received_dream_exception_is_directional_and_invalid_receipts_atomic(self):
+        raw = {"players": [{"id": 0, "hp": 40, "mp": 10, "cp": 20, "curses": ["dream"]},
+                            {"id": 7, "hp": 40, "mp": 10, "cp": 20}]}
+        game = self.match(config=Config(initial_hand=0, external_artifacts=True))
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "pray")); before, status = game.observe(0), game.status
+        for actual, face in ((27, 19), (19, 45), (19, 216), (6, 27), (207, 27)):
+            action = ArtifactGrantAction(0, actual, face)
+            self.assertFalse(game.artifact_grant_legal(action))
+            with self.assertRaises(UnsupportedMatchError): game.artifact_grant_step(action)
+            self.assertEqual((game.observe(0), game.status), (before, status))
+        raw["players"][0]["curses"] = []
+        with OfficialState(raw, library=LIBRARY) as scene: game.load_scene(scene, 0, 42)
+        game.step(Command(0, "pray")); before, status = game.observe(0), game.status
+        self.assertFalse(game.artifact_grant_legal(ArtifactGrantAction(0, 19, 27)))
+        with self.assertRaises(UnsupportedMatchError): game.artifact_grant_step(ArtifactGrantAction(0, 19, 27))
+        self.assertEqual((game.observe(0), game.status), (before, status))
 
     def test_identity_dream_artifact_presence_privacy_reveal_and_late_atomicity(self):
         raw = {"gf": 0, "players": [

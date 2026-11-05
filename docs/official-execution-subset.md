@@ -3182,3 +3182,12 @@ ruleset57 / Snapshot57（旧1〜56拒否）/ view-v55。構造体のfieldは増�
 同じv68で、39 `reflect_miracle` 武器の明示self（hitRate0・noWide・原発main）もDEF0・1commandの直接経路へ追加する。39＋162で25被害・2消費/補充を公式に観測したことを根拠とし、38の既存経路は維持する。防具156/167/174・190やredirectの応答経路はこのrouting変更へ含めない。headerの `self_attack_rule` にreflect-miracleを追加し、C/Pythonのexact契約も同期する。
 
 新規約の合成prefix回帰では、Heavenfallで既にHP0ならtarget damage段の実損失は0、その後にnominal2を回復して生存する。旧規約の先healによる実損失2・counter4・208救済という期待は維持しない。外部補充でpauseし、journal偽造拒否・原owner tick1回・補充再開を引き続き検査する。この複合局面自体は新しい公式実測ではない。
+
+
+## 対局v58（作業世代v69）：受信19→27の有限対応
+
+`match_dream_disguise_supported` にactual19/face27だけを方向限定で追加する。実体19は能力none・ATK5・価格2、face27は吸収・ATK7・価格10で、旧9field同値ではない。公式の受信と自己使用で、見かけの合法な選択・preview7に対し、実体の5被害・回復なしが確認できた。既存のfaceでのprepare/policyとactualでの効果解決へ通し、新しい真値先行拒否は追加しない。
+
+closed_state・ArtifactGrant・使用後revealの共有predicateがこの例を受理する。19→27の明示受領はDreamを必要とし、fake presenceをNoneへ潰さず、fresh unused copyとprivate typed journalを保持する。reverse27→19や他の未観測不一致は許可しない。`match_dream_compatible` と `dream_faces` は変更せず、生成候補/eligible数/半coin/乱数/通常配布poolは旧規約を維持する。公式の全偽装候補や50%分布を再現したとは呼ばない。
+
+ruleset58 / Snapshot58（旧1〜57拒否）/ view-v56。C ABI2、Config24・Command184・Grant32・Artifact16 byteは維持する。初期178一新の抽選とCP0 BUYの商品選出は受信記録だけを保持し、after-redraw GF2の受信sceneから自己19/fake27、防御113/fake135、両替23/30/0、空防御を40checkpointで比較する。CPU在庫差分は外部Artifactとして供給し、サーバーの暗黙gift順・native decisionとupdateCountの同一視は避ける。

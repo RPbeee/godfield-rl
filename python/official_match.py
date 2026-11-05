@@ -138,8 +138,9 @@ class GrantAction:
 class ArtifactGrantAction:
     """Privileged supplied ordinary artifact; None means explicitly unmasked.
 
-    A face requires Dream and either a distinct compatible model or the same
-    supported non207 model. Identity presence stays distinct from None; this
+    A face requires Dream and either a distinct compatible model, the same
+    supported non207 model, or the observed directed actual19/face27 pair.
+    The reverse pair is unsupported. Presence stays distinct from None; this
     supplied input does not change the local random mask selector.
     Actual207 needs include_fate and cannot carry a face. No game RNG is used.
     """
@@ -456,7 +457,7 @@ class Match:
         self.normal_grant_rule = lib.gfo_match_normal_grant_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v57"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v58"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21

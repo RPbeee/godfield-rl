@@ -63,7 +63,8 @@ ItemToken consumed_slot(SlotMap& slots,PlayerId owner,std::uint16_t slot) {
     const auto it=slots.find({owner,slot});check(it!=slots.end(),"selected received slot has a native token");
     const auto token=it->second;slots.erase(it);return token;
 }
-void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedCheckpoint& expected) {
+void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedCheckpoint& expected,
+                        std::optional<PlayerId> dream_player = {}) {
     const auto& actual=game.snapshot();
     check(actual.state.gf==expected.gf&&actual.owner==expected.owner,"observed GF and turn owner match checkpoint");
     check(!actual.state.is_over&&actual.state.players.size()==2,"both received participants remain in a nonterminal match");
@@ -72,8 +73,9 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
         const auto& want=expected.players[seat];const auto& got=actual.state.players[seat];
         check(got.id==want.id&&got.hp==want.hp&&got.mp==want.mp&&got.cp==want.cp,"received gameplay resources match");
         check(got.team==Team::solo&&!got.dead&&got.guardian==Guardian::none&&got.confusion_count==0,"received default team, alive and guardian state match");
-        const std::vector<Curse> curses=want.cold?std::vector<Curse>{Curse::cold}:std::vector<Curse>{};
-        check(got.curses==curses,"Cold addition and mild cure match received snapshots");
+        auto curses=want.cold?std::vector<Curse>{Curse::cold}:std::vector<Curse>{};
+        if(dream_player==want.id)curses.push_back(Curse::dream);
+        check(got.curses==curses,"received curse state matches without adding inferred ticks");
         std::size_t positive=0,placeholders=0;
         for(const auto& row:want.slots) {
             if(!row.model){check(row.slot==0,"known wire placeholder is id0/model0");++placeholders;continue;}
@@ -88,9 +90,10 @@ void compare_checkpoint(const Match& game,const SlotMap& slots,const ReceivedChe
     }
     check(slots.size()==total_positive,"slot map contains no consumed stale slot or placeholder");
     if(expected.pending) {
-        check(actual.phase==MatchPhase::response&&actual.actor==1&&actual.queue.size()==1,"pending CPU attack has viewer as response actor");
+        const auto defender=expected.players[0].id==expected.owner?expected.players[1].id:expected.players[0].id;
+        check(actual.phase==MatchPhase::response&&actual.actor==defender&&actual.queue.size()==1,"pending CPU attack has viewer as response actor");
         const auto& effect=actual.queue.front();const auto* card=find_card(expected.pending);
-        check(card&&effect.models==std::vector<CardId>{expected.pending}&&effect.origin==2&&effect.source==2&&effect.target==1
+        check(card&&effect.models==std::vector<CardId>{expected.pending}&&effect.origin==expected.owner&&effect.source==expected.owner&&effect.target==defender
               &&effect.category==Category::weapons&&effect.power==card->atk&&effect.element==card->element
               &&effect.ability==card->ability&&effect.amount==card->ability_value
               &&effect.hit_rate==0&&!effect.is_counter&&!effect.is_death&&!effect.environmental,"pending source, target and derived attack match wire head");
@@ -761,13 +764,96 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v69: begin at the received post-redraw GF2,not a generated178 result.
+// CPU inventories remain privileged validation fixtures,never policy input.
+namespace v69 {
+constexpr std::array<std::array<ReceivedSlot,9>,5> p1{{
+    {{{1,81,0},{3,47,0},{4,129,0},{5,35,0},{6,230,0},{7,15,0},{8,118,0},{9,16,0},{2,5,0}}},
+    {{{1,81,0},{4,129,0},{5,35,0},{6,230,0},{7,15,0},{8,118,0},{9,16,0},{2,5,0},{0,0,0}}},
+    {{{1,81,0},{4,129,0},{5,35,0},{6,230,0},{7,15,0},{8,118,0},{9,16,0},{2,5,0},{3,105,0}}},
+    {{{1,81,0},{4,129,0},{6,230,0},{7,15,0},{8,118,0},{9,16,0},{2,5,0},{3,105,0},{0,0,0}}},
+    {{{1,81,0},{4,129,0},{6,230,0},{7,15,0},{8,118,0},{9,16,0},{2,5,0},{3,105,0},{5,142,0}}},
+}};
+constexpr std::array<std::array<ReceivedSlot,9>,5> p2{{
+    {{{1,3,0},{2,19,27},{3,5,0},{4,202,202},{5,29,23},{6,113,135},{7,196,195},{8,5,0},{9,203,0}}},
+    {{{1,3,0},{3,5,0},{4,202,202},{5,29,23},{6,113,135},{7,196,195},{8,5,0},{9,203,0},{2,21,21}}},
+    {{{1,3,0},{3,5,0},{4,202,202},{5,29,23},{7,196,195},{8,5,0},{9,203,0},{2,21,21},{6,195,196}}},
+    {{{3,5,0},{4,202,202},{5,29,23},{7,196,195},{8,5,0},{9,203,0},{2,21,21},{6,195,196},{1,213,0}}},
+    {{{3,5,0},{4,202,202},{5,29,23},{7,196,195},{8,5,0},{9,203,0},{2,21,21},{6,195,196},{1,213,0}}},
+}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{2,2,2,{{{1,40,10,20,false,p1[0]},{2,40,10,20,false,p2[0]}}},0},
+    ReceivedCheckpoint{3,3,1,{{{1,40,10,20,false,p1[1]},{2,35,10,20,false,p2[1]}}},47},
+    ReceivedCheckpoint{4,4,2,{{{1,40,10,20,false,p1[2]},{2,23,10,20,false,p2[2]}}},0},
+    ReceivedCheckpoint{5,5,1,{{{1,40,10,20,false,p1[3]},{2,23,30,0,false,p2[3]}}},35},
+    ReceivedCheckpoint{6,6,2,{{{1,40,10,20,false,p1[4]},{2,13,30,0,false,p2[4]}}},0},
+};
+
+void compare(const Match& game,const SlotMap& slots,std::size_t checkpoint,std::uint64_t seed) {
+    compare_checkpoint(game,slots,checkpoints[checkpoint],PlayerId{2});
+    const auto& snap=game.snapshot();
+    check(snap.rng==seed&&!snap.terminated&&!snap.truncated&&snap.redraws==0
+          &&snap.dream_rolls==0&&snap.dream_masks==0,
+          "v69 post-redraw projection uses no generated replacement,mask draw or seed fitting");
+}
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=2;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat) {
+        PlayerState player;player.id=seat+1;if(seat==1)player.curses={Curse::dream};
+        const auto& rows=seat?p2[0]:p1[0];
+        for(const auto& row:rows) {
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,row.fake?std::optional<CardId>{row.fake}:std::nullopt,row.used});
+        }
+        state.players.push_back(std::move(player));
+    }
+    check(!match_dream_compatible(19,27)&&match_dream_disguise_supported(19,27)
+          &&!match_dream_disguise_supported(27,19),
+          "v69 accepted received19-to27 does not change the old generation class or reverse direction");
+    game.load_scene(std::move(state),2,seed);compare(game,slots,0,seed);
+    const Command self{2,CommandKind::play,{consumed_slot(slots,2,2)},2};
+    check(game.legal(self),"v69 face27 self choice is legal with the received actual19");
+    (void)game.step(self);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==35&&game.snapshot().decisions==1
+          &&game.snapshot().phase==MatchPhase::grant&&game.snapshot().gifts[1]==1
+          &&game.snapshot().queue.empty(),
+          "v69 actual19 deals5 without fake27 absorption or an extra self-defense");
+    v64::receipt(game,slots,2,2,21,21);
+    const Command attack{1,CommandKind::play,{consumed_slot(slots,1,3)},2};
+    check(game.legal(attack),"v69 received CPU47 launch is legal");
+    (void)game.step(attack);roundtrip(game);compare(game,slots,1,seed);
+    const Command defense{2,CommandKind::defend,{consumed_slot(slots,2,6)},{}};
+    check(game.legal(defense),"v69 visibleDEF5 permits the recorded physical response");
+    (void)game.step(defense);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==23,
+          "v69 actual113 DEF1,not face135 DEF5,leaves12 target damage");
+    // The CPU receipt is a positive inventory delta. Its ordering relative to
+    // the explicit viewer gift is not an observed server schedule.
+    v64::receipt(game,slots,1,3,105);v64::receipt(game,slots,2,6,195,196);
+    compare(game,slots,2,seed);
+    const Command exchange{2,CommandKind::exchange,{consumed_slot(slots,2,1)},{},ResourceAllocation{23,30,0}};
+    check(game.legal(exchange),"v69 observed no-fee exchange allocation is legal");
+    (void)game.step(exchange);roundtrip(game);v64::receipt(game,slots,2,1,213);
+    const Command next{1,CommandKind::play,{consumed_slot(slots,1,5)},2};
+    check(game.legal(next),"v69 received CPU35 launch is legal");
+    (void)game.step(next);roundtrip(game);compare(game,slots,3,seed);
+    const Command empty{2,CommandKind::defend,{},{}};
+    check(game.legal(empty),"v69 recorded empty response preserves CP0 and MP30");
+    (void)game.step(empty);roundtrip(game);v64::receipt(game,slots,1,5,142);
+    compare(game,slots,4,seed);
+    // Stop before the multi-candidate BUY selector. The observed positive-price
+    // rejection remains record-only; no seed is selected to mimic its commodity.
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -781,4 +867,5 @@ int main() {
     std::cout<<"v65: 8 seeds x3 owned207/Fog received checkpoints; separate8 Neptune276 body-only components, no summon/automatic-guardian full replay or seed fitting\n";
     std::cout<<"v66: 2 scenarios x8 seeds x2 state checkpoints; self45 endpoint and self14 two hits/single receipt; absorb intermediate order and unobserved BUY offer excluded\n";
     std::cout<<"v68: 8 seeds x6 received states from initial setup through self27 atHP3 toHP7; five viewer operations and CPU MP recovery; explicit receipts,not a completed game or server RNG proof\n";
+    std::cout<<"v69: 8 seeds x5 received post-redraw states; masked19/27 self,113/135 defense,CP0 exchange and empty response;178 generation and multi-candidate BUY selector excluded\n";
 }

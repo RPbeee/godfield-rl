@@ -403,3 +403,17 @@ Fate207→288と142防御は既存8seed×3checkpointで比較する。201/自動
 | --- | ---: | --- |
 | `wire-game-updates-v68.json` | 23,410 | `0d038993e0a5c34ee38387e8881fa5cdc1c0d334630df633d16c743cf4ac6f4a` |
 | `live-transition-witnesses-v68.json` | 19,767 | `3a59c54d334e022641384147176c8ba6576cec0499abf155d274a67bed340a4b` |
+
+
+## v69：能力が異なるDream偽装と非終末一新・低CP購入
+
+[受信7更新](wire-game-updates-v69.json)と[6操作](live-transition-witnesses-v69.json)を保存する。178の非終末DEF14でsafe→Dream→replaceItems8→通常gift1を区別した。19/fake27は旧9keyのabilityが異なり、見かけ攻7/吸収から実5被害・回復なしでHP40→35となった。この方向だけ受信predicateへ追加し、generatorの旧候補・率・RNGは維持する。202/fake202というsingletonの受信identityも記録する。
+
+113/fake135のactualDEF1で13から12被害、両替23/30/0、空防御によるHP13を追加取得した。CP0・MP30で価格5のモデル5を引いたBUYはcanNotBuyとなりHP/MP不変で、既存CP-only gateを支持する。最終CPU BUYには応答せず退出した。
+
+native比較は一新後update2〜6の5状態×既存8seed＝40だけで、178生成・BUYの複数候補選出をseed選別で合わせない。全Release157/157・変更native3対象のSAN3/3が通過し、完了観測45/native対象38/record-only7、wire比較総264へ更新する。v58/Snapshot58/view-v56、C ABI2と型幅・旧pins・記録を維持する。7原本の匿名化以外のgame literal一致・hash・mode0600と同じprivate roomを確認し、transport識別情報や原名を含めない。
+
+| v69 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v69.json` | 30,371 | `07dc4facb5cb0c3fe6bda23be0a107cf9f9391d3aa0ea27fbb3ed76f7e77c24a` |
+| `live-transition-witnesses-v69.json` | 25,537 | `2aafaafd2904c9dfe447ed2be772c61e6fa0bd5a8650771456724dbb3ededa07` |

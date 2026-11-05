@@ -1747,7 +1747,8 @@ bool match_dream_compatible(CardId actual, CardId face) noexcept {
         && (a.atk > 0) == (b.atk > 0) && (a.defense > 0) == (b.defense > 0);
 }
 bool match_dream_disguise_supported(CardId actual, CardId face) noexcept {
-    return match_dream_compatible(actual,face) || (actual==face && match_supported(actual));
+    return match_dream_compatible(actual,face) || (actual==face && match_supported(actual))
+        || (actual==19 && face==27);
 }
 std::vector<CardId> match_catalog() { std::vector<CardId> result; for (const auto& c : catalog()) if (match_supported(c.id)) result.push_back(c.id); return result; }
 int match_gift_weight() noexcept { int weight = 0; for (const auto& c : catalog()) if (match_supported(c.id)) weight += c.gift_rate; return weight; }
@@ -2103,7 +2104,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v55\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v56\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

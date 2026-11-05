@@ -361,6 +361,64 @@ void self_absorption_alias_bridge() {
         gfo_match_destroy(game);
     }
 }
+void directed_dream_receipt_bridge() {
+    namespace official=godfield::official;
+    std::array<std::string,3> masked_views;
+    for(uint16_t actual:{uint16_t{19},uint16_t{27}}) {
+        gfo_match_config config{};config.max_decisions=64;config.hand_limit=18;config.external_artifacts=1;
+        config.initial_hp=40;config.initial_mp=10;config.initial_cp=20;
+        std::array<gfo_match_player,2> setup{};setup[1].id=7;
+        gfo_match* game=nullptr;gfo_state* state=nullptr;gfo_match_status outcome{};
+        check(gfo_match_create(&config,setup.data(),setup.size(),42,&game)==0,"directed Dream C create");
+        std::array<gfo_state_player,2> people{};people[1].id=7;
+        for(auto& person:people){person.hp=40;person.mp=10;person.cp=20;}
+        people[0].curse_count=1;people[1].curse_offset=1;gfo_state_meta meta{};
+        const uint8_t dream=static_cast<uint8_t>(official::Curse::dream);
+        check(gfo_state_create(&meta,people.data(),people.size(),nullptr,0,&dream,1,&state)==0
+            &&gfo_match_load_scene(game,state,0,42,&outcome)==0,"directed Dream typed empty recipient scene");
+        gfo_state_destroy(state);
+        official::MatchConfig nc;nc.initial_hand=0;nc.max_decisions=64;nc.external_artifacts=true;
+        official::Match native(nc);official::SnapshotState board;board.players.resize(2);board.players[1].id=7;
+        board.players[0].curses={official::Curse::dream};native.load_scene(board,0,42);
+        const auto audit=[&] {
+            official::Match restored;restored.restore(native.snapshot());
+            check(restored.snapshot()==native.snapshot()&&observe(game,1,0)==native.observe(0)
+                &&observe(game,1,7)==native.observe(7)&&observe(game,0,0)==native.observe({}),
+                "directed Dream typed receipt/use agrees with native public views and full replay");
+        };
+        const auto command=[&](const gfo_match_command& c,const official::Command& n) {
+            check(gfo_match_step(game,&c,&outcome)==0,"directed Dream C follow-up command");(void)native.step(n);audit();
+        };
+        const auto artifact=[&](uint64_t target,uint16_t model,uint16_t face) {
+            gfo_match_artifact_grant_action c{};c.target=target;c.model=model;c.fake_model=face;
+            check(gfo_match_artifact_grant_step(game,&c,&outcome)==0,"directed Dream explicit result C step");
+            (void)native.artifact_grant_step({target,model,face?std::optional<official::CardId>{face}:std::nullopt});audit();
+        };
+        gfo_match_command pray{};pray.kind=3;command(pray,{0,official::CommandKind::pray,{},{}});
+        const auto before=observe(game);const auto previous=status(game);
+        for(const auto pair:{std::pair<uint16_t,uint16_t>{27,19},std::pair<uint16_t,uint16_t>{19,45}}) {
+            gfo_match_artifact_grant_action bad{};bad.model=pair.first;bad.fake_model=pair.second;
+            uint8_t legal=1;outcome=previous;
+            check(gfo_match_artifact_grant_legal(game,&bad,&legal)==0&&!legal
+                &&gfo_match_artifact_grant_step(game,&bad,&outcome)<0&&equal(outcome,previous)&&observe(game)==before,
+                "reverse and unobserved pairs reject without C output or debt mutation");
+        }
+        artifact(0,actual,27);check(native.snapshot().rng==42&&native.snapshot().dream_rolls==0&&native.snapshot().dream_masks==0,
+            "observed pair receipt leaves all local Dream generation RNG/statistics unchanged");
+        pray.actor=7;command(pray,{7,official::CommandKind::pray,{},{}});artifact(7,199,0);
+        const std::array views{observe(game,1,0),observe(game,1,7),observe(game,0,0)};
+        if(actual==19)masked_views=views;else check(masked_views==views,"same face27 hides actual19/27 from every observer before use");
+        gfo_match_command self{};self.has_target=1;self.item_count=1;
+        const auto token=native.snapshot().state.players[0].items.front().token;self.items[0]=token;
+        uint8_t legal=0;check(gfo_match_legal(game,&self,&legal)==0&&legal,"face27 selection has no hidden actual-trait reject oracle");
+        command(self,{0,official::CommandKind::play,{token},0});
+        check(outcome.phase==4&&native.snapshot().state.players[0].hp==(actual==19?35:40)
+            &&native.snapshot().state.players[0].mp==10&&native.snapshot().state.players[0].cp==20
+            &&native.snapshot().last_reveals==std::vector<official::RevealedItem>{{0,27,actual,false}},
+            "actual19 uses plain5 damage without the face27 heal and reveals its actual model only on use");
+        gfo_match_destroy(game);
+    }
+}
 }
 int main() {
     std::size_t fixed_query_probes = 0;
@@ -398,8 +456,8 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v57"
-        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v57 scope");
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v58"
+        && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v58 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-reflect-weapon-reflect-miracle-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
     for (auto id : {38, 39, 156, 167, 174, 189, 190}) check(gfo_match_supported(id), "added reflection/filter membership");
@@ -730,7 +788,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v55\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v56\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -3000,6 +3058,7 @@ int main() {
     gfo_match_destroy(sacrifice_match);gfo_match_destroy(discard_match);
     normal_grant_modes_bridge();
     self_absorption_alias_bridge();
+    directed_dream_receipt_bridge();
     artifact_grant_bridge();
     explicit_ordinary_grant_interop();
     check(gfo_match_grant_supported(0)&&gfo_match_grant_supported(6)&&gfo_match_grant_supported(207)
