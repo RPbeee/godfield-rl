@@ -2203,3 +2203,10 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 公式CPU修行のUIで霧鉄砲72/ATK3を単品で自己選択し、一度の確定後にGF1→2・本人40/10/20→37/10/20・CPU202待ちを確認した。追加本人防御は挟まらず、CPUの名前は残るがHP/MP/CP欄は隠れた。
 
 受信中のFirestore応答には本文保存の操作が現れず、権威的game初期/使用後の本文は取得できていない。補充品・CPU真手札・raw use/addCurse/gift順、server乱数消費を推測で埋めない。UIの有限例を根拠に72の直接自己経路を修正し、表示非公開化は既存Fog投影を維持する。
+
+
+## v78：53単品自己使用の二つの14被害
+
+[受信初期1と使用後2](../data/official-v2/wire-game-updates-v78.json)には、53/id3使用→target player1→dealDamage14（player省略）→dealDamage14/player1→gift160/id3→advance2→CPU19/id7/target1がある。本人は40/10/20→12/10/20、追加本人defendは挟まらない。
+
+14の二回攻撃とは区別し、53一使用の二つの減算として既存bodyと照合する。本人同士のためこの列からsource/targetの内部計算順を識別しない。低HP、208/112、上限、追加材や反射の一般境界は未確認である。

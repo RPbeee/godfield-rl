@@ -343,3 +343,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 [新UI記録](../data/official-v2/live-transition-witnesses-v77.json)では、単品72/ATK3を本人へ使い、追加防御なしでGF1→2・HP40→37・MP10/CP20維持、CPU202待ちへ進んだ。本人FogでCPUの資源欄は非表示となった。
 
 raw受信本文は保存できず、実補充品・CPU真手札・rawイベント順は未取得である。この例はrecord-onlyとし、新たなnative権威的state比較やwire replayを増やさない。累計57/native51/record-only6・wire480。CPU202へ応答せず途中退出し、ホーム復帰とNetwork Monitor終了を確認した。
+
+
+## v78：邪神の大剣53の単品自己使用
+
+[受信2状態](../data/official-v2/wire-game-updates-v78.json)と[1操作](../data/official-v2/live-transition-witnesses-v78.json)を保存する。本人HP40/MP10/CP20から単品53を自己使用し、14被害2回→HP12/MP10/CP20→通常160補充、追加本人防御なしでCPU19待ちへ進んだ。
+
+CPU19には応答せず途中退出した。初期1/使用後2を8固定seedで16比較、累計58/native52/record-only6・wire496、完全受信lifecycle2を維持する。sourceとtargetが同じなので役割別の減算順や低HP・復活を識別したとは数えない。ホーム復帰・Network Monitor終了を確認した。

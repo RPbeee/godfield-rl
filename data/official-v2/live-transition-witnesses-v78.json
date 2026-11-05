@@ -1,0 +1,289 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-05",
+  "observed_on_jst": "2026-11-05",
+  "observation_timestamp_note": "No exact per-action capture time is inferred from transport or file metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v77.json",
+  "method": "One actual single53 self-use with authoritative initial and post states,two14-damage events and finalHP12. The next CPU19 remained unanswered before quitting and confirming home/Network cleanup.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": "Original names,userId,updatedAt,room/document identifiers and transport credentials are excluded. CPU true hand is privileged scenario context only.",
+  "authoritative_fixture": "wire-game-updates-v78.json",
+  "source_body_provenance": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25381,
+      "response_body_sha256": "283e3ca093ea6e3491d7e97bc338ffb40cb6b9b6fce02e11e834f9ee8136e68e",
+      "webchannel_frame_count": 15
+    },
+    {
+      "label": "after-self53-pending-cpu19",
+      "response_body_bytes": 20038,
+      "response_body_sha256": "c9cb0753d4550a47d9380cea67ab0b4c40b33c1851f68d864c44716eb3a686d3",
+      "webchannel_frame_count": 4
+    }
+  ],
+  "model_provenance": {
+    "53": {
+      "id": 53,
+      "imageName": "evil-broadsword",
+      "category": "weapons",
+      "atk": 14,
+      "ability": "dealSameDamage",
+      "price": 1,
+      "giftRate": 1,
+      "name": "邪神の大剣"
+    },
+    "160": {
+      "id": 160,
+      "imageName": "terra-armor",
+      "category": "armor",
+      "element": "stone",
+      "def": 8,
+      "price": 10,
+      "giftRate": 1,
+      "name": "大地のよろい"
+    },
+    "19": {
+      "id": 19,
+      "imageName": "kusarigama",
+      "category": "weapons",
+      "atk": 5,
+      "price": 2,
+      "giftRate": 7,
+      "name": "鎖ガマ"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-evil-broadsword-two-deductions",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_conditional_received_state_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 53,
+        "displayed_model": 53,
+        "item_id": 3,
+        "target": 1,
+        "single_card": true,
+        "outgoing_wire_command_captured": false
+      },
+      "ui_evidence": {
+        "attack_preview": 14,
+        "explicit_self_target_selected": true,
+        "single_confirmation_observed": true
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 12,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "itemModelIds": [
+              19
+            ],
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_damage_events": [
+        {
+          "damage": 14,
+          "action": "dealDamage"
+        },
+        {
+          "damage": 14,
+          "action": "dealDamage",
+          "playerId": 1
+        }
+      ],
+      "received_normal_gift": {
+        "playerId": 1,
+        "item": {
+          "modelId": 160,
+          "id": 3
+        }
+      },
+      "catalog_arithmetic": {
+        "single53_attack": 14,
+        "damage_events": 2,
+        "viewer_hp": "40-14-14=12",
+        "derived_intermediate_hp": 26,
+        "mp_unchanged": 10,
+        "cp_unchanged": 20,
+        "intermediate_hp_source": "Derived from the initial40 and first received14 event;no separate intermediate UI capture was supplied."
+      },
+      "source_before_target_order_established": false,
+      "low_hp_death_or_revival_order_established": false,
+      "following_cpu_launch": {
+        "model": 19,
+        "item_id": 7,
+        "source": 2,
+        "target": 1,
+        "response_observed": false,
+        "result_observed": false
+      },
+      "observation": "One self53 use produced two received14-damage events and final viewer12/10/20. Gift160/id3 and GF2 CPU19 pending response followed without a second viewer command.",
+      "limits": "The two deductions are supported,but self source and target alias the same player. This finite case does not establish foreign source/target stage order,low-HP clipping,intermediate death/revival,208/112 or guardian sequencing. The existing rules65 direct53 implementation already gives the observed endpoint;no runtime/API change is asserted."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v65",
+    "snapshot_version": 65,
+    "observe_schema": "official-execution-view-v63",
+    "status": "passed",
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "received_checkpoint_comparisons": 16,
+    "baseline_cumulative_wire_checkpoint_comparisons": 480,
+    "initial_scene_authoritative": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_disease_and_guardian_cursor_schedule_reproduced": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load actual initial hands,execute ordinary self53 with the existing same-damage resolver,supply explicit received160,then execute receivedCPU19 to its pending response. No damage or attack-power injection is used. Endpoint agreement does not prove the native source-before-target stage order for the official server.",
+    "passed": true,
+    "cumulative_wire_checkpoint_comparisons": 496,
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v78",
+    "local_test_results": {
+      "source": "Parent-reported completed local validation;record author performed source/provenance audits and did not build or run tests.",
+      "release_targets_passed": 157,
+      "release_targets_total": 157,
+      "release_seconds": 29.3,
+      "release_single_clean_full_run": true,
+      "asan_ubsan_wire_passed": 1,
+      "asan_ubsan_wire_total": 1,
+      "asan_ubsan_wire_seconds": 0.72,
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 248,
+      "python_test_methods": 180,
+      "final_release_compile_warnings": 0,
+      "final_release_compile_errors": 0,
+      "final_asan_ubsan_compile_warnings": 0,
+      "final_asan_ubsan_compile_errors": 0,
+      "sanitizer_scope": "Only the newly built wire target was run under sanitizers for this data addition. No new core/C API/Python sanitizer run or full sanitizer suite is claimed."
+    }
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "excluded_duplicate_response_count": 0,
+    "failed_response_body_acquisition_attempts": 0
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu19_response_observed": false,
+    "cpu19_result_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "network_monitor_closed": true,
+    "exit_kind": "quit while CPU19 response pending",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 58,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 52,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "runtime_or_api_change_required_by_this_observation": false,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "new_record_only_completed_witnesses": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 496,
+  "native_coverage_note": "One actual self53 operation brings completed observations to58 and conditional native-covered observations to52;record-only observations remain6. Initial1 and post2 are compared across eight fixed seeds with explicit160 receipt. The CPU19 launch/pending frame is boundary context,not another completed viewer operation. Two14 deductions verify the self endpoint but not source-versus-target stage order,low-HP death or208/112 sequencing. Complete received lifecycles remain2 and routing-only observations remain1."
+}

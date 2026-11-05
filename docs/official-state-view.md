@@ -440,3 +440,10 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view63/rules65/Snapshot65へ更新し、独立State/表示componentとC構造体は維持する。UIでは72自己使用後の本人HP37/MP10/CP20は見える一方、CPUの名前以外の資源欄は隠れる。native回帰ではCPUの内部資源を消さず、本人視点の相手status=null・検証用spectator視点の資源保持を確認する。
 
 この回帰sceneのspare176と補充199は合成入力で、実対局の補充モデルやCPU受信状態ではない。rawの権威的game再生を得たという主張にはしない。
+
+
+## v78：自己53後の資源とslot再使用
+
+対局view63/rules65/Snapshot65と独立State/表示component・C構造体は維持する。本人53/id3は消費され、通常160/id3をfresh native tokenへ写す。本人HP12/MP10/CP20、CPU40/10/20・正コピー8+空行1とCPU19/source2/target1/power5の保留frameを比較する。
+
+二つのdealDamage14を二回の自己主動作や14のrepeat attackへ読み替えず、source==targetの有限終点として扱う。CPUの181は未使用、反撃・CPU19への応答や死亡は観測していない。

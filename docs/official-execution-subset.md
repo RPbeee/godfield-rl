@@ -3339,3 +3339,12 @@ Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wire
 新しい実測はUIのHP40→37・次手番・追加本人防御なし・相手資源非表示の有限例である。raw本文は未取得のため、合成sceneでbody/routing・表示・cutoff・proof・gift接続を検証し、実補充やCPU202結果の再生とは分ける。新観測1件はrecord-onlyへ加え、累計57/native51/record-only6・wire480、完全受信lifecycle2を維持する。
 
 Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native248 callbacks・Python180 unique methods、両buildのwarning/error0、diff-check正常。既存wire回帰の通過をv77のraw取得・新しい権威的replayへ読み替えず、全SAN suite/Python SANの実行とも区別する。
+
+
+## 作業世代v78：既存53直接自己使用の受信回帰
+
+53単品の明示自己使用が1commandで14+14のnominal減算を行い、HP40→12・補充1回となることを受信初期1→使用後2で照合する。実gift160とCPU19起動を入力し、固定8seed×2状態＝16比較を追加する。damage/powerや乱数結果を入力して一致させるのではなく、既存deal_same_damage bodyから計算する。
+
+既存runtime65/Snapshot65/view63・ABI2を変更しない。source/targetはともに本人1なので、その二つの役割の内部順序を区別した証拠ではない。低HPや死亡/復活の処理順、CPU19への応答は未観測。累計58/native52/record-only6・wire496、完全受信lifecycle2を維持する。
+
+Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSan1/1（0.72秒）が通過した。両buildのwarning/error0、diff-check正常。native248 callbacks・Python180 unique methodsとruntime/APIは変更せず、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。

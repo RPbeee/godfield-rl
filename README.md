@@ -3111,3 +3111,12 @@ Release CTest157/157（38.70秒）が通過した。Debug ASan/UBSanはcore/wire
 rules65 / Snapshot65 / view-v63へ更新し、ABI2と型幅を維持します。今回は受信本文を保存できず、補充品とCPU真手札は未同定です。[UI観測記録](data/official-v2/live-transition-witnesses-v77.json)だけを追加し、権威的状態の比較件数は増やしません。累計57観測/native51/記録のみ6・wire480です。
 
 Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native248 callbacks・Python180 unique methods、両buildのwarning/error0、diff-check正常。既存wire回帰の通過をv77のraw取得・新しい権威的replayへ読み替えず、全SAN suite/Python SANの実行とも区別する。
+
+
+## v78：邪神の大剣53の自己使用を受信照合
+
+公式CPU修行で53を単品自己使用し、14ダメージ2回でHP40→12、追加本人防御なし・通常160補充を確認しました。[初期と使用後の受信記録](data/official-v2/wire-game-updates-v78.json)を固定8seed×2状態で比較します。既存実装と一致するため、rules65/Snapshot65/view63・ABI2は維持します。
+
+累計58観測/native52/記録のみ6・wire重複込み496。自己使用ではsourceとtargetが同じなので、内部の役割別処理順や低HP・復活・死亡まで確定したとは扱いません。CPU19は未応答です。
+
+Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSan1/1（0.72秒）が通過した。両buildのwarning/error0、diff-check正常。native248 callbacks・Python180 unique methodsとruntime/APIは変更せず、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。

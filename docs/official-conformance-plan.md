@@ -2206,3 +2206,12 @@ UIで72の単品自己使用→HP37/Fog→次CPU202待ちを観測し、追加�
 新1completed UI観測で累計57だが、権威的受信本文とCPU真手札がないためrecord-only6、native51・wire480は維持する。CPU202は未応答で、その二択結果・分布、途中退出や未保存snapshotを完了traceとして加算しない。完全start→end2・routing-only1・backend内部trace0も維持する。
 
 Release CTest157/157（38.74秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.22秒）が通過した。native248 callbacks・Python180 unique methods、両buildのwarning/error0、diff-check正常。既存wire回帰の通過をv77のraw取得・新しい権威的replayへ読み替えず、全SAN suite/Python SANの実行とも区別する。
+
+
+## 作業世代v78：53の単品自己使用を実測済みへ
+
+authoritativeなinitial1とpost2を取得し、53自己使用の二つの14被害・HP12・通常160・CPU19保留を固定8seedで16比較する。既存bodyとdirect routingの回帰で、runtime65/Snapshot65/view63・ABI2を維持する。初期配布・CPU選択と実補充160は入力であり、server RNGや公式分布の証明ではない。
+
+新1完了操作で累計58/native52/record-only6・wire496。v77のUI-only1例を含む6件の分類は維持し、新たな完全start→endは0・累計2、routing-only1・内部trace0も維持する。本人への同量減算2回から役割別の内部順序を確定せず、低HP/208/112/反射/追加材は残件にする。ホーム復帰とNetwork Monitor終了を確認した。
+
+Release CTest157/157（29.30秒）、変更したwireテストのDebug ASan/UBSan1/1（0.72秒）が通過した。両buildのwarning/error0、diff-check正常。native248 callbacks・Python180 unique methodsとruntime/APIは変更せず、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
