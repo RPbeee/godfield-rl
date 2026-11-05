@@ -3084,3 +3084,12 @@ Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 初期更新1と購入後更新3を受信しました。更新2と21のraw use/giftイベントは未取得です。UIの自己使用と、購入された23・CP2の移動・buyer手札10枚という受信終点を、44/13の在庫差分と既存の商品外部指定で再生します。2状態×固定8seed＝16比較、累計54観測/native対象49/記録のみ5、wire重複込み448。今回は完全な受信列を増やさず、start→endの累計2を維持します。[受信記録](data/official-v2/wire-game-updates-v74.json)と[観測範囲](data/official-v2/live-transition-witnesses-v74.json)へ欠番を明記します。
 
 Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.14秒）が通過。native246群・Python178 unique method、両buildのwarning/error0、diff-check正常。全SAN/Python SAN、一般の商品分布・server RNGの同値性とは区別する。
+
+
+## v75：マジカルステッキ58の自己使用を実測
+
+公式CPU修行で58単品を自分に使い、HP40→20・MP10→0、追加防御なし・通常23補充を確認しました。受信初期1と使用後2を固定8seedで16比較し、既存実装と照合します。CPU221は起動した保留状態で、応答・Fog付与は未検証です。[受信記録](data/official-v2/wire-game-updates-v75.json)と[観測範囲](data/official-v2/live-transition-witnesses-v75.json)を保存します。
+
+runtime63/Snapshot63/view61・ABI2は維持します。累計55観測/native対象50/記録のみ5・wire重複込み464。53の自己使用や58の合成/FREE・MP境界、公式完全対応は引き続き残件です。
+
+検証はRelease CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0、diff-check正常。runtime/APIは変更せず、全SAN suiteやPython SANの実行とは区別する。

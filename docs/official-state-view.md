@@ -423,3 +423,8 @@ rules60/Snapshot60へ更新し、独立read-only State/ActiveDisplay/HpDisplay�
 対局view61/rules63/Snapshot63へ更新する。21のmain自己使用は5被害を直接解決し、追加の本人応答とbounce drawを作らない。これはUIの直接観測と前後の受信endpointで検証し、未取得のraw更新2を補完した履歴とは区別する。34と、21を防具として応答した場合の既存弾き経路は維持する。
 
 購入後のraw3ではsellerの23/id6が消え、buyerには23/id9と13/id10がある。server slotをowner付きlocal tokenへ写像し、配送は新しいunused token、通常13は別の予約giftとする。所持10枚を9へ切り詰めず、既存18枠の制約で保持する。独立State/表示componentやC構造体のschemaは維持する。
+
+
+## v75：58自己使用後の保持と空行
+
+初期9枚から58/id2を消費し、通常23/id2を新しいowner付きlocal tokenへ写す。CPU221/id6はused=trueで保持され、その通常補充はid0/model0の空行1として受信する。更新2は本人HP20/MP0・CPU40/7、Fog付与前のresponse待ちである。独立State/表示component・対局view61/rules63/Snapshot63・C構造体を変更しない。

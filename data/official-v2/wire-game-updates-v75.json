@@ -1,0 +1,433 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-05",
+  "url": "https://godfield.net/",
+  "scope": "Two consecutive authoritative received states:initial1 and post-self58 update2,pending CPU221 Fog response. One completed viewer operation is recorded. The viewer deliberately did not answer Fog and quit;no terminal update or complete received lifecycle was captured.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "initial",
+      "response_body_bytes": 25134,
+      "response_body_sha256": "84e8bcf043d1384d80554feb5170e01230b3c8979941c2d021e5e9f52fef5e30",
+      "webchannel_frame_count": 13
+    },
+    {
+      "label": "after-self58-pending-fog",
+      "response_body_bytes": 20331,
+      "response_body_sha256": "0f880aa5a378f280d1682c153b56e2cc239bfd6c484060c698d81613e7e5403e",
+      "webchannel_frame_count": 5
+    }
+  ],
+  "capture_method": "Native Firefox Network Monitor response-body saves,decoded as WebChannel/Firestore game-bearing changes. One byte-identical initial duplicate was excluded.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric in-game IDs,models,item IDs,event payloads,received array order,used flags and field omissions.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response bodies"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "privileged_scenario_warning": "CPU true inventory is privileged validation context,not player-policy observation.",
+  "continuity": {
+    "same_training_room_document_confirmed_in_private_sources": true,
+    "server_update_counts": [
+      1,
+      2
+    ],
+    "consecutive_received_update_counts": true,
+    "initial_authoritative_snapshot_captured": true,
+    "initial_model_generation_reproduced": false
+  },
+  "updates": [
+    {
+      "source_body": "initial",
+      "game": {
+        "players": [
+          {
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "id": 1,
+            "items": [
+              {
+                "modelId": 191,
+                "id": 1
+              },
+              {
+                "modelId": 58,
+                "id": 2
+              },
+              {
+                "modelId": 200,
+                "id": 3
+              },
+              {
+                "modelId": 145,
+                "id": 4
+              },
+              {
+                "modelId": 5,
+                "id": 5
+              },
+              {
+                "modelId": 130,
+                "id": 6
+              },
+              {
+                "modelId": 130,
+                "id": 7
+              },
+              {
+                "modelId": 195,
+                "id": 8
+              },
+              {
+                "modelId": 166,
+                "id": 9
+              }
+            ],
+            "name": "viewer"
+          },
+          {
+            "cp": 20,
+            "id": 2,
+            "hp": 40,
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 178
+              },
+              {
+                "modelId": 4,
+                "id": 2
+              },
+              {
+                "modelId": 172,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 113
+              },
+              {
+                "modelId": 5,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 221
+              },
+              {
+                "modelId": 193,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 154
+              },
+              {
+                "modelId": 105,
+                "id": 9
+              }
+            ],
+            "isBot": true,
+            "name": "cpu"
+          }
+        ],
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 191,
+              "id": 1
+            },
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 58,
+              "id": 2
+            }
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 200,
+              "id": 3
+            },
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 145,
+              "id": 4
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 5,
+              "modelId": 5
+            }
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 130,
+              "id": 6
+            },
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 130,
+              "id": 7
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 195,
+              "id": 8
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 9,
+              "modelId": 166
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "gf": 1,
+        "updateCount": 1,
+        "diseasePlayerId": 1,
+        "attackTurnPlayerId": 1,
+        "guardianPlayerIds": [
+          2
+        ]
+      }
+    },
+    {
+      "source_body": "after-self58-pending-fog",
+      "game": {
+        "players": [
+          {
+            "hp": 20,
+            "mp": 0,
+            "cp": 20,
+            "id": 1,
+            "items": [
+              {
+                "modelId": 191,
+                "id": 1
+              },
+              {
+                "modelId": 200,
+                "id": 3
+              },
+              {
+                "modelId": 145,
+                "id": 4
+              },
+              {
+                "modelId": 5,
+                "id": 5
+              },
+              {
+                "modelId": 130,
+                "id": 6
+              },
+              {
+                "modelId": 130,
+                "id": 7
+              },
+              {
+                "modelId": 195,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 166
+              },
+              {
+                "modelId": 23,
+                "id": 2
+              }
+            ],
+            "name": "viewer"
+          },
+          {
+            "id": 2,
+            "cp": 20,
+            "mp": 7,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 178
+              },
+              {
+                "modelId": 4,
+                "id": 2
+              },
+              {
+                "modelId": 172,
+                "id": 3
+              },
+              {
+                "modelId": 113,
+                "id": 4
+              },
+              {
+                "modelId": 5,
+                "id": 5
+              },
+              {
+                "id": 7,
+                "modelId": 193
+              },
+              {
+                "id": 8,
+                "modelId": 154
+              },
+              {
+                "id": 9,
+                "modelId": 105
+              },
+              {
+                "modelId": 221,
+                "used": true,
+                "id": 6
+              },
+              {
+                "id": 0,
+                "modelId": 0
+              }
+            ],
+            "isBot": true,
+            "hp": 40,
+            "name": "cpu"
+          }
+        ],
+        "gf": 2,
+        "attacks": [
+          {
+            "itemModelIds": [
+              221
+            ],
+            "targetPlayerId": 1,
+            "playerId": 2
+          }
+        ],
+        "diseasePlayerId": 2,
+        "events": [
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "modelId": 58,
+                "id": 2
+              }
+            ]
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "damage": 20,
+            "action": "dealDamage"
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "id": 2,
+              "modelId": 23
+            }
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 2
+          },
+          {
+            "items": [
+              {
+                "modelId": 221,
+                "id": 6
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ],
+        "updateCount": 2,
+        "attackTurnPlayerId": 2,
+        "guardianPlayerIds": [
+          1
+        ]
+      }
+    }
+  ],
+  "boundary_notes": [
+    "Actual initial58/id2 is the only viewer weapon. Native replay loads received initial hands;it does not generate the initial draw.",
+    "Update2 contains self58/id2,target1,damage20,gift23/id2,advance2,CPU221/id6,target1. No own-defense event is between self launch and damage.",
+    "Viewer changes40/10/20 to20/0/20. The raw useAttackItems event does not carry an explicit MP debit or attack-power field;the full post state and UI MP10/ATK20 preview establish the observed drain and damage endpoint.",
+    "CPU221 launch leaves MP7 and retains221/id6 with used:true. CPU has nine positive physical copies plus one canonical zero placeholder,ten received rows in total.",
+    "CPU221 Fog is still pending. Neither a viewer response nor Fog application/result is observed,and it is not another completed viewer operation.",
+    "CPU105 is merely held and no105 use or percentage branch was observed. No seed search or filtering is authorized to force a chance outcome.",
+    "Gift23 is explicitly received. Server id2 is reused after consuming58;it is matched by a separate local physical-token map.",
+    "Training abandonment,home return and Network Monitor closure were UI-confirmed. No post-abandonment terminal game update was captured."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v63",
+    "snapshot_version": 63,
+    "observe_schema": "official-execution-view-v61"
+  },
+  "captured_authoritative_game_snapshot_count": 2,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 1,
+  "complete_received_game_update_sequences": 0,
+  "captured_full_backend_event_traces": 0,
+  "native_projection_validation_record": "live-transition-witnesses-v75.json",
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final"
+}

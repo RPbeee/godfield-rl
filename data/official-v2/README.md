@@ -483,3 +483,17 @@ rules63/Snapshot63/view61、旧C ABI2/型幅・容量18・通常selectorを維�
 | --- | ---: | --- |
 | `wire-game-updates-v74.json` | 11,619 | `96813bc97e94ca6dd7e5c76a1b6aed855845efb521473a227e638fbdc9f43369` |
 | `live-transition-witnesses-v74.json` | 13,990 | `5afa660b4421bb7f72356ac1e981195cf83df7e95a2f50df2a48be163f729377` |
+
+
+## v75：58単品の自己使用を既存実行器で照合
+
+[受信初期1・使用後2](wire-game-updates-v75.json)と[1操作のwitness](live-transition-witnesses-v75.json)を保存する。58をMP10で自己使用し、HP40→20・MP10→0、追加本人防御なしで通常23を受け取った。CPU221は起動後の保留状態で、usedコピーと予約空行1を保持する。Fogへの応答・付与やCPU105の確率攻撃は観測していない。
+
+初期両手札とCPU221操作・実gift23を入力し、既存固定8seed×2受信状態＝16比較を追加する。観測55/native50/record-only5・wire重複込み464、完全start→end累計2・routing-only1を維持する。runtime63/Snapshot63/view61・ABI2は変更しない。初期配布分布・CPU方策・server RNGや58の合成/FREE/MP境界の同値性を主張しない。
+
+Release CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0。重複capture02を除外し、非公開の元応答と一時解析物は0600、公開JSONから元の名前・userId・updatedAt等を除いた。ホーム復帰とNetwork Monitor終了を確認した。旧記録・pinsを変更しない。
+
+| v75 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v75.json` | 11,411 | `6593d0541353ebd7997f16e11931af69c1e51ce5a8d301579199c9763d919ecb` |
+| `live-transition-witnesses-v75.json` | 10,331 | `7a1ab0e93d961bc98a18db20e9a3a07e5359c5b4e2bb109e9f2e511d60b82ff6` |

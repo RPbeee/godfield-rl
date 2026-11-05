@@ -322,3 +322,10 @@ replaceItems8には19/fake27、202/fake202、29/fake23、113/fake135、196/fake1
 そのBUYへ空応答すると、受信3はseller23/id6の選出とbuyer23/id9へのsetBought trueを示し、本人CP20→22・CPU20→18、HP/MP維持となった。本人44/id3とCPU13/id10はイベント取得ではなくinventorydeltaとして扱う。buyer10枚目の13とseller8枚を保ち、初期→購入後の2endpointを固定8seedで16比較する。途中quoteを受信stateに加えない。
 
 新completed UI観測2・累計54/native49/record-only5・wire448。欠番2を作らず、新しい完全受信lifecycleは0、従来累計2のまま。重複02/03と別prep-room05を除外し、途中退出は完了操作に数えない。ホーム復帰とNetwork Monitor終了を確認した。
+
+
+## v75：マジカルステッキ58の単品自己使用
+
+[2受信状態](../data/official-v2/wire-game-updates-v75.json)と[1操作](../data/official-v2/live-transition-witnesses-v75.json)を保存した。本人HP40/MP10/CP20から58を単品自己使用し、追加防御なしでHP20/MP0/CP20・通常23補充となる。CPU221起動でMP7、221はused保持＋空行1となり、Fogはまだ付いていない。応答せず途中退出したため、Fog使用への完了応答や終局に数えない。
+
+固定8seed×2状態＝16比較を追加し、累計55観測/native50/record-only5・wire464。runtime63/Snapshot63/view61は維持し、新しい完全受信lifecycleは0・累計2。重複capture02は除外し、ホーム復帰とNetwork Monitor終了を確認した。

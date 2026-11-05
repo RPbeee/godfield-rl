@@ -2181,3 +2181,10 @@ Release CTest157/157（39.27秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 authoritative更新は1と3のみで、missing2を明示する。初期手札から21操作、44在庫差分、CPU BUY5、正確なseller23 token、CPUの購入成立、13在庫差分を入力し、更新3のCP22/18・seller手札8/buyer10へ再生する。8固定seed×受信2状態＝16比較、21直後とquoteはlocal中間検査である。新2completed UI観測で累計54/native49/record-only5・wire448、新しい完全受信lifecycle0/累計2を維持する。raw use21/gift44やCPU launchを取得済みと表現しない。
 
 Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.14秒）が通過。native246群・Python178 unique method、両buildのwarning/error0、diff-check正常。全SAN/Python SAN、一般の商品分布・server RNGの同値性とは区別する。
+
+
+## 作業世代v75：58の実測済み範囲を追加
+
+58単品自己使用をHP40/MP10→HP20/MP0として初期1と使用後2の2受信状態で比較する。実gift23を供給し、CPU221保留まで再生する。既存固定8seedを探索/除外せず16比較、完了操作は58の1件だけを追加する。累計55/native50/record-only5・wire464、routing-only1・完全start→end2・backend内部trace0を維持する。runtime変更・API追加はない。53、低HP45/216、58の合成/FREE/MP境界等は残件。ホーム復帰とNetwork Monitor終了を確認した。
+
+検証はRelease CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0、diff-check正常。runtime/APIは変更せず、全SAN suiteやPython SANの実行とは区別する。

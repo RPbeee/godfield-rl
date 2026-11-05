@@ -2184,3 +2184,8 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 [新受信記録](../data/official-v2/wire-game-updates-v74.json)はauthoritative初期/update1と購入後/update3だけで、update2は欠落する。UIでは21自己使用が追加防御なしで40→35となり、次のCPU BUYが待機した。この観測に基づき21の直接self routingを修正する。raw use21/gift44/CPU5 launchや、backendのbounce乱数消費を確定する根拠とはしない。
 
 受信3にはempty useDefense・buy seller23/id6・setBought true buyer23/id9・advance1がある。価格2の支払でCPU20→18・本人20→22となりHP/MP維持、本人8枚・CPU10枚を受信した。44と13は在庫差分で、明示gift eventは取得していない。通常手数料やseller補償を加える変更は行わず、既存CP-only/配送/予約補充処理を条件付きで照合する。
+
+
+## v75：58自己使用の単品MP10例
+
+[受信初期1と使用後2](../data/official-v2/wire-game-updates-v75.json)に、58/id2使用→本人target→20被害→23/id2 gift→次GF2→CPU221起動がある。UIでもMP10・攻20の自己選択からHP20/MP0へ進み、追加本人防御を要求しなかった。単品1例として既存計算を支持するが、支払い/表示の内部イベント順、MP0/99・合成/FREE・反射/復活へ一般化しない。CPU221は未応答、105は未使用である。

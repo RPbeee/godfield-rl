@@ -3312,3 +3312,12 @@ v74wireの受信checkpointは[1,3]の2個だけで、8固定seed×2＝16比較�
 初期draw/商品selector/CPUのaccept方策、server RNGは未検証。新completed UI観測は21自己使用とBUYへの空応答の2例で、累計54/native49/record-only5・wire448。raw更新2の欠番は埋めず、新しい完全start→end受信は0、累計2を維持する。取得後の途中退出を完了観測やterminal fixtureへ加えない。
 
 Release CTest157/157（39.40秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（14.14秒）が通過。native246群・Python178 unique method、両buildのwarning/error0、diff-check正常。全SAN/Python SAN、一般の商品分布・server RNGの同値性とは区別する。
+
+
+## 作業世代v75：既存58自己使用の受信照合
+
+58単品・MP10・HP40のmain自己使用が1commandで20被害/MP0となり、追加self defenseを挟まないことを受信初期1→使用後2で確認した。既存direct経路と算術を変更せず、rules63/Snapshot63/view61・ABI2を維持する。
+
+初期両手札とCPU操作は明示入力、23は実gift eventのモデルを外部授与する。CPU221はused保持と予約gift1を伴う未応答frameで比較を止め、Fog付与を捏造しない。固定8seed×2状態＝16比較を追加し、wire重複込み464・観測55/native50/record-only5。初期分布・CPU方策・server RNGや58のMP/合成/復活の全境界の同値性ではない。
+
+検証はRelease CTest157/157（28.96秒）、変更したwireテストのDebug ASan/UBSan1/1（0.69秒）が通過した。両buildのwarning/error0、diff-check正常。runtime/APIは変更せず、全SAN suiteやPython SANの実行とは区別する。

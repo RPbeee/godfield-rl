@@ -1171,13 +1171,56 @@ void replay(std::uint64_t seed){
 }
 }
 
+namespace v75 {
+// Received initial1 and post-self2, not a reconstructed initial draw.
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,191},{2,58},{3,200},{4,145},{5,5},{6,130},{7,130},{8,195},{9,166}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,178},{2,4},{3,172},{4,113},{5,5},{6,221},{7,193},{8,154},{9,105}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,191},{3,200},{4,145},{5,5},{6,130},{7,130},{8,195},{9,166},{2,23}}};
+constexpr std::array<ReceivedSlot,10> after_cpu{{{1,178},{2,4},{3,172},{4,113},{5,5},{7,193},{8,154},{9,105},{6,221,0,true},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,20,0,20,false,after_viewer},{2,40,7,20,false,after_cpu}}},221}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,2)},1};
+    check(game.legal(self),"v75 received58 is legal for explicit self use");
+    (void)game.step(self);roundtrip(game);
+    check(game.snapshot().decisions==1&&game.snapshot().state.players[0].hp==20
+          &&game.snapshot().state.players[0].mp==0&&game.snapshot().phase==MatchPhase::grant
+          &&game.snapshot().pending_grant==1&&game.snapshot().gifts[0]==1&&game.snapshot().queue.empty(),
+          "v75 self58 fixes20 power before consuming all10 MP, with one command and no self-defense");
+    v64::receipt(game,slots,1,2,23);
+    // Miracle221 retains its physical copy as used; its gift is still reserved.
+    const Command fog{2,CommandKind::play,{slots.at({2,6})},1};
+    check(game.legal(fog),"v75 received CPU221 launch is legal");
+    (void)game.step(fog);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& s=game.snapshot();
+    check(s.decisions==3&&s.rng==seed&&s.chance_rolls==0&&s.counter_rolls==0
+          &&s.dream_rolls==0&&s.dream_masks==0&&s.redraws==0&&s.auto_guardian_actions==0
+          &&s.revivals==0&&s.queue.front().ability==Ability::add_curse
+          &&find_card(221)->curse==Curse::fog,
+          "v75 fixed seeds use no selector or hit draw; Fog remains unanswered and CPU105 is unused");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1197,4 +1240,5 @@ int main() {
     std::cout<<"v72: 8 seeds x4 received post-only updates,self41 DarkCloud without self-defense,179 versusDark92,self49 and lethal compound22; pre41 scene reconstructed,no initial-draw/order or low-HP45 claim\n";
     std::cout<<"v73: 8 seeds x4 received initial-to-end states,self55,11damage-to22counter,190reflection and empty fatal response;initial hand/ordinary184 supplied,no initial distribution,CPU policy or server RNG claim\n";
     std::cout<<"v74: 8 seeds x2 received endpoints1 and3 with missing rawupdate2;UI-observed self21,supplied23 BUY and normal44/13 deltas;no fabricated update2,complete lifecycle or selection distribution claim\n";
+    std::cout<<"v75: 8 seeds x2 received states,self58 atMP10 for20 damage/allMP and supplied23 receipt;CPU221 launch remains unanswered,no runtime change,initial distribution or server RNG claim\n";
 }
