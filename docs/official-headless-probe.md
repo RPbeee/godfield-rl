@@ -71,3 +71,7 @@ v90は追加の公式接続なしで、別セッション取得済み216の自�
 v91も公式サイトへ接続せず、別セッションで取得済みの94（あぶないキネ/杵）＋232（全敵化）の主動作1回を取り込んだ。[公開wire](../data/official-v2/wire-game-updates-v91.json)のprefix-A/Bはそれぞれ24,623/22,553 bytes、完全frame9/3、採用frame6/1（0-based）。元prefixを厳密parserで再解析して、保存済み抽出JSONの匿名化gameと一致を確認した。抽出JSONはWebChannel frameではなく、元prefixとは別にbytes/hashをwitnessへ記録する。HTTP completed=falseとframe境界完結を区別する。
 
 `danger` は保存済み公開client（SHA256は[v91 witness](../data/official-v2/live-transition-witnesses-v91.json)参照）の10989行付近で、case126→128の2000ms待機として扱われる。今回受信した `{ "action": "danger" }` だけをparserで許可し、payload追加形・未知eventは拒否する。対象選択・被害量・server内部順をこのmarkerから推定しない。臼209所持者は不在なので、臼と全敵化の優先関係は未観測。詳細は[観測記録v91](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を参照。
+
+v93・v94は追加の公式接続なしで取得済み111/108の対象指定なし単品使用を取り込んだ。`miss` は保存済み公開client（SHA256と行位置は各witness参照）のevent decoderで整数playerIdを読み、dispatchで該当playerを選んで `dY()` のmiss表示へ進む。ダメージやserverの命中分布を計算する根拠ではない。parserは観測された `{ "action": "miss", "playerId": <同game内の整数ID> }` のみ許可し、bool・小数・文字列・不在ID・payload追加・未知actionは拒否する。`hit` は未対応のまま。
+
+v93の抽出raw各1frameと元prefixのframe26/29、v94の累積prefixのframe8/10（0-based）を照合した。v93の元prefixには採用外の準備対局があるため、厳格framingで採用frameを分離してproduction sanitizerを適用し、抽出rawと一致を確認した。採用外の未知eventを許可する変更はない。対象指定なしを明示self-targetと解釈せず、CPUへのmissとして保存する。通常Commandの命中はgame RNGを使い、external chanceは結果を指定できないため、両観測はrecord-onlyで停止する。詳細は[観測v93](official-live-observations.md#作業世代v93取得済み111対象指定なしmiss)・[v94](official-live-observations.md#作業世代v94取得済み108対象指定なしmiss)を参照。

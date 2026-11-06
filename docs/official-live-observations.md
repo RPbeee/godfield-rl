@@ -512,3 +512,24 @@ Releaseのwire対象ビルドは成功。build内のRelease CTestは156/158（10
 rules71/Snapshot71/view69へ更新し、Snapshot旧1〜70を拒否。Match ABI2とC構造体幅は維持する。新1完了観測で累計72/native66/record-only6・wire712、完全受信lifecycle3/internal trace0。供給資料では通常退出後メニュー復帰とブラウザ終了を確認済みで、今回接続・探索・git commitは行っていない。
 
 単回のCPU対象観測は全alive抽選の可能性を統計的に排除しない。唯一の敵へのWide経路は、この条件内の限定実行規約であり、serverの対象分布の確定ではない。検証はRelease CTest 158/158（Python関連を含む、38.98秒）、Debug ASan/UBSanのofficial_match・official_match_c_api・official_wire_trace 3/3（45.95秒）、parser 11テストとumask022で実prefix2本のCLI再解析が通過した。出力0600/親0700と元bytes/mtime不変を確認し、Python構文検査・git diff --checkも通過。build警告/エラー0、全sanitizer suiteとsanitizer下のPythonは未実行。
+
+## 作業世代v93：取得済み111対象指定なしmiss
+
+公式サイトへ接続せず、別セッション取得済みの2人・終末なしCPU修行を[wire](../data/official-v2/wire-game-updates-v93.json)・[witness](../data/official-v2/live-transition-witnesses-v93.json)へ取り込んだ。v92はexecution-subsetの合法手列挙で使用済みのため観測番号をv93からとする。viewer1/CPU2、111（プチサターン、命中率25%、atk20）を対象指定なしで単品使用した。本人の明示self-target操作は確認されていない。受信update1→2、GF1→3、本人40/10/20維持・手札9→9。use111/id6→miss(playerId2)→gift180/id6→advance2→CPU use3/id3→exchange30/30/10→advance1。CPUは40/10/20→30/30/10、最終slot3は19。被害イベントや追加本人responseはない。
+
+抽出rawは22435/18669 bytes、各1完全frameのframe0。元prefixは76051/94720 bytes、完全frame29/30のframe26/29（0-based）で、抽出rawの匿名化gameと一致した。同じ私有document、bytes/hash、末尾不足0、HTTP completed:false/capture_error:falseを元captureで確認した。元prefixの準備対局を含む一括game検証は行わず、厳格UTF-8/UTF-16 framingとFirestore decodingで採用frameを切り出し、production sanitizerを適用した。全2状態36在庫行の配列順・省略fieldを保持し、原名・userId・updatedAt・document/room識別子・認証情報・raw・ローカルpathは公開しない。提供資料の探索11試行・ホーム復帰・browser終了は既存セッションの記録であり、今回再実行していない。
+
+公開clientのmissはplayerIdの対象選択と視覚表示だけを根拠とし、parserへ同game内の整数playerIdを持つ既知の2field形だけを追加した。未知payloadとhitは引き続き拒否する。nativeの通常playは内部 `bounded(s.rng,100)` で判定し、external chanceは通常Commandの命中結果を指定しない。既存の外部結果APIでmissを供給できないため、ユーザー指定の停止条件に従いエンジンを変更せずrecord-onlyとする。C++比較はseed0で初期受信状態を照合し、targetless playをexternal chance付きchoice_stepで1回診断して、外部stream不変・内部RNG消費を確認する。seed0の111はlocal missとなったが、この1件だけで指定可能とは扱わない。補充やCPU両替を供給した終点再生、8seedのmiss経路比較、seed探索・hit/miss分布の確定は行わない。
+
+新1完了観測で累計73/native66/record-only7。新規成功遷移wire比較0、累計712を維持する。診断用初期状態比較は成功遷移数に加算しない。完全受信lifecycle3/internal trace0、runtime/API/schema変更なし。追加公式接続・git commitなし。
+
+## 作業世代v94：取得済み108対象指定なしmiss
+
+同じく公式サイトへ接続せず、取得済み[wire](../data/official-v2/wire-game-updates-v94.json)・[witness](../data/official-v2/live-transition-witnesses-v94.json)を追加した。viewer2/CPU1、2人・終末なし。108（魔神の木馬、命中率75%、atk8）を対象指定なしで単品使用し、本人の明示self-target操作は未確認。受信update2→3、GF2→3、本人33/10/20維持・手札9→9。use108/id8のみ→miss(playerId1)→gift212/id8→advance1→CPU use47/id5→target2。CPU40/10/20維持、最後は47への本人応答待ちで、その解決は未観測。使用前HP33は先行するCPUの7攻撃・空応答後の受信状態であり、今回の新しい使用操作へ含めない。
+
+before/after rawは実際には累積prefix41938/61012 bytes、完全frame10/12、採用frame8/10（0-based）。production parserで両prefixを全体解析でき、after内frame8もbefore採用gameと一致し、同documentを私有資料で確認した。双方末尾不足0、元captureはHTTP completed:false/capture_error:false。全36行（positive35＋CPU id0/model0 placeholder1）の省略field・順序を維持する。rawのファイル名から単一frameと推定しない。提供資料の探索9試行、ホーム復帰・browser終了を転記し、原識別子・認証情報は公開しない。
+
+v93と同じ既存API制約によりrecord-only。108はseed0でlocal hit（chance_rolls1/hits1）となり、受信missと食い違った。この1回の違いを確率分布の不一致とは扱わない。seed0の初期状態比較と外部chance不使用の診断で止め、命中判定RNGの差をエンジン修正やseed探索で吸収しない。補充212→CPU47までの8seed終点一致は未検証であり、内部RNGの分布が公式と異なるという認定でもない。新1完了観測で累計74/native66/record-only8・成功wire712、完全受信lifecycle3/internal trace0。runtime/API/schema変更・公式接続・git commitなし。
+
+
+v93・v94の最終検証：Release全build成功・CTest161/161（50.53秒）。変更対象のDebug ASan/UBSan `official_wire_trace` 1/1（2.41秒）、umask022のparser回帰13/13が通過した。原データ4本をCLIで再解析して採用game/hashを照合し、出力0600/親0700・入力bytes/mtime不変、元captureのhash/completed/capture_errorとC++初期在庫全36行の転記一致も確認した。build warning/error0・git diff --check正常。全sanitizer suite・Python sanitizerは実行していない。このテスト成功はrecord-onlyの2遷移がnativeで再現できたという意味ではない。

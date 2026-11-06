@@ -1924,8 +1924,44 @@ void replay(std::uint64_t seed) {
 }
 }
 
+
+namespace v93_v94 {
+// Record-only: no existing external hit-result input for ordinary Command.
+// Compare the received pre-state, diagnose seed0 once, then stop before receipts.
+constexpr std::array<ReceivedSlot,9> slots93_1{{{1,4},{2,104},{3,9},{4,135},{5,161},{6,111},{7,214},{8,182},{9,13}}};
+constexpr std::array<ReceivedSlot,9> slots93_2{{{1,204},{2,38},{3,3},{4,190},{5,118},{6,21},{7,139},{8,41},{9,13}}};
+constexpr ReceivedCheckpoint before93{1,1,1,{{{1,40,10,20,false,slots93_1},{2,40,10,20,false,slots93_2}}}};
+constexpr std::array<ReceivedSlot,9> slots94_1{{{1,203},{2,4},{3,195},{4,16},{5,47},{6,212},{8,218},{9,185},{7,7}}};
+constexpr std::array<ReceivedSlot,9> slots94_2{{{1,59},{2,3},{3,142},{4,142},{5,38},{6,21},{7,118},{8,108},{9,199}}};
+constexpr ReceivedCheckpoint before94{2,2,2,{{{1,40,10,20,false,slots94_1},{2,33,10,20,false,slots94_2}}}};
+void diagnose(const ReceivedCheckpoint& before, PlayerId viewer, unsigned slot, CardId model) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=before.gf;SlotMap slots;
+    for(const auto& received:before.players){
+        PlayerState player;player.id=received.id;player.hp=received.hp;player.mp=received.mp;player.cp=received.cp;
+        for(const auto& row:received.slots){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),viewer,0);compare_checkpoint(game,slots,before);roundtrip(game);
+    const Command targetless{viewer,CommandKind::play,{slots.at({viewer,slot})},{}};
+    check(game.legal(targetless),"v93/v94 received targetless single chance weapon is legal");
+    std::uint64_t chance_rng=42;
+    (void)game.choice_step(PlayerChoice{targetless},chance_rng);roundtrip(game);
+    const auto& actual=game.snapshot();
+    check(chance_rng==42&&actual.rng!=0&&actual.chance_rolls==1&&actual.chance_forced_hits==0,
+          "v93/v94 ordinary play consumes game RNG, not supplied external chance RNG");
+    std::cout<<"record-only model"<<model<<": seed0 local hits="<<actual.chance_hits
+             <<"; official miss; external chance unchanged; stop before receipts, no eight-seed transition claim\n";
+}
+void diagnose() {diagnose(before93,1,6,111);diagnose(before94,2,8,108);}
+}
+
 }
 int main() {
+    v93_v94::diagnose();
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);

@@ -36,7 +36,7 @@ GAME_STRINGS = frozenset("""
     disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
-    nextAttack bounce reflect phenomenon setCurseOfEverybody danger
+    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss
     cold fever hell heaven darkcloud dream fog flash
     mercury venus earth mars jupiter saturn uranus neptune pluto moon
     viewer cpu
@@ -184,6 +184,14 @@ def sanitize_game(game, viewer_id=None):
     for event in game.get("events", []):
         if isinstance(event, dict) and event.get("action") == "danger":
             if event != {"action": "danger"}:
+                _error("unsupported_game_schema")
+    # Pinned client dispatch reads only miss.playerId for its visual effect.
+    # Accept exactly the observed recipient marker, never inferred damage.
+    for event in game.get("events", []):
+        if isinstance(event, dict) and event.get("action") == "miss":
+            if (set(event) != {"action", "playerId"}
+                    or type(event["playerId"]) is not int
+                    or event["playerId"] not in ids):
                 _error("unsupported_game_schema")
     _validate_game_values(game)
     return game

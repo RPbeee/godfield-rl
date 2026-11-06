@@ -1,0 +1,352 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "privileged_scenario_warning": "Received true CPU hands are privileged validation inputs,never policy observations.",
+  "capture_method": "Existing visible-UI headless probe under a bounded training-hand wrapper. Actual browser response data only via CDP Network.streamResourceContent bufferedData and dataReceived.data;immutable mode0600 response prefixes. The probe did not independently issue or replay backend commands,inspect hidden application state,or save HAR,headers,cookies or outgoing request payloads. Ordinary UI actions were handled by the official client.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "2": "viewer",
+      "1": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "scope": "Previously captured two-player no-apocalypse training; single model108, no target designation, miss recipient CPU1. This is not confirmed explicit self-target use. No official connection in this task.",
+  "source_bodies": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 41938,
+      "response_prefix_sha256": "94e70ffe15b1174bb09405244df2917bc424a54dec43bcce42f7b9df46d34894",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 10,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 41938,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        8
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 61012,
+      "response_prefix_sha256": "160ed5f66a5d09fd190eca438b6be752d729d7a71b4edc63b0e1bf215ae38c39",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 12,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 61012,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        10
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "updates": [
+    {
+      "label": "before",
+      "source_body": "prefix-A",
+      "source_frame_index": 8,
+      "game": {
+        "updateCount": 2,
+        "players": [
+          {
+            "isBot": true,
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 203
+              },
+              {
+                "modelId": 4,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 195
+              },
+              {
+                "id": 4,
+                "modelId": 16
+              },
+              {
+                "modelId": 47,
+                "id": 5
+              },
+              {
+                "modelId": 212,
+                "id": 6
+              },
+              {
+                "modelId": 218,
+                "id": 8
+              },
+              {
+                "modelId": 185,
+                "id": 9
+              },
+              {
+                "modelId": 7,
+                "id": 7
+              }
+            ],
+            "id": 1,
+            "name": "cpu",
+            "hp": 40,
+            "cp": 20
+          },
+          {
+            "items": [
+              {
+                "modelId": 59,
+                "id": 1
+              },
+              {
+                "modelId": 3,
+                "id": 2
+              },
+              {
+                "modelId": 142,
+                "id": 3
+              },
+              {
+                "modelId": 142,
+                "id": 4
+              },
+              {
+                "modelId": 38,
+                "id": 5
+              },
+              {
+                "modelId": 21,
+                "id": 6
+              },
+              {
+                "modelId": 118,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 108
+              },
+              {
+                "id": 9,
+                "modelId": 199
+              }
+            ],
+            "name": "viewer",
+            "mp": 10,
+            "hp": 33,
+            "cp": 20,
+            "id": 2
+          }
+        ],
+        "guardianPlayerIds": [
+          1
+        ],
+        "events": [
+          {
+            "action": "useDefenseItems"
+          },
+          {
+            "damage": 7,
+            "action": "dealDamage"
+          },
+          {
+            "playerId": 2,
+            "action": "advanceGF"
+          }
+        ],
+        "gf": 2,
+        "attackTurnPlayerId": 2,
+        "diseasePlayerId": 2
+      }
+    },
+    {
+      "label": "after",
+      "source_body": "prefix-B",
+      "source_frame_index": 10,
+      "game": {
+        "attacks": [
+          {
+            "itemModelIds": [
+              47
+            ],
+            "targetPlayerId": 2,
+            "playerId": 1
+          }
+        ],
+        "updateCount": 3,
+        "attackTurnPlayerId": 1,
+        "diseasePlayerId": 1,
+        "players": [
+          {
+            "hp": 40,
+            "cp": 20,
+            "isBot": true,
+            "items": [
+              {
+                "modelId": 203,
+                "id": 1
+              },
+              {
+                "modelId": 4,
+                "id": 2
+              },
+              {
+                "id": 3,
+                "modelId": 195
+              },
+              {
+                "modelId": 16,
+                "id": 4
+              },
+              {
+                "modelId": 212,
+                "id": 6
+              },
+              {
+                "modelId": 218,
+                "id": 8
+              },
+              {
+                "modelId": 185,
+                "id": 9
+              },
+              {
+                "modelId": 7,
+                "id": 7
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "id": 1,
+            "mp": 10,
+            "name": "cpu"
+          },
+          {
+            "mp": 10,
+            "name": "viewer",
+            "id": 2,
+            "hp": 33,
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 59,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 3
+              },
+              {
+                "modelId": 142,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 142
+              },
+              {
+                "modelId": 38,
+                "id": 5
+              },
+              {
+                "modelId": 21,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 118
+              },
+              {
+                "modelId": 199,
+                "id": 9
+              },
+              {
+                "id": 8,
+                "modelId": 212
+              }
+            ]
+          }
+        ],
+        "guardianPlayerIds": [
+          2
+        ],
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 108,
+                "id": 8
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "miss",
+            "playerId": 1
+          },
+          {
+            "action": "gift",
+            "playerId": 2,
+            "item": {
+              "modelId": 212,
+              "id": 8
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          },
+          {
+            "action": "useAttackItems",
+            "items": [
+              {
+                "id": 5,
+                "modelId": 47
+              }
+            ]
+          },
+          {
+            "action": "setTargetPlayer",
+            "playerId": 2
+          }
+        ],
+        "gf": 3
+      }
+    }
+  ]
+}

@@ -173,6 +173,52 @@ class ParserTests(unittest.TestCase):
         for secret in ('"userId":', '"updatedAt":', '"documentChange":', '/tmp/', 'session-D'):
             self.assertNotIn(secret, encoded)
 
+    def test_miss_exact_known_shape_only(self):
+        g = game()
+        g["events"] = [{"action": "miss", "playerId": 2}]
+        self.assertEqual(parser.parse_prefix(frame([change(g)]))["games"][0]["game"]["events"], g["events"])
+        for event in ({"action": "miss"}, {"action": "miss", "playerId": True},
+                      {"action": "miss", "playerId": 2.0}, {"action": "miss", "playerId": "2"},
+                      {"action": "miss", "playerId": None}, {"action": "miss", "playerId": -1},
+                      {"action": "miss", "playerId": 99}, {"action": "miss", "playerId": []},
+                      {"action": "miss", "playerId": 2, "damage": 0},
+                      {"action": "miss", "playerId": 2, "targetPlayerId": 1},
+                      {"action": "miss", "playerId": 2, "secret": "PRIVATE_AUTH"},
+                      {"action": "missUnknown", "playerId": 2}, {"action": "hit", "playerId": 2}):
+            with self.subTest(event=event):
+                g["events"] = [event]
+                with self.assertRaisesRegex(parser.ParseError, "^unsupported_game_schema$"):
+                    parser.parse_prefix(frame([change(g)]))
+
+    def test_v93_v94_wire_miss_and_record_only_witnesses(self):
+        root = SCRIPT.parents[1] / "data" / "official-v2"
+        for version, model, viewer, cpu, hp, gift in ((93, 111, 1, 2, 40, 180), (94, 108, 2, 1, 33, 212)):
+            with self.subTest(version=version):
+                wire = json.loads((root / f"wire-game-updates-v{version}.json").read_text())
+                witness = json.loads((root / f"live-transition-witnesses-v{version}.json").read_text())
+                self.assertEqual(wire["roles"], {"viewer_player_id": viewer, "cpu_player_id": cpu})
+                for update in wire["updates"]:
+                    g = update["game"]
+                    self.assertEqual(parser.parse_prefix(frame([change(g)]), viewer)["games"][0]["game"], g)
+                    player = next(p for p in g["players"] if p["id"] == viewer)
+                    self.assertEqual([player[k] for k in ("hp", "mp", "cp")], [hp, 10, 20])
+                    self.assertEqual(len(player["items"]), 9)
+                before, after = [u["game"] for u in wire["updates"]]
+                self.assertEqual(after["gf"], 3)
+                self.assertEqual(after["events"][0]["items"][0]["modelId"], model)
+                self.assertEqual(len(after["events"][0]["items"]), 1)
+                self.assertEqual(after["events"][1], {"action": "miss", "playerId": cpu})
+                self.assertEqual(after["events"][2]["item"]["modelId"], gift)
+                self.assertEqual(after["events"], witness["cases"][0]["received_ordered_effects"])
+                self.assertEqual(wire["source_bodies"], witness["source_body_provenance"])
+                self.assertFalse(witness["cases"][0]["native_projection_covered"])
+                self.assertFalse(witness["cases"][0]["confirmed_choice"]["self_target_confirmed"])
+                self.assertEqual(witness["new_wire_checkpoint_comparisons"], 0)
+                self.assertEqual(witness["cumulative_wire_checkpoint_comparisons"], 712)
+                encoded = json.dumps(wire) + json.dumps(witness)
+                for secret in ('"userId":', '"updatedAt":', '"documentChange":', '/tmp/', 'goodfield-E'):
+                    self.assertNotIn(secret, encoded)
+
     def test_pinned_bounce_receiver_enum_without_claiming_live_observation(self):
         # Finite decoder input only,not a captured game. Pinned main.dart.js
         # SHA256 5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd:
