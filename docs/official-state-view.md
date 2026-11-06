@@ -498,3 +498,13 @@ v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82�
 ### 作業世代v91：杵94＋全敵化232の限定契約
 
 rules71/Snapshot71/view69へ更新した。`danger_rule`の末尾でexact94→232・2人・臼なし・生存敵1人だけの対応と、それ以外のWide合成のunsupportedを宣言する。last_dangerのfield幅とABI2は変更しない。旧Snapshot1〜70を拒否し、pendingではlaunch時の条件を既存journal再生で検証する。[v91の受信照合と限界](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を参照。
+
+## C++：型付きの対局観測 `Match::view(viewer)`
+
+`official_match.hpp` の `MatchView Match::view(std::optional<PlayerId> viewer) const` は、既存 `observe(viewer)` と同じ公開情報の所有copyを返す。JSON変換を必要とせず、状態・乱数を変更しない。ruleset・schema・catalog/client hashと静的rule文字列は含めない。既存JSON・Snapshotの形式/版・C ABIは変更しない。C/Python入口は追加しない。
+
+項目は `phase`、`gift_pool`（`include_fate/models/weight`）、`local_guardian_payloads`、`external_artifacts`、`apocalypse_active`、`owner/actor`、`terminated/truncated/decisions`、`board`、`pending_grant`、`last_grant/last_devil/last_fate/last_phenomenon`、`last_guardian_payload/last_auto_guardian_payloads/last_auto_guardians/last_guardian_changes/last_guardian`、`last_redraws/last_reveals/last_danger/last_removal/last_sale`、`purchase/last_purchase`、`pending`。`board` は既存 `project_view(state, viewer)`。grantの通常modelは既存どおり0で隠し、guardian名・Fateの207・購入のbought等の派生JSON値は公開model/enumから得られる。
+
+`PurchaseOfferView` は `origin/buyer/seller/model/price`、`RevealedItemView` は `owner/face/model`、`GuardianChangeView` は `player/before/after/reason`、`PhenomenonView` は `model/recipient` のみを持つ。`GiftPoolView` と `PendingView` も公開専用型で、全View型は値の `operator==` を持つ。escrow token/slot、owner_only、hidden_viewers、guardian割当、未来の効果列・proof・乱数は保持しない。
+
+`last_reveals` のowner-only項目は本人viewerだけに返す。`last_guardian_changes` はイベント時点のhidden_viewersをviewerのroster席で判定して除外する（観戦者のbitは0）。`pending` は現在の先頭frameだけを公開し、環境起因なら `origin/source` は空、initial_targetのpaneがviewerに霧で隠れるなら `forced_hit` は空とする。反射後も元のactivationへの判定を維持する。redirect中のbounce能力数を `bounces`、redirect数との差を `reflections` とする。非公開の手札枚数・真model・token・fake_modelやseedは、公開情報が同じ観測の比較に影響しない。

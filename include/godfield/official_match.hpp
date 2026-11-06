@@ -403,6 +403,78 @@ struct GuardianChange {
     std::uint16_t hidden_viewers = 0; // Event-time viewer-seat mask, never serialized.
     bool operator==(const GuardianChange&) const = default;
 };
+// Public projections only; no physical escrow, event visibility masks or replay proof.
+struct GiftPoolView {
+    bool include_fate = false;
+    int models = 0, weight = 0;
+    bool operator==(const GiftPoolView&) const = default;
+};
+struct PurchaseOfferView {
+    PlayerId origin = 0, buyer = 0, seller = 0;
+    CardId model = 0;
+    int price = 0;
+    bool operator==(const PurchaseOfferView&) const = default;
+};
+struct RevealedItemView {
+    PlayerId owner = 0;
+    CardId face = 0, model = 0;
+    bool operator==(const RevealedItemView&) const = default;
+};
+struct GuardianChangeView {
+    PlayerId player = 0;
+    Guardian before = Guardian::none, after = Guardian::none;
+    GuardianChangeReason reason = GuardianChangeReason::summon;
+    bool operator==(const GuardianChangeView&) const = default;
+};
+struct PhenomenonView {
+    CardId model = 0;
+    std::optional<PlayerId> recipient;
+    bool operator==(const PhenomenonView&) const = default;
+};
+struct PendingView {
+    std::optional<PlayerId> origin, source;
+    PlayerId target = 0;
+    std::vector<CardId> models;
+    Category category = Category::weapons;
+    Attribute element;
+    std::size_t reflections = 0, bounces = 0;
+    int hit_rate = 0;
+    bool counter = false, environmental = false, death = false;
+    Guardian guardian = Guardian::none;
+    std::optional<bool> forced_hit;
+    std::int64_t power = 0;
+    Ability ability = Ability::none;
+    int amount = 0;
+    bool operator==(const PendingView&) const = default;
+};
+struct MatchView {
+    MatchPhase phase = MatchPhase::finished;
+    GiftPoolView gift_pool;
+    bool local_guardian_payloads = false, external_artifacts = false, apocalypse_active = false;
+    PlayerId owner = 0;
+    std::optional<PlayerId> actor;
+    bool terminated = false, truncated = false;
+    std::uint64_t decisions = 0;
+    SnapshotView board;
+    std::optional<PlayerId> pending_grant;
+    std::optional<DevilEvent> last_grant, last_devil;
+    std::optional<FateEvent> last_fate;
+    std::optional<PhenomenonView> last_phenomenon;
+    std::optional<GuardianPayloadAction> last_guardian_payload;
+    std::vector<GuardianPayloadAction> last_auto_guardian_payloads;
+    std::vector<GuardianAction> last_auto_guardians;
+    std::vector<GuardianChangeView> last_guardian_changes;
+    std::optional<GuardianAction> last_guardian;
+    std::vector<PlayerId> last_redraws;
+    std::vector<RevealedItemView> last_reveals;
+    std::optional<DangerEvent> last_danger;
+    std::optional<RemovalEvent> last_removal;
+    std::optional<SaleEvent> last_sale;
+    std::optional<PurchaseOfferView> purchase;
+    std::optional<PurchaseEvent> last_purchase;
+    std::optional<PendingView> pending;
+    bool operator==(const MatchView&) const = default;
+};
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
     MatchConfig config;
@@ -536,6 +608,8 @@ public:
     MatchStep summon_result_step(const SummonResultAction& action);
     [[nodiscard]] bool automatic_guardian_response_legal(const AutomaticGuardianResponseAction& action) const noexcept;
     MatchStep automatic_guardian_response_step(const AutomaticGuardianResponseAction& action);
+    // Same public information as observe(), without constant metadata; pure owning copy.
+    [[nodiscard]] MatchView view(std::optional<PlayerId> viewer) const;
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
 private:
     void apply_choice(const PlayerChoice& choice, std::uint64_t& chance_rng); // Only on a transaction copy.

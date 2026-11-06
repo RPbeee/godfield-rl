@@ -2443,6 +2443,74 @@ bool Match::guardian_payload_legal(const GuardianPayloadAction& action) const no
 MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
     auto next=data_; execute_guardian_payload(next,action); auto output=result(next); data_=std::move(next); return output;
 }
+MatchView Match::view(std::optional<PlayerId> viewer) const {
+    MatchView result;
+    result.phase = data_.phase;
+    result.gift_pool = {data_.config.include_fate, data_.config.include_fate ? 237 : 236, gift_weight()};
+    result.local_guardian_payloads = data_.config.local_guardian_payloads;
+    result.external_artifacts = data_.config.external_artifacts;
+    result.apocalypse_active = apocalypse_active(data_.state);
+    result.owner = data_.owner;
+    result.actor = data_.actor;
+    result.terminated = data_.terminated;
+    result.truncated = data_.truncated;
+    result.decisions = data_.decisions;
+    result.board = project_view(data_.state, viewer);
+    result.pending_grant = data_.pending_grant;
+    result.last_grant = data_.last_grant;
+    result.last_devil = data_.last_devil_event;
+    result.last_fate = data_.last_fate_event;
+    if (data_.last_phenomenon) result.last_phenomenon = PhenomenonView{data_.last_phenomenon->model, data_.last_phenomenon->recipient};
+    result.last_guardian_payload = data_.last_guardian_payload;
+    result.last_auto_guardian_payloads = data_.last_auto_guardian_payloads;
+    result.last_auto_guardians = data_.last_auto_guardians;
+    std::uint16_t viewer_bit = 0;
+    if (viewer) for (std::size_t i = 0; i < data_.state.players.size(); ++i)
+        if (data_.state.players[i].id == *viewer) viewer_bit = static_cast<std::uint16_t>(1u << i);
+    for (const auto& event : data_.last_guardian_changes) if (!(event.hidden_viewers & viewer_bit))
+        result.last_guardian_changes.push_back({event.player, event.before, event.after, event.reason});
+    result.last_guardian = data_.last_guardian;
+    result.last_redraws = data_.last_redraws;
+    for (const auto& event : data_.last_reveals) if (!event.owner_only || viewer == event.owner)
+        result.last_reveals.push_back({event.owner, event.face, event.model});
+    result.last_danger = data_.last_danger;
+    result.last_removal = data_.last_removal;
+    result.last_sale = data_.last_sale;
+    if (data_.purchase) {
+        const auto& offer = *data_.purchase;
+        result.purchase = PurchaseOfferView{offer.origin, offer.buyer, offer.seller, offer.item.model, find_card(offer.item.model)->price};
+    }
+    result.last_purchase = data_.last_purchase;
+    if (!data_.queue.empty()) {
+        const auto& frame = data_.queue.front();
+        PendingView pending;
+        if (!frame.environmental) { pending.origin = frame.origin; pending.source = frame.source; }
+        pending.target = frame.target;
+        pending.models = frame.models;
+        pending.category = frame.category;
+        pending.element = frame.element;
+        for (const auto& redirect : frame.redirects) for (auto model : redirect.models) {
+            const auto ability = find_card(model)->ability;
+            if (ability == Ability::bounce_weapon || ability == Ability::bounce_miracle) ++pending.bounces;
+        }
+        pending.reflections = frame.redirects.size() - pending.bounces;
+        pending.hit_rate = frame.hit_rate;
+        pending.counter = frame.is_counter;
+        pending.environmental = frame.environmental;
+        pending.death = frame.is_death;
+        pending.guardian = frame.guardian;
+        const auto hidden = std::any_of(result.board.players.begin(), result.board.players.end(), [&](const auto& player) {
+            return player.id == frame.initial_target && player.fogged;
+        });
+        if (!hidden) pending.forced_hit = frame.forced_hit;
+        pending.power = frame.power;
+        pending.ability = frame.ability;
+        pending.amount = frame.amount;
+        result.pending = std::move(pending);
+    }
+    return result;
+}
+
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
