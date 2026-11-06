@@ -3484,3 +3484,8 @@ Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1
 bounceMiracle全体を広く許可せず、モデルID34で限定する。216は台帳では吸収奇跡であり、公式自己使用は未観測のまま従来の直接吸収経路を維持する。foreign・redirect・Wide・guardian/payloadの別入口も従来経路のままとし、合法な追加材・死亡・tick・cutoff・補充の既存ローカル契約を引き継ぐ。今回の単品非致死例はそれら全境界の公式同値性や、HP算術の内部順を確定しない。
 
 公開 `self_attack_rule` は `bounce-miracle34-only` と `bounce-miracle34-raw-self-use-observed-v89-216-unobserved-excluded` を追加し、header・C getter・Python属性・observeの契約を同期する。実行経路の変更に合わせrules70/Snapshot70/view68へ更新し、Snapshot旧1〜69を拒否する。Match ABI2・既存C構造体幅・State/表示componentは維持する。固定8seed×2状態の16比較を追加し、累計70観測/native64/record-only6・wire680、完全受信lifecycle3/routing1/internal trace0となる。新規観測の加算ではなく、既存v89の記録のみ1件をnative対象へ移す。
+
+
+## 作業世代v90：216自己使用の既存経路照合
+
+取得済み[GF2→3の受信](../data/official-v2/wire-game-updates-v90.json)で、単品216自己使用のHP30/MP10/CP20→30/0/20、同copy used保持、通常195/id10とCPU64保留を固定8seed・16状態比較した。既存の吸収奇跡直接自己使用とbodyが一致し、実行挙動・rules70/Snapshot70/view68・ABI2は変更しない。受信damage10→boostHP10は記録するが、HP30の終点一致を低HP/上限/死亡やbackend内部順の証明へ拡張しない。34や他モデルも変更しない。新しい接続・初期配布再現・CPU64の応答解決はない。

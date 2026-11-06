@@ -483,3 +483,16 @@ Releaseのwire対象ビルドは成功。build内のRelease CTestは156/158（10
 
 
 修正後の最終検証はRelease CTest158/158（109.32秒、Python 41対象を含む）と、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.78秒）が通過した。両buildのwarning/errorは0、diff-check正常。全CTestはumask022で実行し、前回失敗した `official_webchannel_parser` も同じ全suite内で通過（0.58秒）した。coreでは34の単発消費・未選択防具の保持・無bounce draw・補充resume・foreign/redirect/Wide/guardianの除外・216の従来動作・旧Snapshot拒否・cutoff・失敗時rollbackを検査した。全SAN suiteやPython SANの実行とは区別する。
+
+
+## 作業世代v90：取得済み216単品自己使用とnativeの一致
+
+公式へ接続せず、別セッション取得済みの2人・終末なしCPU修行の[使用前update2と使用後update3](../data/official-v2/wire-game-updates-v90.json)を取り込んだ。viewer2/CPU1、GF2・本人HP30/MP10/CP20から216/id9のみ自己使用し、use216→target2→damage10→boostHP10→gift195/id10→advance1→CPU64/id1→target2を受信した。本人HP30/MP0/CP20、GF3、通常手札9枚＋保持used216の計10copyとなり、CPUは40/10/20で64の応答待ち。damageのplayerId省略、usedの有無、配列順、CPUのid0/model0 placeholderを保持し、2状態37行（positive36＋placeholder1）を採用する。前状態のCPU攻撃への空応答は今回の再生対象へ数えない。
+
+抽出rawは14974/20563 bytesで各1完全frame。元prefixは15118 bytes/3framesのframe1、35807 bytes/5framesのframe3（0-based）、末尾不足0byte。既存parserでrawと元prefixをそれぞれ再解析し、採用gameの一致、同じ私有文書、出典hashを確認した。capture metadataは双方completed:false/capture_error:false。HTTP完了・初期配布・終局の証拠とはしない。原識別子・文書path・認証情報・rawは公開記録へ含めない。提供observationの探索は12＋4＝16試行、採用以外15対局を除外し、ホーム復帰・browser終了は同資料の確認結果として記録する。
+
+[操作witness](../data/official-v2/live-transition-witnesses-v90.json)とwireテストのv90を追加し、固定8seed×2状態＝16比較が既存nativeのまま一致した。HP30/MP0・同tokenのused216保持・1補充予約を単一play後に確認し、実195を明示ArtifactGrantで供給してCPU64を通常playする。各native境界の完全snapshot restore、資源・全model/fake/used・GF/owner/pendingを比較する。受信damageやHPを効果へ注入せず、seed探索・除外もない。nativeの受信イベント列リプレイやbackend内部HP処理順の確定は主張しない。低HP/上限/死亡・FREE/合成・redirect・CPU64解決・分布は残件である。
+
+実行挙動とAPIの修正は不要で、rules70/Snapshot70/view68・ABI2、34とその他モデルの挙動を維持する。v89時点のdescriptor中の216未観測ラベルは履歴として据置き、216の新しい実測根拠は本v90に記録する。新1完了観測で累計71/native65/record-only6・wire696、完全受信lifecycle3/routing1/internal trace0。公式接続・探索の再実行・git commitは行っていない。
+
+最終検証はbuild内のRelease CTest158/158（109.87秒）と、build-sanitizeのDebug ASan/UBSan core/C API/wire3/3（27.60秒）が通過した。両ビルドのwarning/errorは0、diff-check正常。umask022で全CTestを実行し、official_webchannel_parserも同suite内で通過（0.60秒）した。raw/匿名化fixture/C++手札転記の全37行一致も再確認した。全SAN suiteとPython SANは実行対象外である。

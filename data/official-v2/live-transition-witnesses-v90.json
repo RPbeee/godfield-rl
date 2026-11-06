@@ -1,0 +1,355 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v89.json",
+  "method": "Existing captured two-player no-apocalypse training updates2/3: single216 self HP30/MP10/CP20 -> HP30/MP0/CP20;used216 retained,ordinary195/id10,GF3 CPU64 pending. No new connection;not an initial or terminal capture.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "privacy": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "authoritative_fixture": "wire-game-updates-v90.json",
+  "source_body_provenance": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 15118,
+      "response_prefix_sha256": "bbd6e5c2d8f0b28868cf16e16b4264d94e0029b7eb5cdf2d7a1cc872ed17b9b2",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 3,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 15118,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        1
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false,
+      "selected_raw_update": {
+        "bytes": 14974,
+        "sha256": "a7ac05761d6662ee926a719edde9abe8d514e4792154cbfbb8dca1eb3462e6bc",
+        "complete_frame_count": 1,
+        "selected_frame_index_zero_based": 0,
+        "complete_frame_end_byte": 14974
+      }
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 35807,
+      "response_prefix_sha256": "d0a7e2fd29035661142ccbbcb8a7d521667406dda93bdbdfb60116ed92815fe2",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 5,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 35807,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        3
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false,
+      "selected_raw_update": {
+        "bytes": 20563,
+        "sha256": "3015f0b9748493d28d26a90cc02a9288fd4e930f658c56822431b6e04d064719",
+        "complete_frame_count": 1,
+        "selected_frame_index_zero_based": 0,
+        "complete_frame_end_byte": 20563
+      }
+    }
+  ],
+  "model_provenance": {
+    "64": {
+      "id": 64,
+      "imageName": "pri-pri-pricker",
+      "category": "weapons",
+      "element": "darkness",
+      "atk": 1,
+      "price": 10,
+      "giftRate": 1,
+      "name": "ちくりんちょ"
+    },
+    "195": {
+      "id": 195,
+      "imageName": "smile-flower",
+      "category": "sundries",
+      "ability": "boostMP",
+      "abilityValue": 5,
+      "price": 1,
+      "giftRate": 12,
+      "name": "スマイルの花"
+    },
+    "216": {
+      "id": 216,
+      "imageName": "absorption",
+      "category": "miracles",
+      "element": "light",
+      "atk": 10,
+      "ability": "absorbHP",
+      "cost": 10,
+      "giftRate": 1,
+      "name": "＜吸収＞"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf2-single216-self-no-response",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_with_unchanged_engine",
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "viewer_resources": [
+          30,
+          10,
+          20
+        ],
+        "cpu_resources": [
+          40,
+          10,
+          20
+        ],
+        "pending_attacks": []
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "play",
+        "actual_model": 216,
+        "displayed_model": 216,
+        "item_id": 9,
+        "target": 2,
+        "single_card": true,
+        "additional_self_defense_observed": false,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "viewer_resources": [
+          30,
+          0,
+          20
+        ],
+        "cpu_resources": [
+          40,
+          10,
+          20
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              64
+            ],
+            "playerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "boostHP",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "items": [
+            {
+              "id": 9,
+              "modelId": 216
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 2,
+          "action": "setTargetPlayer"
+        },
+        {
+          "damage": 10,
+          "action": "dealDamage"
+        },
+        {
+          "playerId": 2,
+          "hp": 10,
+          "action": "boostHP"
+        },
+        {
+          "action": "gift",
+          "item": {
+            "id": 10,
+            "modelId": 195
+          },
+          "playerId": 2
+        },
+        {
+          "action": "advanceGF",
+          "playerId": 1
+        },
+        {
+          "items": [
+            {
+              "modelId": 64,
+              "id": 1
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 2,
+          "action": "setTargetPlayer"
+        }
+      ],
+      "screen": {
+        "before": {
+          "hp": 30,
+          "mp": 10,
+          "cp": 20,
+          "hand_count": 9,
+          "retained_used": 0,
+          "gf": 2
+        },
+        "after": {
+          "hp": 30,
+          "mp": 0,
+          "cp": 20,
+          "hand_count": 9,
+          "retained_used": 1,
+          "gf": 3
+        }
+      },
+      "observation": "Single216 self-use receives damage10 then boostHP10;HP30 unchanged,MP10 paid,original216/id9 retained used,ordinary195/id10 and CPU64/id1 pending.",
+      "limits": "Nonlethal HP30 single-card endpoint only;no low-HP,cap,death,FREE/compound,redirect,CPU64 resolution,distribution or server RNG claim. Received event order is retained,not a backend internal-order trace."
+    }
+  ],
+  "search_context": {
+    "reported_run1_trials": 12,
+    "reported_run2_trials": 4,
+    "reported_total_trials": 16,
+    "excluded_preparation_games": 15,
+    "search_not_repeated_in_this_task": true,
+    "home_confirmed_in_supplied_observation": true,
+    "browser_closed_in_supplied_observation": true
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v90",
+    "received_updates_compared": [
+      2,
+      3
+    ],
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "fixed_replays_completed": 8,
+    "initial_received_checkpoints_matched": 8,
+    "post_received_checkpoints_matched": 8,
+    "engine_modified": false,
+    "ruleset": "official-execution-subset-v70",
+    "snapshot_version": 70,
+    "view_schema": "official-execution-view-v68",
+    "ordered_resource_event_replay": false,
+    "scope": "Load received GF2 board and exact privileged inventories,execute normal self216 command with unchanged body,supply ordinary195 at new slot10,launch CPU64,compare GF3 checkpoint and restore every boundary. Does not reproduce preceding CPU action,initial draw,CPU policy,server RNG or backend arithmetic order.",
+    "local_test_results": {
+      "release_build_passed": true,
+      "release_ctest_passed": 158,
+      "release_ctest_total": 158,
+      "release_ctest_seconds": 109.87,
+      "umask": "022",
+      "official_webchannel_parser_passed": true,
+      "sanitize_build_type": "Debug ASan/UBSan",
+      "sanitize_ctest_targets": [
+        "official_match",
+        "official_match_c_api",
+        "official_wire_trace"
+      ],
+      "sanitize_ctest_passed": 3,
+      "sanitize_ctest_total": 3,
+      "sanitize_ctest_seconds": 27.6,
+      "build_warnings": 0,
+      "build_errors": 0,
+      "full_sanitize_suite_run": false,
+      "python_sanitize_run": false
+    }
+  },
+  "source_audit": {
+    "strict_utf8_and_exact_utf16_length_frames": true,
+    "selected_games_validated_by_unchanged_sanitize_game": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "raw_prefix_modes_0600": true,
+    "field_omissions_and_array_order_preserved": true,
+    "received_inventory_rows_total": 37,
+    "positive_inventory_rows_total": 36,
+    "zero_placeholder_rows_total": 1,
+    "note": "Reparsed both extracted one-frame raw updates and original full prefixes using unchanged parse_official_webchannel.py;selected prefix frames1/3 match extracted frame0 exactly after sanitization. Verified observation raw bytes/hash and same private document in cumulative prefix. No original identifiers or paths serialized."
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu64_response_observed": false,
+    "home_menu_return_confirmed": true,
+    "browser_closed": true,
+    "source": "Supplied observation.json;no new browser session in this task."
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 71,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 65,
+  "new_record_only_completed_witnesses": 0,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 3,
+  "captured_full_server_event_traces": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 696,
+  "record_status": "native_projection_covered_without_engine_fix",
+  "official_full_simulator_equivalence_established": false,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "runtime_behavior_changed": false
+}

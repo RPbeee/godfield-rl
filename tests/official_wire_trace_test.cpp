@@ -1837,14 +1837,56 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v90: captured GF2 single216 self-use; retained miracle and explicit ordinary195.
+namespace v90 {
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,64},{2,82},{3,26},{4,4},{5,199},{7,73},{8,233},{9,130},{6,32}}};
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,16},{2,227},{3,113},{4,125},{5,213},{6,148},{7,213},{8,13},{9,216}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{2,82},{3,26},{4,4},{5,199},{7,73},{8,233},{9,130},{6,32},{0,0}}};
+constexpr std::array<ReceivedSlot,10> after_viewer{{{1,16},{2,227},{3,113},{4,125},{5,213},{6,148},{7,213},{8,13},{9,216,0,true},{10,195}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{2,2,2,{{{1,40,10,20,false,initial_cpu},{2,30,10,20,false,initial_viewer}}}},
+    ReceivedCheckpoint{3,3,1,{{{1,40,10,20,false,after_cpu},{2,30,0,20,false,after_viewer}}},64}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=2;SlotMap slots;
+    for(const auto& received:checkpoints[0].players){
+        PlayerState player;player.id=received.id;player.hp=received.hp;player.mp=received.mp;player.cp=received.cp;
+        for(const auto& row:received.slots){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),2,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const auto retained=slots.at({2,9});
+    const Command self{2,CommandKind::play,{retained},2};
+    check(game.legal(self),"v90 received single216 explicit self command is legal");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.phase==MatchPhase::grant&&body.pending_grant==2&&body.queue.empty()
+          &&body.state.players[1].hp==30&&body.state.players[1].mp==0&&body.state.players[1].cp==20
+          &&body.decisions==1&&body.rng==seed&&body.gifts[1]==1,
+          "v90 self216 resolves HP30 MP0 and reserves one gift without an extra response or RNG");
+    check(std::count_if(body.state.players[1].items.begin(),body.state.players[1].items.end(),
+          [&](const auto& item){return item.token==retained&&item.model==216&&item.used;})==1,
+          "v90 same216 physical token is retained used");
+    v64::receipt(game,slots,2,10,195);
+    const Command cpu{1,CommandKind::play,{consumed_slot(slots,1,1)},2};
+    check(game.legal(cpu),"v90 received CPU64 launch is legal");
+    (void)game.step(cpu);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);v89::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);v89::replay(seed);v90::replay(seed);
     }
+    std::cout<<"v90: 8 fixed seeds x2 received checkpoints; self216 HP30 MP0, retained used216, supplied195, GF3 CPU64 pending; unchanged engine\n";
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
              <<"not full matches, server RNG equivalence or public-player policy inputs\n";

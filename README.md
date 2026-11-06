@@ -3206,3 +3206,10 @@ Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1
 ### 作業世代v89：34の自己使用を既存受信へ一致
 
 追加観測・公式接続を行わず、既存v89の34単品自己使用を直接DEF0で解決するよう修正しました。HP40→31・実補充4・GF2/CPU79応答待ちを固定8seedで照合し、wire累計680です。未観測216は従来経路を維持し、HP算術の内部順は未確定です。rules70/Snapshot70/view68へ更新し、Match ABI2を維持します。
+
+
+### 作業世代v90：216の取得済み自己使用を照合
+
+[受信2状態](data/official-v2/wire-game-updates-v90.json)を追加し、単品216自己使用のHP30/MP10→HP30/MP0、同copyのused保持、195補充・GF3/CPU64保留が既存nativeと固定8seedで一致しました。公式への追加接続とエンジン修正はなく、rules70/Snapshot70/view68を維持します。累計71観測/native65/記録のみ6・wire696。内部HP処理順や低HP/死亡境界の確定は含みません。
+
+Release CTest158/158（109.87秒）、Debug ASan/UBSanのcore/C API/wire3/3（27.60秒）が通過しました。全CTestはumask022でparserを含めて確認済みです。
