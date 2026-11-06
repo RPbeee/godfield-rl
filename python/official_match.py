@@ -725,6 +725,9 @@ class Match:
         lib.gfo_match_automatic_guardian_response_step.argtypes = [c.c_void_p, c.POINTER(_Command), c.POINTER(_AutomaticGuardianOutcome), c.c_size_t, c.POINTER(_Status)]
         lib.gfo_match_automatic_guardian_response_step.restype = c.c_int
 
+        if hasattr(lib, "gfo_match_legal_commands"):
+            lib.gfo_match_legal_commands.argtypes = [c.c_void_p, c.c_size_t, c.c_int32, c.POINTER(_Command), c.c_size_t, c.POINTER(c.c_size_t)]
+            lib.gfo_match_legal_commands.restype = c.c_int
         lib.gfo_match_sample_action.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]; lib.gfo_match_sample_action.restype = c.c_int
         lib.gfo_match_sample_confusion.argtypes = [c.c_void_p, c.POINTER(c.c_uint64), c.POINTER(_Command)]
         lib.gfo_match_sample_confusion.restype = c.c_int
@@ -1007,6 +1010,24 @@ class Match:
         self._open(); encoded = _command(command); result = _Status()
         _check(self._lib.gfo_match_confusion_step(self._handle, c.byref(encoded), c.byref(result)))
         return _decode_status(result)
+
+    def legal_commands(self, max_items=2, exchange_step=0):
+        """List legal Commands, ordered by kind/tokens/target/allocation.
+
+        max_items is 1..4. exchange_step=0 excludes exchange; positive values step
+        HP and MP, with CP the conserved remainder. Dedicated phases raise.
+        """
+        self._open()
+        max_items = _integer(max_items, "max_items", 1, 4)
+        exchange_step = _integer(exchange_step, "exchange_step", 0, 2**31 - 1)
+        if not hasattr(self._lib, "gfo_match_legal_commands"):
+            raise AttributeError("library has no gfo_match_legal_commands")
+        needed = c.c_size_t()
+        fn = self._lib.gfo_match_legal_commands
+        _check(fn(self._handle, max_items, exchange_step, None, 0, c.byref(needed)))
+        data = (_Command * needed.value)()
+        _check(fn(self._handle, max_items, exchange_step, data, len(data), c.byref(needed)))
+        return [_decode_command(command) for command in data]
 
     def sample_action(self, policy_rng):
         self._open(); rng = c.c_uint64(_integer(policy_rng, "policy_rng", 0, 2**64 - 1)); result = _Command()

@@ -91,23 +91,30 @@ export GODFIELD_LIBRARY=/path/to/goodfield/build/libgodfield.dylib   # Linux は
 ```python
 import random
 from official_match import Match
-from official_rl import enumerate_commands, pending_kind
+from official_rl import pending_kind
 
 with Match(seed=1) as match:
     for game in range(100):
         status = match.reset(game)
         while not status.done:
             obs = match.observe(status.actor)            # dict: board.players / board.hand / pending ...
-            if pending_kind(match) is not None:          # Fate207・混乱・補充など専用入口が必要な局面
+            if pending_kind(match) is not None:          # 混乱・補充など専用入口が必要な局面
                 raise NotImplementedError(pending_kind(match))
-            commands = enumerate_commands(match)         # 合法手のリスト(= 方策の行動マスク)
+            commands = match.legal_commands(max_items=2, exchange_step=0)  # この範囲の行動マスク
             status = match.step(random.choice(commands)) # ここを自分の方策に置き換える
         print(status.winners, status.reward_by_player)   # 勝者と報酬(+1/-1)
 ```
 
-- `Match` は 1 手ずつ検証する `legal(command)` と、合法手を 1 つ引く `sample_action` を持ちますが、
-  **合法手の全列挙 API は C 側にありません**。`python/official_rl.py` の `enumerate_commands` が、
-  観測から候補を作って `legal` で絞ります(既定は 2 枚までの順序付き組合せ。`exchange` は `exchange_step` 指定時のみ)。
+- `Match.legal_commands(max_items=2, exchange_step=0)` は native 側で合法な Command を列挙します。
+  `max_items` は1〜4枚の順序付き組合せの上限です。既定では exchange を除き、
+  `exchange_step=1` なら総和保存する全配分、2以上ならHP/MPをその刻みで列挙します（CPは残差）。
+  指定枚数を超える手・専用入口の行動を含む全行動空間とは区別してください。
+  `python/official_rl.py` の `enumerate_commands` はこのAPIへ委譲し、新関数のない旧ライブラリのみPython総当たりを使います。
+- 結果順は種別の数値順→token列の辞書順→target（なしが先）→配分HP/MP/CP順です。
+  grant・正の混乱mainは例外、finishedも例外になります。列挙は状態・乱数を変更しません。
+- `sample_action` は限定した候補から選んで追加カードを連結する方策です。
+  出力は2枚を超えることもあり、合法手全体を網羅した候補からの一様抽選ではありません。
+  単品／奇跡＋FREEの初期候補と、枚数上限内で legal が受理する全Commandの列挙を区別します。
 - `observe(viewer)` は視点ごとの公開情報だけを返します。`status` は `actor` / `phase` / `done` / `winners` / `reward_by_player` を持ちます。
 - 特殊な入口(207 Fate、混乱、外部補充、守護神、現象、悪魔、redraw/召喚の応答)は、
   `fate_step` や `grant_step` などの専用メソッドを使います(`dir(Match)` を参照)。

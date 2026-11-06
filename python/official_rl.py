@@ -1,31 +1,25 @@
-"""Legal-command enumeration for RL on top of ``official_match.Match``.
+"""Bounded legal Command enumeration for RL.
 
-``Match`` validates one command at a time (``legal``) and can draw one uniformly
-random legal command (``sample_action``), but has no "list all legal commands" call.
-This helper generates candidate commands from the observation and keeps those that
-``Match.legal`` accepts, so a policy can be masked over a finite action list.
-
-Scope and limits (experimental ruleset, not official-server equivalence):
-  * Item sequences are ordered (composition order matters) and capped at
-    ``max_items`` (default 2; each extra item multiplies the candidates by ~8). Commands that need longer sequences are not enumerated.
-  * ``exchange`` is enumerated only when ``exchange_step`` is given, with allocations
-    stepping by that amount over the (hp, mp, cp) totals; it is skipped by default.
-  * Special entry points (Fate 207, confusion, grants, guardians, phenomena, devils,
-    redraw/summon responses, ...) have their own ``*_legal`` / ``*_step`` methods and are
-    not enumerated here. ``enumerate_commands`` returns [] when the match is waiting
-    on one of them (see ``pending_kind``).
+Uses native Match.legal_commands, with a Python oracle fallback only for older
+libraries missing that symbol. Ordered item sequences are capped at 1..4 items;
+exchange_step=0 excludes exchange. sample_action is a proposal policy, not a
+uniform draw over all legal Commands. Dedicated phases raise MatchError.
 """
 
 from __future__ import annotations
 
 from itertools import permutations
 
-from official_match import Command, Match
+from official_match import Command, Match, InvalidMatchError, UnsupportedMatchError, _integer
 
-# Kinds validated through Match.legal / Match.step.
-_MAIN_KINDS = ("play", "discard", "pray", "sell", "buy", "exchange")
-_RESPONSE_KINDS = ("defend",)
+_KINDS = ("play", "defend", "discard", "pray", "exchange", "sell", "buy", "accept", "decline", "sacrifice")
 _PURCHASE_KINDS = ("accept", "decline")
+
+
+def _command_order(command):
+    return (_KINDS.index(command.kind), command.items,
+            -1 if command.target is None else command.target,
+            command.allocation or (-1, -1, -1))
 
 
 def _alive_players(observation):
@@ -42,6 +36,11 @@ def pending_kind(match: Match) -> str | None:
     status = match.status
     if status.done:
         return "finished"
+    if status.phase == "main":
+        observation = match.observe(status.actor)
+        actor = next(p for p in observation["board"]["players"] if p["id"] == status.actor)
+        if actor["status"]["confused"]:
+            return "confusion"
     if status.phase in ("main", "response", "purchase"):
         return None
     return status.phase
@@ -68,13 +67,15 @@ def _candidates(match, observation, max_items, exchange_step):
 
     # main phase
     yield Command(actor, "pray")
-    for token in tokens:
-        yield Command(actor, "discard", (token,))
+    for n in range(1, max_items + 1):
+        for seq in permutations(tokens, n):
+            yield Command(actor, "discard", seq)
+            yield Command(actor, "sacrifice", seq)
     for n in range(1, max_items + 1):
         for seq in permutations(tokens, n):
             for target in targets:
                 yield Command(actor, "play", seq, target)
-    for seller_pair in permutations(tokens, 2):
+    for seller_pair in permutations(tokens, 2) if max_items >= 2 else ():
         for target in targets[1:]:
             yield Command(actor, "sell", seller_pair, target)
     for token in tokens:
@@ -89,9 +90,21 @@ def _candidates(match, observation, max_items, exchange_step):
                     yield Command(actor, "exchange", (token,), None, (hp, mp, total - hp - mp))
 
 
-def enumerate_commands(match: Match, max_items: int = 2, exchange_step: int = 0):
-    """Return the list of ``Command`` objects that ``match.legal`` accepts now."""
-    if pending_kind(match) is not None:
-        return []
+def _enumerate_commands_python(match, max_items=2, exchange_step=0):
+    """Independent exhaustive candidate oracle, also used for old libraries."""
+    _integer(max_items, "max_items", 1, 4)
+    _integer(exchange_step, "exchange_step", 0, 2**31 - 1)
+    pending = pending_kind(match)
+    if pending == "finished":
+        raise InvalidMatchError("cannot enumerate a finished match")
+    if pending is not None:
+        raise UnsupportedMatchError("dedicated entry required: " + pending)
     observation = match.observe(match.status.actor)
-    return [c for c in _candidates(match, observation, max_items, exchange_step) if match.legal(c)]
+    return sorted((c for c in _candidates(match, observation, max_items, exchange_step) if match.legal(c)), key=_command_order)
+
+
+def enumerate_commands(match: Match, max_items: int = 2, exchange_step: int = 0):
+    """Return native legal Commands; fall back only if the library lacks the API."""
+    if hasattr(match._lib, "gfo_match_legal_commands"):
+        return match.legal_commands(max_items, exchange_step)
+    return _enumerate_commands_python(match, max_items, exchange_step)

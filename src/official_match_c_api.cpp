@@ -656,6 +656,21 @@ int gfo_match_automatic_guardian_response_step(gfo_match* match,const gfo_match_
         match->value=std::move(next);*out=value;return 0;}
     catch(...){return error();}
 }
+int gfo_match_legal_commands(const gfo_match* match, size_t max_items, int32_t exchange_step,
+                             gfo_match_command* buffer, size_t capacity, size_t* required) {
+    if (!match || !required || (!buffer && capacity)) return -1;
+    try {
+        const auto commands = match->value.legal_commands(max_items, exchange_step);
+        if (!buffer && !capacity) { *required = commands.size(); return 0; }
+        if (capacity < commands.size()) return -4;
+        // Encode everything before writing caller storage, preserving atomic errors.
+        std::vector<gfo_match_command> encoded;
+        encoded.reserve(commands.size());
+        for (const auto& command : commands) encoded.push_back(encode(command));
+        std::copy(encoded.begin(), encoded.end(), buffer);
+        *required = encoded.size(); return 0;
+    } catch (...) { return error(); }
+}
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out) {
     if (!match || !policy_rng || !out) return -1;
     try {

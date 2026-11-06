@@ -492,6 +492,11 @@ public:
     [[nodiscard]] std::vector<CardId> gift_catalog() const;
     [[nodiscard]] int gift_weight() const noexcept;
     [[nodiscard]] bool legal(const Command& command) const noexcept;
+    // Ordered distinct token sequences of length <= max_items (1..4).
+    // exchange_step: 0 excludes exchange; positive steps HP/MP, CP is remainder.
+    // Sorted by numeric kind, lexicographic tokens, target (absent first), HP/MP/CP.
+    // Same rejection rules as sample_action; never changes state or RNG.
+    [[nodiscard]] std::vector<Command> legal_commands(std::size_t max_items = 2, int exchange_step = 0) const;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
     [[nodiscard]] bool choice_legal(const PlayerChoice& choice) const noexcept;
     [[nodiscard]] PlayerChoice sample_choice(std::uint64_t& policy_rng) const;

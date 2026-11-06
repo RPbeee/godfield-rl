@@ -2193,6 +2193,91 @@ bool Match::guardian_legal(const GuardianAction& action) const noexcept {
 MatchStep Match::guardian_step(const GuardianAction& action) {
     auto next = data_; execute_guardian(next,action); const auto output = result(next); data_ = std::move(next); return output;
 }
+std::vector<Command> Match::legal_commands(std::size_t max_items, int exchange_step) const {
+    require(max_items >= 1 && max_items <= 4, "max_items must be in1..4");
+    require(exchange_step >= 0, "exchange_step must be nonnegative");
+    if (data_.phase == MatchPhase::grant) unsupported("grant selection must be supplied by an external chance driver");
+    require(!done() && data_.actor.has_value(), "cannot enumerate a finished match");
+    const auto actor = *data_.actor;
+    const auto& own = data_.state.players[index(data_, actor)];
+    if (data_.phase == MatchPhase::main && own.confusion_count > 0)
+        unsupported("confusion command selection must be supplied externally");
+    std::vector<Command> commands;
+    const auto add = [&](const Command& command) { if (legal(command)) commands.push_back(command); };
+    if (data_.phase == MatchPhase::purchase) {
+        add({actor, CommandKind::accept, {}, {}});
+        add({actor, CommandKind::decline, {}, {}});
+    } else {
+        const bool response = data_.phase == MatchPhase::response;
+        std::optional<ResponseContext> context;
+        if (response) context = response_context(data_);
+        Command command{actor, response ? CommandKind::defend : CommandKind::play, {}, {}};
+        if (response) add(command);
+        else add({actor, CommandKind::pray, {}, {}});
+        // prepare() intentionally validates visible faces with used=false. Match
+        // that exact contract here, including reusable miracles and Dream faces.
+        std::vector<VisibleSelection> prefix;
+        const auto visit = [&](auto&& self) -> void {
+            if (command.items.size() >= max_items || command.items.size() >= data_.config.hand_limit) return;
+            for (const auto& item : own.items) {
+                if (std::find(command.items.begin(), command.items.end(), item.token) != command.items.end()) continue;
+                const VisibleSelection next{face_model(item), false};
+                if (!(response ? can_append_response(prefix, next, *context) : can_append_main(prefix, next))) continue;
+                prefix.push_back(next); command.items.push_back(item.token);
+                command.target.reset();
+                add(command);
+                if (!response) for (const auto& target : data_.state.players) if (!target.dead) {
+                    command.target = target.id; add(command);
+                }
+                // Do not prune on MP: a subsequent FREE may make a prefix affordable.
+                self(self);
+                command.target.reset(); command.items.pop_back(); prefix.pop_back();
+            }
+        };
+        visit(visit);
+        if (!response) {
+            Command discard{actor, apocalypse_active(data_.state) ? CommandKind::sacrifice : CommandKind::discard, {}, {}};
+            const auto discards = [&](auto&& self) -> void {
+                if (discard.items.size() >= max_items || discard.items.size() >= data_.config.hand_limit) return;
+                for (const auto& item : own.items) {
+                    if (!discardable(*find_card(face_model(item))) || std::find(discard.items.begin(), discard.items.end(), item.token) != discard.items.end()) continue;
+                    discard.items.push_back(item.token); add(discard); self(self); discard.items.pop_back();
+                }
+            };
+            discards(discards);
+            for (const auto& item : own.items) {
+                const auto model = face_model(item);
+                if (model == 4 && max_items >= 2) for (const auto& commodity : own.items) {
+                    if (item.token == commodity.token) continue;
+                    for (const auto& target : data_.state.players) if (!target.dead)
+                        add({actor, CommandKind::sell, {item.token, commodity.token}, target.id});
+                }
+                if (model == 5) for (const auto& target : data_.state.players) if (!target.dead)
+                    add({actor, CommandKind::buy, {item.token}, target.id});
+                if (find_card(model)->ability == Ability::exchange && exchange_step) {
+                    const auto total = own.hp + own.mp + own.cp;
+                    for (int hp = 0; hp <= 99 && hp <= total; hp += exchange_step)
+                        for (int mp = 0; mp <= 99 && hp + mp <= total; mp += exchange_step) {
+                            const int cp = total - hp - mp;
+                            if (cp <= 99) add({actor, CommandKind::exchange, {item.token}, {}, ResourceAllocation{hp, mp, cp}});
+                        }
+                }
+            }
+        }
+    }
+    std::sort(commands.begin(), commands.end(), [](const Command& a, const Command& b) {
+        if (a.kind != b.kind) return a.kind < b.kind;
+        if (a.items != b.items) return a.items < b.items;
+        if (a.target != b.target) return a.target < b.target;
+        if (a.allocation && b.allocation) {
+            if (a.allocation->hp != b.allocation->hp) return a.allocation->hp < b.allocation->hp;
+            if (a.allocation->mp != b.allocation->mp) return a.allocation->mp < b.allocation->mp;
+            return a.allocation->cp < b.allocation->cp;
+        }
+        return a.allocation.has_value() < b.allocation.has_value();
+    });
+    return commands;
+}
 Command Match::sample_action(std::uint64_t& policy_rng) const { return sample_command(policy_rng,false); }
 Command Match::sample_confusion(std::uint64_t& chance_rng) const {
     require(data_.phase==MatchPhase::main && !done() && data_.actor==data_.owner

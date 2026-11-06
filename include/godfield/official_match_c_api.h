@@ -270,6 +270,12 @@ int gfo_match_automatic_guardian_response_legal(const gfo_match* match, const gf
     const gfo_match_automatic_guardian_outcome* outcomes, size_t count, uint8_t* out);
 int gfo_match_automatic_guardian_response_step(gfo_match* match, const gfo_match_command* response,
     const gfo_match_automatic_guardian_outcome* outcomes, size_t count, gfo_match_status* out);
+// Ordered bounded enumeration; max_items1..4, exchange_step>=0 (0 excludes).
+// Same sorting as Match::legal_commands. Counts are commands, not bytes.
+// NULL0 queries required; short buffer(-4) and all errors preserve outputs.
+// Grant/confused main:-5; finished:-2, matching sample_action. No state/RNG change.
+int gfo_match_legal_commands(const gfo_match* match, size_t max_items, int32_t exchange_step,
+                             gfo_match_command* buffer, size_t capacity, size_t* required);
 // Policy RNG is a distinct caller-owned uint64 stream. This never advances the
 // game's RNG/state. On failure neither RNG nor command is changed.
 int gfo_match_sample_action(const gfo_match* match, uint64_t* policy_rng, gfo_match_command* out);

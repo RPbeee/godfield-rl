@@ -1,8 +1,8 @@
-# 現行公式データによる限定実行器 v69
+# 現行公式データによる限定実行器 v71
 
 **公式公開資料のv2同期（2026-11-02）:** [official-v2](../data/official-v2/README.md) に最新版JA/JSの出典を別世代として固定し、ID19/26/117の画像名と117「石板」を反映した。296モデルの数値・能力・curse・giftRate・ID順はv1から変更0。[v1→v2比較](../data/official-v2/upgrade-review.json) を保存し、旧official-v1のpins・crosswalk・legacy37 fingerprintは変更しない。新JSの抽出関数/分岐の再照合は下記v27節に記録する。全JS・全UI・権威的serverの同値性を保証するものではない。過去のfresh一致記録と各版の計測は、当時の取得物に対する履歴として保持する。
 
-この実行器の `official-execution-subset-v69` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
+この実行器の `official-execution-subset-v71` は、**公式公開台帳と確認できたクライアント計算を使う実験用の部分環境**である。scopeは `experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence`。公式サーバーと同じターン進行、補充、抽選、死亡順を再現したという主張ではない。
 
 v1は132モデル/重み308、v2は物理反射6種と属性消去189を加えた139モデル/重み319、v3は遮断9種を加えた148モデル/重み328。v4はFREE5種・属性付替2種・倍化231を加えた156モデル/重み337。v5は跳ね返し8種を加えた164モデル/重み351。v6は能力noneの確率攻撃21種を加えた185モデル/重み372。v7は攻撃反撃181/184を加えた187モデル/重み374。v8は資源反撃187/188を加えた189モデル/重み376。v9はHP吸収4種・同被害53を加えた194モデル/重み381。v10は閃光付与/反撃/解除7種を加えた201モデル/重み404。v11は暗雲付与/反撃3種を加えた204モデル/重み407。v12は未使用手札/使用済み奇跡の除去2種を加えた206モデル/重み409。v13はMP武器58と二回攻撃14を加えた208モデル/重み411。v14は全敵化232を加えた209モデル/重み412。v15はHP増減202を加えた210モデル/重み414。v16は自動復活208を加えた211モデル/重み415。v17は杵94/臼209を加えた213モデル/重み417。v18は両替3を加えた214モデル/重み437。v19はモデルと効果遷移を増やさず、除去結果の公開要約を加える。v20は売却4を加えた215モデル/重み457。v21は購入5と確認phaseを加えた216モデル/重み477。v22は病気4状態と付与6モデルを加えた222モデル/重み483。v23は自己病気防具168/MP+Heaven雑貨198を加えた224モデル/重み485。v24はFog付与4モデルと観測/対象選択を加えた228モデル/重み489。v25は112の通常/死亡時攻撃を加えた229モデル/重み490。v26は同じ229モデル/重み490で取引配送overflowとFogのforeign SELLを扱う。末尾のv1〜v25計測・検証記録は各版の歴史的な証拠として残し、v27の検証結果へ読み替えない。v27は公式台帳v2・最新版clientの照合・静的provenanceを同期し、ゲーム規約と229モデル/重み490を変更しない。
 
@@ -756,7 +756,7 @@ v19〜24では単一body完了がaction完了で、完了eventはresponseと同�
 
 raw snapshotには他人の手札や将来のローカル乱数状態があるため、ポリシーの観測として渡さない。表示は `observe(viewer)` などの投影経路から取得する。snapshotはデバッグ・再現用の特権状態であり、公式の通信スナップショットと同じ形式でも、バージョンをまたぐ永続checkpointでもない。
 
-[official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI2と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。Pythonの `load_scene(OfficialState, owner, seed)` と対応C APIはboard-onlyの安定したsceneから新しい実行を始める。Pythonは非空attacksを拒否し、event履歴を待機queueへ補完しない。RNG/journalを含む実行checkpointのimport/restoreはこの公開APIに提供しない。
+[official_match_c_api.h](../include/godfield/official_match_c_api.h) の `gfo_match_*` ABI2と [Python `official_match.py`](../python/official_match.py) はこの実行器のsubset・実験scopeを明示し、read-onlyの `OfficialData` / `OfficialState` と区別する。`Match` / `Config` / `PlayerSetup` / `Command` を用い、reset、legal、legal_commands、step、status、observe、外部policy RNGによるsample_actionやrandom_rolloutを提供する。legal_commandsは指定した枚数・exchange刻み内の合法Commandを列挙する。sample_actionは限定候補から追加材を連結する既存方策であり、合法手全体の一様抽選ではない（末尾の作業世代v92を参照）。Pythonの `load_scene(OfficialState, owner, seed)` と対応C APIはboard-onlyの安定したsceneから新しい実行を始める。Pythonは非空attacksを拒否し、event履歴を待機queueへ補完しない。RNG/journalを含む実行checkpointのimport/restoreはこの公開APIに提供しない。
 
 従来の `random_rollout` は `sample_action` / `step` の反復であり、正の混乱mainとgrant phase4で停止する。通常samplerは207の起動も生成しない。外部driverが `sample_confusion` / `confusion_step`、`sample_grant` / `grant_step` を区別し、playerが選ぶ207 tokenは `sample_fate` / `fate_step` へ渡す必要がある。choiceとstepは別transactionなので、chance RNGはstep成功後だけcommitし、Match snapshotとは別に保存する。
 
@@ -3495,3 +3495,54 @@ bounceMiracle全体を広く許可せず、モデルID34で限定する。216は
 [取得済みv91](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)により、正確な94→232の2枚・2人roster・生存敵1人・両者の在庫に209なしの場合だけ、Wideの単一敵対象列を使う。dangerの全alive抽選を省き、NE30、MP5支払い、通常responseとDEF計算・補充を再利用する。94は杵であり臼209ではない。臼所持者あり、3人以上、他の合成は従来どおりunsupported。臼とWideの優先関係は未観測。samplerは従来のdanger＋Wide除外を維持する。
 
 `danger_rule`の末尾は `wide-only-exact94-232-two-player-no-mortar-single-enemy;other-wide-combinations-unsupported`。rules71/Snapshot71/view69、ABI2を維持し旧Snapshot1〜70を拒否する。last_dangerのpending証明は初期局面を再生して限定条件を検査し、完了要約はexact pair・2人・敵endpoint・mortar=falseの構造を検査する（補充で後から209を得た場合や敵死亡も扱う）。公開markerは演出待機の根拠のみで、last_dangerやbackendの抽選方式を直接証明するものではない。
+
+## 作業世代v92：指定枚数内の合法Commandをnativeで全列挙（タスク14）
+
+`Match::legal_commands(max_items=2, exchange_step=0) const`、`gfo_match_legal_commands`、Python `Match.legal_commands` を追加する。main/response/purchaseで、異なる所有tokenの長さ1〜max_itemsの**順序付き列**について既存legalが受理するCommandを返す。pray、空defend、accept/declineも含む。discard/sacrificeは複数枚も列挙し、sellは2枚なのでmax_items=1では含まない。同じモデルの別copyも異なるtokenとして扱い、配列順の異なるCommandを重複として除かない。武器の追加材・FREE・防御列は既存can_append_main/can_append_responseで接頭辞を枝刈りするが、最終判定は必ず既存legalを通す。legalのvisible face/usedの扱いをそのまま用いる。MP不足だけでは枝刈りせず、後続FREEで成立する列も探索する。
+
+枚数上限は1〜4（4超や0はinvalid）。最大18枚の手札からの順列による結果数・メモリの増大を制限するAPIの上限であり、legal自体の選択上限を変更しない。exchange_stepは非負のint32整数で、0ならexchangeを除外する。正ならHPとMPを0からその刻みで0〜99内で取り、CPを現在のHP+MP+CPからの残差として、CPも0〜99の配分だけを返す。**CP自身が刻みの倍数である必要はない**。step=1なら総和保存の全配分、step>1ならその部分集合になる。配分和が297でも正しい範囲だけを調べる。
+
+公開順序はCommandKind数値順（play0/defend1/discard2/pray3/exchange4/sell5/buy6/accept7/decline8/sacrifice9）、次にtoken列の辞書順（共通prefixなら短い列が先）、target（なし、ありのID昇順）、配分HP/MP/CPの辞書順。actorは現在のactorに固定される。使用例：
+
+```python
+commands = match.legal_commands(max_items=3, exchange_step=1)
+assert all(match.legal(command) for command in commands)
+# この有限リストのindexにpolicyの確率・行動マスクを対応させる。
+```
+
+これは指定した枚数・配分刻み内の全Commandであり、より長い合法列やFateRequest・外部環境入力を含む全行動空間ではない。`sample_action` の初期提案は単品または奇跡+FREEから始まるが、その後に追加材を連結するため最終出力は2枚を超えることもある。samplerの限定提案空間・確率法則と、legalが受理する全Commandの集合を区別する。今回legal/step/sample_actionの実装・乱数消費は変更しない。
+
+grantと正の混乱mainはsample_actionと同じunsupported（C:-5）、finished/actorなしはinvalid（C:-2）。専用入口へ暗黙に進まず、空リストで隠さずPythonでも例外にする。通常局面で指定範囲に手が無い場合の空リストは成功として扱う。列挙はconstで、snapshot・observe・ゲーム乱数を変えず、policy/chance乱数も受け取らない。C APIは既存gfo_match_observe同様、NULL/容量0で必要**Command件数**を照会し、次にcallerのgfo_match_command配列へ出力する。短いbuffer(-4)ではbuffer/requiredとも不変、他のエラーも出力不変。成功時は件数分だけ書き、余剰tailは保持する。Match ABI2、Command184byte、既存構造体レイアウト、rules71/Snapshot71/view69は維持する。
+
+`official_rl.enumerate_commands` はnativeへ委譲する。ライブラリに新symbolが無い場合だけ、観測の全token順列を候補にしたPython総当たりへフォールバックする。nativeのinvalid/unsupportedを捕捉してfallbackへ進むことはない。旧fallbackの単品discard/2枚SELL固定という不足も、指定枚数とsacrificeに合わせて補正した。pending_kindは正の混乱mainも報告する。
+
+### オフライン検証と計測
+
+再現コマンド（ネットワーク接続なし）：
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j 4
+ctest --test-dir build --output-on-failure
+cmake -S . -B build-sanitize -DCMAKE_BUILD_TYPE=Debug -DGF_SANITIZE=ON
+cmake --build build-sanitize -j 4
+ctest --test-dir build-sanitize -R '^official_(legal_commands|match$|match_c_api$|driver$)' --output-on-failure
+build/godfield_official_legal_commands_tests --benchmark
+python3 tests/official_rl_python_test.py build/libgodfield.dylib --benchmark
+```
+
+Release CTest **161/161（528.36秒）**、変更範囲と既存Match/driverのDebug ASan/UBSan **5/5（44.90秒）**、同じSANライブラリを用いたPython **4/4（18.942秒）** が通過した。PythonはASan/UBSanをlinkした `Py_BytesMain` ランチャーから実行し、Python runtimeのleak検査は `ASAN_OPTIONS=detect_leaks=0` で除外した。全SAN suiteの実行ではない。C11 `-Werror` の新prototype型検査・Command184byte、両最終buildのwarning/error0、diff-checkも確認した。CTest所要時間には環境の待ち時間を含み、版間の速度比較には用いない。
+
+nativeは**178ランダム局面**で、exchange以外の全kind×全token順列×targetを枝刈りなしでlegalに渡す独立オラクルと一致した。external_grants/include_fateの全4設定・複数seed、max_items=3の少数局面、used奇跡/FREE・複数枚discard/sacrificeと上限4、exchange刻み1/7/99/INT32_MAX・総和294の端点も検査した。snapshot/restore/observeの完全一致、全結果のlegal、sample出力の包含、決定順序を確認する。C APIは2段階呼出し、short-bufferとエラー時の全byte/required不変、前後canary、同一出力bytes、NULL・不正引数・grant/混乱/finished拒否を検査した。
+
+Pythonは32通りのseed/設定（8seed×external_grants/include_fate各2）から**443局面**を照合し、main/response/purchaseへ到達した。max_items=3は**8ランダム局面**と固定取引/応答/終末局面でも一致。枚数内・exchange除外条件に合うsample **433件**が列挙に含まれた。全結果のlegal、observe不変、順序と重複なし、exchange、専用局面での例外、旧symbolなし時だけのfallbackも通過した。固定局面はsellの枚数上限、buy→response→purchaseのaccept/decline、Fate207の通常discard/sacrifice上の役割を含む。
+
+計測はmacOS arm64、Apple clang21、Release、Python3.15.2、単一プロセス。各上限につきseed0〜199の**2人・初期手札9枚のmain 200局面**、exchange_step=0である。C++は列挙一回だけを計時しresetを除く。Python nativeは必要件数照会＋配列取得の二回の列挙とCommand変換を含み、Python総当たりは観測取得・候補生成・legal照会・整列を含む。両者の結果集合は200局面すべてで再照合した。比較対象のPython総当たりには複数枚discard/sacrificeの補正を含む（補正前の旧helperは全合法列を網羅しない）。
+
+| max_items | 平均件数 | 最大件数 | C++ μs/局面 | Python native μs/局面 | Python総当たり μs/局面 | 総当たり/native（Python経由） |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 15.920 | 23 | 121.526 | 641.938 | 1,864.320 | 2.904倍 |
+| 2 | 53.425 | 105 | 246.334 | 1,388.861 | 18,573.333 | 13.373倍 |
+| 3 | 181.315 | 597 | 306.424 | 1,802.209 | 102,774.407 | 57.027倍 |
+
+一回のローカル測定であり、最大18枚・exchange全配分・response/purchase・学習処理の速度や、公式サーバーとの適合を示すものではない。公式サイトへの接続や新しい受信データ取得は行っていない。エンジンの挙動・ruleset/Snapshot番号を変更せず、git commitも作成しない。
