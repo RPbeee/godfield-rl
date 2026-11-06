@@ -3192,3 +3192,12 @@ Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBS
 実行挙動とrules69/Snapshot69/view67・ABI2は維持し、83と前回21＋74の根拠ラベルを同期します。公開JS/JAの再取得は既存pinと一致しました。受信parserの既知 `bounce` action解析漏れを修正し、parserの9テストをCTestへ登録します。
 
 Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## v87：HP0の両替から終局までを照合
+
+公式CPU修行で両替3を0/10/60へ配分し、本人死亡→CPU勝利・GF1据置・補充なしを確認しました。[初期と終局の2状態](data/official-v2/wire-game-updates-v87.json)を固定8seedで16比較します。新1件により69観測/native63/記録のみ6・wire664、開始〜終局の完全受信game列は累計3対局です。
+
+実行挙動とrules69/Snapshot69/view67・ABI2を維持します。可視手札探索は両替3も指定可能にしました。34/216は今回の準備探索で出ず、残件のままです。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。

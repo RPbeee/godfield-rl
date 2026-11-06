@@ -420,3 +420,16 @@ viewer1/CPU2・終末なし・双方40/10/20から、83/id6だけを選び本人
 新1操作・16比較で68/native62/record-only6・wire648。完全lifecycle2/routing1/internal trace0を維持する。34/216や低HP・死亡、選択条件のない自然配布率は今回の記録から確定しない。
 
 Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v87：自己両替HP0の初期から終局まで
+
+2026-11-06、headlessの2人・終末なしCPU修行で3を探し、回復後contextの2試行目で停止した。viewer1/CPU2双方40/10/20・各9枚、208/112/guardianなし。3/id5選択後、所持金側+10を4回押してpreview0/10/60を確認した。この時点の実statusは40/10/20で、主動作ペイン確定1回だけが完了操作である。
+
+[受信初期と終局](../data/official-v2/wire-game-updates-v87.json)は連続update1/2、GF1/owner1のまま。postイベントはuseAttackItems(3/id5)→exchange(cp60,mp10)→die(player1)→endGame。exchangeのHP/actor省略を保ち、gift/advanceGF/damage/diseaseは無い。viewer0/10/60・dead、CPU40/10/20・生存、viewer残8品＋ghost1、CPU9品維持を確認した。全2状態36行（positive35＋ghost1）を保存する。UIもCPU勝利を表示した。
+
+初期prefix51913 bytes/18framesのframe16、post16122 bytes/3framesのframe1を採用（0-based）。両HTTP未完の完全frameから採用し、全prefixhashと省略/配列順を保持する。採用Aの前1prepは別docとして除外。別contextの48探索・中断前3prepも新観測へ数えず、うち再起動時の3番目の正常退出は未確認である。
+
+新1操作・16比較で69/native63/record-only6・wire664、完全受信lifecycleは2→3、routing1/internal trace0。終局後『戦いを終わる』を試したがメニュー復帰待ちはtimeoutとなり、続くcloseでbrowser終了を確認した。メニュー復帰済みとは記録せず、確定済み終局と分ける。34/216、208/112併用は残件である。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。

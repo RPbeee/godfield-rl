@@ -669,3 +669,19 @@ Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3
 | `live-review-v86.json` | 1,908 | `9f3103431b1c96a8afac61981b2df696edfb75f9038e5b216173c2f5a8653ab7` |
 | `wire-game-updates-v86.json` | 13,720 | `dfc1263063711d8745b0c301500f9a58b8c7aa1285eac0bce75ba4a550cb18b2` |
 | `live-transition-witnesses-v86.json` | 14,289 | `c55b3c77db1ccc48f8d3aa8ea5b95154824a94b25670dd6d784ae12d85042186` |
+
+
+## v87：HP0両替の自然終局
+
+[初期から終局の2状態](wire-game-updates-v87.json)と[新1操作](live-transition-witnesses-v87.json)を保存する。viewer1が3/id5を使い0/10/60へ配分し、use3→exchange(cp60,mp10)→die1→endGame。GF1/owner1据置、CPU40/10/20、実補充なし。terminalのviewer8正コピー＋ghost1を含め、2状態36行（positive35＋ghost1）を保持する。HP/actorはexchange原文へ補わない。
+
+初期は51913 bytes/18frames中frame16、postは16122 bytes/3frames中frame1を採用。HTTP途中prefixと対局の初期〜終局連続性を分ける。初期prefix内prep1と別context51prepを除外し、再起動で終わった準備対局や選択previewを新完了操作へ加算しない。終局表示とbrowser closeは確認、終了ボタン後のメニュー復帰は未確認である。
+
+8固定seed×2状態＝16比較、新1件で69/native63/record-only6・wire664、完全受信lifecycle3/routing1/internal trace0。69/S69/view67・ABI2と本体挙動は維持する。無208/112/guardianの有限例で、34/216や復活優先順は未確認のままにする。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。
+
+| v87 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v87.json` | 13,750 | `cb3033b24e85841486eef406af230a214cb233540ee864addb336e3d4118b306` |
+| `live-transition-witnesses-v87.json` | 14,563 | `242181db6ee9975a28e603b31669271e1a3ccc1638a3c7cc8a6c9a15abdcad2c` |

@@ -1,0 +1,432 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "privileged_scenario_warning": "Received true CPU hands are privileged validation inputs,never policy observations.",
+  "scope": "One fresh headless no-apocalypse two-player CPU training game,found on the second recovery finder trial,with consecutive authoritative initial update1 and terminal update2. Viewer1 uses3/id5 to exchange40HP for40CP,ending0/10/60 and dead;CPU2 remains40/10/20. Only the selected game is curated;52 preparation games across earlier contexts and the selected source prefix are excluded.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "source_bodies": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 51913,
+      "response_prefix_sha256": "2f721a9a711bb64d4f2229a49892b315ff589ec0b3018baca2c28bfe5681538b",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 18,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 51913,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        16
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 16122,
+      "response_prefix_sha256": "d2889028e25c719dbac47706e0be9cb78fb302187b33fb534b4ff24551dd88ed",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 3,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 16122,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        1
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "capture_method": "Existing visible-UI headless probe under a bounded training-hand wrapper. Actual browser response data only via CDP Network.streamResourceContent bufferedData and dataReceived.data;immutable mode0600 response prefixes. The probe did not independently issue or replay backend commands,inspect hidden application state,or save HAR,headers,cookies or outgoing request payloads. Ordinary UI actions were handled by the official client.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "continuity": {
+    "same_training_room_document_confirmed_in_private_sources": true,
+    "server_update_counts": [
+      1,
+      2
+    ],
+    "consecutive_received_update_counts": true,
+    "first_received_snapshot_has_pending_cpu_attack": false,
+    "initial_authoritative_snapshot_captured": true,
+    "initial_model_generation_reproduced": false,
+    "excluded_preparation_game_changes": 1,
+    "excluded_preparation_documents_distinct_from_selected_game": true,
+    "frame_indices_are_zero_based": true,
+    "terminal_authoritative_snapshot_captured": true,
+    "initial_to_terminal_received_update_sequence_complete": true
+  },
+  "updates": [
+    {
+      "source_body": "prefix-A",
+      "source_frame_index": 16,
+      "game": {
+        "attackTurnPlayerId": 1,
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "item": {
+              "modelId": 221,
+              "id": 1
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "item": {
+              "modelId": 187,
+              "id": 2
+            },
+            "action": "gift",
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 35,
+              "id": 3
+            },
+            "action": "gift"
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 191,
+              "id": 4
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 3,
+              "id": 5
+            }
+          },
+          {
+            "action": "gift",
+            "playerId": 1,
+            "item": {
+              "modelId": 28,
+              "id": 6
+            }
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 199,
+              "id": 7
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "id": 8,
+              "modelId": 130
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "item": {
+              "modelId": 191,
+              "id": 9
+            },
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "diseasePlayerId": 1,
+        "updateCount": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "players": [
+          {
+            "mp": 10,
+            "hp": 40,
+            "items": [
+              {
+                "modelId": 221,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 187
+              },
+              {
+                "modelId": 35,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 191
+              },
+              {
+                "modelId": 3,
+                "id": 5
+              },
+              {
+                "id": 6,
+                "modelId": 28
+              },
+              {
+                "modelId": 199,
+                "id": 7
+              },
+              {
+                "modelId": 130,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 191
+              }
+            ],
+            "name": "viewer",
+            "cp": 20,
+            "id": 1
+          },
+          {
+            "isBot": true,
+            "cp": 20,
+            "id": 2,
+            "name": "cpu",
+            "mp": 10,
+            "hp": 40,
+            "items": [
+              {
+                "modelId": 3,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 16
+              },
+              {
+                "modelId": 199,
+                "id": 3
+              },
+              {
+                "modelId": 22,
+                "id": 4
+              },
+              {
+                "modelId": 123,
+                "id": 5
+              },
+              {
+                "modelId": 101,
+                "id": 6
+              },
+              {
+                "modelId": 170,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 117
+              },
+              {
+                "modelId": 192,
+                "id": 9
+              }
+            ]
+          }
+        ],
+        "gf": 1
+      }
+    },
+    {
+      "source_body": "prefix-B",
+      "source_frame_index": 1,
+      "game": {
+        "updateCount": 2,
+        "attackTurnPlayerId": 1,
+        "players": [
+          {
+            "name": "viewer",
+            "items": [
+              {
+                "modelId": 221,
+                "id": 1
+              },
+              {
+                "modelId": 187,
+                "id": 2
+              },
+              {
+                "modelId": 35,
+                "id": 3
+              },
+              {
+                "id": 4,
+                "modelId": 191
+              },
+              {
+                "modelId": 28,
+                "id": 6
+              },
+              {
+                "modelId": 199,
+                "id": 7
+              },
+              {
+                "modelId": 130,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 191
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "cp": 60,
+            "id": 1,
+            "mp": 10,
+            "dead": true,
+            "hp": 0
+          },
+          {
+            "name": "cpu",
+            "mp": 10,
+            "hp": 40,
+            "isBot": true,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 3
+              },
+              {
+                "modelId": 16,
+                "id": 2
+              },
+              {
+                "modelId": 199,
+                "id": 3
+              },
+              {
+                "modelId": 22,
+                "id": 4
+              },
+              {
+                "id": 5,
+                "modelId": 123
+              },
+              {
+                "modelId": 101,
+                "id": 6
+              },
+              {
+                "modelId": 170,
+                "id": 7
+              },
+              {
+                "modelId": 117,
+                "id": 8
+              },
+              {
+                "id": 9,
+                "modelId": 192
+              }
+            ],
+            "cp": 20,
+            "id": 2
+          }
+        ],
+        "gf": 1,
+        "isOver": true,
+        "events": [
+          {
+            "items": [
+              {
+                "modelId": 3,
+                "id": 5
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "action": "exchange",
+            "cp": 60,
+            "mp": 10
+          },
+          {
+            "playerId": 1,
+            "action": "die"
+          },
+          {
+            "action": "endGame"
+          }
+        ]
+      }
+    }
+  ],
+  "boundary_notes": [
+    "The recovery visible-hand finder found3 on trial2. One earlier preparation game in prefix-A is excluded;only frame16 supplies the selected initial state. Prefix-A has two game changes and prefix-B has one. Whole-prefix hashes retain provenance without publishing preparation-game contents.",
+    "Both files end at complete WebChannel frame boundaries while their HTTP responses remain incomplete. Complete framing is distinct from HTTP response completion and from a complete backend internal event trace.",
+    "Initial viewer1 is GF1 main at40/10/20 with3/id5 and nine physical copies;CPU2 is40/10/20 with nine physical copies. Actual inventories are authoritative input checkpoints,not reproduced initial draws.",
+    "Selecting3/id5 and clicking CP+10 four times yields a UI preview0/10/60 while the actual status remains40/10/20 before confirmation. One main-pane confirmation sends the exchange. Preview adjustments and selection clicks are not completed game operations.",
+    "Received useAttackItems3/id5→exchange{cp60,mp10}→die1→endGame ends viewer1 at0HP/10MP/60CP with dead:true and isOver:true. The exchange event omits HP and actor fields;those fields are not added to the literal record. No gift,advanceGF,dealDamage or disease event occurs.",
+    "GF1 and attackTurnPlayerId1 remain in the terminal state. Viewer has eight remaining physical copies in original relative order and one trailing canonical0/0 placeholder;CPU has the same nine physical copies. The placeholder is not a physical item.",
+    "Neither208 nor112 is in either received initial inventory. This finite example does not establish revival or posthumous ordering when such items are present. Catalog price5 is not an additional exchange fee;MP remains10.",
+    "The terminal UI displays CPU victory and the finish button. One finish-button attempt was made;home/menu return was not confirmed after the wait timed out. Browser close and process exit0 were confirmed after the received terminal state. No forfeit was used.",
+    "Earlier48 bounded preparation games seeking34/216,three manual preparation games and the recovery first trial add no completed observation. The third manual game lost its browser during a server restart without a confirmed normal quit;only its initial raw state was retained. These52 excluded games are not distribution samples or evidence filling unobserved34/216 behavior.",
+    "This one new initial-to-terminal received sequence increases that cumulative count from2 to3. It is not a complete backend internal trace,server RNG equivalence or full simulator equivalence. All v86 and older records remain unchanged."
+  ],
+  "implementation_reference": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2
+  },
+  "captured_authoritative_game_snapshot_count": 2,
+  "initial_authoritative_game_snapshot_count": 1,
+  "bounded_authoritative_game_update_batch_count": 1,
+  "complete_received_game_update_sequences": 1,
+  "captured_full_backend_event_traces": 0,
+  "native_projection_validation_record": "live-transition-witnesses-v87.json",
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final"
+}

@@ -24,7 +24,7 @@ function argumentsFor(args) {
   const count = values['--max-trials'] ?? '12';
   if (!/^[1-9]\d*$/.test(count) || Number(count) > 12) throw error('invalid_max_trials');
   const requested = (values['--targets'] ?? '34,83,216').split(',');
-  if (!requested.length || requested.some(x => !['34', '83', '216'].includes(x)) ||
+  if (!requested.length || requested.some(x => !['3', '34', '83', '216'].includes(x)) ||
       new Set(requested).size !== requested.length) throw error('invalid_targets');
   return { package: path.resolve(values['--playwright']), directory: path.resolve(values['--out-dir']),
     limit: Number(count), targets: requested.map(Number) };
@@ -54,7 +54,7 @@ async function main() {
   const catalog = JSON.parse(await fs.readFile(path.join(here, '../data/official-v2/cards.json'), 'utf8'));
   const targetPaths = new Map(options.targets.map(id => {
     const card = catalog.find(c => c.id === id);
-    if (!card || !['weapons', 'miracles'].includes(card.category) || !/^[a-z0-9-]+$/.test(card.imageName))
+    if (!card || !['trade', 'weapons', 'miracles'].includes(card.category) || !/^[a-z0-9-]+$/.test(card.imageName))
       throw error('catalog_target_invalid');
     return [`/images/items/${card.category}/${card.imageName}.webp`, id];
   }));

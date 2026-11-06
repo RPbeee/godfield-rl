@@ -3466,3 +3466,12 @@ Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBS
 8固定seedで16比較、新1件により68/native62/record-only6・wire648。算術・経路・69/S69/view67・ABI2は維持し、83とv85複合21＋74の根拠ラベルだけ更新する。通常の抽選分布・server RNGや、34/216・低HP境界の新証拠とはしない。
 
 Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v87：HP0両替による補充前の終局を確認
+
+[初期1→終局2](../data/official-v2/wire-game-updates-v87.json)を通常exchange一回で再生する。MP10/CP60と配分前の和70からHP0を導出し、3の物理コピーを消費して死亡・自然終局へ進む。実補充を供給せず、GF1、CPU勝利、残17正コピー、RNG/next token不変、全gift/queue/batchなしを照合する。受信のdead手札にはghost1が残るがnativeの授与債務は0である。
+
+2状態×8固定seed＝16比較で69/native63/record-only6・wire664、完全受信lifecycle3/routing1/internal trace0。既存exchange bodyと69/S69/view67・ABI2を維持し、無208/112/guardianのこの例から他の死亡優先順へ広げない。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。

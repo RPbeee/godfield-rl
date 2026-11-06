@@ -2276,3 +2276,12 @@ Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBS
 新1件・2状態×8seed＝16比較で68/native62/record-only6・wire648。69/S69/view67・ABI2と実行挙動は維持する。21の根拠表記にも別対局v85複合のraw useを追記し、旧v74単品の欠rawを補わない。公開JS/JAの再取得はpinと一致し、既知の受信action `bounce` のparser不足だけを修正した。
 
 Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v87：両替でHP0を選んだときの終局
+
+3を使い本人の資源を40/10/20から0/10/60へ配分した。受信更新2は本人dead・isOver、use3→exchange→die1→endGameで、GF1とCPUの40/10/20を維持し、補充は発生しない。終局UIでもCPU勝利を確認した。exchangeの受信はcp/mpのみでHPは省略のまま保持する。
+
+初期から終局までの2状態×8seed＝16比較を追加し、69/native63/record-only6・wire664、完全受信game列3/routing1/internal trace0。69/S69/view67・ABI2と実行挙動を変えない。208/112/guardian不在の有限例であり、復活・死亡時攻撃・病気の一般順序や34/216を確定するものではない。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。

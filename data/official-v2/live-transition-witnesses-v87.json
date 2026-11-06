@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "observation_timestamp_note": "No per-action timestamp is inferred from prefix file timestamps or transport metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v86.json",
+  "method": "A headless visible-hand recovery finder includes trade3 and stops on trial2. One confirmed exchange uses3/id5 after four CP+10 preview adjustments. Consecutive authoritative update1 and terminal update2 are retained;CPU victory and subsequent browser closure are confirmed,while home/menu return is unconfirmed.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "authoritative_fixture": "wire-game-updates-v87.json",
+  "source_body_provenance": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 51913,
+      "response_prefix_sha256": "2f721a9a711bb64d4f2229a49892b315ff589ec0b3018baca2c28bfe5681538b",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 18,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 51913,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        16
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 16122,
+      "response_prefix_sha256": "d2889028e25c719dbac47706e0be9cb78fb302187b33fb534b4ff24551dd88ed",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 3,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 16122,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        1
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "model_provenance": {
+    "3": {
+      "id": 3,
+      "imageName": "exchange",
+      "category": "trade",
+      "ability": "exchange",
+      "price": 5,
+      "giftRate": 20,
+      "name": "両替"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-zero-hp-exchange-terminal-headless",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_fixed_eight_seed_full_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": []
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 3,
+        "displayed_model": 3,
+        "item_id": 5,
+        "single_card": true,
+        "exchange_target_resources": {
+          "hp": 0,
+          "mp": 10,
+          "cp": 60
+        },
+        "cp_plus10_preview_adjustments": 4,
+        "actual_resources_before_confirmation": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "single_confirmation_observed": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 1,
+        "server_update_count": 2,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 0,
+            "mp": 10,
+            "cp": 60,
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1,
+            "dead": true
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [],
+        "is_over": true
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "exchange",
+        "die",
+        "endGame"
+      ],
+      "received_ordered_effects": [
+        {
+          "items": [
+            {
+              "modelId": 3,
+              "id": 5
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "action": "exchange",
+          "cp": 60,
+          "mp": 10
+        },
+        {
+          "playerId": 1,
+          "action": "die"
+        },
+        {
+          "action": "endGame"
+        }
+      ],
+      "catalog_arithmetic": {
+        "viewer_hp": "40-40=0",
+        "viewer_cp": "20+40=60",
+        "viewer_mp_unchanged": 10,
+        "catalog_price": 5,
+        "additional_price_or_mp_fee_observed": false
+      },
+      "ui_observation": {
+        "pre_confirmation_preview": {
+          "hp": 0,
+          "mp": 10,
+          "cp": 60
+        },
+        "pre_confirmation_actual_resources": {
+          "hp": 40,
+          "mp": 10,
+          "cp": 20
+        },
+        "cpu_victory_confirmed": true,
+        "finish_button_visible": true
+      },
+      "outcome_contract_note": "Native winner2 and rewards[-1,1],if checked,are local evaluation outputs derived from received dead:true/die1/endGame and consistent with UI CPU victory. Winner/reward fields are not literal received fields.",
+      "observation": "One actual3/id5 exchange consumes40HP and adds40CP. Viewer dies at0/10/60;CPU remains40/10/20. The game ends immediately atGF1 owner1 without a refill or a CPU command.",
+      "limits": "Finite zero-HP exchange with neither208 nor112 in the initial hands. No general exchange-input domain,revival/posthumous ordering,initial draw distribution,backend internal schedule or server RNG equivalence is established."
+    }
+  ],
+  "search_context": {
+    "match_source": "visible hand image path only",
+    "hidden_true_cpu_hand_used_for_search": false,
+    "recovery_finder_actual_trials_started": 2,
+    "recovery_finder_matched_trial": 2,
+    "matched_visible_target": 3,
+    "trade3_added_to_recovery_finder_targets": true,
+    "excluded_preparation_games": 52,
+    "excluded_prior_bounded_preparation_games": 48,
+    "excluded_prior_manual_preparation_games": 3,
+    "excluded_recovery_preparation_games": 1,
+    "excluded_preparation_games_in_prefix_A": 1,
+    "other_excluded_preparation_games_in_separate_contexts": 51,
+    "prior_bounded_targets": [
+      34,
+      216
+    ],
+    "prior_bounded_preparation_normal_quit_home_close_confirmed": true,
+    "manual_first_two_normal_quit_confirmed": true,
+    "manual_third_browser_lost_during_server_restart": true,
+    "manual_third_normal_quit_confirmed": false,
+    "manual_third_retained_raw_initial_only": true,
+    "recovery_first_trial_normal_quit_confirmed": true,
+    "preparation_games_published": false,
+    "preparation_games_counted_as_completed_observations": false,
+    "official_card_distribution_estimated": false,
+    "same_child_interactive_after_match": true,
+    "browser_session_exit_code": 0,
+    "prior_v86_or_earlier_missing_observations_filled": false
+  },
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2,
+    "status": "passed",
+    "passed": true,
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "baseline_cumulative_wire_checkpoint_comparisons": 648,
+    "initial_received_snapshot_authoritative": true,
+    "quiescent_initial_scene_reconstructed": false,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "seed_search_skip_or_exclusion": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load authoritative initial inventories and GF1 owner1,execute ordinary3/id5 exchange to0HP/10MP/60CP,then compare terminal received update2. Compare all physical model/fake/used rows,resources,GF/owner,slot mappings,dead/isOver and local terminal outcome. No received damage,death,terminal result,initial draw or fitted server seed is supplied to force agreement.",
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v87",
+    "local_test_results": {
+      "status": "passed",
+      "release_ctest_passed": 158,
+      "release_ctest_total": 158,
+      "release_ctest_seconds": 111.6,
+      "release_includes_official_webchannel_parser": true,
+      "webchannel_parser_unit_test_count": 9,
+      "asan_ubsan_focused_passed": 1,
+      "asan_ubsan_focused_total": 1,
+      "asan_ubsan_seconds": 1.75,
+      "asan_ubsan_targets": [
+        "wire"
+      ],
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 259,
+      "python_test_methods": 187,
+      "finder_node_syntax_check_passed": true,
+      "finder_invalid_cli_cases_rejected_before_browser_creation": 8,
+      "finder_trade3_live_handoff_passed": true,
+      "finder_trade3_candidate_trial": 2,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Full Release suite including the offline parser and only the changed wire target under Debug ASan/UBSan. No new core,C API,Python or full-suite sanitizer execution is claimed. The finder accepts trade3 with unchanged defaults and twelve-trial cap;CLI rejection and live handoff checks do not cover every timeout or abort path. Elapsed times are not a version-to-version speed comparison."
+    },
+    "received_checkpoint_comparisons": 16,
+    "cumulative_wire_checkpoint_comparisons": 664
+  },
+  "source_audit": {
+    "strict_utf8_and_exact_utf16_length_frames": true,
+    "selected_frame_indices_zero_based": {
+      "prefix-A": [
+        16
+      ],
+      "prefix-B": [
+        1
+      ]
+    },
+    "selected_games_match_sanitized_literals": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "excluded_preparation_document_distinct_from_selected_game": true,
+    "raw_prefix_modes_0600": true,
+    "received_inventory_rows_total": 36,
+    "positive_inventory_rows_total": 35,
+    "zero_placeholder_rows_total": 1,
+    "field_omissions_and_array_order_preserved": true,
+    "build_or_test_performed_by_record_author": false,
+    "independent_parent_sanitized_game_comparisons_passed": 2,
+    "independent_parent_received_inventory_array_comparisons_passed": 4
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 1,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "selected_response_prefixes": 2,
+    "excluded_preparation_games": 52,
+    "excluded_preparation_game_changes_in_selected_prefixes": 1
+  },
+  "session_end_observation": {
+    "terminal_received": true,
+    "ui_cpu_victory_confirmed": true,
+    "finish_button_visible": true,
+    "finish_button_attempted": true,
+    "finish_button_attempts": 1,
+    "home_menu_wait_timed_out": true,
+    "training_exit_confirmed": false,
+    "home_menu_return_confirmed": false,
+    "browser_closed": true,
+    "browser_session_exit_code": 0,
+    "firefox_touched": false,
+    "no_forfeit_used": true,
+    "exit_kind": "browser close after received terminal state and one finish-button attempt;home/menu return unconfirmed",
+    "finish_button_counted_as_completed_operation": false,
+    "received_initial_to_terminal_sequence_counted_as_complete_received_lifecycle": true
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 69,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 63,
+  "new_record_only_completed_witnesses": 0,
+  "cumulative_record_only_completed_witnesses": 6,
+  "coverage_change_pending_test_success": false,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 1,
+  "cumulative_complete_received_game_update_sequences": 3,
+  "captured_full_server_event_traces": 0,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "provenance_descriptor_only_change": false,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "native_coverage_note": "One new3 zero-HP exchange increases completed observations68 to69,conditional native coverage62 to63,and wire comparisons648 to664 after all eight unchanged fixed seeds pass. Record-only6,routing1/internaltrace0 remain unchanged. This consecutive received initial-to-terminal sequence increases complete received lifecycles2 to3. The52 excluded preparation games,UI previews,selections and finish-button attempt add no completed operation. Existing v86 and all earlier records are unchanged. Runtime and provenance descriptors are unchanged.",
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 664
+}

@@ -1744,13 +1744,66 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v87 receives the complete initial-to-end lifecycle of an HP0 exchange.
+// The wire sends only MP/CP; HP is the conserved remainder. Neither an initial
+// draw nor a CPU policy is reproduced, and the terminal ghost is not a gift.
+namespace v87 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,221},{2,187},{3,35},{4,191},{5,3},{6,28},{7,199},{8,130},{9,191}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,3},{2,16},{3,199},{4,22},{5,123},{6,101},{7,170},{8,117},{9,192}}};
+constexpr std::array<ReceivedSlot,9> final_viewer{{{1,221},{2,187},{3,35},{4,191},{6,28},{7,199},{8,130},{9,191},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,1,1,{{{1,0,10,60,false,final_viewer,false,true},{2,40,10,20,false,initial_cpu}}},0,{},true}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const auto next_token=game.snapshot().next_token;
+    const auto& own=game.snapshot().state.players[0];
+    const ResourceAllocation allocation{static_cast<std::int32_t>(own.hp+own.mp+own.cp-10-60),10,60};
+    check(allocation.hp==0,"v87 omitted wire HP is derived from the conserved initial resource sum");
+    const Command exchange{1,CommandKind::exchange,{consumed_slot(slots,1,5)},{},allocation};
+    check(game.legal(exchange),"v87 actual3 accepts the received MP10 CP60 allocation with HP0");
+    (void)game.step(exchange);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& final=game.snapshot();
+    check(final.decisions==1&&final.rng==seed&&final.next_token==next_token
+          &&final.state.gf==1&&final.owner==1&&!final.actor
+          &&final.winners==std::vector<PlayerId>{2}&&final.rewards==std::vector<double>{-1,1}
+          &&final.gifts==std::vector<std::uint32_t>{0,0}&&!final.pending_grant
+          &&final.queue.empty()&&!final.batch&&final.counters.empty()&&final.deaths.empty()
+          &&!final.purchase&&!final.grant_proof&&!final.last_grant&&slots.find({1,5})==slots.end(),
+          "v87 HP0 exchange ends in one decision with CPU2 winning before GF advance or any replacement");
+    check(final.chance_rolls==0&&final.chance_hits==0&&final.chance_forced_hits==0
+          &&final.counter_created==0&&final.counter_started==0&&final.counter_rolls==0
+          &&final.counter_hits==0&&final.counter_forced_hits==0&&final.revivals==0
+          &&final.death_bows==0&&final.death_created==0&&final.death_started==0
+          &&final.death_rolls==0&&final.death_hits==0&&final.death_forced_hits==0
+          &&final.dream_rolls==0&&final.dream_masks==0&&final.redraws==0&&final.redrawn_items==0
+          &&final.grant_resolutions==0&&final.grant_artifacts==0&&final.grant_devils==0
+          &&final.guardian_actions==0&&final.guardian_payload_actions==0
+          &&final.guardian_summons==0&&final.guardian_opportunities==0&&final.auto_guardian_actions==0
+          &&final.guardian_departure_rolls==0&&final.guardian_departures==0
+          &&final.phenomenon_actions==0&&final.fate_actions==0&&final.devil_actions==0&&!final.last_tick,
+          "v87 received death cancels the reserved gift without a tick,body chance,counter,revival or guardian draw");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1781,4 +1834,5 @@ int main() {
     std::cout<<"v84: 8 fixed seeds x2 received states,single30 self damage8/Hell/tick5 and actual175 receipt,CPU16 unanswered;ordinary tick draw,no fitted branch,old v82 UI games unchanged,no disease rate or server RNG proof\n";
     std::cout<<"v85: 8 fixed seeds x3 complete headless received frames,CPU6 prelaunch copy reconstructed,empty defense and compound21+74 self;CPU26 inventory delta and explicit118/200 receipts,CPU44 unanswered;no new runtime,initial distribution,CPU policy,slot identity or server RNG equivalence claim\n";
     std::cout<<"v86: 8 fixed seeds x2 received states,self83 forfive damage and explicit26 receipt;CPU223 utility pending withMP5,retained used223 and unused218;no new runtime,element-priority,initial distribution or server RNG equivalence claim\n";
+    std::cout<<"v87: 8 fixed seeds x2 complete initial-to-end received states,3 exchange toHP0 MP10 CP60;one decision,CPU2 wins,GF1 and no replacement or RNG draw;terminal ghost is not live debt,no initial distribution,CPU policy or server RNG equivalence claim\n";
 }

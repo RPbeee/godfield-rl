@@ -2299,3 +2299,14 @@ Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBS
 公開JS/JAの[再取得記録](../data/official-v2/live-review-v86.json)は既存pinと一致した。公開receiverが認識する `bounce` をprivate parserが拒否する欠落だけを修正し、未知語の拒否を保つ9テストをCTestへ登録する。合成decoder回帰は公式対局の新観測ではない。
 
 Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v87：HP0両替の自然終局と補充取消
+
+208/112/guardian/curseのない2人修行で3/id5を使い、40/10/20→0/10/60を確定した。受信は初期1と終局2だけで連続し、useAttackItems→exchange(cp60,mp10)→die1→endGame。HP値とactorをexchangeイベントへ補記せず、元の和70からHP0を導出する。両替の価格5を支払いへ足さず、damage/disease/gift/advanceGFイベントを捏造しない。
+
+8固定seed×2状態＝16比較を追加し、新1件で69/native63/record-only6・wire664、完全受信lifecycle3/routing1/internal trace0。1native decisionからCPU勝利・GF据置・RNG/新tokenなし・予約補充取消を導出する。terminal手札のghostはlive debtではない。69/S69/view67・ABI2とbodyは維持する。復活や死亡時攻撃を併用した一般の優先順は今回の範囲外である。
+
+34/216の48準備game、両替を持たなかった中断前3game、回復後の準備1gameは新観測へ数えない。中断前3番目は再起動でbrowserが消失し、正常退出は未確認。採用contextは2試行目で3を発見して停止した。終局・CPU勝利表示とbrowser closeは確認したが、『戦いを終わる』後のメニュー復帰は確認できず、終局受信とは別に記録する。
+
+Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。
