@@ -433,3 +433,53 @@ Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3
 新1操作・16比較で69/native63/record-only6・wire664、完全受信lifecycleは2→3、routing1/internal trace0。終局後『戦いを終わる』を試したがメニュー復帰待ちはtimeoutとなり、続くcloseでbrowser終了を確認した。メニュー復帰済みとは記録せず、確定済み終局と分ける。34/216、208/112併用は残件である。
 
 Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。
+
+
+## 作業世代v88：終局後は修行設定を経由してホームへ復帰
+
+2026-11-06、[headless probe](official-headless-probe.md)の独立Chromiumで2人・終末なしCPU修行を1試行だけ実施した。probe起動からbrowser終了まで65.072秒、修行開始クリックから60.714秒であり、最大3試行・各90秒以内の制限内で終了した。追加の公式接続・探索は行っていない。
+
+初期はCPUの「火の粉袋」75%攻1への応答待ちで、本人40/10/20。空応答後はGF2・39/10/20となった。可視手札の両替3を選び、画面を確認して所持金側+10を4回押すとpreviewは29/10/30→19/10/40→9/10/50→0/10/59となる。実status39/10/20のまま、主動作ペイン(350,250)を1回クリックして確定した。以降の画面で本人HP0・「昇天」、続いてCPUの「勝利」と「戦いを終わる」を確認した。終局前後のraw gameを新しいwire fixtureとして採用したものではない。
+
+以下は起動を0秒とした時刻付きUI記録である。本文は識別名を本人/CPUに置換した主要表示を抜粋し、表示入力欄はprobeの `inputs` を記す。
+
+| 時刻 | 操作・画面stateの本文 | 表示入力欄 |
+| --- | --- | --- |
+| 47.190秒 | 終局画面。「修行」「教典」「G.F.2」「勝利」「CPU」、本人HP0/MP10/¥59、CPU40/10/20、「戦いを終わる」 | `[]` |
+| 50.380秒 | 完全一致の「戦いを終わる」を1回クリック | — |
+| 50.397秒 / 50.400秒 | 操作直後と直後のstateは終局画面を維持。「G.F.2」「勝利」「戦いを終わる」 | `[]` |
+| 53.674秒 | 次のstateは修行設定。「修行」「教典」「本人」「修行者 2 人」「終末の時」「なし」「戦いを始める」。GF・勝利・終了ボタンは消失。画像でも設定画面と左上の戻る矢印を確認 | `[]` |
+| 60.222秒 | 修行設定画面の左上の戻る矢印(240,23)を1回クリック | — |
+| 60.234秒 / 60.237秒 | ホーム本文は「教典」「本人」「修行」「コンピュータと対戦」「隠れ乱闘」「友達と対戦」「真剣タイマン」「2人個人戦」。GF・「戦いを始める」・「戦いをあきらめる」は無し | `[]` |
+| 65.064秒 / 65.072秒 | closeの `closed:true` とprobe正常終了を確認 | — |
+
+この1例では終了ボタン1回で直接ホームではなく修行設定へ戻り、追加の戻る矢印1回でホーム復帰を確認した。終了クリック後の設定確認は3.294秒後であり、遷移に常にその時間が必要という測定ではない。戻る矢印後は0.012秒でホームstateを取得した。終了ボタンの連打・再読込・再生誕・再ログインは不要だった。設定画面に留めたのは終了クリック後9.842秒までで、それ以上待った場合の自動ホーム遷移は未確認である。v87でホームの文字だけを待つとtimeoutした理由と整合する経路だが、v87当時の未取得stateを今回の別対局で補完しない。
+
+私有の時刻付き本文・入力欄・画像・probe終了時prefixは `/tmp` 配下に0600で保存し、原識別子や認証情報を公開記録へ転記していない。公開wire/witness・native/runtimeの変更は無く、既存の69観測/native63/record-only6・wire664・完全受信lifecycle3/routing1/internal trace0の集計は維持する。今回の追加は終了後UI経路の観測であり、新しいnative比較・完全受信lifecycleの認定は行わない。ホーム復帰と一時ブラウザ終了を確認して調査を終了した。
+
+
+## 作業世代v89：34単品自己使用の受信・response待ち不一致と修正
+
+2026-11-06、標準入力をFIFOで開いたまま、独立headless Chromiumの有限探索を `--targets 34,216 --max-trials 12` で1回実行した。6試行目で可視34を検出して停止し、再実行はしていない。前5対局は通常退出・ホーム復帰を確認した。採用対局は2人・終末なし、viewer1/CPU2、G.F.1・双方40/10/20、各9枚。候補停止時は手札未操作で、34/id6のみ選択→本人targetの矢印を画像確認→主動作ペイン(350,330)の1回確定と進めた。各操作後にstateを確認し、他のカードや追加の本人responseは入力していない。
+
+[初期1と使用後2の受信](../data/official-v2/wire-game-updates-v89.json)では、use34/id6→target1→damage9→gift4/id6→advance2→CPU79/id6→target1。本人HP40→31、MP10/CP20維持、CPU40/10/20、G.F.2でCPU79氷結ハンマーへの応答待ちとなった。damageのplayerId省略、配列順、ghost行を保持する。初期prefix-Aは156986 bytes/57完全framesのframe55、postprefix-Bは19633 bytes/4完全framesのframe2（0-based）を採用し、同じgame文書であることを私有資料で確認した。両HTTP未完・capture_error:false、末尾不足0byteであり、HTTP全体や終局の完了を意味しない。全2状態36行（positive35＋ghost1）を保持する。
+
+全prefixのgame一括decoderは、採用外の準備対局にある既知allowlist外のevent文字列 `hit` を拒否した。parserの許容範囲は変更せず、厳格なUTF-8/UTF-16 framingで区切った採用frame55だけを既存の `sanitize_game` で検証し、postframe2も既存parserで検証した。未知値を採用fixtureへ混ぜず、準備5文書は除外した。公開資料には原識別子・文書path・認証情報を転記せず、私有出力は/tmp配下0600に保存した。
+
+[操作witness](../data/official-v2/live-transition-witnesses-v89.json)と `tests/official_wire_trace_test.cpp` のv89比較を追加した。nativeは固定seed0で34単品selfを1回実行すると本人HP40・queue1・actor1の本人response待ちとなり、公式の追加responseなしHP31と食い違った。初期受信状態の比較後、補充前のこの不一致でテストを停止する。8seed全件やpost終点の一致を主張せず、新規成功wire比較は0、既存累計664を維持する。エンジンはユーザー指定により修正していない。
+
+新1完了観測で累計70、native対象は63のまま、record-onlyは7とする。完全受信lifecycle3/routing1/internal trace0を維持する。216、34の合成・奇跡を弾く応答・低HP/死亡境界、公式配布率は未確認である。CPU79には応答せず、戻る→「戦いをあきらめる」からホーム復帰をstateで確認し、closeのclosed:true・正常終了を確認した。追加の公式接続・探索は行っていない。
+
+Releaseのwire対象ビルドは成功。build内のRelease CTestは156/158（109.68秒）で、v89の既知不一致による `official_wire_trace` と `official_webchannel_parser` が失敗した。後者は私有出力用umask077がテストの公開directory作成にも継承され、想定した拒否が発生しなかったもの。umask022で同parser対象のみ再確認すると1/1（0.57秒、内部9テスト）が通過した。wire不一致は残したまま停止し、エンジン修正・commitはしていない。全suiteを再実行して157/158を得たとは扱わない。
+
+
+### タスク4：既存受信を用いた34限定の修正（追加観測なし）
+
+上記は修正前の結果として保持する。過去の41・Cold・Fog・53・66・70・30と同じ通常mainの直接DEF0経路へ、実モデル34/bounceMiracle・明示self・hit0・Wide無しだけを追加した。費用/消費・body・owner tick・補充・次owner/GFは既存処理へ接続し、HP算術は変更していない。既存受信の初期1→使用後2を固定8seedで16比較し、追加本人responseなしでHP40→31・MP10/CP20維持、実補充4、GF2・CPU79応答待ちまで一致した。受信damage9や終点HPをエンジンへ注入したものではない。
+
+同trait全体へ広げずモデルID34で限定した。216は台帳上はbounceMiracleではなく吸収奇跡であり、未観測のまま従来の直接吸収経路を維持する。foreign・redirect・Wide・guardian/payloadの別入口も従来どおり。rules70/Snapshot70/view68へ更新し、Snapshot旧1〜69は拒否する。Match ABI2・既存C構造体幅・State/独立表示componentは維持し、header/C/Python/observeのself_attack_rule契約を同期した。
+
+新しい公式観測は0件。既存v89の1件をrecord-onlyからnative対象へ移し、累計70観測/native64/record-only6・wire680、完全受信lifecycle3/routing1/internal trace0とする。witnessには修正前の失敗証拠を保存したまま修正後の比較を記録する。216、34の合成・低HP/死亡境界・奇跡を弾く応答・公式配布率、HP算術の内部順は未確定である。今回の一致から一般のserver RNGやdeath/tick/gift全順序を証明しない。追加の公式接続・探索・観測、git commitは行っていない。
+
+
+修正後の最終検証はRelease CTest158/158（109.32秒、Python 41対象を含む）と、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.78秒）が通過した。両buildのwarning/errorは0、diff-check正常。全CTestはumask022で実行し、前回失敗した `official_webchannel_parser` も同じ全suite内で通過（0.58秒）した。coreでは34の単発消費・未選択防具の保持・無bounce draw・補充resume・foreign/redirect/Wide/guardianの除外・216の従来動作・旧Snapshot拒否・cutoff・失敗時rollbackを検査した。全SAN suiteやPython SANの実行とは区別する。

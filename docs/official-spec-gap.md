@@ -61,6 +61,8 @@ v86では83単品selfを本人40→35・MP10/CP20維持・通常26補充・CPU22
 
 v87では両替3をHP0/MP10/CP60へ配分し、use3→exchange→die1→endGame、GF1据置・補充なしを初期1と終局2で確認した。208/112/guardian無しの有限例で、復活・死亡時攻撃との優先順は依然残件である。新1件・16比較で69/native63/record-only6・wire664、開始〜終局の完全受信game列は新1対局・累計3、内部全trace0/routing1を維持する。34/216は48回の準備探索では未取得であり、今回の両替から補完しない。
 
+v89の既存受信34単品selfに合わせ、通常main・明示self・実モデル34/bounceMiracle・hit0・noWideだけをDEF0の直接経路へ加えた。既存算術のまま40→31、実gift4、GF2・CPU79応答待ちまで固定8seed×2状態が一致する。216は従来の吸収奇跡経路を維持する。rules70/Snapshot70/view68・ABI2、70観測/native64/record-only6・wire680となる。公式への新規接続・観測は0、HP算術の内部順、34の低HP/死亡境界・合成や216は未確定である。
+
 以下の過去節は、当時の比較対象・未対応範囲・検証結果として保持する。
 
 作成日: 2026-10-30。比較対象: ローカルの `synthetic-neutral-duel-v1`、commit `ddc627f6225fabe93c77ab296e9ee85860ea67ab`。

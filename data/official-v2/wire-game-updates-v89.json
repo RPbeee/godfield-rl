@@ -1,0 +1,437 @@
+{
+  "schema_version": 1,
+  "schema": "official-authoritative-game-updates-v1",
+  "recorded_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "privileged_scenario_warning": "Received true CPU hands are privileged validation inputs,never policy observations.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "capture_method": "Existing visible-UI headless probe under a bounded training-hand wrapper. Actual browser response data only via CDP Network.streamResourceContent bufferedData and dataReceived.data;immutable mode0600 response prefixes. The probe did not independently issue or replay backend commands,inspect hidden application state,or save HAR,headers,cookies or outgoing request payloads. Ordinary UI actions were handled by the official client.",
+  "sanitization": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "scope": "Trial6 of bounded12 visible-hand search for34/216. Initial1 and post2 of single34 self-use: nine damage,ordinary4/id6,GF2 CPU79/id6 pending without extra viewer response. Five preparation games excluded;no CPU response or terminal outcome observed.",
+  "source_bodies": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 156986,
+      "response_prefix_sha256": "484861562278edb6a853aa8df091496afbb2eeebbd46ff641c8ecdceac18ac3a",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 57,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 156986,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        55
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 19633,
+      "response_prefix_sha256": "40f1abdd0b753c2ad5efb3399bb599d94a5b036fae6a0e47a17c1c20c3660fe5",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 4,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 19633,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        2
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "continuity": {
+    "same_training_room_document_confirmed_in_private_sources": true,
+    "server_update_counts": [
+      1,
+      2
+    ],
+    "consecutive_received_update_counts": true,
+    "first_received_snapshot_has_pending_cpu_attack": false,
+    "initial_authoritative_snapshot_captured": true,
+    "initial_model_generation_reproduced": false,
+    "excluded_preparation_game_changes": 5,
+    "excluded_preparation_documents_distinct_from_selected_game": true,
+    "frame_indices_are_zero_based": true
+  },
+  "updates": [
+    {
+      "source_body": "prefix-A",
+      "source_frame_index": 55,
+      "game": {
+        "diseasePlayerId": 1,
+        "gf": 1,
+        "guardianPlayerIds": [
+          2
+        ],
+        "events": [
+          {
+            "action": "startGame"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "modelId": 195,
+              "id": 1
+            }
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 104,
+              "id": 2
+            },
+            "playerId": 1
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 3,
+              "modelId": 222
+            }
+          },
+          {
+            "action": "gift",
+            "item": {
+              "modelId": 151,
+              "id": 4
+            },
+            "playerId": 1
+          },
+          {
+            "item": {
+              "id": 5,
+              "modelId": 136
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 6,
+              "modelId": 34
+            }
+          },
+          {
+            "playerId": 1,
+            "action": "gift",
+            "item": {
+              "id": 7,
+              "modelId": 195
+            }
+          },
+          {
+            "item": {
+              "modelId": 171,
+              "id": 8
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "item": {
+              "id": 9,
+              "modelId": 130
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "playerId": 1,
+            "action": "advanceGF"
+          }
+        ],
+        "updateCount": 1,
+        "players": [
+          {
+            "cp": 20,
+            "name": "viewer",
+            "items": [
+              {
+                "modelId": 195,
+                "id": 1
+              },
+              {
+                "modelId": 104,
+                "id": 2
+              },
+              {
+                "modelId": 222,
+                "id": 3
+              },
+              {
+                "modelId": 151,
+                "id": 4
+              },
+              {
+                "modelId": 136,
+                "id": 5
+              },
+              {
+                "modelId": 34,
+                "id": 6
+              },
+              {
+                "id": 7,
+                "modelId": 195
+              },
+              {
+                "modelId": 171,
+                "id": 8
+              },
+              {
+                "modelId": 130,
+                "id": 9
+              }
+            ],
+            "id": 1,
+            "mp": 10,
+            "hp": 40
+          },
+          {
+            "items": [
+              {
+                "modelId": 199,
+                "id": 1
+              },
+              {
+                "modelId": 13,
+                "id": 2
+              },
+              {
+                "modelId": 40,
+                "id": 3
+              },
+              {
+                "modelId": 130,
+                "id": 4
+              },
+              {
+                "modelId": 196,
+                "id": 5
+              },
+              {
+                "modelId": 79,
+                "id": 6
+              },
+              {
+                "modelId": 106,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 90
+              },
+              {
+                "modelId": 125,
+                "id": 9
+              }
+            ],
+            "cp": 20,
+            "name": "cpu",
+            "id": 2,
+            "mp": 10,
+            "isBot": true,
+            "hp": 40
+          }
+        ],
+        "attackTurnPlayerId": 1
+      }
+    },
+    {
+      "source_body": "prefix-B",
+      "source_frame_index": 2,
+      "game": {
+        "diseasePlayerId": 2,
+        "players": [
+          {
+            "name": "viewer",
+            "id": 1,
+            "cp": 20,
+            "mp": 10,
+            "items": [
+              {
+                "id": 1,
+                "modelId": 195
+              },
+              {
+                "modelId": 104,
+                "id": 2
+              },
+              {
+                "modelId": 222,
+                "id": 3
+              },
+              {
+                "modelId": 151,
+                "id": 4
+              },
+              {
+                "modelId": 136,
+                "id": 5
+              },
+              {
+                "modelId": 195,
+                "id": 7
+              },
+              {
+                "id": 8,
+                "modelId": 171
+              },
+              {
+                "id": 9,
+                "modelId": 130
+              },
+              {
+                "modelId": 4,
+                "id": 6
+              }
+            ],
+            "hp": 31
+          },
+          {
+            "mp": 10,
+            "hp": 40,
+            "isBot": true,
+            "name": "cpu",
+            "cp": 20,
+            "items": [
+              {
+                "modelId": 199,
+                "id": 1
+              },
+              {
+                "id": 2,
+                "modelId": 13
+              },
+              {
+                "modelId": 40,
+                "id": 3
+              },
+              {
+                "modelId": 130,
+                "id": 4
+              },
+              {
+                "modelId": 196,
+                "id": 5
+              },
+              {
+                "modelId": 106,
+                "id": 7
+              },
+              {
+                "modelId": 90,
+                "id": 8
+              },
+              {
+                "modelId": 125,
+                "id": 9
+              },
+              {
+                "modelId": 0,
+                "id": 0
+              }
+            ],
+            "id": 2
+          }
+        ],
+        "guardianPlayerIds": [
+          1
+        ],
+        "gf": 2,
+        "attackTurnPlayerId": 2,
+        "attacks": [
+          {
+            "itemModelIds": [
+              79
+            ],
+            "playerId": 2,
+            "targetPlayerId": 1
+          }
+        ],
+        "updateCount": 2,
+        "events": [
+          {
+            "items": [
+              {
+                "id": 6,
+                "modelId": 34
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          },
+          {
+            "damage": 9,
+            "action": "dealDamage"
+          },
+          {
+            "item": {
+              "modelId": 4,
+              "id": 6
+            },
+            "playerId": 1,
+            "action": "gift"
+          },
+          {
+            "action": "advanceGF",
+            "playerId": 2
+          },
+          {
+            "items": [
+              {
+                "id": 6,
+                "modelId": 79
+              }
+            ],
+            "action": "useAttackItems"
+          },
+          {
+            "playerId": 1,
+            "action": "setTargetPlayer"
+          }
+        ]
+      }
+    }
+  ],
+  "source_audit_note": "Full-prefix strict framing retained. Whole-prefix game decoding rejected unselected preparation event enum hit. A private frame audit retained only selected frame55 after unchanged strict sanitize_game validation;all five preparation documents excluded. Selected document identity equals prefix-B frame2. No decoder/schema expansion or unknown selected fields accepted."
+}

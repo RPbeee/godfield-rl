@@ -3475,3 +3475,12 @@ Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3
 2状態×8固定seed＝16比較で69/native63/record-only6・wire664、完全受信lifecycle3/routing1/internal trace0。既存exchange bodyと69/S69/view67・ABI2を維持し、無208/112/guardianのこの例から他の死亡優先順へ広げない。
 
 Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1.75秒）が通過した。Releaseはparserの9テストを含む。finder構文・不正CLI8件の起動前拒否・trade3の実探索引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methods、runtime本体・根拠descriptorは維持する。全SAN suite・新しいcore/C API SAN・Python SANや、全UI終了経路の検証とは区別し、経過時間を版間速度比較に使わない。
+
+
+## 対局v70（作業世代v89）：実測34だけの直接自己経路
+
+既存v89の初期1→使用後2を根拠に、通常mainの `play`・明示self・weapon base・実モデル34/bounceMiracle・hitRate0・noWideを既存DEF0の直接自己経路へ加える。34単品は1commandで本人40→31、MP10/CP20維持、実gift4を供給した後G.F.2・CPU79応答待ちへ進む。受信damage9を注入せず、既存bodyで計算する。追加の公式接続・観測は行わない。
+
+bounceMiracle全体を広く許可せず、モデルID34で限定する。216は台帳では吸収奇跡であり、公式自己使用は未観測のまま従来の直接吸収経路を維持する。foreign・redirect・Wide・guardian/payloadの別入口も従来経路のままとし、合法な追加材・死亡・tick・cutoff・補充の既存ローカル契約を引き継ぐ。今回の単品非致死例はそれら全境界の公式同値性や、HP算術の内部順を確定しない。
+
+公開 `self_attack_rule` は `bounce-miracle34-only` と `bounce-miracle34-raw-self-use-observed-v89-216-unobserved-excluded` を追加し、header・C getter・Python属性・observeの契約を同期する。実行経路の変更に合わせrules70/Snapshot70/view68へ更新し、Snapshot旧1〜69を拒否する。Match ABI2・既存C構造体幅・State/表示componentは維持する。固定8seed×2状態の16比較を追加し、累計70観測/native64/record-only6・wire680、完全受信lifecycle3/routing1/internal trace0となる。新規観測の加算ではなく、既存v89の記録のみ1件をnative対象へ移す。

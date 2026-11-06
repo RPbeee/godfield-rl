@@ -1,0 +1,387 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v87.json",
+  "method": "Trial6 of bounded12 visible-hand search for34/216. Initial1 and post2 of single34 self-use: nine damage,ordinary4/id6,GF2 CPU79/id6 pending without extra viewer response. Five preparation games excluded;no CPU response or terminal outcome observed.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "authoritative_fixture": "wire-game-updates-v89.json",
+  "source_body_provenance": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 156986,
+      "response_prefix_sha256": "484861562278edb6a853aa8df091496afbb2eeebbd46ff641c8ecdceac18ac3a",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 57,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 156986,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        55
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 19633,
+      "response_prefix_sha256": "40f1abdd0b753c2ad5efb3399bb599d94a5b036fae6a0e47a17c1c20c3660fe5",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 4,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 19633,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        2
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "model_provenance": {
+    "4": {
+      "id": 4,
+      "imageName": "sell",
+      "category": "trade",
+      "ability": "sell",
+      "price": 5,
+      "giftRate": 20,
+      "name": "売る"
+    },
+    "34": {
+      "id": 34,
+      "imageName": "sky-harpoon",
+      "category": "weapons",
+      "atk": 9,
+      "isPlusAtk": true,
+      "ability": "bounceMiracle",
+      "price": 5,
+      "giftRate": 1,
+      "name": "スカイハープーン"
+    },
+    "79": {
+      "id": 79,
+      "imageName": "frozen-hammer",
+      "category": "weapons",
+      "element": "water",
+      "atk": 4,
+      "price": 4,
+      "giftRate": 1,
+      "name": "氷結ハンマー"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-single34-self-no-response",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_after_model34_only_self_route_fix",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "viewer_resources": [
+          40,
+          10,
+          20
+        ],
+        "cpu_resources": [
+          40,
+          10,
+          20
+        ],
+        "pending_attacks": []
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 34,
+        "displayed_model": 34,
+        "item_id": 6,
+        "target": 1,
+        "single_card": true,
+        "single_confirmation_observed": true,
+        "additional_self_defense_observed": false,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "viewer_resources": [
+          31,
+          10,
+          20
+        ],
+        "cpu_resources": [
+          40,
+          10,
+          20
+        ],
+        "pending_attacks": [
+          {
+            "itemModelIds": [
+              79
+            ],
+            "playerId": 2,
+            "targetPlayerId": 1
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "items": [
+            {
+              "id": 6,
+              "modelId": 34
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 1,
+          "action": "setTargetPlayer"
+        },
+        {
+          "damage": 9,
+          "action": "dealDamage"
+        },
+        {
+          "item": {
+            "modelId": 4,
+            "id": 6
+          },
+          "playerId": 1,
+          "action": "gift"
+        },
+        {
+          "action": "advanceGF",
+          "playerId": 2
+        },
+        {
+          "items": [
+            {
+              "id": 6,
+              "modelId": 79
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 1,
+          "action": "setTargetPlayer"
+        }
+      ],
+      "observation": "Single34 self-use resolved nine damage with no extra self response;ordinary4/id6 then CPU79/id6 pending.",
+      "limits": "No216,low-HP,death,compound,bounce response,CPU79 resolution,distribution or server RNG claim."
+    }
+  ],
+  "search_context": {
+    "bounded_max_trials": 12,
+    "actual_trials_started": 6,
+    "matched_trial": 6,
+    "requested_targets": [
+      34,
+      216
+    ],
+    "matched_visible_target": 34,
+    "match_source": "visible hand image path only",
+    "hidden_true_cpu_hand_used_for_search": false,
+    "excluded_preparation_games": 5,
+    "same_child_interactive_after_match": true,
+    "normal_quit_home_and_browser_close_confirmed": true,
+    "browser_session_exit_code": 0
+  },
+  "native_projection_validation": {
+    "status": "passed",
+    "passed": true,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v89",
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "fixed_replays_completed": 8,
+    "initial_received_checkpoints_matched": 8,
+    "post_received_checkpoints_matched": 8,
+    "engine_modified": true,
+    "ruleset": "official-execution-subset-v70",
+    "snapshot_version": 70,
+    "view_schema": "official-execution-view-v68",
+    "scope": "Use existing captured initial inventories and commands. Compute self34 damage9 with the unchanged body, supply actual ordinary4, then compare GF2 CPU79 pending. Model34 only;216 absorb miracle routing unchanged. No new official connection or observation;no HP internal-order,initial distribution,CPU policy or server RNG equivalence claim.",
+    "local_test_results": {
+      "release_build_passed": true,
+      "release_ctest_passed": 158,
+      "release_ctest_total": 158,
+      "release_ctest_seconds": 109.32,
+      "release_python_ctest_targets_passed": 41,
+      "umask": "022",
+      "official_webchannel_parser_passed": true,
+      "sanitize_build_type": "Debug ASan/UBSan",
+      "sanitize_ctest_targets": [
+        "official_match",
+        "official_match_c_api",
+        "official_wire_trace"
+      ],
+      "sanitize_ctest_passed": 3,
+      "sanitize_ctest_total": 3,
+      "sanitize_ctest_seconds": 30.78,
+      "build_warnings": 0,
+      "build_errors": 0,
+      "full_sanitize_suite_run": false,
+      "python_sanitize_run": false
+    }
+  },
+  "source_audit": {
+    "strict_utf8_and_exact_utf16_length_frames": true,
+    "selected_games_validated_by_unchanged_sanitize_game": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "raw_prefix_modes_0600": true,
+    "field_omissions_and_array_order_preserved": true,
+    "received_inventory_rows_total": 36,
+    "positive_inventory_rows_total": 35,
+    "zero_placeholder_rows_total": 1,
+    "note": "Full-prefix strict framing retained. Whole-prefix game decoding rejected unselected preparation event enum hit. A private frame audit retained only selected frame55 after unchanged strict sanitize_game validation;all five preparation documents excluded. Selected document identity equals prefix-B frame2. No decoder/schema expansion or unknown selected fields accepted."
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu79_response_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "browser_closed": true,
+    "firefox_touched": false,
+    "exit_kind": "normal quit at CPU79 pending then home and browser close"
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 70,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 64,
+  "new_record_only_completed_witnesses": 0,
+  "cumulative_record_only_completed_witnesses": 6,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 3,
+  "captured_full_server_event_traces": 0,
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 680,
+  "record_status": "native_projection_covered_after_fix",
+  "official_full_simulator_equivalence_established": false,
+  "runtime_behavior_schema_or_api_change_required": true,
+  "runtime_behavior_changed": true,
+  "native_projection_validation_before_fix": {
+    "status": "failed",
+    "passed": false,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v89",
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "random_seed_fitting": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "fixed_replays_completed": 0,
+    "first_failing_seed": 0,
+    "initial_received_checkpoints_matched_before_failure": 1,
+    "post_received_checkpoints_matched": 0,
+    "mismatch": {
+      "official": {
+        "viewer_hp": 31,
+        "additional_self_response": false,
+        "following_gift_model": 4,
+        "gf": 2,
+        "cpu_pending_model": 79
+      },
+      "native_after_single_self_command": {
+        "viewer_hp": 40,
+        "queued_attacks": 1,
+        "actor": 1
+      },
+      "boundary": "before ordinary receipt;native still requires viewer response"
+    },
+    "engine_modified": false,
+    "scope": "Load exact received initial inventories,compare initial state,execute single34 self once. Fail before granting4 because native requires an extra response absent in the official update. Remaining seeds and post checkpoint are not reached;no successful eight-seed coverage increment claimed.",
+    "local_test_results": {
+      "release_build_target": "godfield_official_wire_trace_tests",
+      "release_build_passed": true,
+      "release_ctest_passed": 156,
+      "release_ctest_total": 158,
+      "release_ctest_seconds": 109.68,
+      "release_ctest_failed_targets": [
+        "official_wire_trace",
+        "official_webchannel_parser"
+      ],
+      "wire_failure": "seed0:HP40,queue1,actor1 versus officialHP31 without response",
+      "parser_failure_cause": "Inherited umask077 made the test public-directory fixture private;assertion expected output_directory_not_private.",
+      "parser_recheck_with_umask_022_passed": 1,
+      "parser_recheck_total": 1,
+      "parser_recheck_seconds": 0.57,
+      "engine_modified": false,
+      "successful_new_eight_seed_projection_comparisons": 0
+    }
+  }
+}

@@ -1797,13 +1797,53 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v89: authoritative single34 self-use, immediate body and supplied ordinary receipt.
+namespace v89 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,195},{2,104},{3,222},{4,151},{5,136},{6,34},{7,195},{8,171},{9,130}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,199},{2,13},{3,40},{4,130},{5,196},{6,79},{7,106},{8,90},{9,125}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,195},{2,104},{3,222},{4,151},{5,136},{7,195},{8,171},{9,130},{6,4}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,199},{2,13},{3,40},{4,130},{5,196},{7,106},{8,90},{9,125},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,31,10,20,false,after_viewer},{2,40,10,20,false,after_cpu}}},79}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,6)},1};
+    check(game.legal(self),"v89 received single34 explicit self command is legal");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    if(body.phase!=MatchPhase::grant||body.state.players[0].hp!=31||!body.queue.empty()) {
+        std::cerr<<"v89 mismatch seed="<<seed<<" hp="<<body.state.players[0].hp
+                 <<" queued="<<body.queue.size()<<" actor="<<body.actor.value_or(0)
+                 <<"; official34 self resolves HP31 without a response before ordinary4 receipt\n";
+    }
+    check(body.phase==MatchPhase::grant&&body.state.players[0].hp==31&&body.queue.empty(),
+          "v89 official34 self resolves nine damage without an extra self response");
+    v64::receipt(game,slots,1,6,4);
+    const Command cpu{2,CommandKind::play,{consumed_slot(slots,2,6)},1};
+    check(game.legal(cpu),"v89 received CPU79 launch is legal");
+    (void)game.step(cpu);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);v89::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1834,5 +1874,6 @@ int main() {
     std::cout<<"v84: 8 fixed seeds x2 received states,single30 self damage8/Hell/tick5 and actual175 receipt,CPU16 unanswered;ordinary tick draw,no fitted branch,old v82 UI games unchanged,no disease rate or server RNG proof\n";
     std::cout<<"v85: 8 fixed seeds x3 complete headless received frames,CPU6 prelaunch copy reconstructed,empty defense and compound21+74 self;CPU26 inventory delta and explicit118/200 receipts,CPU44 unanswered;no new runtime,initial distribution,CPU policy,slot identity or server RNG equivalence claim\n";
     std::cout<<"v86: 8 fixed seeds x2 received states,self83 forfive damage and explicit26 receipt;CPU223 utility pending withMP5,retained used223 and unused218;no new runtime,element-priority,initial distribution or server RNG equivalence claim\n";
+    std::cout<<"v89: 8 seeds x2 received updates; single34 self HP40->31, supplied gift4 and pending CPU79; no216 or HP internal-order claim\n";
     std::cout<<"v87: 8 fixed seeds x2 complete initial-to-end received states,3 exchange toHP0 MP10 CP60;one decision,CPU2 wins,GF1 and no replacement or RNG draw;terminal ghost is not live debt,no initial distribution,CPU policy or server RNG equivalence claim\n";
 }

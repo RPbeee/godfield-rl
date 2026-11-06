@@ -599,7 +599,7 @@ class Match:
         self.automatic_guardian_response_rule = lib.gfo_match_automatic_guardian_response_rule().decode()
         self.driver_api_version = lib.gfo_match_driver_api_version()
         self.choice_rule = lib.gfo_match_choice_rule().decode(); self.driver_rule = lib.gfo_match_driver_rule().decode()
-        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v69"
+        if (lib.gfo_match_abi_version() != 2 or self.ruleset != "official-execution-subset-v70"
             or not self.scope.startswith("experimental:") or "not-official-server-equivalence" not in self.scope
             or lib.gfo_match_config_size() != c.sizeof(_Config) or _Config.external_grants.offset != 6 or _Config.include_fate.offset != 7
             or _Config.local_guardian_payloads.offset != 20 or _Config.external_artifacts.offset != 21

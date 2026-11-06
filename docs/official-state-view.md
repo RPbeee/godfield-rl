@@ -489,3 +489,8 @@ v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82�
 新しい30自己使用の受信2状態を既存8seedで比較する。終点viewer1はHP27/MP10/CP20・Hell・9正コピー、CPU2は40/10/20・8正コピー＋空行1で、16/id2が本人へ保留している。CPU16/id1は別コピーとして残る。viewer30/id6の消費と175/id6の再利用は、owner-qualified slot mapで新しいnative tokenへ対応させる。
 
 公開view・State ABI・対局69/S69/view67は変更せず、自己使用の根拠ラベルだけをv84 rawへ拡張する。初期からの2状態16比較と、v82の未知postを持つUI記録の区分を維持する。CPU16に応答せず、ホーム復帰とNetwork Monitor終了を確認した。
+
+
+## v89：34自己使用のrouting契約更新
+
+既存受信の34単品selfを直接解決へ接続し、対局view68/rules70/Snapshot70へ更新する。`self_attack_rule` はモデル34限定のbounceMiracle許可と、未観測216の除外を公開する。旧Snapshot1〜69は拒否し、State/表示component・Match ABI2とC構造体幅は維持する。HP40→31とgift4・GF2/CPU79保留の終点一致は、HP算術のbackend内部順の確定を意味しない。
