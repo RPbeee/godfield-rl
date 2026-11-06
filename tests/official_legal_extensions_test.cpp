@@ -23,6 +23,7 @@ const ItemInstance& item(const MatchSnapshot& s,ItemToken token) {
     const auto& p=own(s);return *std::find_if(p.items.begin(),p.items.end(),[&](const auto& i){return i.token==token;});
 }
 std::size_t scenes=0,full_scenes=0,steps=0,exceptions=0,walks=0;
+std::size_t hidden_pairs_excluded=0,leak_pairs=0,leak_nodes=0;
 std::size_t raw_sum=0,canonical_sum=0,raw_max=0,canonical_max=0;
 std::map<MatchPhase,std::size_t> phases;
 std::vector<Command> tree(const Match& game,std::size_t limit,bool canonical,int exchange_step=33) {
@@ -65,22 +66,21 @@ void membership(const Match& game,const Command& c) {
 std::string signature(const MatchSnapshot& s,const Command& c) {
     std::ostringstream out;out<<static_cast<int>(c.kind)<<':'<<(c.target ? std::to_string(*c.target) : "-")<<':';
     if(c.allocation) out<<c.allocation->hp<<','<<c.allocation->mp<<','<<c.allocation->cp;
-    std::vector<std::tuple<CardId,std::optional<CardId>,bool>> multiset;
+    std::vector<std::tuple<CardId,bool,bool>> multiset;
     std::vector<CardId> faces;
-    for(auto t:c.items) {const auto& i=item(s,t);multiset.emplace_back(i.model,i.fake_model,i.used);faces.push_back(face_model(i));}
+    for(auto t:c.items) {const auto& i=item(s,t);multiset.emplace_back(face_model(i),i.fake_model.has_value(),i.used);faces.push_back(face_model(i));}
     std::sort(multiset.begin(),multiset.end());
-    for(auto [model,fake,used]:multiset) out<<'/'<<model<<','<<(fake ? std::to_string(*fake) : "-")<<','<<used;
+    for(auto [face,disguised,used]:multiset) out<<'/'<<face<<','<<disguised<<','<<used;
     out<<" cost="<<((c.kind==CommandKind::play || c.kind==CommandKind::defend) ? magic_cost(faces) : 0);
     if(c.kind==CommandKind::play) {
         out<<" power="<<attack_power(faces)<<" element="<<(attack_element(faces) ? static_cast<int>(*attack_element(faces)) : -1);
-        std::vector<std::pair<CardId,CardId>> run;
-        const auto flush=[&] {std::sort(run.begin(),run.end());for(auto [face,model]:run)out<<" p="<<face<<','<<model;run.clear();};
+        std::vector<CardId> run;
+        const auto flush=[&] {std::sort(run.begin(),run.end());for(auto face:run)out<<" p="<<face;run.clear();};
         for(std::size_t j=0;j<c.items.size();++j) {
             const auto& i=item(s,c.items[j]);
-            const auto& face=*find_card(face_model(i));const auto& actual=*find_card(i.model);
-            if(j>0 && face.category!=Category::miracles && face.ability==Ability::none
-                && actual.category!=Category::miracles && actual.ability==Ability::none) run.emplace_back(face.id,actual.id);
-            else {flush();out<<" barrier="<<face.id<<','<<actual.id;}
+            const auto& face=*find_card(face_model(i));
+            if(j>0 && !i.fake_model && face.category!=Category::miracles && face.ability==Ability::none) run.push_back(face.id);
+            else {flush();out<<" barrier="<<face.id<<','<<i.fake_model.has_value()<<','<<i.used;}
         }
         flush();
     }
@@ -88,14 +88,32 @@ std::string signature(const MatchSnapshot& s,const Command& c) {
         out<<" element="<<(faces.empty() || !defense_element(faces) ? -1 : static_cast<int>(*defense_element(faces)));
         std::vector<CardId> run;
         const auto flush=[&] {std::sort(run.begin(),run.end());for(auto id:run)out<<" d="<<id;run.clear();};
-        for(auto face:faces) {
+        for(auto token:c.items) {
+            const auto& i=item(s,token);const auto face=face_model(i);
             const auto& card=*find_card(face);
-            if(card.category!=Category::miracles && card.ability==Ability::none) run.push_back(face);
-            else {flush();out<<" barrier="<<face;}
+            if(!i.fake_model && card.category!=Category::miracles && card.ability==Ability::none) run.push_back(face);
+            else {flush();out<<" barrier="<<face<<','<<i.fake_model.has_value()<<','<<i.used;}
         }
         flush();
     }
     return out.str();
+}
+// Visible copies may consume/reveal different actual models. Keep the strict
+// effect oracle only when the selected hidden contents (and effectful order)
+// agree; never use this privileged key to define canonical coverage.
+std::string hidden_contents(const MatchSnapshot& s,const Command& c) {
+    std::vector<std::tuple<CardId,CardId,bool>> contents;
+    std::ostringstream order;
+    for(auto token:c.items) {
+        const auto& i=item(s,token);
+        if(!i.fake_model) continue;
+        contents.emplace_back(face_model(i),i.model,i.used);
+        if(c.kind==CommandKind::play || c.kind==CommandKind::defend)
+            order<<'/'<<face_model(i)<<','<<i.model<<','<<i.used;
+    }
+    std::sort(contents.begin(),contents.end());
+    for(auto [face,actual,used]:contents) order<<" selected="<<face<<','<<actual<<','<<used;
+    return order.str();
 }
 void result_equal(const Match& a,const Match& b) {
     const auto x=a.snapshot(),y=b.snapshot();check(x.phase==y.phase && x.actor==y.actor,"step phase/actor");
@@ -150,6 +168,10 @@ void audit(const Match& game,bool full=false) {
     std::size_t compared=0;
     for(const auto& c:allraw) {
         auto sig=signature(before,c);raw_signatures.insert(sig);const auto it=signatures.find(sig);if(it==signatures.end())std::cerr<<"scene="<<scenes<<" phase="<<static_cast<int>(before.phase)<<" signature="<<sig<<"\n";check(it!=signatures.end(),"canonical signatures cover raw");
+        if(c!=it->second && hidden_contents(before,c)!=hidden_contents(before,it->second)) {
+            ++hidden_pairs_excluded;
+            continue;
+        }
         if(c!=it->second && compared<(full ? 80u : 12u)) {
             Match a,b;a.restore(before);b.restore(before);a.step(c);b.step(it->second);result_equal(a,b);++steps;++compared;
         }
@@ -203,8 +225,71 @@ void play_runs() {
     }
     auto masked=fixture({club,12,15});auto s=masked.snapshot().state;
     s.players[0].curses={Curse::dream};s.players[0].items[1].fake_model=9;masked.load_scene(s,42,1234);
-    rejects(masked,CommandKind::play,{0,2,1},true);
-    check(masked.legal_extensions(CommandKind::play,std::vector<ItemToken>{0,1,2},{true}).can_finish,"ordinary Dream face participates in play run");
+    check(masked.legal_extensions(CommandKind::play,std::vector<ItemToken>{0,2,1},{true}).can_finish,"Dream face is a play run barrier");
+    check(masked.legal_extensions(CommandKind::play,std::vector<ItemToken>{0,1,2},{true}).can_finish,"Dream barrier preserves either selection order");
+}
+// Compare every reachable prefix, including all node fields, without a depth
+// cap. Both scenes have identical owner observations and physical token order.
+void leak_tree_equal(const Match& a,const Match& b) {
+    const auto before_a=a.snapshot(),before_b=b.snapshot();
+    check(before_a!=before_b,"leak scenes differ in hidden state");
+    check(a.view(before_a.actor).board==b.view(before_b.actor).board,"leak scenes have identical owner views");
+    const auto kinds=a.legal_kinds();check(kinds==b.legal_kinds(),"hidden models preserve legal kinds");
+    ++leak_pairs;
+    for(auto kind:kinds) {
+        std::vector<ItemToken> prefix;
+        const auto visit=[&](auto&& self)->void {
+            const auto x=a.legal_extensions(kind,prefix,{true});
+            const auto y=b.legal_extensions(kind,prefix,{true});
+            check(x==y,"hidden models preserve every canonical node");++leak_nodes;
+            for(auto token:x.next) {prefix.push_back(token);self(self);prefix.pop_back();}
+        };
+        visit(visit);
+    }
+    check(before_a==a.snapshot() && before_b==b.snapshot(),"leak queries preserve state/RNG");
+}
+void dream_leaks() {
+    const auto compare=[](SnapshotState state,std::size_t changed,CardId actual,bool response=false) {
+        Match a,b;a.load_scene(state,42,1234);
+        state.players[response ? 1 : 0].items[changed].model=actual;
+        b.load_scene(state,42,1234);
+        if(response) {
+            a.step({42,CommandKind::play,{0},7});b.step({42,CommandKind::play,{0},7});
+        }
+        leak_tree_equal(a,b);audit(a,true);audit(b,true);
+    };
+    // Same visible disguised copies: actuals (12,12) versus (12,15).
+    auto duplicate=fixture({6,12,12,9}).snapshot().state;
+    duplicate.players[0].curses={Curse::dream};
+    duplicate.players[0].items[1].fake_model=9;duplicate.players[0].items[2].fake_model=9;
+    compare(duplicate,2,15);
+
+    // A masked +ATK sits between ordinary +ATKs, including descending faces.
+    auto run=fixture({6,18,12,9}).snapshot().state;
+    run.players[0].curses={Curse::dream};run.players[0].items[2].fake_model=9;
+    compare(run,2,15);
+    Match barrier;barrier.load_scene(run,42,1234);
+    check(barrier.legal_extensions(CommandKind::play,std::vector<ItemToken>{0,1,2,3},{true}).can_finish,"masked +ATK splits descending ordinary runs");
+
+    // Received 19-as-27 changes the hidden ability as well as the actual ID.
+    auto ability=fixture({19,9,12}).snapshot().state;
+    ability.players[0].curses={Curse::dream};ability.players[0].items[0].fake_model=27;
+    compare(ability,0,27);
+
+    // Exercise the same duplicate and barrier rules in response selections.
+    auto defense=fixture({6},{113,113,118,123}).snapshot().state;
+    defense.players[1].curses={Curse::dream};
+    defense.players[1].items[0].fake_model=113;defense.players[1].items[1].fake_model=113;
+    compare(defense,1,118,true);
+
+    // Disguised remains observable even when the face equals the actual model.
+    auto marker=fixture({6,9,9}).snapshot().state;
+    marker.players[0].curses={Curse::dream};marker.players[0].items[1].fake_model=9;
+    Match distinct;distinct.load_scene(marker,42,1234);
+    const auto root=distinct.legal_extensions(CommandKind::play,{}, {true});
+    check(std::find(root.next.begin(),root.next.end(),1)!=root.next.end()
+        && std::find(root.next.begin(),root.next.end(),2)!=root.next.end(),"visible disguise flag distinguishes copies");
+    check(hidden_pairs_excluded>0,"hidden-effect exclusions exercised");
 }
 void fixtures() {
     const auto club=image("bronze-club"),free=image("spiritual-doll"),spring=image("spring");
@@ -275,8 +360,9 @@ void games(bool benchmark) {
 }
 int main(int argc,char** argv) {
     if(argc==2 && std::string_view(argv[1])=="--benchmark") {games(true);return 0;}
-    play_runs();fixtures();games(false);
+    play_runs();dream_leaks();fixtures();games(false);
     std::cout<<"scenes="<<scenes<<" full_oracles="<<full_scenes<<" step_pairs="<<steps<<" walks="<<walks<<" exceptions="<<exceptions<<'\n';
+    std::cout<<"leak_pairs="<<leak_pairs<<" leak_nodes="<<leak_nodes<<" hidden_effect_pairs_excluded="<<hidden_pairs_excluded<<'\n';
     for(const auto& [phase,count]:phases)std::cout<<"phase="<<static_cast<int>(phase)<<" scenes="<<count<<'\n';
     std::cout<<"tree<=4 raw mean="<<double(raw_sum)/scenes<<" max="<<raw_max<<" canonical mean="<<double(canonical_sum)/scenes<<" max="<<canonical_max<<'\n';
 }

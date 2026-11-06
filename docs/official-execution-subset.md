@@ -3561,20 +3561,24 @@ FREE で取り消せるため、未使用の合法な FREE を1枚先読みす�
 完成形の全列挙は行わない。状態・RNG は不変。grant・混乱 main・終局は
 legal_commands と同じ種類の例外、木にない prefix・kind は invalid となる。
 
-canonical=true は次の規則を追加する（targets と exchange は不変）。
+canonical=true の正準化は持ち主に見える情報だけを使い、次の規則を追加する
+（targets と exchange は不変）。Dream の真のモデルは参照しない。
 
-1. model・fake_model・used が同じ未選択 copy は手札の最初のものだけを出す。
+1. (face_model, fake_model.has_value(), used) が同じ未選択 copy は手札の最初のものだけを出す。
+   disguised（偽装の有無）は持ち主に見える情報である。
 2. discard/sacrifice は手札位置の厳密な昇順とする。
 3. 交換可能な追加材の連続区間は
-   (face_model, model, fake_model, used, 手札位置) の厳密な昇順とする。
+   (face_model, disguised, used, 手札位置) の厳密な昇順とする。
 
-交換可能カードは **実体・表示面とも奇跡以外、ability == none** のカードで、
+交換可能カードは **偽装されておらず、face が奇跡以外、ability == none** のカードで、
 defend は先頭も含み、play は先頭の基本カードを除く追加カードを対象にする。
 apply_response の DEF 加算、defense_element の結合、play の attack_power の加算・
 attack_element の結合、消費と補充予約には、この区間の順序による効果差がない。
 effect_for と効果解決で使う基本カード、攻撃力・属性・費用・対象・ダメージ・呪いも変わらない。
 反応、カウンター、呪い、引き直しなど
-ability のあるカードはすべて区間の切れ目にする。奇跡は FREE の隣接費用、
+ability のあるカードと、偽装されたカードはすべて区間の切れ目にする。
+同じ face の偽装 copy の代表化は、真のモデルや実際の効果の同一性を保証しない。
+奇跡は FREE の隣接費用、
 FREE・×2・属性付け替え・属性消去は費用・攻撃値・属性・反応の順序依存を
 持つため交換しない。play の基本カードも区間の切れ目にする。
 canonical=true で選んだ play の公開 PendingView.models は正準化した列の順序になる。

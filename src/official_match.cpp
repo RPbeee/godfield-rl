@@ -2308,26 +2308,24 @@ struct SelectionTree {
     }
     bool exchangeable(const ItemInstance& item, std::size_t position) const {
         const auto& card=*find_card(face_model(item));
-        const auto& actual=*find_card(item.model);
-        // Keep all effectful abilities as barriers. In particular counters,
+        // Disguises and all effectful abilities are visible barriers. Counters,
         // reactions and redraw/self curses execute in selection order.
         // Play's base is fixed; ordinary extras only add ATK/merge elements.
         return (kind==CommandKind::defend || (kind==CommandKind::play && position>0))
-            && card.category!=Category::miracles && card.ability==Ability::none
-            && actual.category!=Category::miracles && actual.ability==Ability::none;
+            && !item.fake_model && card.category!=Category::miracles && card.ability==Ability::none;
     }
     bool appendable(const ItemInstance& item) const {
         if (selected(item) || items.size()>=s.config.hand_limit) return false;
         if (canonical) {
             for (const auto& earlier:own.items) {
                 if (&earlier==&item) break;
-                if (!selected(earlier) && earlier.model==item.model
-                    && earlier.fake_model==item.fake_model && earlier.used==item.used) return false;
+                if (!selected(earlier) && face_model(earlier)==face_model(item)
+                    && earlier.fake_model.has_value()==item.fake_model.has_value() && earlier.used==item.used) return false;
             }
             if (!items.empty()) {
                 if ((kind==CommandKind::discard || kind==CommandKind::sacrifice) && items.back()>=&item) return false;
                 if (exchangeable(item,items.size()) && exchangeable(*items.back(),items.size()-1)) {
-                    const auto key=[](const ItemInstance* i) { return std::tuple{face_model(*i),i->model,i->fake_model,i->used,i}; };
+                    const auto key=[](const ItemInstance* i) { return std::tuple{face_model(*i),i->fake_model.has_value(),i->used,i}; };
                     if (!(key(items.back())<key(&item))) return false;
                 }
             }
