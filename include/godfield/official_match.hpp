@@ -109,6 +109,18 @@ struct Command {
     std::optional<ResourceAllocation> allocation = std::nullopt;
     bool operator==(const Command&) const = default;
 };
+struct ExchangeDomain {
+    std::int64_t total = 0; // hp + mp + cp == total; each resource is in 0..99.
+    bool operator==(const ExchangeDomain&) const = default;
+};
+struct SelectionNode {
+    std::vector<ItemToken> next; // Extendable tokens, in hand order.
+    bool can_finish = false;
+    std::vector<std::optional<PlayerId>> targets; // nullopt first, then ascending IDs.
+    std::optional<ExchangeDomain> exchange; // Only for a finishable exchange.
+    bool operator==(const SelectionNode&) const = default;
+};
+struct SelectionOptions { bool canonical = false; };
 enum class DecisionSource : std::uint8_t {
     player, confusion, fate, devil, grant, artifact_grant, guardian, guardian_payload,
     phenomenon, item_shuffle, redraw_response, purchase_response, summon_result, automatic_guardian_response
@@ -593,6 +605,9 @@ public:
     // exchange_step: 0 excludes exchange; positive steps HP/MP, CP is remainder.
     // Sorted by numeric kind, lexicographic tokens, target (absent first), HP/MP/CP.
     // Same rejection rules as sample_action; never changes state or RNG.
+    [[nodiscard]] std::vector<CommandKind> legal_kinds() const;
+    [[nodiscard]] SelectionNode legal_extensions(CommandKind kind, std::span<const ItemToken> prefix,
+                                                  SelectionOptions options = {}) const;
     [[nodiscard]] std::vector<Command> legal_commands(std::size_t max_items = 2, int exchange_step = 0) const;
     [[nodiscard]] Command sample_action(std::uint64_t& policy_rng) const;
     [[nodiscard]] bool choice_legal(const PlayerChoice& choice) const noexcept;

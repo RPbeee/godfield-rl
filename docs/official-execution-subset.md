@@ -3546,3 +3546,38 @@ Pythonは32通りのseed/設定（8seed×external_grants/include_fate各2）か�
 | 3 | 181.315 | 597 | 306.424 | 1,802.209 | 102,774.407 | 57.027倍 |
 
 一回のローカル測定であり、最大18枚・exchange全配分・response/purchase・学習処理の速度や、公式サーバーとの適合を示すものではない。公式サイトへの接続や新しい受信データ取得は行っていない。エンジンの挙動・ruleset/Snapshot番号を変更せず、git commitも作成しない。
+
+### 逐次選択の合法マスク（C++）
+
+`Match::legal_kinds()` は合法な完成形が存在する種別を数値順に返す。
+`Match::legal_extensions(kind, prefix, SelectionOptions{canonical})` は、手札順の
+`SelectionNode::next`、確定可能性 `can_finish`、対象 `targets`、交換の
+`ExchangeDomain{total}` を返す。対象は対象なしを先頭に、その後 PlayerId 順。
+exchange の配分は各 0..99、合計 total。上限は手札枚数と hand_limit であり、
+legal_commands の4枚制限はない。canonical=false では、木の経路・対象・配分の
+条件と既存 legal が同値で、next は合法な完成形へ到達できる token だけを含む。
+MP は最後に評価する。過去の奇跡の費用は確定済みで、末尾の奇跡だけは直後の
+FREE で取り消せるため、未使用の合法な FREE を1枚先読みすれば正確に判定できる。
+完成形の全列挙は行わない。状態・RNG は不変。grant・混乱 main・終局は
+legal_commands と同じ種類の例外、木にない prefix・kind は invalid となる。
+
+canonical=true は次の規則を追加する（targets と exchange は不変）。
+
+1. model・fake_model・used が同じ未選択 copy は手札の最初のものだけを出す。
+2. discard/sacrifice は手札位置の厳密な昇順とする。
+3. 交換可能な追加材の連続区間は
+   (face_model, model, fake_model, used, 手札位置) の厳密な昇順とする。
+
+交換可能カードは **実体・表示面とも奇跡以外、ability == none** のカードで、
+defend は先頭も含み、play は先頭の基本カードを除く追加カードを対象にする。
+apply_response の DEF 加算、defense_element の結合、play の attack_power の加算・
+attack_element の結合、消費と補充予約には、この区間の順序による効果差がない。
+effect_for と効果解決で使う基本カード、攻撃力・属性・費用・対象・ダメージ・呪いも変わらない。
+反応、カウンター、呪い、引き直しなど
+ability のあるカードはすべて区間の切れ目にする。奇跡は FREE の隣接費用、
+FREE・×2・属性付け替え・属性消去は費用・攻撃値・属性・反応の順序依存を
+持つため交換しない。play の基本カードも区間の切れ目にする。
+canonical=true で選んだ play の公開 PendingView.models は正準化した列の順序になる。
+公開される表示順序の差は効果差として扱わない。
+同一 copy の代表化は play を含む全位置に適用する。
+C ABI・Python・snapshot 形式・ruleset は変更しない。

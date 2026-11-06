@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <limits>
 #include <type_traits>
+#include <tuple>
 #include <unordered_set>
 
 namespace godfield::official {
@@ -2288,6 +2289,148 @@ bool Match::guardian_legal(const GuardianAction& action) const noexcept {
 }
 MatchStep Match::guardian_step(const GuardianAction& action) {
     auto next = data_; execute_guardian(next,action); const auto output = result(next); data_ = std::move(next); return output;
+}
+namespace {
+// A prefix's paid miracles are immutable except for its last card: only an
+// immediately following FREE can cancel that card. No longer search is needed.
+struct SelectionTree {
+    const MatchSnapshot& s;
+    const PlayerState& own;
+    CommandKind kind;
+    bool canonical;
+    std::vector<const ItemInstance*> items;
+    std::vector<VisibleSelection> visible;
+    std::vector<CardId> models;
+    std::optional<ResponseContext> context;
+
+    bool selected(const ItemInstance& item) const {
+        return std::find(items.begin(),items.end(),&item)!=items.end();
+    }
+    bool exchangeable(const ItemInstance& item, std::size_t position) const {
+        const auto& card=*find_card(face_model(item));
+        const auto& actual=*find_card(item.model);
+        // Keep all effectful abilities as barriers. In particular counters,
+        // reactions and redraw/self curses execute in selection order.
+        // Play's base is fixed; ordinary extras only add ATK/merge elements.
+        return (kind==CommandKind::defend || (kind==CommandKind::play && position>0))
+            && card.category!=Category::miracles && card.ability==Ability::none
+            && actual.category!=Category::miracles && actual.ability==Ability::none;
+    }
+    bool appendable(const ItemInstance& item) const {
+        if (selected(item) || items.size()>=s.config.hand_limit) return false;
+        if (canonical) {
+            for (const auto& earlier:own.items) {
+                if (&earlier==&item) break;
+                if (!selected(earlier) && earlier.model==item.model
+                    && earlier.fake_model==item.fake_model && earlier.used==item.used) return false;
+            }
+            if (!items.empty()) {
+                if ((kind==CommandKind::discard || kind==CommandKind::sacrifice) && items.back()>=&item) return false;
+                if (exchangeable(item,items.size()) && exchangeable(*items.back(),items.size()-1)) {
+                    const auto key=[](const ItemInstance* i) { return std::tuple{face_model(*i),i->model,i->fake_model,i->used,i}; };
+                    if (!(key(items.back())<key(&item))) return false;
+                }
+            }
+        }
+        const auto id=face_model(item);
+        if (s.phase==MatchPhase::purchase) return false;
+        if (s.phase==MatchPhase::response)
+            return kind==CommandKind::defend && can_append_response(visible,{id,false},*context);
+        if (kind==CommandKind::discard || kind==CommandKind::sacrifice)
+            return (kind==CommandKind::sacrifice)==apocalypse_active(s.state) && discardable(*find_card(id));
+        if (kind==CommandKind::exchange) return items.empty() && find_card(id)->ability==Ability::exchange;
+        if (kind==CommandKind::buy) return items.empty() && id==5;
+        if (kind==CommandKind::sell) return items.empty() ? id==4 : items.size()==1 && !item.used
+            && can_append_main(visible,{id,false});
+        if (kind!=CommandKind::play) return false;
+        if (items.empty() && (find_card(item.model)->ability==Ability::call_phenomenon
+            || find_card(id)->ability==Ability::exchange || find_card(id)->ability==Ability::sell || find_card(id)->ability==Ability::buy)) return false;
+        return can_append_main(visible,{id,false});
+    }
+    void push(const ItemInstance& item) { items.push_back(&item);models.push_back(face_model(item));visible.push_back({models.back(),false}); }
+    void pop() { items.pop_back();models.pop_back();visible.pop_back(); }
+    SelectionNode finish() const {
+        SelectionNode n;
+        const auto targetless=[&] { n.can_finish=true;n.targets.push_back(std::nullopt); };
+        if (s.phase==MatchPhase::purchase) {
+            if (items.empty() && (kind==CommandKind::decline || (kind==CommandKind::accept && s.purchase
+                && own.cp>=find_card(s.purchase->item.model)->price))) targetless();
+        } else if (s.phase==MatchPhase::response) {
+            if (kind==CommandKind::defend && magic_cost(models)<=own.mp) targetless();
+        } else if (kind==CommandKind::pray) {
+            if (items.empty() && std::none_of(own.items.begin(),own.items.end(),[](const auto& i){return find_card(face_model(i))->category==Category::weapons;})) targetless();
+        } else if (kind==CommandKind::discard || kind==CommandKind::sacrifice) {
+            if (!items.empty()) targetless();
+        } else if (kind==CommandKind::exchange) {
+            const auto total=own.hp+own.mp+own.cp;
+            if (items.size()==1 && total>=0 && total<=297) { targetless();n.exchange=ExchangeDomain{total}; }
+        } else if ((kind==CommandKind::buy && items.size()==1) || (kind==CommandKind::sell && items.size()==2)
+            || (kind==CommandKind::play && !items.empty() && magic_cost(models)<=own.mp)) {
+            bool explicit_only=true, no_explicit=false;
+            if (kind==CommandKind::play) {
+                const auto& base=*find_card(models.front());
+                if (base.ability==Ability::danger) {
+                    if (has_wide(models) && !scoped_danger_wide(s,models)) return n;
+                    explicit_only=false;
+                } else if (base.hit_rate || has_wide(models)) {
+                    if (enemy_targets(s).empty()) return n;
+                    explicit_only=false;no_explicit=base.hit_rate;
+                }
+            }
+            if (!explicit_only) n.targets.push_back(std::nullopt);
+            if (!no_explicit) for (const auto& p:s.state.players) if (!p.dead) n.targets.push_back(p.id);
+            std::sort(n.targets.begin(),n.targets.end());n.can_finish=!n.targets.empty();
+        }
+        return n;
+    }
+    bool reachable() {
+        if (finish().can_finish) return true;
+        // Only sale's commodity and an immediate FREE can repair an incomplete
+        // nonempty prefix. Added attack material cannot repair targets/support.
+        if (items.empty()) return false;
+        if (kind!=CommandKind::sell && (models.empty() || find_card(models.back())->category!=Category::miracles)) return false;
+        for (const auto& item:own.items) {
+            if (kind!=CommandKind::sell && find_card(face_model(item))->ability!=Ability::cut_cost) continue;
+            if (!appendable(item)) continue;
+            push(item);const bool ok=finish().can_finish;pop();if(ok)return true;
+        }
+        return false;
+    }
+    SelectionNode node() {
+        auto n=finish();
+        for (const auto& item:own.items) if (appendable(item)) {
+            push(item);const bool ok=reachable();pop();if(ok)n.next.push_back(item.token);
+        }
+        return n;
+    }
+};
+void selection_boundary(const MatchSnapshot& s) {
+    if(s.phase==MatchPhase::grant) unsupported("grant selection must be supplied by an external chance driver");
+    require(s.phase!=MatchPhase::finished && s.actor,"cannot select in a finished match");
+    if(s.phase==MatchPhase::main && s.state.players[index(s,*s.actor)].confusion_count>0)
+        unsupported("confusion command selection must be supplied externally");
+}
+}
+std::vector<CommandKind> Match::legal_kinds() const {
+    selection_boundary(data_);
+    std::vector<CommandKind> kinds;
+    for(unsigned k=0;k<=9;++k) {
+        SelectionTree tree{data_,data_.state.players[index(data_,*data_.actor)],static_cast<CommandKind>(k),false,{},{},{},{}};
+        if(data_.phase==MatchPhase::response) tree.context=response_context(data_);
+        const auto n=tree.node();if(n.can_finish || !n.next.empty()) kinds.push_back(tree.kind);
+    }
+    return kinds;
+}
+SelectionNode Match::legal_extensions(CommandKind kind,std::span<const ItemToken> prefix,SelectionOptions options) const {
+    selection_boundary(data_);
+    SelectionTree tree{data_,data_.state.players[index(data_,*data_.actor)],kind,options.canonical,{},{},{},{}};
+    if(data_.phase==MatchPhase::response) tree.context=response_context(data_);
+    auto n=tree.node();require(n.can_finish || !n.next.empty(),"command kind has no legal selection");
+    for(auto token:prefix) {
+        require(std::find(n.next.begin(),n.next.end(),token)!=n.next.end(),"prefix is outside the selection tree");
+        tree.push(*instance(tree.own,token));n=tree.node();
+    }
+    return n;
 }
 std::vector<Command> Match::legal_commands(std::size_t max_items, int exchange_step) const {
     require(max_items >= 1 && max_items <= 4, "max_items must be in1..4");
