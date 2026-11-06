@@ -31,7 +31,7 @@ void reject(Match& m,const Command& command){const auto before=m.snapshot();chec
 CardId elemental(Category category,Element element){for(const auto& c:catalog())if(c.category==category&&c.element==element&&match_supported(c.id))return c.id;check(false,"plain supported elemental model exists");return 0;}
 
 void scope_reset_and_local_contract(){
-    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v70"
+    const auto pool=match_catalog();check(pool.size()==236&&match_gift_weight()==499&&std::string_view(match_ruleset)=="official-execution-subset-v71"
         &&std::string_view(match_scope).find("not-official-server-equivalence")!=std::string_view::npos,"236model/499weight execution subset is explicitly experimental");
     std::array<int,8> counts{};int weight=0;std::set<CardId> unique;for(auto id:pool){const auto* c=find_card(id);check(c&&match_supported(id)&&unique.insert(id).second,"subset strict supported allowlist without duplicates");++counts[static_cast<int>(c->category)];weight+=c->gift_rate;}
     check(counts==std::array<int,8>{3,107,78,18,30,0,0,0}&&weight==499,"exchange, sell and buy are admitted among trade cards");
@@ -268,7 +268,7 @@ void bounce_targets_roles_and_rng_provenance(){
         check(s.owner==900&&s.actor==e.target&&e.origin==900&&e.source==2&&e.initial_target==2&&e.power==1&&e.models==original.models&&e.tokens==original.tokens&&e.redirect_rng==seed&&e.redirects.size()==1&&e.redirects[0].target==e.target,"bounce changes current source and audited destination while immutable origin/owner/payload remain");
         if(seed<target_indices.size())check(e.target==ids[target_indices[seed]],"local SplitMix bounce samples uniformly by fixed input seat order, not ID sort or enemy-only filtering");
         check(s.rng==seed+0x9e3779b97f4a7c15ULL,"one bounded bounce draw advances only environmental RNG");roundtrip(m);
-        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v68\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
+        const auto public_view=m.observe(900);check(public_view.find("\"schema\":\"official-execution-view-v69\"")!=std::string::npos&&public_view.find("\"bounces\":1")!=std::string::npos&&public_view.find("\"reflections\":0")!=std::string::npos&&public_view.find(bounce_target_rule)!=std::string::npos&&public_view.find("redirect_rng")==std::string::npos,"view declares experimental bounce rule and public counts while hiding RNG replay anchor");
         if(e.target==2)check(s.actor==2&&s.phase==MatchPhase::response&&s.state.players[8].hp==40,"self bounce is another explicit response rather than automatic same-step damage");
         if(seed==0){const auto exact=s;for(int error=0;error<7;++error){auto bad=exact;if(error==0)bad.rng^=1;if(error==1)bad.queue[0].redirect_rng^=1;if(error==2)bad.queue[0].redirects[0].target=900;if(error==3)bad.queue[0].source=900;if(error==4)bad.queue[0].redirects[0].defender=900;if(error==5)bad.queue[0].redirects[0].models[0]=mirror;if(error==6)bad.queue[0].target=900;bool rejected=false;try{m.restore(bad);}catch(const MatchError&){rejected=true;}check(rejected&&m.snapshot()==exact,"bounce RNG anchor/outcome/kind/endpoint forgery rejects atomically");}}
         m.step(defend(e.target));roundtrip(m);
@@ -777,9 +777,38 @@ void danger_selection_gap_journal_and_atomicity(){
     Match m;m.load_scene(state,0,0);const auto initial=m.snapshot();reject(m,play(0,{0},999));reject(m,{0,CommandKind::discard,{0},{}});
     auto invented=initial;invented.last_danger=DangerEvent{0,7,{pestle},false,30,Element::light};bool initial_rejected=false;
     try{m.restore(invented);}catch(const MatchError&){initial_rejected=true;}check(initial_rejected&&m.snapshot()==initial,"an unplayed initial scene cannot invent a danger launch result");
-    bool unsupported_gap=false;try{m.step({0,CommandKind::play,{0,2},{}});}catch(const MatchError& e){unsupported_gap=e.code==MatchErrorCode::unsupported;}
+    bool unsupported_gap=false;try{m.step({0,CommandKind::play,{0,1,2},{}});}catch(const MatchError& e){unsupported_gap=e.code==MatchErrorCode::unsupported;}
     check(unsupported_gap&&m.snapshot()==initial,"client-valid danger plus Wide is explicitly unsupported, never silently prioritized");
     for(std::uint64_t seed=0;seed<64;++seed){auto policy=seed;const auto command=m.sample_action(policy);check(m.legal(command)&&m.snapshot()==initial,"danger sampler only proposes supported operations without environmental draws");if(command.kind==CommandKind::play)check(!command.target&&command.items.size()==1,"danger sampler canonicalizes targetless and omits Wide");}
+    // v91 accepts only the observed exact pair and no mortar anywhere in a
+    // two-player roster. Target hints follow the existing Wide contract.
+    for(const auto hint:{std::optional<PlayerId>{},std::optional<PlayerId>{0},std::optional<PlayerId>{7}}){
+        auto exact_state=scene({94,232},{130});auto exact_pair=fixture(exact_state);
+        const auto rng=exact_pair.snapshot().rng;
+        exact_pair.step({0,CommandKind::play,{0,1},hint});roundtrip(exact_pair);
+        check(exact_pair.snapshot().actor==7&&exact_pair.snapshot().queue.front().power==30
+            &&!exact_pair.snapshot().queue.front().element&&exact_pair.snapshot().last_danger->target==7
+            &&exact_pair.snapshot().rng==rng,"v91 sole enemy Wide does not sample all-alive danger target");
+        exact_pair.step(defend(7,{0}));roundtrip(exact_pair);
+        check(exact_pair.snapshot().state.players[1].hp==14,"v91 received defense130 yields26 damage");
+    }
+    for(int outside=0;outside<6;++outside){
+        auto excluded=scene({94,232,232},{});
+        if(outside<2){const auto seat=static_cast<std::size_t>(outside);excluded.players[seat].items.push_back({99,209,{},false});}
+        if(outside==2){excluded.players.push_back(player(9));}
+        if(outside==3){excluded.players.push_back(player(9));excluded.players.back().dead=true;excluded.players.back().hp=0;}
+        if(outside==4){excluded.players[0].team=Team::one;excluded.players[1].team=Team::one;}
+        auto refused=fixture(excluded);const auto before=refused.snapshot();
+        Command c{0,CommandKind::play,outside==5?std::vector<ItemToken>{0,1,2}:std::vector<ItemToken>{0,1},{}};
+        bool unsupported=false;try{refused.step(c);}catch(const MatchError& e){unsupported=e.code==MatchErrorCode::unsupported;}
+        check((unsupported||(outside==4&&before.phase==MatchPhase::finished))&&refused.snapshot()==before&&!refused.legal(c),
+            "v91 excluded combinations stay unsupported or naturally finished without mutation");
+    }
+    auto lethal_state=scene({94,232},{});lethal_state.players[1].hp=1;
+    auto lethal_pair=fixture(lethal_state);lethal_pair.step({0,CommandKind::play,{0,1},{}});
+    lethal_pair.step(defend(7));roundtrip(lethal_pair);
+    check(lethal_pair.snapshot().terminated&&lethal_pair.snapshot().last_danger->target==7,
+          "v91 completed danger record restores after the sole enemy dies");
     m.step({0,CommandKind::play,{0},{}});m.step(defend(7,{0}));const auto exact=m.snapshot();
     for(int error=0;error<9;++error){auto bad=exact;if(error==0)++bad.last_danger->power;if(error==1)bad.last_danger->target=0;
         if(error==2)bad.last_danger->mortar=true;if(error==3)bad.last_danger->models.push_back(image("mirage"));if(error==4)bad.last_danger->origin=7;
@@ -3082,7 +3111,7 @@ void automatic_payload_independent_bigint_stage_vectors(){
 
 
 void ordinary_self_attack_completion_and_resume(){
-    check(match_snapshot_version==70&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
+    check(match_snapshot_version==71&&std::string_view(self_attack_rule).find("immediate-zero-defense-one-decision")!=std::string_view::npos,
         "self-attack contract is versioned separately from ABI layouts");
     auto state=scene({32,150},{});state.gf=4;state.players[0].hp=37;
     auto direct=fixture(state);direct.step(play(0,{0},0));
@@ -3092,7 +3121,7 @@ void ordinary_self_attack_completion_and_resume(){
         &&direct.snapshot().queue.empty()&&direct.snapshot().state.players[0].items.front().token==1,
         "plain self32 resolves with zero DEF while an unselected DEF7 remains unused");roundtrip(direct);
     const auto view=direct.observe(0);
-    check(view.find("official-execution-view-v68")!=std::string::npos
+    check(view.find("official-execution-view-v69")!=std::string::npos
         &&view.find("\"self_attack_rule\":\""+std::string(self_attack_rule)+"\"")!=std::string::npos,
         "public view exposes the limited self-attack rule");
     MatchConfig one;one.max_decisions=1;auto cutoff=fixture(state,one);const auto initial_rng=cutoff.snapshot().rng;

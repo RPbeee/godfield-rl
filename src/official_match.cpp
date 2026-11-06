@@ -237,6 +237,17 @@ std::vector<PlayerId> enemy_targets(const MatchSnapshot& s) {
         && (owner.team == Team::solo || player.team != owner.team)) targets.push_back(player.id);
     return targets;
 }
+// v91 only observes the exact 94+232 pair in a two-player board without
+// any mortar. Do not infer mortar priority or multi-enemy routing from it.
+bool scoped_danger_wide(const MatchSnapshot& s, std::span<const CardId> models) {
+    return models.size() == 2 && models[0] == 94 && models[1] == 232
+        && s.state.players.size() == 2 && enemy_targets(s).size() == 1
+        && std::none_of(s.state.players.begin(), s.state.players.end(), [](const auto& player) {
+            return std::any_of(player.items.begin(), player.items.end(), [](const auto& item) {
+                return item.model == 209;
+            });
+        });
+}
 ResponseContext response_context(const MatchSnapshot& s) {
     require(s.queue.size() == 1, "response has no active item");
     const auto& effect = s.queue.front();
@@ -318,7 +329,7 @@ std::vector<CardId> prepare(const MatchSnapshot& s, const Command& command, bool
     if (find_card(actual_models.front())->ability==Ability::call_phenomenon) unsupported("owned207 requires a supplied fate outcome");
     require(find_card(models.front())->ability != Ability::exchange && find_card(models.front())->ability != Ability::sell && find_card(models.front())->ability != Ability::buy, "trade needs its explicit command");
     if (find_card(models.front())->ability == Ability::danger) {
-        if (has_wide(models)) unsupported("danger with Wide is outside the scoped runtime");
+        if (has_wide(models) && !scoped_danger_wide(s, models)) unsupported("danger with Wide is outside the scoped runtime");
         if (command.target) require(!s.state.players[index(s, *command.target)].dead, "target is dead");
     } else if (find_card(models.front())->hit_rate) {
         require(!command.target && !enemy_targets(s).empty(), "chance play needs no target and at least one alive enemy");
@@ -1371,7 +1382,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
                 });
                 if (item != player.items.end()) { target = player.id; mortar = item->token; break; }
             }
-            if (!mortar) target = sample_bounce_target(s, s.rng);
+            if (!mortar) target = has_wide(models) ? enemy_targets(s).front() : sample_bounce_target(s, s.rng);
         }
         auto original = effect_for(s, models, target, command.items, s.state.players[seat].mp, random_hp_delta, s.owner);
         const auto consume_launch = [&] {
@@ -1794,7 +1805,9 @@ void validate_snapshot(const MatchSnapshot& s) {
             require(match_supported(model) && can_append_main(prefix, {model,false}), "invalid danger event composition");
             prefix.push_back({model,false});
         }
-        require(!has_wide(event.models) && event.power == attack_power(event.models, event.mortar ? 99 : 30)
+        require((!has_wide(event.models) || (event.models == std::vector<CardId>{94,232}
+                && s.state.players.size() == 2 && !event.mortar
+                && is_enemy(s.state.players[index(s, event.origin)], s.state.players[index(s, event.target)]))) && event.power == attack_power(event.models, event.mortar ? 99 : 30)
             && event.element == attack_element(event.models), "invalid danger event payload");
     }
     if (s.last_fog) {
@@ -2348,7 +2361,7 @@ MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
 std::string Match::observe(std::optional<PlayerId> viewer) const {
     const char* phase = data_.phase == MatchPhase::main ? "main" : data_.phase == MatchPhase::response ? "response" : data_.phase == MatchPhase::purchase ? "purchase" : data_.phase==MatchPhase::grant ? "grant" : "finished";
     const auto board = project_view(data_.state, viewer);
-    std::string out = "{\"schema\":\"official-execution-view-v68\",\"ruleset\":\"";
+    std::string out = "{\"schema\":\"official-execution-view-v69\",\"ruleset\":\"";
     out += match_ruleset; out += "\",\"scope\":\""; out += match_scope;
     out += "\",\"catalog_version\":\""; out += catalog_version;
     out += "\",\"catalog_sha256\":\""; out += catalog_sha256;

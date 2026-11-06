@@ -130,6 +130,49 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(parser.ParseError):
             parser.parse_prefix(frame([change(g)]))
 
+    def test_v91_danger_marker_is_preserved_and_unknown_shapes_fail_closed(self):
+        # Offline public client SHA256 is pinned in the v91 witness:
+        # case126 danger -> case128 A(2000) -> event loop; no payload read.
+        g = game()
+        g["events"] = [{"action": "danger"}, {"action": "dealDamage", "damage": 26}]
+        self.assertEqual(parser.parse_prefix(frame([change(g)]))["games"][0]["game"]["events"], g["events"])
+        for event in ({"action": "danger", "playerId": 2},
+                      {"action": "danger", "damage": 26},
+                      {"action": "danger", "items": []},
+                      {"action": "dangerUnknown"},
+                      {"action": "attractDanger"},
+                      {"action": "danger", "secret": "PRIVATE_AUTH"}):
+            with self.subTest(event=event):
+                g["events"] = [event]
+                with self.assertRaisesRegex(parser.ParseError, "^unsupported_game_schema$"):
+                    parser.parse_prefix(frame([change(g)]))
+
+    def test_v91_public_wire_roundtrip_and_witness_consistency(self):
+        root = SCRIPT.parents[1] / "data" / "official-v2"
+        wire = json.loads((root / "wire-game-updates-v91.json").read_text())
+        witness = json.loads((root / "live-transition-witnesses-v91.json").read_text())
+        self.assertEqual(wire["roles"], {"viewer_player_id": 1, "cpu_player_id": 2})
+        for update in wire["updates"]:
+            g = update["game"]
+            self.assertEqual(parser.parse_prefix(frame([change(g)]), 1)["games"][0]["game"], g)
+            self.assertFalse(any(r["modelId"] == 209 for p in g["players"] for r in p["items"]))
+        before, after = [u["game"] for u in wire["updates"]]
+        self.assertEqual([before["updateCount"], after["updateCount"]], [1, 2])
+        self.assertEqual([before["gf"], after["gf"]], [1, 3])
+        self.assertEqual(after["events"], witness["cases"][0]["received_ordered_effects"])
+        self.assertEqual(after["events"][1], {"action": "danger"})
+        self.assertEqual(after["events"][4], {"damage": 26, "action": "dealDamage"})
+        self.assertEqual([[p[k] for k in ("hp", "mp", "cp")] for p in after["players"]],
+                         [[40, 5, 20], [30, 14, 0]])
+        self.assertEqual(wire["source_bodies"], witness["source_body_provenance"])
+        for update, source in zip(wire["updates"], wire["source_bodies"]):
+            self.assertEqual(source["selected_frame_indices_zero_based"], [update["source_frame_index"]])
+            self.assertFalse(source["whole_http_response_claimed"])
+            self.assertFalse(source["http_response_completed"])
+        encoded = json.dumps(wire) + json.dumps(witness)
+        for secret in ('"userId":', '"updatedAt":', '"documentChange":', '/tmp/', 'session-D'):
+            self.assertNotIn(secret, encoded)
+
     def test_pinned_bounce_receiver_enum_without_claiming_live_observation(self):
         # Finite decoder input only,not a captured game. Pinned main.dart.js
         # SHA256 5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd:

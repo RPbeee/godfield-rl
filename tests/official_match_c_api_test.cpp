@@ -899,7 +899,7 @@ int main() {
         &&gfo_match_grant_action_size()==32&&sizeof(gfo_match_grant_action)==32, "ABI sizes");
     check(gfo_match_catalog_count() == 236 && gfo_match_gift_weight() == 499 && gfo_match_supported(6)
         && gfo_match_supported(183) && gfo_match_supported(222), "supported subset descriptor");
-    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v70"
+    check(std::string(gfo_match_ruleset()) == "official-execution-subset-v71"
         && std::string(gfo_match_scope()) == "experimental:236-default-or237-opt-in;external207;external-devils;threshold-sacrifice;external-reserved-grants;not-official-server-equivalence", "explicit v64 scope");
     check(std::string(gfo_match_self_attack_rule()) == "experimental:ordinary-main-explicit-self-target;weapon-base-ability-none-bounce-weapon-bounce-miracle34-only-reflect-weapon-reflect-miracle-block-miracle-set-element-cut-cost-absorb-hp-attack-twice-atk-by2x-mp-deal-same-damage-or-dream-darkcloud-cold-hell-fog-flash-on-damage-or-miracle-base-ability-none-absorb-hp;hit-rate0-no-wide;immediate-zero-defense-one-decision;dream80-observed36-same-trait-inference-darkcloud41-observed-cold48-observed33-62-same-trait-inference-fog72-ui-observed-v77-and-raw-self-use-observed-v79-flash70-raw-self-use-observed-v80-set-element66-raw-self-use-observed-v81-83-raw-self-use-observed-v86-hell30-ui-self-use-observed-v82-and-raw-self-use-observed-v84-block-miracle55-observed42-50-56-same-trait-inference-bounce-weapon21-ui-self-use-observed-v74-and-raw-compound21-74-self-use-observed-v85-bounce-miracle34-raw-self-use-observed-v89-216-unobserved-excluded-other-curse-weapons-excluded;twice-fresh-launch-payload-two-bodies-stop-on-natural-or-owner-death;other-self-specials-and-redirects-keep-existing-response-route"
         && std::string(gfo_match_self_attack_rule()) == godfield::official::self_attack_rule, "self-attack rule getter");
@@ -1231,7 +1231,7 @@ int main() {
         && free_result.phase == 1 && free_result.owner == 0 && (free_result.actor == 0 || free_result.actor == 77),
         "bounce transfers to an alive responder while retaining original owner");
     const auto bounced_view = observe(bounce_match, 1, 77);
-    check(bounced_view.find("\"schema\":\"official-execution-view-v68\"") != std::string::npos
+    check(bounced_view.find("\"schema\":\"official-execution-view-v69\"") != std::string::npos
         && bounced_view.find("\"bounce_target_rule\":\"experimental:uniform-all-alive-in-input-order;includes-self-and-teammates\"") != std::string::npos
         && bounced_view.find("\"origin\":0,\"source\":77,\"target\":" + std::to_string(free_result.actor)) != std::string::npos
         && bounced_view.find("\"bounces\":1") != std::string::npos && bounced_view.find("\"reflections\":0") != std::string::npos,
@@ -2261,11 +2261,16 @@ int main() {
     }
     fixture.reset(setup, 275);cfg.initial_mp = 99;
     check(gfo_match_create(&cfg,players.data(),2, 275,&effect_match) == 0,"unsupported danger plus Wide fixture");
-    danger_attack.item_count = 2;danger_attack.items[0] = receipt_token(0,94);danger_attack.items[1] = receipt_token(0,232);
+    danger_attack.item_count = 3;danger_attack.items[0] = receipt_token(0,94);danger_attack.items[1] = receipt_token(0,232);danger_attack.items[2] = receipt_token(0,42);
     const auto before_gap = observe(effect_match);result = status(effect_match);const auto gap_status = result;
     check(gfo_match_legal(effect_match,&danger_attack,&legal) == 0 && !legal
         && gfo_match_step(effect_match,&danger_attack,&result) == -5 && equal(result,gap_status) && observe(effect_match) == before_gap,
-        "client-valid Wide interaction returns explicit unsupported without mutation");gfo_match_destroy(effect_match);
+        "unobserved danger Wide compound returns explicit unsupported without mutation");
+    danger_attack.item_count = 2;danger_attack.items[2] = 0;
+    check(gfo_match_legal(effect_match,&danger_attack,&legal) == 0 && legal
+        && gfo_match_step(effect_match,&danger_attack,&result) == 0 && result.actor == 77
+        && observe(effect_match).find("\"models\":[94,232],\"mortar\":false,\"power\":30,\"element\":null") != std::string::npos,
+        "v91 exact pair routes sole enemy through NE30 response over C API");gfo_match_destroy(effect_match);
     // ABI2 transports the full canonical resource allocation in its new tail.
     cfg.initial_hand = cfg.hand_limit = 18;cfg.initial_hp = 40;cfg.initial_mp = 0;cfg.initial_cp = 20;cfg.max_decisions = 512;
     fixture.reset(setup, 0);

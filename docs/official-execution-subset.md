@@ -3489,3 +3489,9 @@ bounceMiracle全体を広く許可せず、モデルID34で限定する。216は
 ## 作業世代v90：216自己使用の既存経路照合
 
 取得済み[GF2→3の受信](../data/official-v2/wire-game-updates-v90.json)で、単品216自己使用のHP30/MP10/CP20→30/0/20、同copy used保持、通常195/id10とCPU64保留を固定8seed・16状態比較した。既存の吸収奇跡直接自己使用とbodyが一致し、実行挙動・rules70/Snapshot70/view68・ABI2は変更しない。受信damage10→boostHP10は記録するが、HP30の終点一致を低HP/上限/死亡やbackend内部順の証明へ拡張しない。34や他モデルも変更しない。新しい接続・初期配布再現・CPU64の応答解決はない。
+
+### 作業世代v91：94＋232の受信根拠による限定対応
+
+[取得済みv91](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)により、正確な94→232の2枚・2人roster・生存敵1人・両者の在庫に209なしの場合だけ、Wideの単一敵対象列を使う。dangerの全alive抽選を省き、NE30、MP5支払い、通常responseとDEF計算・補充を再利用する。94は杵であり臼209ではない。臼所持者あり、3人以上、他の合成は従来どおりunsupported。臼とWideの優先関係は未観測。samplerは従来のdanger＋Wide除外を維持する。
+
+`danger_rule`の末尾は `wide-only-exact94-232-two-player-no-mortar-single-enemy;other-wide-combinations-unsupported`。rules71/Snapshot71/view69、ABI2を維持し旧Snapshot1〜70を拒否する。last_dangerのpending証明は初期局面を再生して限定条件を検査し、完了要約はexact pair・2人・敵endpoint・mortar=falseの構造を検査する（補充で後から209を得た場合や敵死亡も扱う）。公開markerは演出待機の根拠のみで、last_dangerやbackendの抽選方式を直接証明するものではない。

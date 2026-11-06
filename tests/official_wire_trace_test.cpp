@@ -1878,14 +1878,61 @@ void replay(std::uint64_t seed) {
 }
 }
 
+namespace v91 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,193},{2,3},{3,232},{4,226},{5,72},{6,113},{7,19},{8,123},{9,94}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,29},{2,67},{3,130},{4,43},{5,41},{6,100},{7,5},{8,40},{9,28}}};
+constexpr std::array<ReceivedSlot,10> after_viewer{{{1,193},{2,3},{4,226},{5,72},{6,113},{7,19},{8,123},{3,232,0,true},{9,177},{10,196}}};
+constexpr std::array<ReceivedSlot,9> after_cpu{{{1,29},{2,67},{4,43},{5,41},{6,100},{7,5},{8,40},{9,28},{3,131}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,3,1,{{{1,40,5,20,false,after_viewer},{2,30,14,0,false,after_cpu}}}}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(const auto& received:checkpoints[0].players){
+        PlayerState player;player.id=received.id;player.hp=received.hp;player.mp=received.mp;player.cp=received.cp;
+        for(const auto& row:received.slots){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const auto wide=slots.at({1,3});
+    const Command attack{1,CommandKind::play,{consumed_slot(slots,1,9),wide},{}};
+    check(game.legal(attack),"v91 exact94+232 without mortar in two-player board is legal");
+    (void)game.step(attack);roundtrip(game);
+    const auto& launch=game.snapshot();
+    check(launch.phase==MatchPhase::response&&launch.actor==2&&launch.queue.size()==1
+          &&launch.queue.front().power==30&&!launch.queue.front().element
+          &&launch.last_danger&&launch.last_danger->target==2&&!launch.last_danger->mortar
+          &&launch.state.players[0].mp==5&&launch.rng==seed,
+          "v91 Wide selects the sole enemy with NE30 and pays MP5 without danger target RNG");
+    const Command defense{2,CommandKind::defend,{consumed_slot(slots,2,3)},{}};
+    check(game.legal(defense),"v91 received CPU130 defense is legal");
+    (void)game.step(defense);roundtrip(game);
+    check(game.snapshot().state.players[1].hp==14&&game.snapshot().state.players[1].mp==10
+          &&game.snapshot().state.players[1].cp==20,
+          "v91 DEF4 removes four from30 leaving26 damage and CPU HP14 before exchange");
+    v64::receipt(game,slots,1,9,177);v64::receipt(game,slots,1,10,196);
+    v64::receipt(game,slots,2,3,3);
+    const Command exchange{2,CommandKind::exchange,{consumed_slot(slots,2,3)},{},ResourceAllocation{30,14,0}};
+    check(game.legal(exchange),"v91 recorded CPU exchange conserves44 resources");
+    (void)game.step(exchange);roundtrip(game);v64::receipt(game,slots,2,3,131);
+    compare_checkpoint(game,slots,checkpoints[1]);
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);v89::replay(seed);v90::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);v87::replay(seed);v89::replay(seed);v90::replay(seed);v91::replay(seed);
     }
+    std::cout<<"v91: 8 fixed seeds x2 received checkpoints = 16 new comparisons;\n";
     std::cout<<"v90: 8 fixed seeds x2 received checkpoints; self216 HP30 MP0, retained used216, supplied195, GF3 CPU64 pending; unchanged engine\n";
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "

@@ -67,3 +67,7 @@ python3 scripts/parse_official_webchannel.py \
 
 
 v90は追加の公式接続なしで、別セッション取得済み216の自己使用を取り込んだ。抽出済みraw各1frameも同parserで検証し、元prefixの完全frame1/3（0-based）の匿名化gameと一致することを確認した。raw断片のbytes/hashと元prefixのbytes/hash・frame数・採用位置は分けて記録する。詳細は[観測記録v90](official-live-observations.md#作業世代v90取得済み216単品自己使用とnativeの一致)と[公開wire](../data/official-v2/wire-game-updates-v90.json)を参照。
+
+v91も公式サイトへ接続せず、別セッションで取得済みの94（あぶないキネ/杵）＋232（全敵化）の主動作1回を取り込んだ。[公開wire](../data/official-v2/wire-game-updates-v91.json)のprefix-A/Bはそれぞれ24,623/22,553 bytes、完全frame9/3、採用frame6/1（0-based）。元prefixを厳密parserで再解析して、保存済み抽出JSONの匿名化gameと一致を確認した。抽出JSONはWebChannel frameではなく、元prefixとは別にbytes/hashをwitnessへ記録する。HTTP completed=falseとframe境界完結を区別する。
+
+`danger` は保存済み公開client（SHA256は[v91 witness](../data/official-v2/live-transition-witnesses-v91.json)参照）の10989行付近で、case126→128の2000ms待機として扱われる。今回受信した `{ "action": "danger" }` だけをparserで許可し、payload追加形・未知eventは拒否する。対象選択・被害量・server内部順をこのmarkerから推定しない。臼209所持者は不在なので、臼と全敵化の優先関係は未観測。詳細は[観測記録v91](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を参照。

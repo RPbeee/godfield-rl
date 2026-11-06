@@ -36,7 +36,7 @@ GAME_STRINGS = frozenset("""
     disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
-    nextAttack bounce reflect phenomenon setCurseOfEverybody
+    nextAttack bounce reflect phenomenon setCurseOfEverybody danger
     cold fever hell heaven darkcloud dream fog flash
     mercury venus earth mars jupiter saturn uranus neptune pluto moon
     viewer cpu
@@ -179,6 +179,12 @@ def sanitize_game(game, viewer_id=None):
             player["name"] = ("viewer" if player["id"] == viewer_id else
                               "cpu" if viewer_id is not None and player.get("isBot") is True else
                               f"player{player['id']}")
+    # Captured client danger dispatch only waits 2000ms; the observed marker
+    # carries no target, damage or other payload. Fail closed on new shapes.
+    for event in game.get("events", []):
+        if isinstance(event, dict) and event.get("action") == "danger":
+            if event != {"action": "danger"}:
+                _error("unsupported_game_schema")
     _validate_game_values(game)
     return game
 

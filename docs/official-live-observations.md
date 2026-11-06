@@ -496,3 +496,19 @@ Releaseのwire対象ビルドは成功。build内のRelease CTestは156/158（10
 実行挙動とAPIの修正は不要で、rules70/Snapshot70/view68・ABI2、34とその他モデルの挙動を維持する。v89時点のdescriptor中の216未観測ラベルは履歴として据置き、216の新しい実測根拠は本v90に記録する。新1完了観測で累計71/native65/record-only6・wire696、完全受信lifecycle3/routing1/internal trace0。公式接続・探索の再実行・git commitは行っていない。
 
 最終検証はbuild内のRelease CTest158/158（109.87秒）と、build-sanitizeのDebug ASan/UBSan core/C API/wire3/3（27.60秒）が通過した。両ビルドのwarning/errorは0、diff-check正常。umask022で全CTestを実行し、official_webchannel_parserも同suite内で通過（0.60秒）した。raw/匿名化fixture/C++手札転記の全37行一致も再確認した。全SAN suiteとPython SANは実行対象外である。
+
+## 作業世代v91：取得済み杵94＋全敵化232（臼なし・敵1人）
+
+公式サイトへ接続せず、別セッションで取得済みの2人・終末なしCPU修行を取り込んだ。[wire](../data/official-v2/wire-game-updates-v91.json)はviewer1/CPU2のupdate1/2、GF1→3、本人40/10/20→40/5/20、CPU40/10/20→30/14/0。94はあぶないキネ（杵）であり、臼は209。両初期手札に209はない。
+
+受信順はuse94/id9＋232/id3→danger→target2→defense130/id3→damage26→本人gift177/id9・196/id10→advance2→CPU use3/id3→exchange hp30/mp14→advance1。damageの対象省略、exchangeのcp省略、配列順、used232の保持、CPU最終131/id3を保持する。元prefixをcanonical parserで再解析し、抽出済みJSONとの一致と同一documentを非公開で確認した。原名・userId・updatedAt・document/room識別子・認証情報・ローカルpathは公開しない。prefixの完全frame9/3と採用位置6/1、HTTP未完了を別々に残す。
+
+保存済み公開clientのdanger分岐は2000ms待機だけで、payloadを読まない。parserは観測されたaction-only形だけを許可し、payload追加・未知actionは引き続き拒否する。markerだけから対象抽選・ダメージ・server内部順を断定しない。
+
+実行器には**正確な94→232の2枚、2人roster、生存敵1人、どちらの手札にも臼209なし**の例外だけを加えた。通常のWide対象列を使って唯一の敵へNE30を送り、dangerの全alive抽選を行わない。通常MP5支払い・used232保持・防御130/DEF4・補充・両替を再利用する。臼が本人/敵にある場合、死者を含め3人以上のroster、敵不在、追加カードを含む合成はunsupportedのまま。既存samplerは従来どおりdanger＋Wideを提案しない。臼優先・複数敵・他の合成・redirectの実測根拠を増やさない。
+
+[操作witness](../data/official-v2/live-transition-witnesses-v91.json)とwireテストv91で8固定seed×2状態＝16比較が一致。初期全在庫を読み、通常play94＋232・defend130でCPU HP14を計算し、本人177/196とCPUの中間3を供給、CPU両替30/14/0と最終131を実行する。中間gift3は後続use3と最終在庫から補う再生入力で、受信giftイベントではない。HP14と資源合計44はnative計算で、受信中間snapshotではない。server内のHP算術・補充/防御/両替の内部順、CPU方策、初期配布、RNG同値性は確定しない。全native境界のsnapshot復元と資源・全model/fake/used・GF/owner/pendingを比較し、seed探索・受信damageの注入は行わない。
+
+rules71/Snapshot71/view69へ更新し、Snapshot旧1〜70を拒否。Match ABI2とC構造体幅は維持する。新1完了観測で累計72/native66/record-only6・wire712、完全受信lifecycle3/internal trace0。供給資料では通常退出後メニュー復帰とブラウザ終了を確認済みで、今回接続・探索・git commitは行っていない。
+
+単回のCPU対象観測は全alive抽選の可能性を統計的に排除しない。唯一の敵へのWide経路は、この条件内の限定実行規約であり、serverの対象分布の確定ではない。検証はRelease CTest 158/158（Python関連を含む、38.98秒）、Debug ASan/UBSanのofficial_match・official_match_c_api・official_wire_trace 3/3（45.95秒）、parser 11テストとumask022で実prefix2本のCLI再解析が通過した。出力0600/親0700と元bytes/mtime不変を確認し、Python構文検査・git diff --checkも通過。build警告/エラー0、全sanitizer suiteとsanitizer下のPythonは未実行。

@@ -2409,3 +2409,7 @@ Release157/157（18.05秒）、Debug ASan/UBSanの変更3target3/3（18.50秒）
 ## 作業世代v74：21の直接selfと購入後endpoint
 
 UIで21のself40→35・追加本人防御無しを確認し、武器bounceWeaponだけを直接selfへ追加した。34や応答/redirect/Wide/guardianの経路、ABI2/型幅と通常抽選は維持する。rules63/Snapshot63/view61。新2completed UI観測で累計54/native49/record-only5、受信[1,3]の2状態×8seed＝16追加比較・wire448。missing2/raw use21/gift44/CPU launch未取得を明示する。商品23の購入成立・CP22/18・buyer10枚とseller8枚を照合し、完全受信lifecycleは累計2のままである。
+
+### 作業世代v91：94（杵）＋232、臼なし2人の限定観測
+
+[保存済み受信v91](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を追加接続なしで採用。94→232の2枚・2人roster・敵1人・209所持者なしだけnativeへ追加し、DEF4→damage26とCPU両替を含む16比較が一致した。臼との優先関係、3人以上、他の組合せは未確定のためunsupportedを維持する。danger markerは公開clientの2000ms待機以上の意味を付けない。rules71/Snapshot71/view69、ABI2維持、累計72観測/native66/記録のみ6・wire712。

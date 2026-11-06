@@ -494,3 +494,7 @@ v65の初期/召喚後の受信2状態を既存固定8seedで照合する。v82�
 ## v89：34自己使用のrouting契約更新
 
 既存受信の34単品selfを直接解決へ接続し、対局view68/rules70/Snapshot70へ更新する。`self_attack_rule` はモデル34限定のbounceMiracle許可と、未観測216の除外を公開する。旧Snapshot1〜69は拒否し、State/表示component・Match ABI2とC構造体幅は維持する。HP40→31とgift4・GF2/CPU79保留の終点一致は、HP算術のbackend内部順の確定を意味しない。
+
+### 作業世代v91：杵94＋全敵化232の限定契約
+
+rules71/Snapshot71/view69へ更新した。`danger_rule`の末尾でexact94→232・2人・臼なし・生存敵1人だけの対応と、それ以外のWide合成のunsupportedを宣言する。last_dangerのfield幅とABI2は変更しない。旧Snapshot1〜70を拒否し、pendingではlaunch時の条件を既存journal再生で検証する。[v91の受信照合と限界](official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を参照。

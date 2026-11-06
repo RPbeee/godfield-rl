@@ -3213,3 +3213,7 @@ Release CTest158/158（111.60秒）、変更したwireのDebug ASan/UBSan1/1（1
 [受信2状態](data/official-v2/wire-game-updates-v90.json)を追加し、単品216自己使用のHP30/MP10→HP30/MP0、同copyのused保持、195補充・GF3/CPU64保留が既存nativeと固定8seedで一致しました。公式への追加接続とエンジン修正はなく、rules70/Snapshot70/view68を維持します。累計71観測/native65/記録のみ6・wire696。内部HP処理順や低HP/死亡境界の確定は含みません。
 
 Release CTest158/158（109.87秒）、Debug ASan/UBSanのcore/C API/wire3/3（27.60秒）が通過しました。全CTestはumask022でparserを含めて確認済みです。
+
+### 作業世代v91：取得済み杵94＋全敵化232の限定対応
+
+[受信2状態](data/official-v2/wire-game-updates-v91.json)を公式接続なしで追加しました。正確な94→232の2枚・2人・敵1人・臼209なしだけ対応し、CPU防御130の26ダメージと両替後30/14/0、本人40/5/20・GF3が8固定seedの16比較で一致しました。臼との優先関係・3人以上・他の合成はunsupportedを維持します。parserは根拠のあるpayloadなし`danger`だけを許可し、未知イベントを拒否します。rules71/Snapshot71/view69・ABI2、累計72観測/native66/記録のみ6・wire712。詳細は[観測と再生の限界](docs/official-live-observations.md#作業世代v91取得済み杵94全敵化232臼なし敵1人)を参照。
