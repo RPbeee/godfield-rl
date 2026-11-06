@@ -8,6 +8,7 @@ Usage: python3 python/official_data.py [path/to/libgodfield.dylib]
 from __future__ import annotations
 
 import ctypes as c
+import os
 from dataclasses import dataclass
 from pathlib import Path
 import sys
@@ -62,7 +63,14 @@ class OfficialData:
 
     def __init__(self, library: str | Path | None = None):
         ext = "dylib" if sys.platform == "darwin" else "so"
-        path = Path(library) if library is not None else Path(__file__).resolve().parents[1] / "build" / f"libgodfield.{ext}"
+        # Search order: explicit argument, GODFIELD_LIBRARY, then <repo>/build.
+        override = os.environ.get("GODFIELD_LIBRARY")
+        if library is not None:
+            path = Path(library)
+        elif override:
+            path = Path(override)
+        else:
+            path = Path(__file__).resolve().parents[1] / "build" / f"libgodfield.{ext}"
         lib = self._lib = c.CDLL(str(path))
         for name in ("abi_version", "catalog_count", "gift_rate"):
             fn = getattr(lib, "gfo_" + name)

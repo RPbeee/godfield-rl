@@ -16,7 +16,7 @@ C ABI と Python バインディングを備えます。学習器と学習済み
 | 対象モデル | 公式台帳 296 モデル。既定 236 モデル・重み 499、`include_fate=True` で 237 モデル・重み 500 |
 | 人数 | 2〜9 人・チーム戦(公式での実観測は 2 人・終末なしの CPU 修行のみ) |
 | 公式との照合 | 公式 JS を実行した golden vector 50,270 件、状態表示 22,140 件が一致。実対局の遷移 72 件(native 比較 66 件)を固定 |
-| テスト | Release CTest 158 件、ASan/UBSan(core・C API・wire)通過 |
+| テスト | Release CTest 159 件、ASan/UBSan(core・C API・wire)通過 |
 | 旧版 | legacy 37 profile の対戦 Env・C ABI・Python は保存(`docs/readme-history.md`) |
 
 ### できること
@@ -81,9 +81,37 @@ with Match(seed=42) as match:
     print(status.winners, status.reward_by_player, status.decisions)
 ```
 
-`Match` は `sample_action` / `random_rollout` で合法手のランダム実行ができます。
-Fate(207)・外部補充・混乱など専用の入口が必要な場面は、契約文書を参照してください。
-Python は `PYTHONPATH=python` で実行するか、`python` ディレクトリを import パスへ追加します。
+### Python から使う(自前の RL 実装向け)
+
+```sh
+export PYTHONPATH=/path/to/goodfield/python
+export GODFIELD_LIBRARY=/path/to/goodfield/build/libgodfield.dylib   # Linux は .so。未指定なら <repo>/build を探す
+```
+
+```python
+import random
+from official_match import Match
+from official_rl import enumerate_commands, pending_kind
+
+with Match(seed=1) as match:
+    for game in range(100):
+        status = match.reset(game)
+        while not status.done:
+            obs = match.observe(status.actor)            # dict: board.players / board.hand / pending ...
+            if pending_kind(match) is not None:          # Fate207・混乱・補充など専用入口が必要な局面
+                raise NotImplementedError(pending_kind(match))
+            commands = enumerate_commands(match)         # 合法手のリスト(= 方策の行動マスク)
+            status = match.step(random.choice(commands)) # ここを自分の方策に置き換える
+        print(status.winners, status.reward_by_player)   # 勝者と報酬(+1/-1)
+```
+
+- `Match` は 1 手ずつ検証する `legal(command)` と、合法手を 1 つ引く `sample_action` を持ちますが、
+  **合法手の全列挙 API は C 側にありません**。`python/official_rl.py` の `enumerate_commands` が、
+  観測から候補を作って `legal` で絞ります(既定は 2 枚までの順序付き組合せ。`exchange` は `exchange_step` 指定時のみ)。
+- `observe(viewer)` は視点ごとの公開情報だけを返します。`status` は `actor` / `phase` / `done` / `winners` / `reward_by_player` を持ちます。
+- 特殊な入口(207 Fate、混乱、外部補充、守護神、現象、悪魔、redraw/召喚の応答)は、
+  `fate_step` や `grant_step` などの専用メソッドを使います(`dir(Match)` を参照)。
+- 同じ seed・同じ手順なら結果は決定的です。`Match.reset(seed)` で局ごとの seed を与えられます。
 
 ## 公式仕様への対応方針
 

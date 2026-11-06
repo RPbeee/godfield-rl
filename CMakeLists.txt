@@ -352,6 +352,8 @@ if(BUILD_TESTING)
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_state_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME official_match_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_match_python_test.py $<TARGET_FILE:godfield>)
+      add_test(NAME official_rl_python COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/official_rl_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME legacy_python COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/legacy_python_test.py $<TARGET_FILE:godfield>)
       add_test(NAME miracles_python COMMAND ${Python3_EXECUTABLE}
