@@ -508,3 +508,22 @@ rules71/Snapshot71/view69へ更新した。`danger_rule`の末尾でexact94→23
 `PurchaseOfferView` は `origin/buyer/seller/model/price`、`RevealedItemView` は `owner/face/model`、`GuardianChangeView` は `player/before/after/reason`、`PhenomenonView` は `model/recipient` のみを持つ。`GiftPoolView` と `PendingView` も公開専用型で、全View型は値の `operator==` を持つ。escrow token/slot、owner_only、hidden_viewers、guardian割当、未来の効果列・proof・乱数は保持しない。
 
 `last_reveals` のowner-only項目は本人viewerだけに返す。`last_guardian_changes` はイベント時点のhidden_viewersをviewerのroster席で判定して除外する（観戦者のbitは0）。`pending` は現在の先頭frameだけを公開し、環境起因なら `origin/source` は空、initial_targetのpaneがviewerに霧で隠れるなら `forced_hit` は空とする。反射後も元のactivationへの判定を維持する。redirect中のbounce能力数を `bounces`、redirect数との差を `reflections` とする。非公開の手札枚数・真model・token・fake_modelやseedは、公開情報が同じ観測の比較に影響しない。
+
+## C++：直前の決定の公開記録 `Match::last_decision(viewer)`
+
+`std::optional<PublicDecision> Match::last_decision(std::optional<PlayerId> viewer) const` は最後に受理した決定だけを返す純粋な所有copy。`decision` は受理後の `snapshot().decisions`、`gf/phase` は受理前の値。`DecisionSource` は実行経路を区別し、choice/rolloutは内部で受理した決定のsourceを使う。カードの `faces` は消費前の `face_model` を選択順で保持する。Dreamの真modelの公開は既存 `last_reveals` に任せる。
+
+| 決定 | actor / kind | faces | target / allocation / outcome_model |
+| --- | --- | --- | --- |
+| play / defend（confusion、外部結果つきCommandを含む） | Commandどおり | 見かけID | playの公開対象。霧の再選択後。命中率・全体攻撃の任意入力対象は省略 |
+| sell / buy / exchange | Commandどおり | 見かけID | 売買対象、exchangeの本人対象とallocation |
+| accept / decline / pray | Commandどおり | 空 | 空。購入結果は既存last_purchase |
+| discard / sacrifice | Commandどおり | 受理時点の霧でactorのpaneが隠れるviewerには空、faces_hidden=true | 空 |
+| fate | actorのみ | [207] | outcome_modelに公開現象 |
+| devil / grant / artifact_grant | 空 | 空 | 公開recipientとdevil modelのみ。通常神器・model0はoutcome_modelが空 |
+| guardian / guardian_payload | 公開source、kindなし | 公開model列 | 公開対象 |
+| phenomenon / item_shuffle | 空 | 空 | 公開現象modelとrecipientのみ。割当・並べ替えは非公開 |
+
+観戦者は霧なしとして扱う。discard/sacrificeの霧による非表示は**未観測の推測**であり、既存 `project_view` のfoggedと同じ受理時点の規則（生存viewerの霧、未終局、生存する敵actor）を採用した。`DecisionRecord` は公開値と受理時点のviewer席bitをprivileged snapshotに保存し、終局・霧解除後も公開範囲を変えない。外部redraw/purchase/summon/automatic guardianの補足結果は保存する公開値に含めず、Command部分だけを公開する。defendのredirect先やdangerの任意入力対象は記録に追加せず、既存pending/last_danger等の公開結果を使う。
+
+Snapshot72に記録を含め、restoreで形状・ID・決定番号・公開フラグ・visibility maskを検証する。既存慣習どおり旧Snapshot1〜71は拒否する。reset/load_scene直後は記録なし、拒否入力は既存記録を維持する。既存observe JSON、ruleset文字列、C ABI/Python入口は変更しない。

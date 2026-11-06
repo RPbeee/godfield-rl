@@ -1107,7 +1107,38 @@ void complete_decision(MatchSnapshot& s, bool completed) {
     }
     sync_grant_proof(s);
 }
+DecisionRecord decision_record(const MatchSnapshot& s, DecisionSource source) {
+    DecisionRecord record;
+    record.value.decision=s.decisions+1;
+    record.value.gf=s.state.gf;
+    record.value.phase=s.phase;
+    record.value.source=source;
+    return record;
+}
+void record_command(MatchSnapshot& s, const Command& command, DecisionSource source) {
+    auto record=decision_record(s,source);
+    auto& value=record.value;
+    value.actor=command.actor; value.kind=command.kind;
+    const auto& own=s.state.players[index(s,command.actor)];
+    for (auto token:command.items) value.faces.push_back(face_model(*instance(own,token)));
+    if (command.kind==CommandKind::exchange) { value.allocation=command.allocation; value.target=command.actor; }
+    if (command.kind==CommandKind::sell || command.kind==CommandKind::buy) value.target=command.target;
+    if (command.kind==CommandKind::play && !value.faces.empty()) {
+        const auto& base=*find_card(value.faces.front());
+        if (!base.hit_rate && !has_wide(value.faces) && base.ability!=Ability::danger) value.target=command.target;
+    }
+    if (command.kind==CommandKind::discard || command.kind==CommandKind::sacrifice) {
+        for (std::size_t i=0;i<s.state.players.size();++i) {
+            const auto board=project_view(s.state,s.state.players[i].id);
+            for (const auto& player:board.players) if (player.id==command.actor && player.fogged)
+                record.hidden_viewers|=static_cast<std::uint16_t>(1u<<i);
+        }
+    }
+    s.last_decision=std::move(record);
+}
 void execute_guardian(MatchSnapshot& s, const GuardianAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::guardian);
+    { auto& value=s.last_decision->value; value.actor=action.source; value.faces={action.model}; value.target=action.target; }
     prepare_guardian(s, action);
     clear_events(s); auto batch = action_anchor(s);
     batch.guardian_action = action; batch.models = {action.model}; batch.tick_processed = true;
@@ -1130,6 +1161,8 @@ void execute_guardian(MatchSnapshot& s, const GuardianAction& action) {
     complete_decision(s, completed);
 }
 void execute_guardian_payload(MatchSnapshot& s, const GuardianPayloadAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::guardian_payload);
+    { auto& value=s.last_decision->value; value.actor=action.source; value.faces=action.models; value.target=action.target; }
     prepare_guardian_payload(s,action);
     clear_events(s); auto batch=action_anchor(s);
     batch.guardian_payload_action=action; batch.models=action.models; batch.tick_processed=true;
@@ -1164,6 +1197,8 @@ void apply_item_shuffle_body(MatchSnapshot& s, const ItemShuffleAction& action) 
     for (std::size_t seat=0;seat<hands.size();++seat) s.state.players[seat].items=std::move(hands[seat]);
 }
 void execute_item_shuffle(MatchSnapshot& s, const ItemShuffleAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::item_shuffle);
+    { auto& value=s.last_decision->value; value.outcome_model=295; }
     clear_events(s); auto anchor=action_anchor(s); apply_item_shuffle_body(s,action);
     s.last_item_shuffle=ItemShuffleRecord{std::move(anchor),action};
     s.last_phenomenon=PhenomenonAction{295,{},{}}; ++s.phenomenon_actions;
@@ -1190,6 +1225,8 @@ void apply_global_phenomenon_body(MatchSnapshot& s, const PhenomenonAction& acti
     if (action.model==294) change_resource(s.state.players[index(s,*action.recipient)],Resource::cp,collected);
 }
 void execute_phenomenon(MatchSnapshot& s, const PhenomenonAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::phenomenon);
+    { auto& value=s.last_decision->value; value.outcome_model=action.model; value.target=action.recipient; }
     prepare_phenomenon(s,action); clear_events(s);
     if (targeted_phenomenon(action.model)) {
         auto batch=action_anchor(s); batch.phenomenon_action=action; batch.models={action.model};
@@ -1221,6 +1258,8 @@ void prepare_fate(const MatchSnapshot& s, const FateAction& action) {
     } else prepare_phenomenon(after,action.outcome);
 }
 void execute_fate(MatchSnapshot& s, const FateAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::fate);
+    { auto& value=s.last_decision->value; value.actor=action.actor; value.faces={207}; value.outcome_model=action.outcome.model; }
     prepare_fate(s,action); clear_events(s); auto anchor=action_anchor(s); auto batch=anchor;
     batch.fate_action=action; batch.attack={action.actor,CommandKind::play,{action.token},{}};
     batch.models={action.outcome.model}; batch.confusion_command=s.state.players[index(s,action.actor)].confusion_count>0;
@@ -1269,6 +1308,8 @@ DevilEvent apply_devil_body(MatchSnapshot& s, const DevilAction& action) {
     finalize_deaths(s); return event;
 }
 void execute_devil(MatchSnapshot& s, const DevilAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::devil);
+    { auto& value=s.last_decision->value; value.target=action.target; value.outcome_model=action.model; }
     prepare_devil(s,action); clear_events(s); auto anchor=action_anchor(s); auto batch=anchor;
     batch.devil_action=action; batch.models={action.model}; batch.tick_processed=true; s.batch=std::move(batch);
     s.last_devil=DevilRecord{std::move(anchor),action,{}}; s.last_devil_event=DevilEvent{action.target,action.model,{}};
@@ -1285,6 +1326,12 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
     if(supplied_purchase) prepare_purchase_response(s,command,models,*supplied_purchase);
     if(supplied_summon) { require(!confusion_command,"supplied summon is an ordinary main command"); prepare_summon_result(s,command,models,*supplied_summon); }
     if(supplied_automatic_guardians) prepare_automatic_guardian_response(s,*supplied_automatic_guardians);
+    const auto source=confusion_command?DecisionSource::confusion
+        :supplied_redraws?DecisionSource::redraw_response
+        :supplied_purchase?DecisionSource::purchase_response
+        :supplied_summon?DecisionSource::summon_result
+        :supplied_automatic_guardians?DecisionSource::automatic_guardian_response:DecisionSource::player;
+    record_command(s,command,source);
     SuppliedPurchaseSelection purchase_selection{supplied_purchase,false};
     if (s.phase == MatchPhase::main) clear_events(s);
     else if (s.last_fate && s.batch && s.batch->fate_action) s.last_fate->responses.push_back(command);
@@ -1370,6 +1417,7 @@ void execute(MatchSnapshot& s, const Command& command, bool confusion_command=fa
             const auto intended = target;
             target = enemies[bounded(s.rng, enemies.size())];
             s.last_fog = FogTarget{s.owner,intended,target,models};
+            s.last_decision->value.target=target;
         }
         const auto random_hp_delta = find_card(models.front())->ability == Ability::boost_hp_or_deal_damage
             ? (bounded(s.rng, 2) == 0 ? 10 : -10) : 0;
@@ -1472,6 +1520,8 @@ void deliver_artifact(MatchSnapshot& s, std::size_t seat, CardId model, std::opt
     recipient.items.push_back({s.next_token++,model,face,false});
 }
 void execute_grant(MatchSnapshot& s, const GrantAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::grant);
+    { auto& value=s.last_decision->value; value.target=action.target; if (match_devil_supported(action.model)) value.outcome_model=action.model; }
     prepare_grant(s,action); const auto seat=index(s,action.target);
     s.batch->grants.push_back({s.batch->responses.size(),action});
     s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
@@ -1486,6 +1536,8 @@ void execute_grant(MatchSnapshot& s, const GrantAction& action) {
     complete_decision(s,true);
 }
 void execute_artifact_grant(MatchSnapshot& s, const ArtifactGrantAction& action) {
+    s.last_decision=decision_record(s,DecisionSource::artifact_grant);
+    { auto& value=s.last_decision->value; value.target=action.target; }
     prepare_artifact_grant(s,action); const auto seat=index(s,action.target);
     s.batch->grants.push_back({s.batch->responses.size(),action});
     s.pending_grant.reset(); s.phase=MatchPhase::main; s.actor=s.owner; ++s.grant_resolutions;
@@ -1521,6 +1573,50 @@ void replay_response(MatchSnapshot& replay,const ActionBatch& journal,std::size_
 void validate_snapshot(const MatchSnapshot& s) {
     require(s.version == match_snapshot_version, "unknown match snapshot version"); config_valid(s.config); closed_state(s.state, s.config);
     const auto n = s.state.players.size();
+    if (s.last_decision) {
+        const auto& record=*s.last_decision; const auto& value=record.value;
+        require(value.decision>0 && value.decision==s.decisions && value.gf>=0
+            && value.phase!=MatchPhase::finished && static_cast<unsigned>(value.phase)<=4
+            && static_cast<unsigned>(value.source)<=static_cast<unsigned>(DecisionSource::automatic_guardian_response)
+            && !value.faces_hidden && value.faces.size()<=visible_hand_capacity
+            && (record.hidden_viewers>>n)==0,"invalid last decision record");
+        if(value.actor) (void)index(s,*value.actor);
+        if(value.target) (void)index(s,*value.target);
+        if(value.kind) require(static_cast<unsigned>(*value.kind)<=static_cast<unsigned>(CommandKind::sacrifice),"invalid decision kind");
+        for(auto face:value.faces) require(find_card(face),"invalid decision face");
+        if(value.outcome_model) require(find_card(*value.outcome_model),"invalid decision outcome");
+        require(!record.hidden_viewers || (value.kind==CommandKind::discard || value.kind==CommandKind::sacrifice),"invalid decision visibility");
+        if(value.allocation) {
+            const auto& a=*value.allocation;
+            require(value.kind==CommandKind::exchange && a.hp>=0 && a.hp<=99 && a.mp>=0 && a.mp<=99 && a.cp>=0 && a.cp<=99,"invalid decision allocation");
+        }
+        switch(value.source) {
+        case DecisionSource::player: case DecisionSource::confusion:
+        case DecisionSource::redraw_response: case DecisionSource::purchase_response:
+        case DecisionSource::summon_result: case DecisionSource::automatic_guardian_response:
+            require(value.actor && value.kind && !value.outcome_model,"invalid command decision");
+            if(value.kind==CommandKind::pray || value.kind==CommandKind::accept || value.kind==CommandKind::decline)
+                require(value.faces.empty() && !value.target && !value.allocation,"invalid itemless decision");
+            if(value.kind==CommandKind::discard || value.kind==CommandKind::sacrifice)
+                require(!value.target && !value.faces.empty(),"invalid discard decision");
+            break;
+        case DecisionSource::fate:
+            require(value.actor && !value.kind && value.faces==std::vector<CardId>{207} && !value.target
+                && value.outcome_model && *value.outcome_model>=287 && *value.outcome_model<=296,"invalid fate decision"); break;
+        case DecisionSource::devil: case DecisionSource::grant: case DecisionSource::artifact_grant:
+            require(!value.actor && !value.kind && value.faces.empty() && value.target
+                && (!value.outcome_model || match_devil_supported(*value.outcome_model))
+                && (value.source!=DecisionSource::devil || value.outcome_model)
+                && (value.source!=DecisionSource::artifact_grant || !value.outcome_model),"invalid grant/devil decision"); break;
+        case DecisionSource::guardian: case DecisionSource::guardian_payload:
+            require(value.actor && !value.kind && !value.faces.empty() && !value.outcome_model,"invalid guardian decision"); break;
+        case DecisionSource::phenomenon: case DecisionSource::item_shuffle:
+            require(!value.actor && !value.kind && value.faces.empty() && value.outcome_model
+                && *value.outcome_model>=287 && *value.outcome_model<=296
+                && (value.source!=DecisionSource::item_shuffle || (*value.outcome_model==295 && !value.target)),"invalid phenomenon decision"); break;
+        }
+        require(!value.allocation || value.kind==CommandKind::exchange,"inactive decision allocation");
+    }
     const auto validate_automatic_payload=[&](const ActionBatch& batch) {
         if (!batch.automatic_payload) return;
         const auto& launch=*batch.automatic_payload;
@@ -2442,6 +2538,14 @@ bool Match::guardian_payload_legal(const GuardianPayloadAction& action) const no
 }
 MatchStep Match::guardian_payload_step(const GuardianPayloadAction& action) {
     auto next=data_; execute_guardian_payload(next,action); auto output=result(next); data_=std::move(next); return output;
+}
+std::optional<PublicDecision> Match::last_decision(std::optional<PlayerId> viewer) const {
+    std::uint16_t bit=0;
+    if (viewer) bit=static_cast<std::uint16_t>(1u<<index(data_,*viewer));
+    if (!data_.last_decision) return std::nullopt;
+    auto value=data_.last_decision->value;
+    if (data_.last_decision->hidden_viewers & bit) { value.faces.clear(); value.faces_hidden=true; }
+    return value;
 }
 MatchView Match::view(std::optional<PlayerId> viewer) const {
     MatchView result;

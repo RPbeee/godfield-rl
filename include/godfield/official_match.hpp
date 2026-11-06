@@ -45,7 +45,7 @@ inline constexpr const char* automatic_guardian_response_rule = "experimental:or
 inline constexpr const char* guardian_rule = "experimental:canonical42-only;auto-after-ordinary-owner-tick-before-gifts;alive-enemy-sources-in-input-order;one-quarter-opportunity-draw-per-present-source;weighted6-5-4-3-2-for-first8;earth285-moon286-fixed-singleton-move-draw;uniform-alive-enemy-for-atk-curse-bribe-takecp-otherwise-alive-allies-including-self;singleton-target-draw;280-all-alive-no-target-draw;single-target-percent-and-darkcloud;no-fog-reselection;counter-death-fifo-before-next-source;stop-on-main-owner-death;no-internal-decisions-or-source-fee-gift;external-main-boundary-one-decision-no-auto-followup;earth-moon-official-general-selection-unsupported-default-canonical-auto-unchanged";
 inline constexpr const char* guardian_summon_rule = "experimental:201-and239-current-target;uniform-all10-in-enum-order;one-draw-including-resummon-same-type;normal-consumption-mp-retention-and-gift";
 inline constexpr const char* guardian_departure_rule = "experimental:present-guardian-on-positive-direct-body-hp-loss;source-self-damage-before-target-loss;one10-percent-draw-per-stage;lethal-included-before-revival;include-negative-random202;exclude-disease-prefix-debt-tick-and-exchange;launched-payload-unchanged;event-time-fog-viewers-filter-changes";
-inline constexpr std::uint32_t match_snapshot_version = 71;
+inline constexpr std::uint32_t match_snapshot_version = 72;
 inline constexpr const char* guardian_payload_auto_rule = "experimental:opt-in-local-guardian-payloads-default-false;existing-enemy-input-order-quarter-opportunity-after-owner-tick-before-deferred-gifts;only-successful-earth-moon-opportunities-use-shared-local120-26-selector;automatic-selection-and-body-use-game-rng-replayed-from-main-anchor;external-const-helper-keeps-caller-owned-chance-stream;no-additional-decision-source-items-ordinary-mp-fee-or-operation-gift;58-saves-launch-mp-and-drains-once-202-draws-one-sign-after-target;14-two-fresh-original-frames-with-death-then-counter-fifo-between-hits;fixed-launch-models-guardian-mp-sign-through-redirection-and-departure;stop-remaining-and-future-sources-on-main-owner-death-stop-remaining-on-source-or-target-death;self-nondamaging-body-immediate-with-shared-death-pump;launched-payload-log-only-no-future-rng-or-private-launch-values;external-payload-counter-unchanged-auto-counter-includes-both-kinds;other8-guardians-and-default-canonical285286-unchanged;uniform-base-geometric-extras-and-target-distribution-local-not-official-server-equivalence";
 inline constexpr const char* choice_rule = "experimental:player-choice-v1-command-or-fate-request-actor-token-only;no-outcome-recipient-guardian-assignment-or-shuffle-in-player-choice;normal-main-owner-count0-visible-unused-unmasked207;gift-flag-does-not-gate-already-owned207;inventory-order-per-copy-fate-envelopes-plus-one-normal-command-envelope;uniform-bounded-Nplus1-zero-delegates-old-command-policy-rest-select-one-token;no207-response-purchase-delegate-old-policy-with-no-extra-draw;ordinary-discard-and-trade207-roles-preserved;not-uniform-over-all-legal-actions-or-official-policy;grant-and-positive-confusion-main-refuse-with-policy-unchanged;pure-world-game-rng-and-chance-unchanged;request-preflight-does-not-probe-future-outcome-validity;sample-and-choice-step-separate-transactions";
 inline constexpr const char* driver_rule = "experimental:local-driver-api1-one-accepted-decision;grant-uses-chance-sample-grant-step;positive-confusion-main-uses-chance-existing-confusion-policy-no207;other-main-response-purchase-use-policy-player-choice;fate-request-resolved-only-by-chance-existing-fate-helper;ordinary-command-does-not-use-external-chance;game-rng-remains-owned-by-match;copy-world-and-trial-policy-and-chance-commit-only-after-full-step-and-result;failure-preserves-world-both-streams-and-outputs-no-reroll;distinct-policy-chance-storage-required-equal-values-allowed;no-new-phase-decision-fee-gift-or-observation-fields;save-match-snapshot-policy-chance-and-driver-api-policy-rule-for-resume;multi-step-rollout-is-sequence-of-transactions-not-one-transaction;existing-sample-action-confusion-fate-grant-and-random-rollout-unchanged;not-all-legal-actions-all-gift-devils-or-official-server-equivalence";
@@ -108,6 +108,30 @@ struct Command {
     std::optional<PlayerId> target;
     std::optional<ResourceAllocation> allocation = std::nullopt;
     bool operator==(const Command&) const = default;
+};
+enum class DecisionSource : std::uint8_t {
+    player, confusion, fate, devil, grant, artifact_grant, guardian, guardian_payload,
+    phenomenon, item_shuffle, redraw_response, purchase_response, summon_result, automatic_guardian_response
+};
+struct PublicDecision {
+    std::uint64_t decision = 0;
+    std::int64_t gf = 0;
+    MatchPhase phase = MatchPhase::main;
+    DecisionSource source = DecisionSource::player;
+    std::optional<PlayerId> actor;
+    std::optional<CommandKind> kind;
+    std::vector<CardId> faces;
+    bool faces_hidden = false;
+    std::optional<PlayerId> target;
+    std::optional<ResourceAllocation> allocation;
+    std::optional<CardId> outcome_model;
+    bool operator==(const PublicDecision&) const = default;
+};
+// Privileged event-time visibility; seat bits never enter the public value.
+struct DecisionRecord {
+    PublicDecision value;
+    std::uint16_t hidden_viewers = 0;
+    bool operator==(const DecisionRecord&) const = default;
 };
 struct RedrawItem {
     CardId model = 0;
@@ -478,6 +502,7 @@ struct MatchView {
 struct MatchSnapshot {
     std::uint32_t version = match_snapshot_version;
     MatchConfig config;
+    std::optional<DecisionRecord> last_decision;
     SnapshotState state;
     PlayerId owner = 0;
     std::optional<PlayerId> actor;
@@ -608,6 +633,8 @@ public:
     MatchStep summon_result_step(const SummonResultAction& action);
     [[nodiscard]] bool automatic_guardian_response_legal(const AutomaticGuardianResponseAction& action) const noexcept;
     MatchStep automatic_guardian_response_step(const AutomaticGuardianResponseAction& action);
+    // Last accepted decision; event-time visibility, pure owning copy.
+    [[nodiscard]] std::optional<PublicDecision> last_decision(std::optional<PlayerId> viewer) const;
     // Same public information as observe(), without constant metadata; pure owning copy.
     [[nodiscard]] MatchView view(std::optional<PlayerId> viewer) const;
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
