@@ -2258,3 +2258,12 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 既存の直接self経路とbody/tick算法はこの有限例と一致した。自己defendイベントは無く、既存8固定seedの初回病気判定はすべて非悪化のため、検索・除外・seed fittingなしで2状態を比較できる。これを公式5%率やserver RNGの同値性へ広げない。CPU16の同型id1は残り、id2が使用されたこと、本人slot6の30と175が別物理コピーであることを区別する。
 
 新1観測で65/native59/record-only6・wire608、69/S69/view67・ABI2と実行挙動は維持する。self_attack_ruleの証拠表記だけv82 UI/v84 rawの両方へ更新する。v82の未知post/補充を新対局から補完せず、既存記録を変更しない。
+
+
+## 作業世代v85：ヘッドレスCPU修行で複合自己使用を確認
+
+独立Chromiumで公式CPU修行の空応答と21＋74の自己使用を実行し、同一対局の更新1/2/3を保存した。本人HP40→39→31、MP10/CP20保持、自己使用8被害の後に118/id4・200/id9の通常補充が並ぶ。受信初期1は既にCPU6保留で、未取得の使用前sceneと分ける。次のCPU44は未応答で通常退出した。
+
+これは途中のHTTP応答prefixから完全frameを抽出した記録で、全HTTP本文や完全start→endではない。新2観測で67/native61/record-only6・wire632、69/S69/view67・ABI2を維持する。通常Firefoxの前面復帰を要しない[実測手順](official-headless-probe.md)へ切り替えた。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。

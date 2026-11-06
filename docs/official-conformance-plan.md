@@ -2279,3 +2279,12 @@ Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 runtime69/S69/view67・ABI2は維持し、self descriptorの証拠ラベルだけ更新する。完全start→end2・routing-only1・全内部trace0は不変。CPU16は未応答のまま通常退出し、ホーム復帰とNetwork Monitor終了を確認した。
 
 Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+
+## 作業世代v85：ヘッドレス受信prefixからの照合
+
+独立した一時ChromiumとPlaywrightで公式CPU修行を操作し、Firefoxの前面復帰を不要にした。CDPから実際のGET channel受信本文を保存し、bufferedData→開始中queue→後続chunkの順と保存barrierによりbytes/hashを固定する。完全なHTTP応答と途中prefixを区別し、UTF-16長で完結したframeだけを採用する。新parserは不完全な末尾を補完せず、名前/識別情報を除いたgameだけを書き出す。元本文・画像・解析物は私有0600で、Gitへ追加しない。
+
+新対局のraw1はviewer2に対するCPU6の攻撃保留、raw2は空応答後HP39、raw3は21/id4＋74/id9自己使用後HP31とCPU44保留である。未取得のCPU6使用前はイベントからnative initializerへ戻し、rawそのものへ補記しない。CPU26/id4は在庫delta、viewer118/id4→200/id9は明示giftとして供給する。3状態×既存8固定seed＝24比較を追加し、67/native61/record-only6・wire632。runtime69/S69/view67・ABI2、完全lifecycle2/routing1/internal trace0は維持する。失敗したfooterクリックや選択解除、途中退出は新しい完了操作へ数えない。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。

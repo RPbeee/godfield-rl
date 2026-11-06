@@ -1614,13 +1614,84 @@ void replay(std::uint64_t seed){
 }
 }
 
+// v85: three complete document frames captured through an isolated headless
+// browser's streamed response. The transport stream itself need not have ended.
+// The first received state already has CPU6 pending; only its consumed copy is
+// reconstructed from useAttackItems. CPU26 is an inventory delta, whereas the
+// viewer118/200 receipts and their order are explicit gift events. Initial
+// distribution, CPU policy, server slots and server RNG are not reconstructed.
+namespace v85 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,196},{2,224},{3,201},{4,21},{5,35},{6,77},{7,192},{8,191},{9,74}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,164},{2,199},{3,142},{5,21},{6,21},{7,205},{8,185},{9,44},{0,0}}};
+constexpr std::array<ReceivedSlot,9> reconstructed_cpu{{{1,164},{2,199},{3,142},{4,6},{5,21},{6,21},{7,205},{8,185},{9,44}}};
+constexpr std::array<ReceivedSlot,9> after_defense_cpu{{{1,164},{2,199},{3,142},{5,21},{6,21},{7,205},{8,185},{9,44},{4,26}}};
+constexpr std::array<ReceivedSlot,9> after_self_viewer{{{1,196},{2,224},{3,201},{5,35},{6,77},{7,192},{8,191},{4,118},{9,200}}};
+constexpr std::array<ReceivedSlot,9> after_launch_cpu{{{1,164},{2,199},{3,142},{5,21},{6,21},{7,205},{8,185},{4,26},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_cpu},{2,40,10,20,false,initial_viewer}}},6},
+    ReceivedCheckpoint{2,2,2,{{{1,40,10,20,false,after_defense_cpu},{2,39,10,20,false,initial_viewer}}}},
+    ReceivedCheckpoint{3,3,1,{{{1,40,10,20,false,after_launch_cpu},{2,31,10,20,false,after_self_viewer}}},44}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_viewer:reconstructed_cpu){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);roundtrip(game);
+    const Command initial_launch{1,CommandKind::play,{consumed_slot(slots,1,4)},2};
+    check(game.legal(initial_launch),"v85 initial CPU6 is restored only from its received use event");
+    (void)game.step(initial_launch);roundtrip(game);compare_checkpoint(game,slots,checkpoints[0]);
+    check(game.snapshot().rng==seed,"v85 reconstructed ordinary CPU launch needs no chance outcome");
+
+    const Command empty{2,CommandKind::defend,{},{}};
+    check(game.legal(empty),"v85 observed empty defense is legal");
+    (void)game.step(empty);roundtrip(game);
+    check(game.snapshot().phase==MatchPhase::grant&&game.snapshot().pending_grant==1
+          &&game.snapshot().gifts==std::vector<std::uint32_t>{1,0}
+          &&game.snapshot().state.players[1].hp==39&&game.snapshot().queue.empty(),
+          "v85 empty defense takes one damage before the separate CPU inventory-delta receipt");
+    v64::receipt(game,slots,1,4,26);
+    compare_checkpoint(game,slots,checkpoints[1]);
+
+    const Command self{2,CommandKind::play,{consumed_slot(slots,2,4),consumed_slot(slots,2,9)},2};
+    check(game.legal(self),"v85 received21 plus74 is legal as one explicit self command");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==4&&body.phase==MatchPhase::grant&&body.pending_grant==2
+          &&body.gifts==std::vector<std::uint32_t>{0,2}&&body.queue.empty()
+          &&body.state.players[0].hp==40&&body.state.players[1].hp==31
+          &&body.state.players[1].mp==10&&body.state.players[1].cp==20
+          &&body.state.players[1].items.size()==7&&body.rng==seed&&!body.last_tick,
+          "v85 compound self21 resolves five plus three at zero defense without a bounce or extra response");
+    // Same server slots now refer to freshly delivered physical copies. These
+    // two gift events are ordered118 then200, unlike the earlier CPU delta.
+    v64::receipt(game,slots,2,4,118);
+    v64::receipt(game,slots,2,9,200);
+    const Command final_launch{1,CommandKind::play,{consumed_slot(slots,1,9)},2};
+    check(game.legal(final_launch),"v85 received CPU44 launch is legal");
+    (void)game.step(final_launch);roundtrip(game);compare_checkpoint(game,slots,checkpoints[2]);
+    const auto& final=game.snapshot();
+    check(final.decisions==7&&final.rng==seed&&final.chance_rolls==0&&final.counter_rolls==0
+          &&final.counter_created==0&&final.dream_rolls==0&&final.dream_masks==0&&final.redraws==0
+          &&final.guardian_opportunities==0&&final.auto_guardian_actions==0
+          &&final.guardian_departure_rolls==0&&final.revivals==0,
+          "v85 fixed seeds replay three received checkpoints without fitted draws or unobserved counter/guardian effects");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1649,4 +1720,5 @@ int main() {
     std::cout<<"v82: 8 fixed seeds x2 reused v65 received states,ordinary201 with supplied Neptune and actual196,CPU29+231 pending;no new observations,initial distribution,summon selector or automatic276 equivalence claim\n";
     std::cout<<"v83: 8 fixed seeds x3 reused v65 received states,supplied201 Neptune plus wall233 and same-batch automatic276 HP5;explicit viewer123 and CPU200/19 deltas,retained used233/231;no selector,backend receipt order or probability proof\n";
     std::cout<<"v84: 8 fixed seeds x2 received states,single30 self damage8/Hell/tick5 and actual175 receipt,CPU16 unanswered;ordinary tick draw,no fitted branch,old v82 UI games unchanged,no disease rate or server RNG proof\n";
+    std::cout<<"v85: 8 fixed seeds x3 complete headless received frames,CPU6 prelaunch copy reconstructed,empty defense and compound21+74 self;CPU26 inventory delta and explicit118/200 receipts,CPU44 unanswered;no new runtime,initial distribution,CPU policy,slot identity or server RNG equivalence claim\n";
 }

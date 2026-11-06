@@ -636,3 +636,19 @@ Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSa
 | --- | ---: | --- |
 | `wire-game-updates-v84.json` | 11,929 | `3d5c1213382bf50ec6c557373ef1adcd27264131a467b637278dd96e5454f7c6` |
 | `live-transition-witnesses-v84.json` | 12,245 | `6ffc6c3f4ed0d7fde96f35dea52ac2265f19a266caadb137cae7296af8b6511a` |
+
+
+## v85：ヘッドレス受信prefixと二枚の自己使用
+
+[3受信状態](wire-game-updates-v85.json)と[新2操作](live-transition-witnesses-v85.json)を保存する。viewer2がCPU6へ空応答して40→39、21/id4＋74/id9の自己使用で8被害を受け31、実gift118/id4→200/id9、CPU44保留へ進んだ。raw1は既にCPU先手攻撃待ちであり、native起動用の6/id4復元を別扱いにする。CPU26/id4の補充は在庫deltaとして扱う。
+
+[独立Chromiumの実測手順](../../docs/official-headless-probe.md)とparserを追加した。採用sourceはHTTP途中prefixであり、全bytes/hashを残した上で完全frameだけを解析する。Aは52185 bytes/20framesのframe17、Bは35920 bytes/5framesのframe1/4を採用し、別準備gameは除外する。元本文・画像・解析物は0600、公開literalは名前等の匿名化以外の省略/順序を維持する。
+
+固定8seed×3状態＝24比較を追加し、67/native61/record-only6・wire632。69/S69/view67・ABI2と実行挙動は維持する。途中退出を終局や完全HTTP本文の取得へ数えず、完全lifecycle2/routing1/internal trace0を維持する。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
+
+| v85 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `wire-game-updates-v85.json` | 18,942 | `6b0639f47757e387c0ce79708d52ce29612ae7fabf5b8a899cabb694068222d5` |
+| `live-transition-witnesses-v85.json` | 17,471 | `a42161a2801c219bfcf4177707518b073774949b262ec1fbf6cece54cfcd095d` |

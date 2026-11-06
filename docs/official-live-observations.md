@@ -396,3 +396,14 @@ CPU2の同一batchでeligibleな守護神sourceはviewer1/Neptuneだけであり
 capture02は初期01の完全重複で除外し、新しいpostは03から採用した。原イベントでplayerIdが省略されている箇所を補記せず、役割と資源からの導出を分ける。本人slot6の再利用は新しい175コピー、CPU16/id1は残存・id2は使用済みではなく消費後の保留である。2状態×既存8seed＝16比較、新1観測で65/native59/record-only6・wire608。病気の一般率や初期抽選・server RNGを同定したとはしない。
 
 前のv82 UI-only例は別対局としてそのまま残し、今回の175やイベント列を遡及して補完しない。CPU16には応答せず通常退出し、ホーム復帰・Network Monitor終了を確認した。終局取得や完全lifecycleの増分は0、累計2のままである。
+
+
+## 作業世代v85：独立Chromiumで空応答と21＋74自己使用
+
+2026-11-06、headless Chromiumの新しい一時contextで生誕→2人・終末なしのCPU修行へ進んだ。通常Firefoxには触れていない。候補を探した準備対局は途中退出し、採用対局はviewer2/CPU1。最初の受信update1はCPU6/id4の1攻撃保留で、viewer2の両選択を空にして応答側main paneから確定するとHP40→39・GF2となった。footerの「許す」はsummary表示であり、そこへのクリックや一時選択/解除では更新は発生していない。
+
+次に21/id4と74/id9をこの順に選び、本人をtargetにして攻撃側main paneから確定した。追加本人応答なしに8被害でHP31、MP10/CP20保持、118/id4→200/id9補充、GF3/CPU44/id9の12攻撃待ちへ進んだ。[受信3状態](../data/official-v2/wire-game-updates-v85.json)と[2操作の記録](../data/official-v2/live-transition-witnesses-v85.json)を保存する。CPU26/id4はupdate2の在庫差分であり、省略されたgift eventを補わない。
+
+採用sourceは52185/35920 bytesの不変なHTTP response prefixで、どちらも保存時completed:false/capture_error:false。各20/5完全framesを厳密に解析し、Aのframe17とBのframe1/4（0-based）だけを採用、Aの別準備gameを除外する。全prefixのhashを残し、採用gameのfield省略・配列順・ghost行を匿名化以外は保持する。3状態×8seed＝24比較、新2完了操作で67/native61/record-only6・wire632。受信がframe境界で終わっていることをHTTP全体や対局の完了に読み替えない。CPU44未応答のまま通常退出し、メニュー復帰と一時ブラウザ終了を確認した。完全lifecycle2/routing1/internal trace0は維持する。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。

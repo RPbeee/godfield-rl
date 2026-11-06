@@ -3448,3 +3448,12 @@ Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 新1観測・16比較で65/native59/record-only6・wire608、完全lifecycle2/routing1/internal trace0は維持する。v82のUI-only記録は別対局のままであり、新postを当時の未知補充へ流用しない。今回はwire再生と根拠ラベルの更新で、通常抽選・病気の5%率・server RNGの同値性は確認していない。
 
 Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+
+## 作業世代v85：21＋74の直接自己使用を受信照合
+
+[新しい3受信状態](../data/official-v2/wire-game-updates-v85.json)は、viewer2がCPU6に空応答してHP40→39、その後21＋74を本人へ使用し8被害→実gift118/200→CPU44保留へ進む有限例である。追加の本人defendは無い。既存の列合成・消費・直接self・補充の処理と照合し、runtime69/S69/view67・ABI2は維持する。
+
+[ヘッドレス実測](official-headless-probe.md)で途中のHTTP受信prefixを取得し、完結したframeだけを採用した。native開始用のCPU6復元、CPU26の在庫delta、明示された二枚の補充を分け、公式の初期抽選・CPU方策・一般補充順やserver RNGの一致へは広げない。新2操作・24比較で67/native61/record-only6・wire632、完全lifecycle2/routing1/internal trace0。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。

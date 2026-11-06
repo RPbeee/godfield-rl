@@ -1,0 +1,548 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "observation_timestamp_note": "No per-action timestamp is inferred from prefix file timestamps or transport metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v84.json",
+  "method": "One fresh headless Chromium two-player,no-apocalypse CPU training game with three received states and two completed UI operations. Visible UI only;response-prefix capture is distinct from HTTP completion. Normal quit,home return and browser close were parent-confirmed.",
+  "roles": {
+    "viewer_player_id": 2,
+    "cpu_player_id": 1
+  },
+  "privacy": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "cpu",
+      "2": "viewer"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "authoritative_fixture": "wire-game-updates-v85.json",
+  "source_body_provenance": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 52185,
+      "response_prefix_sha256": "6ef0d9e7f4bd3b9a3180a191aab43b9846810828e735b344a8b6a4580a43d678",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 20,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 52185,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        17
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 35920,
+      "response_prefix_sha256": "981e54c131dfa455f81d005f3778c88370d023bbc6b45e24b784e67c7f0d6990",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 5,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 35920,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        1,
+        4
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "model_provenance": {
+    "6": {
+      "id": 6,
+      "imageName": "bronze-club",
+      "category": "weapons",
+      "atk": 1,
+      "price": 1,
+      "giftRate": 3,
+      "name": "銅のこん棒"
+    },
+    "26": {
+      "id": 26,
+      "imageName": "naginata-classic",
+      "category": "weapons",
+      "atk": 7,
+      "price": 3,
+      "giftRate": 8,
+      "name": "なぎなたクラシック"
+    },
+    "21": {
+      "id": 21,
+      "imageName": "bouncing-sword",
+      "category": "weapons",
+      "atk": 5,
+      "ability": "bounceWeapon",
+      "price": 10,
+      "giftRate": 7,
+      "name": "乱弾武剣"
+    },
+    "74": {
+      "id": 74,
+      "imageName": "mature-rubber-bow",
+      "category": "weapons",
+      "element": "wood",
+      "atk": 3,
+      "isPlusAtk": true,
+      "price": 6,
+      "giftRate": 1,
+      "name": "熟成ゴムの弓"
+    },
+    "118": {
+      "id": 118,
+      "imageName": "leather-clothes",
+      "category": "armor",
+      "def": 2,
+      "price": 2,
+      "giftRate": 10,
+      "name": "革の服"
+    },
+    "200": {
+      "id": 200,
+      "imageName": "heart-shell",
+      "category": "sundries",
+      "ability": "removeAllCurses",
+      "price": 15,
+      "giftRate": 6,
+      "name": "ハートの貝がら"
+    },
+    "44": {
+      "id": 44,
+      "imageName": "direct-smash-axe",
+      "category": "weapons",
+      "atk": 12,
+      "price": 4,
+      "giftRate": 4,
+      "name": "もろぶっこみアクス"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-bronze-club-empty-defense-headless",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_fixed_eight_seed_full_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 1,
+            "targetPlayerId": 2,
+            "itemModelIds": [
+              6
+            ]
+          }
+        ]
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "defend",
+        "selected_items": [],
+        "single_confirmation_observed": true,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 39,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": []
+      },
+      "received_event_actions": [
+        "useDefenseItems",
+        "dealDamage",
+        "advanceGF"
+      ],
+      "received_ordered_effects": [
+        {
+          "action": "useDefenseItems"
+        },
+        {
+          "damage": 1,
+          "action": "dealDamage"
+        },
+        {
+          "playerId": 2,
+          "action": "advanceGF"
+        }
+      ],
+      "catalog_arithmetic": {
+        "incoming_model": 6,
+        "incoming_atk": 1,
+        "defense": 0,
+        "viewer_final_hp": "40-1=39",
+        "mp_unchanged": 10,
+        "cp_unchanged": 20
+      },
+      "observation": "Viewer explicitly permits CPU6/id4 with zero defense. Received useDefenseItems has no items,dealDamage1 follows,and GF2 is viewer main. CPU26/id4 is an inventory-delta receipt,not a received gift event.",
+      "limits": "This finite received operation does not establish random selector distributions,unobserved CPU receipt ordering,server RNG equivalence,death/revival behavior or a complete lifecycle. Physical native tokens do not establish server-slot identity. The original useDefenseItems event omits items;the empty selected list in confirmed_choice is an observation-derived description,not a raw event amendment."
+    },
+    {
+      "id": "training-gf2-self-bouncing-sword-plus-mature-rubber-bow-headless",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_fixed_eight_seed_full_projection",
+      "before": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 39,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": []
+      },
+      "confirmed_choice": {
+        "actor": 2,
+        "kind": "play",
+        "actual_models": [
+          21,
+          74
+        ],
+        "displayed_models": [
+          21,
+          74
+        ],
+        "item_ids": [
+          4,
+          9
+        ],
+        "target": 2,
+        "single_confirmation_observed": true,
+        "additional_self_defense_observed": false,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 3,
+        "server_update_count": 3,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 8,
+            "zero_placeholder_rows": 1
+          },
+          {
+            "id": 2,
+            "role": "viewer",
+            "hp": 31,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": [
+          {
+            "targetPlayerId": 2,
+            "playerId": 1,
+            "itemModelIds": [
+              44
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "items": [
+            {
+              "modelId": 21,
+              "id": 4
+            },
+            {
+              "modelId": 74,
+              "id": 9
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 2,
+          "action": "setTargetPlayer"
+        },
+        {
+          "damage": 8,
+          "action": "dealDamage"
+        },
+        {
+          "playerId": 2,
+          "action": "gift",
+          "item": {
+            "modelId": 118,
+            "id": 4
+          }
+        },
+        {
+          "action": "gift",
+          "item": {
+            "id": 9,
+            "modelId": 200
+          },
+          "playerId": 2
+        },
+        {
+          "playerId": 1,
+          "action": "advanceGF"
+        },
+        {
+          "items": [
+            {
+              "modelId": 44,
+              "id": 9
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 2,
+          "action": "setTargetPlayer"
+        }
+      ],
+      "catalog_arithmetic": {
+        "ordered_model_atk": "5+3=8",
+        "viewer_final_hp": "39-8=31",
+        "mp_unchanged": 10,
+        "cp_unchanged": 20
+      },
+      "observation": "Ordered21/id4 plus74/id9 explicitly targets viewer2. Received damage8 and gifts118/id4 then200/id9 precede GF3 and CPU44/id9 pending. No extra self-defense is supplied.",
+      "limits": "This finite received operation does not establish random selector distributions,unobserved CPU receipt ordering,server RNG equivalence,death/revival behavior or a complete lifecycle. Physical native tokens do not establish server-slot identity."
+    }
+  ],
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2,
+    "status": "passed",
+    "passed": true,
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2,
+      3
+    ],
+    "received_checkpoints_per_replay": 3,
+    "baseline_cumulative_wire_checkpoint_comparisons": 608,
+    "initial_received_snapshot_authoritative": true,
+    "quiescent_initial_scene_reconstructed": true,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "seed_search_skip_or_exclusion": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "server_receipt_order_from_inventory_delta_proven": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Reconstruct the known CPU6/id4 prelaunch copy,launch it to received checkpoint1,apply empty defense and explicit CPU26 delta to checkpoint2,then execute viewer ordered21+74 selfuse,supply received118 then200,and launch CPU44/id9 to checkpoint3. Compare all received physical model/fake/used rows,resources,GF/owner,pending and slot mappings. No damage,outgoing RPC,server RNG or unobserved selector result is fabricated.",
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v85",
+    "local_test_results": {
+      "status": "passed",
+      "release_ctest_passed": 157,
+      "release_ctest_total": 157,
+      "release_ctest_seconds": 111.24,
+      "asan_ubsan_focused_passed": 1,
+      "asan_ubsan_focused_total": 1,
+      "asan_ubsan_seconds": 1.29,
+      "asan_ubsan_targets": [
+        "wire"
+      ],
+      "webchannel_parser_tests_passed": 8,
+      "webchannel_parser_tests_total": 8,
+      "webchannel_parser_seconds": 0.548,
+      "headless_probe_node_syntax_check_passed": true,
+      "headless_live_cpu_probe_passed": true,
+      "wire_checkpoint_comparisons_passed": 24,
+      "native_registered_callbacks": 259,
+      "python_test_methods": 187,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Full Release suite,standalone eight parser tests,and only the changed wire target under Debug ASan/UBSan. No new core,C API,Python or full-suite sanitizer execution is claimed. Elapsed times are not a version-to-version speed comparison."
+    },
+    "received_checkpoint_comparisons": 24,
+    "cumulative_wire_checkpoint_comparisons": 632
+  },
+  "source_audit": {
+    "strict_utf8_and_exact_utf16_length_frames": true,
+    "selected_frame_indices_zero_based": {
+      "prefix-A": [
+        17
+      ],
+      "prefix-B": [
+        1,
+        4
+      ]
+    },
+    "selected_games_match_sanitized_literals": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "excluded_preparation_game_has_different_document": true,
+    "raw_prefix_modes_0600": true,
+    "received_inventory_rows_total": 54,
+    "positive_inventory_rows_total": 52,
+    "zero_placeholder_rows_total": 2,
+    "field_omissions_and_array_order_preserved": true,
+    "build_or_test_performed_by_record_author": false,
+    "independent_parent_sanitized_game_comparisons_passed": 3,
+    "independent_parent_received_inventory_array_comparisons_passed": 5
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 3,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 2,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "selected_response_prefixes": 2,
+    "excluded_preparation_game_changes": 1
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu44_response_observed": false,
+    "cpu44_result_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "browser_closed": true,
+    "firefox_touched": false,
+    "exit_kind": "normal quit while CPU44 response pending,home return,then fresh browser close",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 2,
+  "cumulative_completed_public_transition_witnesses": 67,
+  "new_native_projection_covered_completed_witnesses": 2,
+  "cumulative_native_projection_covered_completed_witnesses": 61,
+  "new_record_only_completed_witnesses": 0,
+  "cumulative_record_only_completed_witnesses": 6,
+  "coverage_change_pending_test_success": false,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "native_coverage_note": "Two new completed observations bring65 to67,conditional native coverage59 to61,and wire comparisons608 to632. Old record-only6,received lifecycles2,routing-only1 and internal traces0 remain unchanged. The unchanged eight seeds require no fitted random branch. Failed footer clicks,selection cancellation and quit add no completed observation. No prior record is modified.",
+  "new_wire_checkpoint_comparisons": 24,
+  "cumulative_wire_checkpoint_comparisons": 632
+}

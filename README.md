@@ -3174,3 +3174,12 @@ Release CTest157/157（64.93秒）、Debug ASan/UBSanのcore/C API/wire3対象3/
 固定8seedで16比較を追加し、累計65観測/native59/記録のみ6・wire608です。前回v82の画面のみの記録は別対局として保持し、未知の補充を今回の175で埋めません。実行挙動とrules69/Snapshot69/view67・ABI2は維持し、根拠ラベルだけを追記します。
 
 Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSan1/1（1.06秒）が通過した。native259 callbacks・Python187 unique methodsと実行挙動は維持し、両buildのwarning/error0、diff-check正常。全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。
+
+
+## v85：ヘッドレスで公式実測を継続
+
+[独立Chromiumの操作・受信保存ツール](docs/official-headless-probe.md)を追加しました。Firefoxの前面復帰は不要です。受信中のHTTP本文をprefixとして保存し、完全に届いたWebChannel frameだけを解析します。通常ブラウザのプロファイルや実行器の依存は増やしません。
+
+公式CPU戦で空応答による1被害と、乱弾武剣21＋熟成ゴムの弓74の自己使用による8被害を取得しました。[3受信状態](data/official-v2/wire-game-updates-v85.json)を固定8seedで24比較し、累計67観測/native61/記録のみ6・wire632です。自己使用後の実補充118/200を供給し、次のCPU44は未応答のまま終了します。rules69/Snapshot69/view67・ABI2と実行挙動を維持します。
+
+Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
