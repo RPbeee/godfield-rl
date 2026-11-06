@@ -652,3 +652,20 @@ Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBS
 | --- | ---: | --- |
 | `wire-game-updates-v85.json` | 18,942 | `6b0639f47757e387c0ce79708d52ce29612ae7fabf5b8a899cabb694068222d5` |
 | `live-transition-witnesses-v85.json` | 17,471 | `a42161a2801c219bfcf4177707518b073774949b262ec1fbf6cece54cfcd095d` |
+
+
+## v86：83の実測と既知bounceの解析修正
+
+[初期と使用後の2受信状態](wire-game-updates-v86.json)と[新1操作](live-transition-witnesses-v86.json)を保存する。viewer1の83/id6単品selfで5被害・HP35、MP10/CP20維持、26/id6補充、CPU223/id8保留を取得した。CPU223はused保持・MP5・ghost1、2状態は37在庫行（positive36＋ghost1）である。
+
+可視手札探索は最大12試行、5試行目で停止した。初期prefixは前4prepを含む128041 bytes/51framesのframe50だけ、postは20318 bytes/4framesのframe2だけを採用し、全prefix hash・省略field・配列順を保持する。受信はHTTP途中prefixであり、CPU223結果や完全終局は未取得。新1件・16比較で68/native62/record-only6・wire648、69/S69/view67・ABI2と実行挙動は維持する。
+
+[公開JS/JAの再取得](live-review-v86.json)は既存pinと一致した。pinned receiverの既知 `bounce` だけparserへ追加し、未知語の拒否を保った9テストをCTestへ登録した。21の根拠にも既存v85の複合rawを追記し、旧v74単品の欠rawや過去fixtureは変更しない。
+
+Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。
+
+| v86 artifact | bytes | SHA256 |
+| --- | ---: | --- |
+| `live-review-v86.json` | 1,908 | `9f3103431b1c96a8afac61981b2df696edfb75f9038e5b216173c2f5a8653ab7` |
+| `wire-game-updates-v86.json` | 13,720 | `dfc1263063711d8745b0c301500f9a58b8c7aa1285eac0bce75ba4a550cb18b2` |
+| `live-transition-witnesses-v86.json` | 14,289 | `c55b3c77db1ccc48f8d3aa8ea5b95154824a94b25670dd6d784ae12d85042186` |

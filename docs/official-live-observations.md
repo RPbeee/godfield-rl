@@ -407,3 +407,16 @@ capture02は初期01の完全重複で除外し、新しいpostは03から採用
 採用sourceは52185/35920 bytesの不変なHTTP response prefixで、どちらも保存時completed:false/capture_error:false。各20/5完全framesを厳密に解析し、Aのframe17とBのframe1/4（0-based）だけを採用、Aの別準備gameを除外する。全prefixのhashを残し、採用gameのfield省略・配列順・ghost行を匿名化以外は保持する。3状態×8seed＝24比較、新2完了操作で67/native61/record-only6・wire632。受信がframe境界で終わっていることをHTTP全体や対局の完了に読み替えない。CPU44未応答のまま通常退出し、メニュー復帰と一時ブラウザ終了を確認した。完全lifecycle2/routing1/internal trace0は維持する。
 
 Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v86：可視探索で得た83の単品自己使用
+
+2026-11-06、独立headless Chromiumの[有限探索](official-headless-probe.md)を最大12試行で開始し、5試行目に83の可視画像を検出して停止した。前4gameは通常退出とメニュー復帰を確認し、採用対局の手札は操作せずrootへ引き継いだ。別contextの手動準備1gameも通常退出済みであり、これらを新完了操作に数えない。
+
+viewer1/CPU2・終末なし・双方40/10/20から、83/id6だけを選び本人をtargetにして主動作ペインで確定した。追加本人応答なしで5被害→HP35、MP10/CP20維持、実26/id6補充・GF2/CPU223待ちを確認した。[初期と使用後](../data/official-v2/wire-game-updates-v86.json)では use83→target1→damage5→gift26→advance2→CPU223/id8→target1 が並ぶ。damageイベントのplayerId省略は原文のまま保持する。
+
+初期prefixAは128041 bytes/51framesのframe50（0-based）のみ採用し、前4prepを除外する。postprefixBは20318 bytes/4framesのframe2を採用する。両者は保存時HTTP未完で、末尾不足0byteでも全HTTP本文や完全対局とは呼ばない。CPU223はused保持され、全2状態37行（positive36＋ghost1）を確認する。追加keepaliveだけのprefixを新状態に数えない。CPU223には応答せず通常退出・メニュー復帰・ブラウザ終了を確認した。
+
+新1操作・16比較で68/native62/record-only6・wire648。完全lifecycle2/routing1/internal trace0を維持する。34/216や低HP・死亡、選択条件のない自然配布率は今回の記録から確定しない。
+
+Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。

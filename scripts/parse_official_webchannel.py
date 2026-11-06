@@ -36,7 +36,7 @@ GAME_STRINGS = frozenset("""
     disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
-    nextAttack reflect phenomenon setCurseOfEverybody
+    nextAttack bounce reflect phenomenon setCurseOfEverybody
     cold fever hell heaven darkcloud dream fog flash
     mercury venus earth mars jupiter saturn uranus neptune pluto moon
     viewer cpu

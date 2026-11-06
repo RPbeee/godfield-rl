@@ -261,6 +261,8 @@ if(BUILD_TESTING)
     PASS_REGULAR_EXPRESSION "sale_revival_steps=1([^0-9]|$)")
   find_package(Python3 QUIET COMPONENTS Interpreter)
   if(Python3_Interpreter_FOUND)
+    add_test(NAME official_webchannel_parser COMMAND ${Python3_EXECUTABLE}
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_official_webchannel_parser.py)
     add_test(NAME official_catalog_integrity COMMAND ${Python3_EXECUTABLE}
       ${CMAKE_CURRENT_SOURCE_DIR}/data/official-v2/generate.py --check)
     add_test(NAME official_v1_archive_integrity COMMAND ${Python3_EXECUTABLE}

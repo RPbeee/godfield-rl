@@ -2288,3 +2288,14 @@ Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSa
 新対局のraw1はviewer2に対するCPU6の攻撃保留、raw2は空応答後HP39、raw3は21/id4＋74/id9自己使用後HP31とCPU44保留である。未取得のCPU6使用前はイベントからnative initializerへ戻し、rawそのものへ補記しない。CPU26/id4は在庫delta、viewer118/id4→200/id9は明示giftとして供給する。3状態×既存8固定seed＝24比較を追加し、67/native61/record-only6・wire632。runtime69/S69/view67・ABI2、完全lifecycle2/routing1/internal trace0は維持する。失敗したfooterクリックや選択解除、途中退出は新しい完了操作へ数えない。
 
 Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v86：83の有限実測と探索の上限
+
+可視手札だけを最大12試行まで探すwrapperを追加した。各試行の2人・終末なしと通常退出を確認し、候補が出た時点で手札へ入力せず対話へ戻す。今回は5試行目の83で停止し、1単品selfを完了した。先行4準備gameと別の手動準備1gameは完了観測へ加算せず、選別した手札から配布率を推定しない。
+
+本人40/10/20→83/id6自己使用→5被害→26/id6明示gift→CPU223/id8保留を受信した。CPU223はMP5を支払いusedで保持され、ghost1が追加される。2受信状態の手札は37行（positive36＋ghost1）で、追加本人防御は無い。固定8seed×2状態＝16比較、新1件で68/native62/record-only6・wire648、完全lifecycle2/routing1/internal trace0を維持する。69/S69/view67・ABI2と算術は変更せず、83と既存v85複合21＋74の根拠表記を更新する。
+
+公開JS/JAの[再取得記録](../data/official-v2/live-review-v86.json)は既存pinと一致した。公開receiverが認識する `bounce` をprivate parserが拒否する欠落だけを修正し、未知語の拒否を保つ9テストをCTestへ登録する。合成decoder回帰は公式対局の新観測ではない。
+
+Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。

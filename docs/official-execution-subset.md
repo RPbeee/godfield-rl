@@ -3457,3 +3457,12 @@ Release CTest157/157（37.14秒）、変更したwireテストのDebug ASan/UBSa
 [ヘッドレス実測](official-headless-probe.md)で途中のHTTP受信prefixを取得し、完結したframeだけを採用した。native開始用のCPU6復元、CPU26の在庫delta、明示された二枚の補充を分け、公式の初期抽選・CPU方策・一般補充順やserver RNGの一致へは広げない。新2操作・24比較で67/native61/record-only6・wire632、完全lifecycle2/routing1/internal trace0。
 
 Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v86：同trait推定83を実測で照合
+
+[83単品selfの初期1→更新2](../data/official-v2/wire-game-updates-v86.json)を、通常Command・実26の外部授与・CPU223の通常起動で再生する。本人HP40→35・MP10/CP20維持で、自己responseを挿入しない。CPU223はused保持・MP5・予約補充1のまま未応答とする。受信37行のphysical tokenとserver slotを分けて照合する。
+
+8固定seedで16比較、新1件により68/native62/record-only6・wire648。算術・経路・69/S69/view67・ABI2は維持し、83とv85複合21＋74の根拠ラベルだけ更新する。通常の抽選分布・server RNGや、34/216・低HP境界の新証拠とはしない。
+
+Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。

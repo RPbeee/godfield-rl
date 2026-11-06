@@ -2267,3 +2267,12 @@ CPU191の置換207/id8は受信在庫の差分で確認し、CPUgiftイベント
 これは途中のHTTP応答prefixから完全frameを抽出した記録で、全HTTP本文や完全start→endではない。新2観測で67/native61/record-only6・wire632、69/S69/view67・ABI2を維持する。通常Firefoxの前面復帰を要しない[実測手順](official-headless-probe.md)へ切り替えた。
 
 Release CTest157/157（111.24秒）、変更したwireテストのDebug ASan/UBSan1/1（1.29秒）、新しい受信parserの独立8/8テスト（0.548秒）が通過した。Node構文検査・実headless CPU操作・両buildのwarning/error0・diff-checkも確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite・新しいcore/C API SAN・Python SANの実行とは区別する。経過時間を版間の速度比較には使わない。
+
+
+## 作業世代v86：83の直接selfを公式受信で確認
+
+83魔水のワンドを単品で本人へ使うと、追加防御なしで5被害、HP40→35・MP10/CP20維持、通常26補充、次CPU223の保留へ進んだ。setElement同traitからの83の推定を実測済みにする。CPU223はMP5支払い・used保持・ghost1という受信状態までで、暗雲の付与結果は取得していない。
+
+新1件・2状態×8seed＝16比較で68/native62/record-only6・wire648。69/S69/view67・ABI2と実行挙動は維持する。21の根拠表記にも別対局v85複合のraw useを追記し、旧v74単品の欠rawを補わない。公開JS/JAの再取得はpinと一致し、既知の受信action `bounce` のparser不足だけを修正した。
+
+Release CTest158/158（132.11秒）、Debug ASan/UBSanのcore/C API/wire3対象3/3（30.19秒）が通過した。新たに登録したparser対象は9テストを含み、別の単独実行も9/9（0.484秒）。finder/probe構文・不正CLI8件の起動前拒否・実探索からの引継ぎ・両buildのwarning/error0・diff-checkを確認した。native259 callbacks/Python187 Match methodsと実行挙動は維持し、全SAN suite/Python SANやfinder全失敗・中断経路の検証とは区別する。経過時間を版間の速度比較には使わない。

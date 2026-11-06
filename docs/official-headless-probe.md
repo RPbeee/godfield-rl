@@ -10,6 +10,19 @@ node scripts/official_headless_probe.mjs \
   --out-dir /tmp/godfield-private-probe
 ```
 
+特定の初期手札を探す場合は、同じprobeを操作する [有限探索wrapper](../scripts/find_official_training_hand.mjs) を使える。
+
+```sh
+node scripts/find_official_training_hand.mjs \
+  --playwright /absolute/path/to/node_modules/playwright-core \
+  --out-dir /tmp/godfield-private-search \
+  --max-trials 12 --targets 34,83,216
+```
+
+`--max-trials` は1〜12、既定12。`--targets` は34/83/216から指定し、既定は3種全て。各試行で2人・終末なしの表示設定を確認し、GF1で二回同じ配置になった可視9枚だけを検索する。不一致なら通常退出とメニュー復帰を確認してから次へ進む。試行は退出を含め90秒、各commandは25秒以内で、不明な画面や退出失敗をskipして続行しない。
+
+候補では手札に触れず、prefixと画像を保存して同じブラウザの対話操作へ戻る。試行上限ではメニューへ戻る。探索中の `{"kind":"state"}` は直近の簡潔な探索状況、`{"kind":"abort"}` は直列処理の境界で探索を中止する要求である。探索終了後は通常のprobeのJSONLを渡せる。初期手札を条件に選んだ試行なので、公式の配布率や自然対局の発生率の推定には使わない。
+
 標準入力へJSONを1行ずつ渡す。`state` は画面の本文・表示入力欄・可視画像のpathと矩形を返す。操作後は新しい `state` や `waitText` で結果を確認する。クリックが成功したという応答だけでゲーム操作の受理を認定しない。
 
 ```json

@@ -1,0 +1,420 @@
+{
+  "schema_version": 1,
+  "schema": "official-live-transition-witnesses-v1",
+  "recorded_on_jst": "2026-11-06",
+  "observed_on_jst": "2026-11-06",
+  "observation_timestamp_note": "No per-action timestamp is inferred from prefix file timestamps or transport metadata.",
+  "url": "https://godfield.net/",
+  "prior_record": "live-transition-witnesses-v85.json",
+  "method": "Bounded headless visible-hand search stops on trial5 after seeing83. One single-card self command was then confirmed through the same child browser and two authoritative received states. CPU223 remained unanswered before normal quit,home return and browser close.",
+  "roles": {
+    "viewer_player_id": 1,
+    "cpu_player_id": 2
+  },
+  "privacy": {
+    "removed": [
+      "all original names",
+      "userId",
+      "updatedAt"
+    ],
+    "replacement_names": {
+      "1": "viewer",
+      "2": "cpu"
+    },
+    "retained": "Original numeric game/player/slot/model IDs,event payloads,array order,positive/zero rows,optional-field omissions and used/fake presence.",
+    "excluded": [
+      "document paths",
+      "room identifiers",
+      "transport tokens",
+      "HTTP headers",
+      "request payloads",
+      "HAR",
+      "raw response prefixes",
+      "unselected preparation-game content"
+    ],
+    "raw_source_retention": "Private mode0600 temporary files only."
+  },
+  "authoritative_fixture": "wire-game-updates-v86.json",
+  "source_body_provenance": [
+    {
+      "label": "prefix-A",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 128041,
+      "response_prefix_sha256": "fc055e1b4ce9ddcadba5c4646c1e8127ce731d0aac782aa0462fe3c3a7731e3f",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 51,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 128041,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        50
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    },
+    {
+      "label": "prefix-B",
+      "source_kind": "response_prefix",
+      "response_prefix_bytes": 20318,
+      "response_prefix_sha256": "f285ded2a1b1ab089c18370226b2d5a1fd7bf3a20b2c4bc9f37425aa16e7088e",
+      "http_response_completed": false,
+      "capture_error": false,
+      "webchannel_complete_frame_count": 4,
+      "frame_length_unit": "UTF-16 code units in strict UTF-8 decoded text",
+      "complete_frame_end_byte": 20318,
+      "tail_bytes": 0,
+      "utf8_pending_bytes": 0,
+      "selected_frame_indices_zero_based": [
+        2
+      ],
+      "framing_boundary_complete": true,
+      "whole_http_response_claimed": false
+    }
+  ],
+  "model_provenance": {
+    "83": {
+      "id": 83,
+      "imageName": "wand-of-mystic-water",
+      "category": "weapons",
+      "element": "water",
+      "atk": 5,
+      "isPlusAtk": true,
+      "ability": "setElement",
+      "price": 15,
+      "giftRate": 1,
+      "name": "魔水のワンド"
+    },
+    "26": {
+      "id": 26,
+      "imageName": "naginata-classic",
+      "category": "weapons",
+      "atk": 7,
+      "price": 3,
+      "giftRate": 8,
+      "name": "なぎなたクラシック"
+    },
+    "223": {
+      "id": 223,
+      "imageName": "dark-cloud",
+      "category": "miracles",
+      "element": "darkness",
+      "ability": "addCurse",
+      "curse": "darkcloud",
+      "cost": 5,
+      "giftRate": 1,
+      "name": "＜暗雲＞"
+    }
+  },
+  "cases": [
+    {
+      "id": "training-gf1-self-wand-of-mystic-water-headless",
+      "native_projection_covered": true,
+      "native_projection_status": "passed_fixed_eight_seed_full_projection",
+      "before": {
+        "gf": 1,
+        "server_update_count": 1,
+        "owner_player_id": 1,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          }
+        ],
+        "pending_attacks": []
+      },
+      "confirmed_choice": {
+        "actor": 1,
+        "kind": "play",
+        "actual_model": 83,
+        "displayed_model": 83,
+        "item_id": 6,
+        "target": 1,
+        "single_card": true,
+        "single_confirmation_observed": true,
+        "additional_self_defense_observed": false,
+        "outgoing_wire_command_captured": false
+      },
+      "after": {
+        "gf": 2,
+        "server_update_count": 2,
+        "owner_player_id": 2,
+        "authoritative_received": true,
+        "visibility": "privileged received state,not player-policy input",
+        "players": [
+          {
+            "id": 1,
+            "role": "viewer",
+            "hp": 35,
+            "mp": 10,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 0
+          },
+          {
+            "id": 2,
+            "role": "cpu",
+            "hp": 40,
+            "mp": 5,
+            "cp": 20,
+            "curses": [],
+            "positive_model_copies": 9,
+            "zero_placeholder_rows": 1
+          }
+        ],
+        "pending_attacks": [
+          {
+            "playerId": 2,
+            "targetPlayerId": 1,
+            "itemModelIds": [
+              223
+            ]
+          }
+        ]
+      },
+      "received_event_actions": [
+        "useAttackItems",
+        "setTargetPlayer",
+        "dealDamage",
+        "gift",
+        "advanceGF",
+        "useAttackItems",
+        "setTargetPlayer"
+      ],
+      "received_ordered_effects": [
+        {
+          "action": "useAttackItems",
+          "items": [
+            {
+              "modelId": 83,
+              "id": 6
+            }
+          ]
+        },
+        {
+          "action": "setTargetPlayer",
+          "playerId": 1
+        },
+        {
+          "action": "dealDamage",
+          "damage": 5
+        },
+        {
+          "action": "gift",
+          "playerId": 1,
+          "item": {
+            "modelId": 26,
+            "id": 6
+          }
+        },
+        {
+          "playerId": 2,
+          "action": "advanceGF"
+        },
+        {
+          "items": [
+            {
+              "modelId": 223,
+              "id": 8
+            }
+          ],
+          "action": "useAttackItems"
+        },
+        {
+          "playerId": 1,
+          "action": "setTargetPlayer"
+        }
+      ],
+      "catalog_arithmetic": {
+        "single83_water_attack": 5,
+        "viewer_final_hp": "40-5=35",
+        "viewer_mp_unchanged": 10,
+        "viewer_cp_unchanged": 20,
+        "cpu223_mp_cost": 5,
+        "cpu_mp_after_launch": "10-5=5"
+      },
+      "following_cpu_launch": {
+        "model": 223,
+        "item_id": 8,
+        "source": 2,
+        "target": 1,
+        "retained_used_miracle": true,
+        "response_observed": false,
+        "body_resolved": false,
+        "result_observed": false
+      },
+      "observation": "One actual83 self-use is followed by5 damage,26/id6 gift and GF2. No extra viewer defense is supplied. CPU223/id8 then launches with used retention and MP5,waiting on viewer1.",
+      "limits": "This is a finite83 singleton self route,not a general proof of compounds,all set-element behavior,selector distributions or server RNG. The CPU223 body/response and terminal game outcome are unobserved."
+    }
+  ],
+  "search_context": {
+    "bounded_max_trials": 12,
+    "actual_trials_started": 5,
+    "matched_trial": 5,
+    "requested_targets": [
+      34,
+      83,
+      216
+    ],
+    "matched_visible_target": 83,
+    "match_source": "visible hand image path only",
+    "hidden_true_cpu_hand_used_for_search": false,
+    "excluded_preparation_games": 4,
+    "preparation_games_published": false,
+    "official_card_distribution_estimated": false,
+    "same_child_interactive_after_match": true,
+    "normal_quit_home_and_browser_close_confirmed": true,
+    "browser_session_exit_code": 0
+  },
+  "native_projection_validation": {
+    "ruleset": "official-execution-subset-v69",
+    "snapshot_version": 69,
+    "observe_schema": "official-execution-view-v67",
+    "c_abi_version": 2,
+    "status": "passed",
+    "passed": true,
+    "fixed_replays": 8,
+    "fixed_seeds": [
+      0,
+      1,
+      2,
+      7,
+      42,
+      1337,
+      1000000000,
+      18446744073709551614
+    ],
+    "received_updates_compared": [
+      1,
+      2
+    ],
+    "received_checkpoints_per_replay": 2,
+    "baseline_cumulative_wire_checkpoint_comparisons": 632,
+    "initial_received_snapshot_authoritative": true,
+    "quiescent_initial_scene_reconstructed": false,
+    "initial_model_generation_reproduced": false,
+    "random_seed_fitting": false,
+    "seed_search_skip_or_exclusion": false,
+    "native_decisions_identified_with_server_update_count": false,
+    "local_intermediate_checks_counted_as_received_checkpoint_comparisons": false,
+    "scope": "Load authoritative initial inventories and GF1 owner1,execute single83 self,supply actual26,and execute received CPU223/id8 through its pending response. Compare all physical model/fake/used rows,resources,GF/owner,slot mappings,MP cost and retained223. No damage or server random seed is supplied to force agreement.",
+    "test_source": "tests/official_wire_trace_test.cpp",
+    "test_namespace": "v86",
+    "local_test_results": {
+      "status": "passed",
+      "release_ctest_passed": 158,
+      "release_ctest_total": 158,
+      "release_ctest_seconds": 132.11,
+      "release_includes_official_webchannel_parser": true,
+      "asan_ubsan_focused_passed": 3,
+      "asan_ubsan_focused_total": 3,
+      "asan_ubsan_seconds": 30.19,
+      "asan_ubsan_targets": [
+        "core",
+        "C API",
+        "wire"
+      ],
+      "webchannel_parser_tests_passed": 9,
+      "webchannel_parser_tests_total": 9,
+      "standalone_parser_seconds": 0.484,
+      "node_probe_and_finder_syntax_checks_passed": true,
+      "bounded_finder_live_candidate_handoff_passed": true,
+      "bounded_finder_live_candidate_trial": 5,
+      "bounded_finder_live_candidate_model": 83,
+      "finder_invalid_cli_cases_rejected_before_browser_creation": 8,
+      "wire_checkpoint_comparisons_passed": 16,
+      "native_registered_callbacks": 259,
+      "python_test_methods": 187,
+      "final_build_compile_warnings": 0,
+      "final_build_compile_errors": 0,
+      "scope": "Full Release suite including the offline parser;Debug ASan/UBSan focused core,C API and wire. No full sanitizer suite or Python sanitizer run is claimed. Finder CLI and live candidate handoff checks do not prove every error or abort path. Elapsed times are not a version-to-version speed comparison."
+    },
+    "received_checkpoint_comparisons": 16,
+    "cumulative_wire_checkpoint_comparisons": 648
+  },
+  "source_audit": {
+    "strict_utf8_and_exact_utf16_length_frames": true,
+    "selected_frame_indices_zero_based": {
+      "prefix-A": [
+        50
+      ],
+      "prefix-B": [
+        2
+      ]
+    },
+    "selected_games_match_sanitized_literals": true,
+    "same_game_bearing_document_confirmed_privately": true,
+    "excluded_four_preparation_documents_distinct_from_selected_game": true,
+    "raw_prefix_modes_0600": true,
+    "received_inventory_rows_total": 37,
+    "positive_inventory_rows_total": 36,
+    "zero_placeholder_rows_total": 1,
+    "field_omissions_and_array_order_preserved": true,
+    "build_or_test_performed_by_record_author": false,
+    "independent_parent_sanitized_game_comparisons_passed": 2,
+    "independent_parent_received_inventory_array_comparisons_passed": 4
+  },
+  "capture_counts": {
+    "curated_training_games": 1,
+    "authoritative_game_snapshots": 2,
+    "initial_authoritative_game_snapshots": 1,
+    "bounded_authoritative_game_update_batches": 1,
+    "complete_received_game_update_sequences": 0,
+    "captured_full_backend_event_traces": 0,
+    "outgoing_command_payloads_captured": 0,
+    "selected_response_prefixes": 2,
+    "excluded_preparation_game_changes": 4,
+    "excluded_same_post_keepalive_variant": true
+  },
+  "session_end_observation": {
+    "terminal_received": false,
+    "cpu223_response_observed": false,
+    "cpu223_result_observed": false,
+    "training_exit_confirmed": true,
+    "home_menu_return_confirmed": true,
+    "browser_closed": true,
+    "firefox_touched": false,
+    "exit_kind": "normal quit while CPU223 response pending,home return,then fresh browser close",
+    "quit_counted_as_completed_operation": false,
+    "quit_counted_as_complete_received_lifecycle": false
+  },
+  "new_completed_public_transition_witnesses": 1,
+  "cumulative_completed_public_transition_witnesses": 68,
+  "new_native_projection_covered_completed_witnesses": 1,
+  "cumulative_native_projection_covered_completed_witnesses": 62,
+  "new_record_only_completed_witnesses": 0,
+  "cumulative_record_only_completed_witnesses": 6,
+  "coverage_change_pending_test_success": false,
+  "new_routing_only_observations": 0,
+  "cumulative_routing_only_observations": 1,
+  "new_complete_received_game_update_sequences": 0,
+  "cumulative_complete_received_game_update_sequences": 2,
+  "captured_full_server_event_traces": 0,
+  "runtime_behavior_schema_or_api_change_required": false,
+  "provenance_descriptor_only_change": true,
+  "official_full_simulator_equivalence_established": false,
+  "record_status": "final",
+  "native_coverage_note": "New83 self-use increases completed observations67 to68,conditional native coverage61 to62,and wire comparisons632 to648. Old record-only6,lifecycles2,routing1/internaltrace0 remain unchanged. Four automatic preparation games,one separate manual preparation game,UI selections,post keepalive variants and normal quit add no completed operation. All eight unchanged seeds match without fitted outcomes. No prior fixture is modified.",
+  "new_wire_checkpoint_comparisons": 16,
+  "cumulative_wire_checkpoint_comparisons": 648
+}

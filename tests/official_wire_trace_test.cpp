@@ -1685,13 +1685,72 @@ void replay(std::uint64_t seed) {
 }
 }
 
+// v86: a separate headless game directly observes the previously generalized
+// setElement83 self route. Both initial hands are received, not generated or
+// fitted. The resulting26 is an explicit gift; the following223 is still
+// unanswered, so no DarkCloud application or downstream effect is inferred.
+namespace v86 {
+constexpr std::array<ReceivedSlot,9> initial_viewer{{{1,192},{2,63},{3,80},{4,195},{5,4},{6,83},{7,160},{8,21},{9,195}}};
+constexpr std::array<ReceivedSlot,9> initial_cpu{{{1,192},{2,195},{3,38},{4,193},{5,60},{6,197},{7,114},{8,223},{9,218}}};
+constexpr std::array<ReceivedSlot,9> after_viewer{{{1,192},{2,63},{3,80},{4,195},{5,4},{7,160},{8,21},{9,195},{6,26}}};
+constexpr std::array<ReceivedSlot,10> after_cpu{{{1,192},{2,195},{3,38},{4,193},{5,60},{6,197},{7,114},{9,218},{8,223,0,true},{0,0}}};
+constexpr std::array checkpoints{
+    ReceivedCheckpoint{1,1,1,{{{1,40,10,20,false,initial_viewer},{2,40,10,20,false,initial_cpu}}}},
+    ReceivedCheckpoint{2,2,2,{{{1,35,10,20,false,after_viewer},{2,40,5,20,false,after_cpu}}},223}
+};
+void replay(std::uint64_t seed) {
+    MatchConfig config;config.initial_hand=0;config.external_artifacts=true;config.max_decisions=64;
+    Match game(config);SnapshotState state;state.gf=1;SlotMap slots;
+    for(std::size_t seat=0;seat<2;++seat){
+        PlayerState player;player.id=seat+1;
+        for(const auto& row:seat?initial_cpu:initial_viewer){
+            const auto token=1000*player.id+row.slot;slots[{player.id,row.slot}]=token;
+            player.items.push_back({token,row.model,{},false});
+        }
+        state.players.push_back(std::move(player));
+    }
+    game.load_scene(std::move(state),1,seed);compare_checkpoint(game,slots,checkpoints[0]);
+    const Command self{1,CommandKind::play,{consumed_slot(slots,1,6)},1};
+    check(game.legal(self),"v86 raw83 is legal as one explicit self command");
+    (void)game.step(self);roundtrip(game);
+    const auto& body=game.snapshot();
+    check(body.decisions==1&&body.phase==MatchPhase::grant&&!body.actor&&body.pending_grant==1
+          &&body.gifts==std::vector<std::uint32_t>{1,0}&&body.queue.empty()
+          &&body.state.players[0].hp==35&&body.state.players[0].mp==10&&body.state.players[0].cp==20
+          &&body.state.players[0].items.size()==8&&body.state.players[0].curses.empty()
+          &&body.state.players[1].hp==40&&body.rng==seed&&!body.last_tick,
+          "v86 self83 deals five at zero defense in one decision before its separate ordinary receipt");
+    v64::receipt(game,slots,1,6,26);
+    // Miracle223 retains its physical token as used and reserves one gift. Its
+    // pending addCurse frame is derived from catalog metadata, not raw damage.
+    const auto retained=slots.at({2,8});
+    const Command cloud{2,CommandKind::play,{retained},1};
+    check(game.legal(cloud),"v86 received CPU223 utility launch is legal");
+    (void)game.step(cloud);roundtrip(game);compare_checkpoint(game,slots,checkpoints[1]);
+    const auto& final=game.snapshot();
+    const auto used=std::find_if(final.state.players[1].items.begin(),final.state.players[1].items.end(),
+                                 [&](const auto& item){return item.token==retained;});
+    check(final.decisions==3&&final.rng==seed&&final.actor==1&&final.gifts==std::vector<std::uint32_t>{0,1}
+          &&used!=final.state.players[1].items.end()&&used->model==223&&used->used&&!used->fake_model
+          &&final.queue.front().ability==Ability::add_curse&&final.queue.front().power==0
+          &&find_card(final.queue.front().models.front())->curse==Curse::darkcloud
+          &&std::any_of(final.state.players[1].items.begin(),final.state.players[1].items.end(),
+                        [](const auto& item){return item.model==218&&!item.used&&!item.fake_model;})
+          &&final.chance_rolls==0&&final.counter_rolls==0&&final.counter_created==0
+          &&final.dream_rolls==0&&final.dream_masks==0&&final.redraws==0
+          &&final.guardian_opportunities==0&&final.auto_guardian_actions==0
+          &&final.guardian_departure_rolls==0&&final.revivals==0,
+          "v86 CPU223 spends five MP,retains its used copy and awaits a response;unused218 and all no-draw boundaries remain intact");
+}
+}
+
 }
 int main() {
     constexpr std::array<std::uint64_t,8> seeds{0,1,2,7,42,1337,1000000000,0xfffffffffffffffeULL};
     for(const auto seed:seeds) {
         replay(seed);
         replay_v60(seed,false);replay_v60(seed,true);
-        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);
+        replay_v62(seed);replay_v63(seed);v64::replay(seed);v65::replay_fate(seed);v65::neptune_effect_component(seed);v66::replay(seed,false);v66::replay(seed,true);v68::replay(seed);v69::replay(seed);v70::replay(seed);v70::replay(seed,true);v72::replay(seed);v73::replay(seed);v74::replay(seed);v75::replay(seed);v76::replay(seed);v78::replay(seed);v79::replay(seed);v80::replay(seed);v81::replay(seed);v82::replay(seed);v83::replay(seed);v84::replay(seed);v85::replay(seed);v86::replay(seed);
     }
     std::cout<<"official wire trace: 8 replays x3 curated viewer operations, 4 checkpoints each; "
              <<"explicit ordinary receipts, qualified slot mapping and full native boundary restores; "
@@ -1721,4 +1780,5 @@ int main() {
     std::cout<<"v83: 8 fixed seeds x3 reused v65 received states,supplied201 Neptune plus wall233 and same-batch automatic276 HP5;explicit viewer123 and CPU200/19 deltas,retained used233/231;no selector,backend receipt order or probability proof\n";
     std::cout<<"v84: 8 fixed seeds x2 received states,single30 self damage8/Hell/tick5 and actual175 receipt,CPU16 unanswered;ordinary tick draw,no fitted branch,old v82 UI games unchanged,no disease rate or server RNG proof\n";
     std::cout<<"v85: 8 fixed seeds x3 complete headless received frames,CPU6 prelaunch copy reconstructed,empty defense and compound21+74 self;CPU26 inventory delta and explicit118/200 receipts,CPU44 unanswered;no new runtime,initial distribution,CPU policy,slot identity or server RNG equivalence claim\n";
+    std::cout<<"v86: 8 fixed seeds x2 received states,self83 forfive damage and explicit26 receipt;CPU223 utility pending withMP5,retained used223 and unused218;no new runtime,element-priority,initial distribution or server RNG equivalence claim\n";
 }

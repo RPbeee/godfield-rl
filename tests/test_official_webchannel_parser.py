@@ -130,6 +130,18 @@ class ParserTests(unittest.TestCase):
         with self.assertRaises(parser.ParseError):
             parser.parse_prefix(frame([change(g)]))
 
+    def test_pinned_bounce_receiver_enum_without_claiming_live_observation(self):
+        # Finite decoder input only,not a captured game. Pinned main.dart.js
+        # SHA256 5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd:
+        # case132 dispatches "bounce" to case138,which reads event.playerId.
+        g = game()
+        g["events"] = [{"action": "bounce", "playerId": 1}]
+        result = parser.parse_prefix(frame([change(g)]))
+        self.assertEqual(result["games"][0]["game"]["events"], g["events"])
+        g["events"][0]["action"] = "unverifiedReaction"
+        with self.assertRaisesRegex(parser.ParseError, "^unsupported_game_schema$"):
+            parser.parse_prefix(frame([change(g)]))
+
 
 class CliTests(unittest.TestCase):
     def invoke(self, *args):

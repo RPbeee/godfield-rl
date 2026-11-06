@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "review": "official-public-live-review-v86",
+  "observed_on_jst": "2026-11-06",
+  "source_kind": "Two ordinary public unauthenticated HTTPS GETs. This record describes only public asset acquisition,not the separate browser CPU observations.",
+  "pin_policy": "Additional evidence only;prior manifests,cards,source pins,generated code and historical observations are unchanged.",
+  "assets": [
+    {
+      "url": "https://godfield.net/main.dart.js",
+      "retrieved_at_utc": "2026-11-06T01:07:50.757606+00:00",
+      "completed_at_utc": "2026-11-06T01:07:50.829832+00:00",
+      "status": 200,
+      "bytes": 440420,
+      "sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+      "pinned_sha256_equal": true,
+      "pinned_bytes_equal": true
+    },
+    {
+      "url": "https://godfield.net/i18n/ja.json",
+      "retrieved_at_utc": "2026-11-06T01:07:50.758085+00:00",
+      "completed_at_utc": "2026-11-06T01:07:50.814529+00:00",
+      "status": 200,
+      "bytes": 49240,
+      "sha256": "91b82c2600eac771c1a94dec80f249758496e2bbcb7befe6db52dacec1b55b02",
+      "pinned_sha256_equal": true,
+      "pinned_bytes_equal": true
+    }
+  ],
+  "finding": "Both newly fetched complete response bodies match the official-v2 pinned byte counts and SHA256 fingerprints. This does not establish unchanged game-server behavior or full UI/server equivalence.",
+  "source_code_decoder_fact": {
+    "client_sha256": "5ece06c224b6a7a5d877eb45d22ea18b82a03aaf1b7161cbbdf6a1e23ceab2cd",
+    "line_start": 11025,
+    "line_end": 11044,
+    "fact": "The pinned received-event dispatcher recognizes action bounce in case132 and decodes it in case138 using playerId.",
+    "change": "Accept the known bounce string in the private WebChannel parser;unknown strings remain rejected.",
+    "new_completed_game_observations_from_this_fact": 0
+  },
+  "raw_sources_bundled": false
+}
