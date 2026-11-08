@@ -582,6 +582,13 @@ struct MatchStep {
     bool operator==(const MatchStep&) const = default;
 };
 enum class MatchErrorCode { invalid, unsupported };
+// First applicable reason, in declaration order. Only two solo players are
+// supported. Positive confusion hides a remaining count, even from its owner.
+enum class DeterminizeSupport : std::uint8_t {
+    ok, invalid_viewer, unsupported_players, not_main, not_actor,
+    pending_work, reserved_gifts, replay_proof,
+    hidden_status, hidden_confusion, hidden_own_model
+};
 class MatchError : public std::runtime_error {
 public:
     MatchErrorCode code;
@@ -595,6 +602,15 @@ public:
     void reset(std::span<const PlayerSetup> players, std::uint64_t seed);
     void load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed);
     void restore(const MatchSnapshot& snapshot); // Validates completely, then replaces atomically.
+    [[nodiscard]] DeterminizeSupport determinize_support(PlayerId viewer) const noexcept;
+    // Opponent's UNUSED real models as a multiset (empty is allowed).
+    // Retains used items in their existing order, then appends fresh unused
+    // items in ascending model order; input order never changes the world.
+    // Total physical inventory must fit config.hand_limit. Models must belong
+    // to this match's gift_catalog(). Resets only game RNG, not external chance.
+    // Unsupported boundary -> MatchError(unsupported); bad assignment/token
+    // budget -> MatchError(invalid). Fully restore-validated, source unchanged.
+    [[nodiscard]] Match determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed) const;
     [[nodiscard]] const MatchSnapshot& snapshot() const noexcept { return data_; }
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool gift_supported(CardId model) const noexcept;

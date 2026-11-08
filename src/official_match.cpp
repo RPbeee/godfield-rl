@@ -2110,6 +2110,48 @@ void Match::load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed) 
     validate_snapshot(s); data_ = std::move(s);
 }
 void Match::restore(const MatchSnapshot& snapshot) { validate_snapshot(snapshot); auto s = snapshot; data_ = std::move(s); config_ = data_.config; }
+DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
+    const auto& s = data_;
+    const auto* own = find_player(s.state, viewer);
+    if (!own) return DeterminizeSupport::invalid_viewer;
+    if (s.state.players.size() != 2 || std::any_of(s.state.players.begin(), s.state.players.end(),
+            [](const auto& p) { return p.team != Team::solo; })) return DeterminizeSupport::unsupported_players;
+    if (s.phase != MatchPhase::main) return DeterminizeSupport::not_main;
+    if (s.actor != viewer || s.owner != viewer) return DeterminizeSupport::not_actor;
+    if (!s.queue.empty() || s.batch || !s.counters.empty() || !s.deaths.empty() || s.pending_grant || s.purchase)
+        return DeterminizeSupport::pending_work;
+    if (std::any_of(s.gifts.begin(), s.gifts.end(), [](auto count) { return count != 0; }))
+        return DeterminizeSupport::reserved_gifts;
+    // Completed external actions also retain whole-snapshot replay anchors.
+    // Changing inventories or RNG would invalidate restore's equality proof.
+    if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof || s.automatic_guardian_proof
+            || s.last_fate || s.last_devil || s.last_item_shuffle) return DeterminizeSupport::replay_proof;
+    // project_view hides enemy status when the VIEWER is fogged.
+    if (has_curse(*own, Curse::fog)) return DeterminizeSupport::hidden_status;
+    if (std::any_of(s.state.players.begin(), s.state.players.end(), [](const auto& p) { return p.confusion_count > 0; }))
+        return DeterminizeSupport::hidden_confusion;
+    if (std::any_of(own->items.begin(), own->items.end(), [](const auto& item) {
+            return item.fake_model && *item.fake_model != item.model;
+        })) return DeterminizeSupport::hidden_own_model;
+    return DeterminizeSupport::ok;
+}
+Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed) const {
+    if (determinize_support(viewer) != DeterminizeSupport::ok) unsupported("determinization is unsupported at this boundary");
+    auto s = data_;
+    auto& other = s.state.players[s.state.players.front().id == viewer ? 1 : 0];
+    const auto used = std::count_if(other.items.begin(), other.items.end(), [](const auto& item) { return item.used; });
+    require(assignment.size() <= s.config.hand_limit - static_cast<std::size_t>(used), "determinized inventory exceeds hand limit");
+    for (auto model : assignment) require(gift_supported(model), "determinized model outside configured gift pool");
+    require(assignment.size() <= max_wire_integer + 1 - s.next_token, "determinized token budget exhausted");
+    std::vector<CardId> models(assignment.begin(), assignment.end());
+    std::sort(models.begin(), models.end());
+    std::erase_if(other.items, [](const auto& item) { return !item.used; });
+    for (auto model : models) other.items.push_back({s.next_token++, model, {}, false});
+    s.rng = seed; // Same SplitMix64 state convention as reset/load_scene, including seed0.
+    Match result = *this;
+    result.restore(s);
+    return result;
+}
 bool Match::gift_supported(CardId model) const noexcept { return gift_model_supported(model,data_.config.include_fate); }
 std::vector<CardId> Match::gift_catalog() const {
     std::vector<CardId> models;
