@@ -582,12 +582,13 @@ struct MatchStep {
     bool operator==(const MatchStep&) const = default;
 };
 enum class MatchErrorCode { invalid, unsupported };
-// First applicable reason, in declaration order. Only two solo players are
+// Main reasons retain their original precedence and numeric values. Only two solo players are
 // supported. Positive confusion hides a remaining count, even from its owner.
 enum class DeterminizeSupport : std::uint8_t {
     ok, invalid_viewer, unsupported_players, not_main, not_actor,
     pending_work, reserved_gifts, replay_proof,
-    hidden_status, hidden_confusion, hidden_own_model
+    hidden_status, hidden_confusion, hidden_own_model,
+    response_special, response_random, response_history
 };
 class MatchError : public std::runtime_error {
 public:
@@ -606,11 +607,15 @@ public:
     // Opponent's UNUSED real models as a multiset (empty is allowed).
     // Retains used items in their existing order, then appends fresh unused
     // items in ascending model order; input order never changes the world.
+    // Response worlds rebuild the ordinary launch anchor and replay deterministic
+    // reflection journals. Both current and launch inventories must fit the limit.
     // Total physical inventory must fit config.hand_limit. Models must belong
     // to this match's gift_catalog(). Resets only game RNG, not external chance.
     // Unsupported boundary -> MatchError(unsupported); bad assignment/token
     // budget -> MatchError(invalid). Fully restore-validated, source unchanged.
-    [[nodiscard]] Match determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed) const;
+    // Normalize tokens in the launch anchor before replay, discarding the hidden
+    // allocator while preserving own/used/selected IDs and accounting bounds.
+    [[nodiscard]] Match determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed, bool normalize_tokens = false) const;
     [[nodiscard]] const MatchSnapshot& snapshot() const noexcept { return data_; }
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool gift_supported(CardId model) const noexcept;

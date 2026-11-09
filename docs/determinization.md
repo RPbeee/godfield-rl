@@ -22,7 +22,7 @@ First applicable reason below wins. `ok` means none applies.
 | --- | --- |
 | `invalid_viewer` | Viewer must identify a player. |
 | `unsupported_players` | Exactly two players, both `Team::solo`; a single assignment cannot describe multiple opponents. |
-| `not_main` | Must be main, not response, purchase, grant, or finished. |
+| `not_main` | On the main path, must be main, not purchase, grant, or finished. Response has the separate path below. |
 | `not_actor` | Both actor and owner must equal viewer. |
 | `pending_work` | `queue`, `batch`, `counters`, `deaths`, `pending_grant`, `purchase` must be empty. These contain active effects, action replay anchors, deferred counters/death attacks or purchase escrow. |
 | `reserved_gifts` | Every `gifts` entry must be zero; the vector itself has one entry per seat. A debt would refer to pre-replacement physical capacity and a still-running action. |
@@ -134,3 +134,166 @@ finds three disappearing legal commands (target absent/self/opponent). The
 legal_kinds stay equal. Tests permit ONLY this exact ordered pair as a
 command difference, not an unrestricted mismatch. Existing legality and
 observation semantics are unchanged.
+
+
+## Ordinary response boundaries
+
+The C++ API also supports `phase == response`, `actor == viewer`, and
+`owner != viewer`. The two-solo-player restriction and the main-path reason
+precedence/values are unchanged. New reasons are **appended**:
+`response_special=11`, `response_random=12`, `response_history=13`.
+The parent `search.py` `_SUPPORT` table does not yet contain them.
+
+Response precedence is invalid viewer, unsupported players, not actor,
+special work, random launch, resolved/nonreflection history, hidden status,
+hidden confusion, hidden own model. During redirect inspection, redraw and
+bounce receive special/random respectively. Support is allocation-free and
+never compares RNG states or examines unplayed opponent models.
+
+“Ordinary” here means a hand `play`, before any body resolves, optionally
+followed by deterministic **reflection-only** responses (including attribute
+filters and ordinary self curses). A resolved first hit of `attack_twice`,
+reserved counters, and posthumous work are conservatively outside this subset.
+Their small measured frequency is reported below rather than attempting to
+recover card removals, revivals and private random body outcomes.
+
+The following are excluded:
+
+- `guardian_action`, `guardian_payload_action`, `phenomenon_action`, `fate_action`,
+  `devil_action`, confusion launches, supplied summons, automatic guardian stages,
+  ticked batches, grants, redraw/purchase/automatic result records; all five
+  `*_proof`, `last_fate`, `last_devil`, and `last_item_shuffle` anchors.
+  Buy and sell are excluded by requiring `attack.kind == play`.
+- Danger (including Wide) can inspect a hidden mortar or sample its target;
+  the HP gamble samples its launch sign. Ordinary percentage hits consume RNG,
+  except a publicly DarkCloud-forced hit. Fogged ordinary single-target launches
+  consume RNG even with only one enemy. All are `response_random`.
+- A response history must consist entirely of the currently pending frame's
+  redirects, and each must end in reflection without any bounce. A bounce draw
+  is rejected even if its outcome happens to equal a deterministic target.
+  Redraw is excluded. These tests use public launch/response cards and status,
+  not whether the privileged RNG happened to change.
+
+### Information audit for in-flight fields
+
+| Field | Visible to viewer? / depends on opponent unused hand? | Handling |
+| --- | --- | --- |
+| `queue` active origin/source/target/models/category/element/power/ability/amount, hit/forced flags | Pending payload is public; does not depend on unused cards in this subset | Reconstruct by replay; exact typed view comparison. |
+| `queue.tokens`, `redirects` models/tokens/order | Selected cards and response order were public when played; physical IDs are implementation details | Preserve selected instances and journal commands. No resolved bodies or bounce history. |
+| `queue.redirect_rng` | Private future redirect validation state | Recreate from the seeded anchor; never retain original. |
+| `batch.initial_state.players[*].items` | Own inventory and opponent used/selected cards known; remaining opponent cards/count hidden | Keep used items and **all** opponent items referenced by launch/response tokens; replace every remaining item with sorted assignment and fresh tokens. No opponent unused old model/disguise survives. |
+| `batch.initial_state` other player/board fields | Public status and historical bookkeeping, with D6 Fog/confusion/own-disguise exclusions | Preserve; replay to current state. Reflection-only history does not resolve hidden bodies. |
+| `batch.attack`, `models`, `targets`, `cursor`, `responses`, `chance`, `random_hp_delta` | Public played cards, routing and past response order; no unused-hand dependency after rejecting Danger | Replay deterministic launch and journal; do not transplant derived state. |
+| `batch` cumulative counters / `decisions` | Historical counts, not future gameplay secrets | Preserve anchor counts; replay increments. |
+| `batch.rng`, `next_token` | RNG hidden; tokens physical bookkeeping | Replace RNG with seed; allocate from source current `next_token`, and put advanced allocator in new anchor. |
+| `batch` special actions, guardian/tick cursors, supplied outcomes, grants/resolutions | May hold private plans/results or full old inventories | Reject as `response_special`. No external chance result is resampled; every such result-bearing boundary is excluded in this subset. |
+| `counters`, `deaths` | FIFOs are private; effect provenance becomes public when activated | Require absent and active frame not counter/death; reflection-only history creates neither. Reject resolved history. |
+| `gifts` | Reservation counts hidden and depend on original physical capacity | **Recompute**, including cap saturation, from rebuilt anchor and public consumption. They are a consequence of the sampled hand and known actions, not an independent hidden fact. No gifts have been drawn yet. |
+| `pending_grant`, `purchase`, five `*_proof`, `last_fate/devil/item_shuffle` | Private inventories, escrow, or outcome plans may occur | Reject. |
+| `last_*` notices / `last_decision` | Viewer-filtered resolved events or last accepted decision | Generate again by replay, then require exact `view(viewer)` and `last_decision(viewer)` equality. |
+
+### Reconstruction, validation and random state
+
+Assignment always means the **current** opponent unused real-model multiset.
+It excludes consumed weapons and used miracles. Selected weapons removed since
+launch are added back only in the launch anchor, with original tokens, so they
+are consumed exactly once by replay. Selected miracles keep their pre-launch
+used flag and disguise until replay reveals/consumes them. Existing used items
+and selected items retain their relative anchor order, then fresh unused items
+are appended in ascending model order as on the main path.
+
+Both the launch and current inventories must fit `hand_limit`. In particular,
+a sample that fills the current hand to18 after a consumed weapon would make
+the pre-action hand19, and is `MatchError(invalid)`. This is a sample rejection,
+not a reason to reject the original supported boundary. Token bounds and gift
+catalog validation retain the main contract.
+
+Build a fresh main snapshot with `snapshot_from_anchor`, replace the inventory
+and **set anchor RNG to seed**, replay the launch and every recorded response,
+then run `restore()`'s full validation. Supported paths cannot consume game RNG;
+an explicit post-replay assertion also checks this. Consequently current RNG,
+batch RNG, and active `redirect_rng` all come from seed, with no original RNG
+copy remaining. Future distribution and redirects use the new stream. The
+caller's external chance stream is untouched. No schema/version change is needed.
+
+The implementation checks exact `view(viewer)`, `last_decision(viewer)`, actor
+inventory (including vector order and tokens), and `legal_kinds` before returning.
+All response `legal_extensions` (including canonical mode) and `legal_commands`
+are functions only of that unchanged ordered actor inventory, MP/Flash,
+hand limit, and the visible incoming category/element/damaging context:
+see `prepare`, `response_context`, and `SelectionTree`'s response branches.
+Thus the exact view and actor-inventory checks imply equality of the entire
+response legality tree without enumerating it on every sample. Tests also
+compare enumerations, roots/one-card prefixes, and complete response trees for
+hands of at most four cards. No response legality exception was found; the
+existing main94+232 exception and its three command differences remain unchanged.
+
+Response fixtures cover weapons, retained miracles, repeated reflections,
+filters, forced hits, invalid models/capacity/token budget, special/hidden/random
+rejections, exact full-snapshot reconstruction modulo RNG and fresh-token/order
+representation, and seeded future gifts. Random response tests use200 games
+with mixed external-artifact, Fate and local-guardian settings. True-hand
+whole-snapshot comparisons skip unplayed enemy disguises, since removing these
+is deliberately part of the existing determinization contract.
+
+### Response measurement
+
+Use the same `--measure 10000` command and game/policy/chance streams as above.
+The measurement RNG for uniformly sized, uniformly sampled catalog-model
+multisets is778 and does not affect play. The first10,000 supported boundaries
+of each type are timed, including restore and observation guards.
+
+| Decisions by seat | Seat0 | Seat1 |
+| --- | ---: | ---: |
+| main starts | 118,962 | 113,932 |
+| response | 36,998 | 37,865 |
+| purchase | 1,844 | 1,701 |
+| grant | 0 | 0 |
+
+Default local gifts do not expose a separate grant boundary. Finished is not a
+decision. Main counts and every main rejection count exactly match the P3 table.
+
+| Response first reason | Seat0 | Seat1 |
+| --- | ---: | ---: |
+| ok | 26,123 (70.6065%) | 26,821 (70.8332%) |
+| not_actor (response to own action) | 1,838 (4.9678%) | 1,817 (4.7986%) |
+| response_special | 3,119 (8.4302%) | 3,267 (8.6280%) |
+| response_random | 4,044 (10.9303%) | 4,147 (10.9521%) |
+| response_history | 207 (0.5595%) | 185 (0.4886%) |
+| hidden_status | 887 (2.3974%) | 827 (2.1841%) |
+| hidden_own_model | 780 (2.1082%) | 801 (2.1154%) |
+| other reasons, each | 0 | 0 |
+
+The largest omitted categories are random launches (~10.94%) and special work
+(~8.53%). The extra conservative history restriction omits only~0.52% of all
+responses. Percentages include own-owner responses, which are explicitly
+outside the requested owner/opponent scope.
+
+Of10,000 random assignments per boundary type, main rejects0, response539
+(5.39%), all due to launch physical capacity. An otherwise idle Release run measured main2.4982us and response12.0181us
+per attempt (including invalid samples), about4.81x. Successful samples alone
+were2.4982us and11.9150us respectively. Timing depends on machine load. Randomized correctness tests accepted
+1,013 response assignments, rejected68, reconstructed1,073 truth assignments,
+and continued191 response worlds to terminal/cutoff. Different seeds changed
+future gifts in125/128 response fixture pairs (main remains128/128).
+
+Parent integration caveat: its current `VecEnv::load_worlds()` renumbers only
+current opponent unused tokens and `next_token`, then calls `restore()`. On
+response worlds this leaves `batch.initial_state`/`batch.next_token` inconsistent,
+so `gfrl_search` fails with “self-play root failed loading”. The unchanged parent
+passes that C++ test against the original P3 engine. The next integration task
+must update that canonicalization together with `_SUPPORT`; no parent files
+are modified here.
+
+
+Final validation: standalone goodfield Release build and all165 CTest tests pass.
+The parent Release CMake build succeeds; CTest passes16/17, with only the
+response-world token canonicalization failure above. Parent pytest passes153,
+fails6, skips1: oracle-world loading, two noise-root diagnostics, and three
+exact pre-task-game/report expectations. The latter expect the old main-only
+search trigger sequence, which changes when response support becomes public.
+Against an isolated build of the original P3 goodfield, the same parent passes
+17/17 CTest and159 pytest tests (1 skipped). Parent production code, tests,
+C/Python APIs and snapshot version have not been changed. Consequently the
+requested parent-all-green completion criterion remains unmet until its
+response integration is updated.

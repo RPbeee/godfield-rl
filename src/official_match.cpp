@@ -2116,16 +2116,56 @@ DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
     if (!own) return DeterminizeSupport::invalid_viewer;
     if (s.state.players.size() != 2 || std::any_of(s.state.players.begin(), s.state.players.end(),
             [](const auto& p) { return p.team != Team::solo; })) return DeterminizeSupport::unsupported_players;
-    if (s.phase != MatchPhase::main) return DeterminizeSupport::not_main;
-    if (s.actor != viewer || s.owner != viewer) return DeterminizeSupport::not_actor;
-    if (!s.queue.empty() || s.batch || !s.counters.empty() || !s.deaths.empty() || s.pending_grant || s.purchase)
-        return DeterminizeSupport::pending_work;
-    if (std::any_of(s.gifts.begin(), s.gifts.end(), [](auto count) { return count != 0; }))
-        return DeterminizeSupport::reserved_gifts;
-    // Completed external actions also retain whole-snapshot replay anchors.
-    // Changing inventories or RNG would invalidate restore's equality proof.
-    if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof || s.automatic_guardian_proof
-            || s.last_fate || s.last_devil || s.last_item_shuffle) return DeterminizeSupport::replay_proof;
+    if (s.phase == MatchPhase::response) {
+        if (s.actor != viewer || s.owner == viewer) return DeterminizeSupport::not_actor;
+        if (!s.batch) return DeterminizeSupport::response_special;
+        const auto& b = *s.batch;
+        if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof || s.automatic_guardian_proof
+                || s.last_fate || s.last_devil || s.last_item_shuffle || s.pending_grant || s.purchase
+                || b.guardian_action || b.guardian_payload_action || b.phenomenon_action || b.fate_action
+                || b.devil_action || b.confusion_command || b.supplied_summon || b.automatic_guardian_outcomes
+                || b.guardian_stage_started || b.automatic_payload || b.tick_processed
+                || !b.grants.empty() || !b.resolved_redraws.empty() || !b.resolved_purchases.empty()
+                || !b.resolved_automatic_guardians.empty() || b.attack.kind != CommandKind::play)
+            return DeterminizeSupport::response_special;
+        // Public launch cards/status determine these draws. Never inspect RNG
+        // equality or the opponent's unplayed cards to decide support.
+        const auto& base = *find_card(b.models.front());
+        const auto* launcher = find_player(b.initial_state, b.owner);
+        if (base.ability == Ability::danger || base.ability == Ability::boost_hp_or_deal_damage
+                || (base.hit_rate && !has_curse(*find_player(b.initial_state, viewer), Curse::darkcloud))
+                || (has_curse(*launcher, Curse::fog) && !base.hit_rate && !has_wide(b.models)))
+            return DeterminizeSupport::response_random;
+        // An unresolved ordinary payload and reflection-only history cannot
+        // resolve bodies, redraw, reserve counters/deaths, tick, or draw gifts.
+        if (s.queue.size() != 1 || !s.counters.empty() || !s.deaths.empty()
+                || s.queue.front().is_counter || s.queue.front().is_death
+                || s.queue.front().redirects.size() != b.responses.size())
+            return DeterminizeSupport::response_history;
+        auto element = attack_element(b.models);
+        for (const auto& redirect : s.queue.front().redirects) {
+            auto reaction = Reaction::none;
+            for (auto model : redirect.models) {
+                const auto& card = *find_card(model);
+                if (card.ability == Ability::self_curse_and_redraw) return DeterminizeSupport::response_special;
+                if (card.ability == Ability::filter_atk_element) element.reset();
+                const auto next = reaction_for(model, base.category, element);
+                if (next == Reaction::bounce) return DeterminizeSupport::response_random;
+                if (next != Reaction::none) reaction = next;
+            }
+            if (reaction != Reaction::reflect) return DeterminizeSupport::response_history;
+        }
+    } else {
+        if (s.phase != MatchPhase::main) return DeterminizeSupport::not_main;
+        if (s.actor != viewer || s.owner != viewer) return DeterminizeSupport::not_actor;
+        if (!s.queue.empty() || s.batch || !s.counters.empty() || !s.deaths.empty() || s.pending_grant || s.purchase)
+            return DeterminizeSupport::pending_work;
+        if (std::any_of(s.gifts.begin(), s.gifts.end(), [](auto count) { return count != 0; }))
+            return DeterminizeSupport::reserved_gifts;
+        // Completed external actions also retain whole-snapshot replay anchors.
+        if (s.grant_proof || s.redraw_proof || s.purchase_proof || s.summon_proof || s.automatic_guardian_proof
+                || s.last_fate || s.last_devil || s.last_item_shuffle) return DeterminizeSupport::replay_proof;
+    }
     // project_view hides enemy status when the VIEWER is fogged.
     if (has_curse(*own, Curse::fog)) return DeterminizeSupport::hidden_status;
     if (std::any_of(s.state.players.begin(), s.state.players.end(), [](const auto& p) { return p.confusion_count > 0; }))
@@ -2135,21 +2175,58 @@ DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
         })) return DeterminizeSupport::hidden_own_model;
     return DeterminizeSupport::ok;
 }
-Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed) const {
+Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed, bool normalize_tokens) const {
     if (determinize_support(viewer) != DeterminizeSupport::ok) unsupported("determinization is unsupported at this boundary");
-    auto s = data_;
+    const bool response = data_.phase == MatchPhase::response;
+    auto s = response ? snapshot_from_anchor(*data_.batch, config_) : data_;
     auto& other = s.state.players[s.state.players.front().id == viewer ? 1 : 0];
-    const auto used = std::count_if(other.items.begin(), other.items.end(), [](const auto& item) { return item.used; });
-    require(assignment.size() <= s.config.hand_limit - static_cast<std::size_t>(used), "determinized inventory exceeds hand limit");
+    // Only public, already selected cards survive in the opponent's anchor.
+    // Consumed weapons no longer exist now; consumed miracles are retained used.
+    const auto touched = [&](ItemToken token) {
+        if (!response) return false;
+        const auto& b = *data_.batch;
+        if (std::find(b.attack.items.begin(), b.attack.items.end(), token) != b.attack.items.end()) return true;
+        for (const auto& command : b.responses) if (command.actor == other.id
+                && std::find(command.items.begin(), command.items.end(), token) != command.items.end()) return true;
+        return false;
+    };
+    std::erase_if(other.items, [&](const auto& item) { return !item.used && !touched(item.token); });
+    require(assignment.size() <= s.config.hand_limit - other.items.size(), "determinized launch inventory exceeds hand limit");
     for (auto model : assignment) require(gift_supported(model), "determinized model outside configured gift pool");
+    s.next_token = data_.next_token;
+    if (normalize_tokens) {
+        // Normalize before replay so current and anchor inventories/allocators
+        // satisfy restore's equality proof. Public selected IDs stay unchanged.
+        ItemToken next = 1;
+        for (const auto& player : s.state.players) for (const auto& item : player.items)
+            next = std::max(next, item.token + 1);
+        next = std::max({next, s.dream_rolls, s.redrawn_items});
+        if (s.last_tick && s.last_tick->revival_token)
+            next = std::max(next, *s.last_tick->revival_token + 1);
+        s.next_token = next;
+    }
     require(assignment.size() <= max_wire_integer + 1 - s.next_token, "determinized token budget exhausted");
     std::vector<CardId> models(assignment.begin(), assignment.end());
     std::sort(models.begin(), models.end());
-    std::erase_if(other.items, [](const auto& item) { return !item.used; });
     for (auto model : models) other.items.push_back({s.next_token++, model, {}, false});
-    s.rng = seed; // Same SplitMix64 state convention as reset/load_scene, including seed0.
+    s.rng = seed; // Reset the anchor too: no real past RNG survives in a world.
+    if (response) {
+        replay_launch(s, *data_.batch);
+        for (std::size_t i=0; i<data_.batch->responses.size(); ++i) replay_response(s, *data_.batch, i);
+        require(s.rng == seed, "supported response unexpectedly consumed game RNG");
+    }
     Match result = *this;
     result.restore(s);
+    if (response) {
+        require(result.view(viewer) == view(viewer), "determinized response observation differs");
+        require(result.last_decision(viewer) == last_decision(viewer), "determinized response decision differs");
+        require(find_player(result.data_.state, viewer)->items == find_player(data_.state, viewer)->items,
+                "determinized response actor inventory differs");
+        // Response legality only uses the actor's items/MP/Flash and the active
+        // payload's category/element/power (prepare/response_context). These are
+        // covered by the exact view comparison; no opponent inventory is read.
+        require(result.legal_kinds() == legal_kinds(), "determinized response kinds differ");
+    }
     return result;
 }
 bool Match::gift_supported(CardId model) const noexcept { return gift_model_supported(model,data_.config.include_fate); }
