@@ -64,6 +64,9 @@ SnapshotState initial_state(SlotMap& slots) {
     return state;
 }
 void roundtrip(const Match& game) {
+#ifdef GF_WIRE_OBSERVER
+    GF_WIRE_OBSERVER(game);
+#endif
     Match restored;restored.restore(game.snapshot());
     check(restored.snapshot()==game.snapshot(),"every native boundary preserves its complete private replay proof");
 }
@@ -2001,4 +2004,5 @@ int main() {
     std::cout<<"v86: 8 fixed seeds x2 received states,self83 forfive damage and explicit26 receipt;CPU223 utility pending withMP5,retained used223 and unused218;no new runtime,element-priority,initial distribution or server RNG equivalence claim\n";
     std::cout<<"v89: 8 seeds x2 received updates; single34 self HP40->31, supplied gift4 and pending CPU79; no216 or HP internal-order claim\n";
     std::cout<<"v87: 8 fixed seeds x2 complete initial-to-end received states,3 exchange toHP0 MP10 CP60;one decision,CPU2 wins,GF1 and no replacement or RNG draw;terminal ghost is not live debt,no initial distribution,CPU policy or server RNG equivalence claim\n";
+    return 0;
 }

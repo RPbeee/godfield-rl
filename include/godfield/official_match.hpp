@@ -572,6 +572,18 @@ struct MatchSnapshot {
     std::vector<PlayerId> winners;
     bool operator==(const MatchSnapshot&) const = default;
 };
+// Read-only selection over a public view. No executable journal, RNG, or step API.
+// Foreign unused inventory is absent; tokens are local slot handles only.
+class PublicSelection {
+public:
+    explicit PublicSelection(const MatchView& view);
+    const MatchSnapshot& snapshot() const { return data_; }
+    std::vector<CommandKind> legal_kinds() const;
+    SelectionNode legal_extensions(CommandKind kind, std::span<const ItemToken> prefix,
+                                   SelectionOptions options = {}) const;
+private:
+    MatchSnapshot data_;
+};
 struct MatchStep {
     MatchPhase phase = MatchPhase::finished;
     std::optional<PlayerId> actor;

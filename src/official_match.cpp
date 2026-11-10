@@ -2528,7 +2528,8 @@ void selection_boundary(const MatchSnapshot& s) {
         unsupported("confusion command selection must be supplied externally");
 }
 }
-std::vector<CommandKind> Match::legal_kinds() const {
+namespace {
+std::vector<CommandKind> selection_kinds(const MatchSnapshot& data_) {
     selection_boundary(data_);
     std::vector<CommandKind> kinds;
     for(unsigned k=0;k<=9;++k) {
@@ -2538,7 +2539,7 @@ std::vector<CommandKind> Match::legal_kinds() const {
     }
     return kinds;
 }
-SelectionNode Match::legal_extensions(CommandKind kind,std::span<const ItemToken> prefix,SelectionOptions options) const {
+SelectionNode selection_extensions(const MatchSnapshot& data_,CommandKind kind,std::span<const ItemToken> prefix,SelectionOptions options) {
     selection_boundary(data_);
     SelectionTree tree{data_,data_.state.players[index(data_,*data_.actor)],kind,options.canonical,{},{},{},{}};
     if(data_.phase==MatchPhase::response) tree.context=response_context(data_);
@@ -2548,6 +2549,37 @@ SelectionNode Match::legal_extensions(CommandKind kind,std::span<const ItemToken
         tree.push(*instance(tree.own,token));n=tree.node();
     }
     return n;
+}
+}
+std::vector<CommandKind> Match::legal_kinds() const { return selection_kinds(data_); }
+SelectionNode Match::legal_extensions(CommandKind k,std::span<const ItemToken> p,SelectionOptions o) const { return selection_extensions(data_,k,p,o); }
+std::vector<CommandKind> PublicSelection::legal_kinds() const { return selection_kinds(data_); }
+SelectionNode PublicSelection::legal_extensions(CommandKind k,std::span<const ItemToken> p,SelectionOptions o) const { return selection_extensions(data_,k,p,o); }
+PublicSelection::PublicSelection(const MatchView& v) {
+    require(v.board.viewer && v.actor==v.board.viewer,"public selection requires the viewer's turn");
+    require(v.board.players.size()==2,"public selection requires two seats");
+    data_.phase=v.phase;data_.actor=v.actor;data_.owner=v.owner;
+    data_.state.gf=v.board.gf;data_.state.tiebreak_gf=v.board.tiebreak_gf;
+    ItemToken next=100;
+    for(const auto& p:v.board.players) {
+        PlayerState x;x.id=p.id;x.dead=p.dead;x.team=p.team;
+        if(p.status) {const auto& a=*p.status;x.hp=a.hp;x.mp=a.mp;x.cp=a.cp;x.curses=a.curses;x.guardian=a.guardian;x.confusion_count=a.confused;}
+        if(p.id==*v.board.viewer) {
+            require(p.status.has_value() && !p.dead,"public actor has no visible live status");
+            for(const auto& h:v.board.hand) x.items.push_back({h.token,h.face,h.disguised?std::optional<CardId>{h.face}:std::nullopt,h.used});
+        } else for(auto model:p.used_models)x.items.push_back({next++,model,{},true});
+        data_.state.players.push_back(std::move(x));
+    }
+    validate_state(data_.state);
+    if(v.phase==MatchPhase::response) {
+        require(v.pending && v.pending->target==*v.actor,"missing public response");
+        const auto& p=*v.pending;EffectFrame f;
+        f.target=p.target;f.category=p.category;f.element=p.element;f.ability=p.ability;f.power=p.power;
+        data_.queue.push_back(f);
+    } else if(v.phase==MatchPhase::purchase) {
+        require(v.purchase && v.purchase->buyer==*v.actor && find_card(v.purchase->model),"missing public offer");
+        const auto& p=*v.purchase;data_.purchase=PurchaseOffer{p.origin,p.buyer,p.seller,{0,p.model,{},false},0};
+    } else require(v.phase==MatchPhase::main,"unsupported public selection phase");
 }
 std::vector<Command> Match::legal_commands(std::size_t max_items, int exchange_step) const {
     require(max_items >= 1 && max_items <= 4, "max_items must be in1..4");
