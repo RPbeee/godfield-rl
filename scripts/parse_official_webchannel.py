@@ -21,7 +21,10 @@ import sys
 
 
 class ParseError(Exception):
-    """Only fixed codes, never raw values, are safe to show to the caller."""
+    """Fixed code in args/str; only allowlisted metadata in detail."""
+    def __init__(self, code, detail=None):
+        super().__init__(code)
+        self.detail = detail or {}
 
 
 GAME_KEYS = frozenset("""
@@ -29,23 +32,79 @@ GAME_KEYS = frozenset("""
     attackTurnPlayerId updateCount attacks isOver
     id hp mp cp name isBot dead guardian curses items
     modelId fakeModelId used atk itemModelIds playerId targetPlayerId reversed
-    action attack bought curse damage item itemModelId
+    action attack bought curse damage item itemModelId buyingItemModelId natural overflowItem
 """.split())
 GAME_STRINGS = frozenset("""
     startGame gift advanceGF useAttackItems setTargetPlayer dealDamage addCurse
     disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
-    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss sell
+    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss hit removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease
     cold fever hell heaven darkcloud dream fog flash
     mercury venus earth mars jupiter saturn uranus neptune pluto moon
     viewer cpu
 """.split())
+EVENT_ACTIONS = frozenset("""
+    startGame gift advanceGF useAttackItems setTargetPlayer dealDamage addCurse
+    disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
+    buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
+    replaceItems safe block setGuardian attackByGuardian counterAttack
+    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss hit
+    removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease
+""".split())
 REDACTED_KEYS = frozenset({"userId", "updatedAt"})
 
 
-def _error(code: str) -> None:
-    raise ParseError(code)
+# Only these game fields carry public symbolic values in GAME_STRINGS.
+# name is deliberately excluded, including before names are normalized.
+ENUM_KEYS = frozenset({"action", "curse", "curses", "guardian"})
+KEY_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,63}\Z")
+VALUE_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]{0,31}\Z")
+
+
+def _path(path, key):
+    safe = key if ("?" not in path and isinstance(key, str) and KEY_PATTERN.fullmatch(key)
+                   and key not in REDACTED_KEYS | {"name"}) else "?"
+    return path + "." + safe
+
+
+def _detail(value, path, key=None):
+    result = dict(path=path, value_type=type(value).__name__)
+    if isinstance(value, (str, list, dict)):
+        result["length"] = len(value)
+    if "?" not in path and key in ENUM_KEYS and isinstance(value, str) and VALUE_PATTERN.fullmatch(value):
+        result["value"] = value
+    if isinstance(value, dict) and path == "game.events[]":
+        result.update(_event_keys(value))
+    return result
+
+
+def _event_keys(event):
+    safe = sorted(k for k in event if isinstance(k, str) and KEY_PATTERN.fullmatch(k)
+                  and k not in REDACTED_KEYS | {"name"})
+    result = dict(event_keys=safe[:16])
+    action = event.get("action")
+    if isinstance(action, str) and VALUE_PATTERN.fullmatch(action):
+        result["action"] = action
+    if len(event) > len(safe):
+        result["event_key_other"] = len(event) - len(safe)
+    return result
+
+
+def _unknown(value, allowed, path):
+    keys = set(value) - allowed
+    safe = sorted(k for k in keys if "?" not in path and isinstance(k, str) and KEY_PATTERN.fullmatch(k)
+                  and k not in REDACTED_KEYS | {"name"})
+    result = dict(path=_path(path, next(iter(keys))) if len(keys) == 1 else path,
+                  unknown_keys=safe[:16])
+    other = len(keys) - len(safe)
+    if other:
+        result["unknown_key_other"] = other
+    return result
+
+
+def _error(code: str, detail=None) -> None:
+    raise ParseError(code, detail)
 
 
 def _json_object(pairs):
@@ -68,54 +127,54 @@ def _finite_float(value):
     return number
 
 
-def _valid_string(value):
+def _valid_string(value, path="game"):
     if not isinstance(value, str) or any(0xD800 <= ord(c) <= 0xDFFF for c in value):
-        _error("invalid_string")
+        _error("invalid_string", _detail(value, path))
     return value
 
 
-def unwrap(value):
+def unwrap(value, path="game"):
     """Decode just the supported Firestore Value types, with no coercion."""
     if not isinstance(value, dict) or len(value) != 1:
-        _error("invalid_firestore_value")
+        _error("invalid_firestore_value", _detail(value, path))
     kind, data = next(iter(value.items()))
     if kind == "mapValue":
         if not isinstance(data, dict) or set(data) - {"fields"}:
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         fields = data.get("fields", {})
         if not isinstance(fields, dict):
-            _error("invalid_firestore_value")
-        return {_valid_string(k): unwrap(v) for k, v in fields.items()}
+            _error("invalid_firestore_value", _detail(data, path))
+        return {_valid_string(k, _path(path, k)): unwrap(v, _path(path, k)) for k, v in fields.items()}
     if kind == "arrayValue":
         if not isinstance(data, dict) or set(data) - {"values"}:
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         values = data.get("values", [])
         if not isinstance(values, list):
-            _error("invalid_firestore_value")
-        return [unwrap(v) for v in values]
+            _error("invalid_firestore_value", _detail(data, path))
+        return [unwrap(v, path + "[]") for v in values]
     if kind == "integerValue":
         if type(data) is int:
             number = data
         elif isinstance(data, str) and re.fullmatch(r"-?(?:0|[1-9][0-9]*)", data):
             number = int(data)
         else:
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         if not -(1 << 63) <= number < (1 << 63):
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         return number
     if kind == "doubleValue":
         if type(data) not in (int, float) or not math.isfinite(data):
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         return data
     if kind == "booleanValue":
         if type(data) is not bool:
-            _error("invalid_firestore_value")
+            _error("invalid_firestore_value", _detail(data, path))
         return data
     if kind in ("stringValue", "timestampValue"):
-        return _valid_string(data)
+        return _valid_string(data, path)
     if kind == "nullValue" and data is None:
         return None
-    _error("unsupported_firestore_value")
+    _error("unsupported_firestore_value", _detail(data, path))
 
 
 def _walk(value):
@@ -136,38 +195,97 @@ def _redact(value):
     return value
 
 
-def _validate_game_values(value):
+def _validate_game_values(value, path="game", key=None):
     if isinstance(value, dict):
-        if set(value) - GAME_KEYS:
-            _error("unsupported_game_schema")
-        for child in value.values():
-            _validate_game_values(child)
+        try:
+            allowed = GAME_KEYS | {"dyingPlayerIds"} if path == "game" else GAME_KEYS
+            if set(value) - allowed:
+                _error("unsupported_game_schema", _unknown(value, allowed, path))
+            for child_key, child in value.items():
+                _validate_game_values(child, _path(path, child_key), child_key)
+        except ParseError as error:
+            if path == "game.events[]":
+                error.detail.update(_event_keys(value))
+            raise
     elif isinstance(value, list):
         for child in value:
-            _validate_game_values(child)
+            _validate_game_values(child, path + "[]", key)
     elif isinstance(value, str):
         if value not in GAME_STRINGS and not re.fullmatch(r"player[0-9]+", value):
-            _error("unsupported_game_schema")
+            _error("unsupported_game_schema", _detail(value, path, key))
     elif value is not None and type(value) not in (int, float, bool):
-        _error("unsupported_game_schema")
+        _error("unsupported_game_schema", _detail(value, path))
     elif type(value) is float and not math.isfinite(value):
-        _error("nonfinite_json_number")
+        _error("nonfinite_json_number", _detail(value, path))
 
 
-def sanitize_game(game, viewer_id=None):
+def _sanitize_game(game, viewer_id=None):
+    # Validate observed new forms before redaction can remove extra keys.
+    if isinstance(game, dict) and isinstance(game.get('events'), list):
+        ids = [p.get('id') for p in game.get('players', []) if isinstance(p, dict)]
+        def item_ok(item):
+            return (isinstance(item, dict) and set(item) == {'id','modelId','fakeModelId','used'}
+                    and type(item['id']) is int and item['id'] >= 0
+                    and type(item['modelId']) is int and 1 <= item['modelId'] <= 296
+                    and type(item['fakeModelId']) is int and 0 <= item['fakeModelId'] <= 296
+                    and type(item['used']) is bool)
+        for e in game['events']:
+            if not isinstance(e, dict):
+                continue
+            a = e.get('action'); valid = True
+            if a == 'pray':
+                valid = set(e) == {'action'}
+            elif a in ('takeCP','boostCP','boostCPOfEverybody'):
+                valid = set(e) == {'action','cp'} and type(e['cp']) is int
+            elif a == 'upgradeDisease':
+                valid = (set(e) in ({'action','curse','playerId'}, {'action','curse','playerId','natural'})
+                         and e['curse'] in ('cold','fever','hell','heaven')
+                         and type(e['playerId']) is int and e['playerId'] in ids
+                         and ('natural' not in e or type(e['natural']) is bool))
+            elif a == 'sell' and 'overflowItem' in e:
+                valid = set(e) == {'action','item','overflowItem'} and item_ok(e['item']) and item_ok(e['overflowItem'])
+            if not valid:
+                _error('unsupported_game_schema', _detail(e, 'game.events[]'))
+    # Check exact event keys before redaction can erase an unexpected payload.
+    if isinstance(game, dict) and isinstance(game.get("events"), list):
+        for event in game["events"]:
+            if isinstance(event, dict) and event.get("action") in ("hit", "miss", "removeGuardian", "removeItems", "removeUsedMiracles"):
+                expected = {"action", "playerId"}
+                if event["action"] in ("removeItems", "removeUsedMiracles"):
+                    expected.add("items")
+                    if isinstance(event.get("items"), list) and any(
+                            isinstance(item, dict) and set(item) != {"id", "modelId", "fakeModelId", "used"}
+                            for item in event["items"]):
+                        _error("unsupported_game_schema", _detail(event, "game.events[]"))
+                if set(event) != expected:
+                    _error("unsupported_game_schema", _detail(event, "game.events[]"))
     game = _redact(game)
-    if not isinstance(game, dict) or not isinstance(game.get("players"), list):
-        _error("invalid_game_schema")
+    if not isinstance(game, dict):
+        _error("invalid_game_schema", _detail(game, "game"))
+    if not isinstance(game.get("players"), list):
+        _error("invalid_game_schema", _detail(game.get("players"), "game.players"))
     for key in ("updateCount", "gf", "attackTurnPlayerId"):
         if type(game.get(key)) is not int:
-            _error("invalid_game_schema")
+            _error("invalid_game_schema", _detail(game.get(key), _path("game", key)))
     players = game["players"]
-    if not players or any(not isinstance(p, dict) or type(p.get("id")) is not int
-                          or p["id"] < 0 for p in players):
-        _error("invalid_game_schema")
+    if not players:
+        _error("invalid_game_schema", _detail(players, "game.players"))
+    for player in players:
+        if not isinstance(player, dict):
+            _error("invalid_game_schema", _detail(player, "game.players[]"))
+        if type(player.get("id")) is not int or player["id"] < 0:
+            _error("invalid_game_schema", _detail(player.get("id"), "game.players[].id"))
     ids = [p["id"] for p in players]
     if len(set(ids)) != len(ids) or (viewer_id is not None and viewer_id not in ids):
         _error("invalid_game_schema")
+    if "dyingPlayerIds" in game:
+        # Server death-processing metadata; the pinned client tn decoder ignores
+        # it. Accept only roster IDs, without inferring dead/revive/attack order.
+        dying = game["dyingPlayerIds"]
+        if (not isinstance(dying, list)
+                or any(type(pid) is not int or pid not in ids for pid in dying)
+                or len(set(dying)) != len(dying)):
+            _error("unsupported_game_schema", _detail(dying, "game.dyingPlayerIds"))
     if viewer_id is None and len(players) == 2:
         humans = [p["id"] for p in players if p.get("isBot") is not True]
         bots = [p["id"] for p in players if p.get("isBot") is True]
@@ -175,7 +293,7 @@ def sanitize_game(game, viewer_id=None):
             viewer_id = humans[0]
     for player in players:
         if "name" in player:
-            _valid_string(player["name"])
+            _valid_string(player["name"], "game.players[].?")
             player["name"] = ("viewer" if player["id"] == viewer_id else
                               "cpu" if viewer_id is not None and player.get("isBot") is True else
                               f"player{player['id']}")
@@ -184,28 +302,71 @@ def sanitize_game(game, viewer_id=None):
     for event in game.get("events", []):
         if isinstance(event, dict) and event.get("action") == "danger":
             if event != {"action": "danger"}:
-                _error("unsupported_game_schema")
-    # Pinned client dispatch reads only miss.playerId for its visual effect.
+                _error("unsupported_game_schema", _detail(event, "game.events[]"))
+    # Pinned client dispatch uses hit/miss.playerId for public visual effects.
     # Accept exactly the observed recipient marker, never inferred damage.
     for event in game.get("events", []):
         if isinstance(event, dict) and event.get("action") == "sell":
-            if (set(event) != {"action", "item"} or not isinstance(event["item"], dict)
+            if (set(event) not in ({"action", "item"}, {"action", "item", "overflowItem"}) or not isinstance(event["item"], dict)
                     or set(event["item"]) - {"id", "modelId", "fakeModelId", "used"}
                     or type(event["item"].get("modelId")) is not int
                     or not 1 <= event["item"]["modelId"] <= 296):
-                _error("unsupported_game_schema")
-        if isinstance(event, dict) and event.get("action") == "miss":
+                _error("unsupported_game_schema", _detail(event, "game.events[]"))
+        if isinstance(event, dict) and event.get("action") in ("miss", "hit", "removeGuardian"):
             if (set(event) != {"action", "playerId"}
                     or type(event["playerId"]) is not int
                     or event["playerId"] not in ids):
-                _error("unsupported_game_schema")
+                _error("unsupported_game_schema", _detail(event, "game.events[]"))
+        if isinstance(event, dict) and event.get("action") in ("removeItems", "removeUsedMiracles"):
+            # Inferred from kY: require every decoded field, with no coercion.
+            if (set(event) != {"action", "playerId", "items"}
+                    or type(event["playerId"]) is not int or event["playerId"] not in ids
+                    or not isinstance(event["items"], list)
+                    or any(not isinstance(item, dict)
+                           or set(item) != {"id", "modelId", "fakeModelId", "used"}
+                           or type(item["id"]) is not int or item["id"] < 0
+                           or type(item["modelId"]) is not int or not 1 <= item["modelId"] <= 296
+                           or type(item["fakeModelId"]) is not int or not 0 <= item["fakeModelId"] <= 296
+                           or type(item["used"]) is not bool for item in event["items"])):
+                _error("unsupported_game_schema", _detail(event, "game.events[]"))
+    for attack in game.get("attacks", []):
+        if isinstance(attack, dict) and "buyingItemModelId" in attack:
+            model = attack["buyingItemModelId"]
+            if type(model) is not int or not 1 <= model <= 296:
+                _error("unsupported_game_schema", _detail(model, "game.attacks[].buyingItemModelId"))
     _validate_game_values(game)
+    for event in game.get("events", []):
+        if not isinstance(event, dict) or not isinstance(event.get("action"), str):
+            _error("unsupported_game_schema", _detail(event, "game.events[]"))
     return game
 
 
-def parse_prefix(raw: bytes, viewer_id=None):
-    """Return only complete, strictly parsed frames; leave an unfinished tail.
+def sanitize_game(game, viewer_id=None, *, lenient_events=False, replaced_events=None):
+    if not lenient_events or not isinstance(game, dict) or not isinstance(game.get("events"), list):
+        return _sanitize_game(game, viewer_id)
+    # Validate the entire authoritative state first. Only individual events may
+    # be discarded; errors anywhere else retain the strict behavior.
+    sanitized = _sanitize_game(dict(game, events=[]), viewer_id)
+    for event in game["events"]:
+        try:
+            if (not isinstance(event, dict) or not isinstance(event.get("action"), str)
+                    or event["action"] not in EVENT_ACTIONS):
+                _error("unsupported_game_schema")
+            checked = _sanitize_game(dict(game, events=[event]), viewer_id)
+        except ParseError:
+            sanitized["events"].append({"action": "unknownEvent"})
+            if replaced_events is not None:
+                replaced_events.append(_event_keys(event) if isinstance(event, dict) else {"event_keys": []})
+        else:
+            sanitized["events"].extend(checked["events"])
+    return sanitized
 
+
+def parse_prefix(raw: bytes, viewer_id=None, *, lenient_events=False):
+    """Return complete frames; leave an unfinished tail. Strict by default.
+
+    lenient_events replaces only rejected events with empty unknownEvent
+    markers and returns safe diagnostics in each record's replaced_events.
     The transport length is a JavaScript string length (UTF-16 code units),
     not a UTF-8 byte length or Python Unicode code-point count.
     """
@@ -284,10 +445,15 @@ def parse_prefix(raw: bytes, viewer_id=None):
             source_name = document.get("name")
             if not isinstance(source_name, str) or not source_name:
                 _error("invalid_game_document")
-            game = sanitize_game(unwrap(document["fields"]["game"]), viewer_id)
+            decoded = unwrap(document["fields"]["game"])
+            replaced = []
+            game = (sanitize_game(decoded, viewer_id, lenient_events=True, replaced_events=replaced)
+                    if lenient_events else sanitize_game(decoded, viewer_id))
             sequence = document_sequences.setdefault(source_name, len(document_sequences) + 1)
             games.append({"frame_index": frame_index, "frame_end_byte": end_byte,
                           "document_sequence": sequence, "game": game})
+            if replaced:
+                games[-1]["replaced_events"] = replaced
     return {
         "schema_version": 1,
         "schema": "official-webchannel-prefix-games-v1",

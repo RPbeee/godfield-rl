@@ -56,6 +56,81 @@ def change(value=None, document="PRIVATE_ROOM_DOCUMENT"):
 
 
 class ParserTests(unittest.TestCase):
+    def test_dying_player_ids_exact_roster_array(self):
+        for dying in ([], [1], [2, 1]):
+            for lenient in (False, True):
+                value = game()
+                value['dyingPlayerIds'] = dying
+                decoded = parser.parse_prefix(frame([change(value)]), 1,
+                    lenient_events=lenient)['games'][0]['game']
+                self.assertEqual(decoded['dyingPlayerIds'], dying)
+
+    def test_dying_player_ids_reject_invalid_values_even_when_lenient(self):
+        for dying in (None, 1, 'player1', {}, [True], [1.0], ['1'],
+                      [-1], [3], [1, 1], [[1]], [{'id': 1}]):
+            for lenient in (False, True):
+                value = game()
+                value['dyingPlayerIds'] = dying
+                with self.subTest(dying=dying, lenient=lenient), self.assertRaises(parser.ParseError) as caught:
+                    parser.parse_prefix(frame([change(value)]), 1, lenient_events=lenient)
+                self.assertEqual(str(caught.exception), 'unsupported_game_schema')
+                self.assertEqual(caught.exception.detail['path'], 'game.dyingPlayerIds')
+
+    def test_dying_player_ids_only_allowed_at_game_root(self):
+        for location in ('players', 'attacks', 'events'):
+            value = game()
+            if location == 'players':
+                value['players'][0]['dyingPlayerIds'] = []
+            elif location == 'attacks':
+                value['attacks'] = [{'dyingPlayerIds': []}]
+            else:
+                value['events'][0]['dyingPlayerIds'] = []
+            with self.subTest(location=location), self.assertRaises(parser.ParseError):
+                parser.parse_prefix(frame([change(value)]), 1)
+
+    def test_lenient_events_are_replaced_individually_with_safe_metadata(self):
+        events = [{"action": "removeItems", "items": []},
+                  {"action": "dealDarkDamage", "damage": 7},
+                  {"action": "hit", "index": 0},
+                  {"action": "PRIVATE AUTH!", "name": "PRIVATE NAME"}, 42]
+        value = game()
+        for event in events:
+            value["events"] = [{"action": "startGame"}, event]
+            with self.assertRaises(parser.ParseError) as caught:
+                parser.parse_prefix(frame([change(value)]), 1)
+            if isinstance(event, dict) and event.get("action") == "removeItems":
+                self.assertEqual(caught.exception.detail["action"], "removeItems")
+            record = parser.parse_prefix(frame([change(value)]), 1, lenient_events=True)["games"][0]
+            self.assertEqual(record["game"]["events"], [{"action": "startGame"}, {"action": "unknownEvent"}])
+            metadata = record["replaced_events"][0]
+            self.assertIn("event_keys", metadata)
+            self.assertNotIn("PRIVATE", json.dumps(metadata))
+            self.assertLessEqual(set(metadata), {"event_keys", "action", "event_key_other"})
+
+    def test_lenient_action_must_be_an_event_not_another_symbol(self):
+        value = game()
+        value["events"] = [{"action": "cold"}]
+        record = parser.parse_prefix(frame([change(value)]), 1, lenient_events=True)["games"][0]
+        self.assertEqual(record["game"]["events"], [{"action": "unknownEvent"}])
+        self.assertEqual(record["replaced_events"], [{"event_keys": ["action"], "action": "cold"}])
+
+    def test_lenient_events_still_reject_authoritative_state(self):
+        for location in ("players", "attacks", "top"):
+            value = game()
+            value["events"].append({"action": "dealDarkDamage", "damage": 7})
+            if location == "players":
+                value["players"][0]["unknownKey"] = 1
+            elif location == "attacks":
+                value["attacks"] = [{"unknownKey": 1}]
+            else:
+                value["unknownKey"] = 1
+            with self.subTest(location=location), self.assertRaises(parser.ParseError):
+                parser.parse_prefix(frame([change(value)]), 1, lenient_events=True)
+        value = game()
+        value["players"][0]["guardian"] = "unknownGuardian"
+        with self.assertRaises(parser.ParseError):
+            parser.parse_prefix(frame([change(value)]), 1, lenient_events=True)
+
     def test_sell_observed_shape_only(self):
         value = game()
         event = {"action": "sell", "item": {"id": 10, "modelId": 189}}
@@ -197,11 +272,45 @@ class ParserTests(unittest.TestCase):
                       {"action": "miss", "playerId": 2, "damage": 0},
                       {"action": "miss", "playerId": 2, "targetPlayerId": 1},
                       {"action": "miss", "playerId": 2, "secret": "PRIVATE_AUTH"},
-                      {"action": "missUnknown", "playerId": 2}, {"action": "hit", "playerId": 2}):
+                      {"action": "missUnknown", "playerId": 2}):
             with self.subTest(event=event):
                 g["events"] = [event]
                 with self.assertRaisesRegex(parser.ParseError, "^unsupported_game_schema$"):
                     parser.parse_prefix(frame([change(g)]))
+
+    def test_hit_and_removals_strict_shapes(self):
+        for action in ('hit', 'removeGuardian', 'removeItems', 'removeUsedMiracles'):
+            item = dict(id=10, modelId=223, fakeModelId=0, used=True)
+            event = dict(action=action, playerId=2)
+            if action in ('removeItems', 'removeUsedMiracles'):
+                event['items'] = [item]
+            value = game(); value['events'] = [event]
+            self.assertEqual(parser.sanitize_game(value)['events'], [event])
+            invalid = [dict(event, playerId=x) for x in (True, 2.0, '2', None, -1, 99, [], {})]
+            invalid += [dict(event, damage=0), dict(event, userId='PRIVATE_AUTH')]
+            invalid += [{k: v for k, v in event.items() if k != key} for key in event]
+            if action in ('removeItems', 'removeUsedMiracles'):
+                invalid += [dict(event, items=x) for x in (None, {}, 'private', [None])]
+                for key in item:
+                    invalid.append(dict(event, items=[{k: v for k, v in item.items() if k != key}]))
+                for key, bad in [('id', True), ('id', -1), ('modelId', 0), ('modelId', 297),
+                                 ('modelId', True), ('fakeModelId', None), ('fakeModelId', 297),
+                                 ('used', 0), ('used', 'true')]:
+                    invalid.append(dict(event, items=[dict(item, **{key: bad})]))
+                invalid.append(dict(event, items=[dict(item, damage=0)]))
+            for bad in invalid:
+                with self.subTest(event=bad), self.assertRaises(parser.ParseError) as caught:
+                    parser.sanitize_game(dict(value, events=[bad]))
+                self.assertEqual(caught.exception.detail['event_keys'], sorted(k for k in bad if k != 'userId'))
+
+    def test_purchase_model_integer_range(self):
+        for model in (1, 296):
+            value = game(); value['attacks'] = [dict(buyingItemModelId=model)]
+            self.assertEqual(parser.sanitize_game(value)['attacks'][0]['buyingItemModelId'], model)
+        for model in (0, 297, True, 1.0, '1', None):
+            value = game(); value['attacks'] = [dict(buyingItemModelId=model)]
+            with self.assertRaises(parser.ParseError):
+                parser.sanitize_game(value)
 
     def test_v93_v94_wire_miss_and_record_only_witnesses(self):
         root = SCRIPT.parents[1] / "data" / "official-v2"
@@ -300,6 +409,123 @@ class CliTests(unittest.TestCase):
             self.assertFalse((parent / "out.json").exists())
             result = self.invoke("--viewer-id", "PRIVATE_BAD_ARGUMENT")
             self.assertEqual(result.stderr, "error:invalid_arguments\n")
+
+
+
+class DetailTests(unittest.TestCase):
+    def error(self, value):
+        with self.assertRaises(parser.ParseError) as caught:
+            parser.parse_prefix(frame([change(value)]), 1)
+        self.assertEqual(caught.exception.args, (str(caught.exception),))
+        return caught.exception.detail
+
+    def test_invalid_purchase_model_without_values(self):
+        value = game()
+        value['attacks'] = [{'itemModelIds': [5], 'buyingItemModelId': 987654321}]
+        detail = self.error(value)
+        self.assertEqual(detail, dict(path='game.attacks[].buyingItemModelId',
+                                      value_type='int'))
+        self.assertNotIn('987654321', json.dumps(detail))
+
+    def test_enum_values_only_and_normalized_list_paths(self):
+        for key in ('action', 'curse', 'curses', 'guardian'):
+            value = game()
+            value['events'] = [{key: ['newEnum'] if key == 'curses' else 'newEnum'}]
+            detail = self.error(value)
+            self.assertEqual(detail['value'], 'newEnum')
+            self.assertEqual(detail['event_keys'], [key])
+            self.assertEqual(detail['path'], 'game.events[].'+key+('[]' if key == 'curses' else ''))
+        for key, text in [('action', 'Synthetic Name / PRIVATE_AUTH'), ('hp', 'SyntheticName'),
+                          ('name', 'SyntheticOpponent'), ('action', 'x'*33)]:
+            value = game(); value['events'] = [{key: text}]
+            detail = self.error(value)
+            self.assertNotIn('value', detail)
+            self.assertEqual(detail['length'], len(text))
+            self.assertEqual(detail['value_type'], 'str')
+            self.assertNotIn(text, json.dumps(detail))
+
+    def test_unknown_keys_are_bounded_sorted_and_masked(self):
+        value = game()
+        value['attacks'] = [dict.fromkeys(['z%02d' % i for i in range(20)] +
+                                        ['PRIVATE / NAME', '1bad', 'x'*65], 987654321)]
+        detail = self.error(value)
+        self.assertEqual(detail['unknown_keys'], ['z%02d' % i for i in range(16)])
+        self.assertEqual(detail['unknown_key_other'], 3)
+        self.assertNotIn('987654321', json.dumps(detail))
+        value['attacks'] = [{'PRIVATE / NAME': 987654321}]
+        self.assertEqual(self.error(value), dict(path='game.attacks[].?',
+                                               unknown_keys=[], unknown_key_other=1))
+
+    def test_names_and_sensitive_subtrees_never_contribute_values_or_keys(self):
+        value = game()
+        value['players'][0]['name'] = 'SyntheticName'
+        value['players'][1]['name'] = 'SyntheticOpponent'
+        value['events'] = [{'name': {'SyntheticName': 'PRIVATE_AUTH'}}]
+        detail = self.error(value)
+        self.assertEqual(detail['path'], 'game.events[].?.?')
+        self.assertEqual(detail['unknown_keys'], [])
+        for secret in ('SyntheticName', 'SyntheticOpponent', 'PRIVATE_AUTH'):
+            self.assertNotIn(secret, json.dumps(detail))
+        value['events'] = [{'action': 'newAction'}]
+        value['players'][0]['userId'] = {'SyntheticName': 'PRIVATE_AUTH'}
+        self.assertEqual(self.error(value)['value'], 'newAction')
+        value['players'][0]['name'] = 987654321
+        detail = self.error(value)
+        self.assertEqual(detail, dict(path='game.players[].?', value_type='int'))
+
+    def test_unknown_event_keys_are_safe_and_bounded(self):
+        value = game()
+        value['events'] = [dict(action='newAction', playerId=2, items=[],
+                                 name='SyntheticName', **{'PRIVATE / NAME': 987654321})]
+        detail = self.error(value)
+        self.assertEqual(detail['event_keys'], ['action', 'items', 'playerId'])
+        self.assertEqual(detail['event_key_other'], 2)
+        for secret in ('SyntheticName', 'PRIVATE / NAME', '987654321'):
+            self.assertNotIn(secret, json.dumps(detail))
+        value['events'] = [dict(action='newAction', **{'z%02d' % i: 0 for i in range(20)})]
+        self.assertEqual(len(self.error(value)['event_keys']), 16)
+
+    def test_type_failure_contains_no_numeric_value(self):
+        value = game(); value['gf'] = 987654321.5
+        self.assertEqual(self.error(value), dict(path='game.gf', value_type='float'))
+
+
+class FrequentEventTests(unittest.TestCase):
+    def test_observed_exact_shapes(self):
+        from copy import deepcopy
+        item = dict(id=7, modelId=6, fakeModelId=0, used=False)
+        events = [dict(action='pray'),
+                  *[dict(action=a, cp=-7) for a in ('takeCP','boostCP','boostCPOfEverybody')],
+                  dict(action='upgradeDisease', curse='fever', playerId=1),
+                  dict(action='upgradeDisease', curse='hell', playerId=2, natural=False),
+                  dict(action='sell', item=item, overflowItem=item)]
+        for event in events:
+            with self.subTest(action=event['action']):
+                g = game();g['events']=[event]
+                self.assertEqual(parser.sanitize_game(g,1)['events'],[event])
+                for key,value in [('extra',0),('userId','private'),('name','private')]:
+                    bad=deepcopy(g);bad['events'][0][key]=value
+                    with self.assertRaises(parser.ParseError): parser.sanitize_game(bad,1)
+                    replaced=[]
+                    sanitized=parser.sanitize_game(bad,1,lenient_events=True,replaced_events=replaced)
+                    self.assertEqual(sanitized['events'],[dict(action='unknownEvent')])
+                    self.assertEqual(len(replaced),1)
+
+    def test_new_payload_types_are_strict(self):
+        from copy import deepcopy
+        item = dict(id=7, modelId=6, fakeModelId=0, used=False)
+        bad = [dict(action=a,cp=v) for a in ('takeCP','boostCP','boostCPOfEverybody')
+               for v in (True,1.5,'7',None)]
+        bad += [dict(action='upgradeDisease',curse=c,playerId=1) for c in ('fog','none','unknown')]
+        bad += [dict(action='upgradeDisease',curse='fever',playerId=p) for p in (True,99,'1')]
+        bad += [dict(action='upgradeDisease',curse='fever',playerId=1,natural=n) for n in (1,None,'true')]
+        for field,value in [('id',True),('modelId',0),('fakeModelId',297),('used',1)]:
+            overflow=deepcopy(item);overflow[field]=value
+            bad.append(dict(action='sell',item=item,overflowItem=overflow))
+        for event in bad:
+            with self.subTest(event=event):
+                g=game();g['events']=[event]
+                with self.assertRaises(parser.ParseError): parser.sanitize_game(g,1)
 
 
 if __name__ == "__main__":
