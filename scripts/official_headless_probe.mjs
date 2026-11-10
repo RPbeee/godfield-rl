@@ -126,7 +126,21 @@ async function state() {
     return { path: new URL(e.src, document.baseURI).pathname, x: r.x, y: r.y, w: r.width, h: r.height };
   }).filter(r => r.w > 0 && r.h > 0 && r.x < innerWidth && r.y < innerHeight && r.x + r.w > 0 && r.y + r.h > 0));
   lastImages = images;
-  return { body: await page.locator('body').innerText(), inputs, images };
+  // Visible text geometry only; no application state or event handlers.
+  const texts = await page.locator('body').evaluate(body => {
+    const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+    const result = [];
+    while (walker.nextNode()) {
+      const node = walker.currentNode, text = node.textContent.trim();
+      if (!text || !node.parentElement.checkVisibility()) continue;
+      const range = document.createRange(); range.selectNodeContents(node);
+      const r = range.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0 && r.x >= 0 && r.y >= 0 && r.bottom <= innerHeight)
+        result.push({ text, x: r.x, y: r.y, w: r.width, h: r.height });
+    }
+    return result;
+  });
+  return { body: await page.locator('body').innerText(), inputs, images, texts };
 }
 async function close() {
   if (closing) return;

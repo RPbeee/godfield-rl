@@ -56,6 +56,19 @@ def change(value=None, document="PRIVATE_ROOM_DOCUMENT"):
 
 
 class ParserTests(unittest.TestCase):
+    def test_sell_observed_shape_only(self):
+        value = game()
+        event = {"action": "sell", "item": {"id": 10, "modelId": 189}}
+        value["events"] = [event]
+        self.assertEqual(parser.parse_prefix(frame([change(value)]), 1)["games"][0]["game"]["events"], [event])
+        for invalid in ({"action": "sell"},
+                        {"action": "sell", "item": {"modelId": True}},
+                        {"action": "sell", "item": {"modelId": 189}, "playerId": 1},
+                        {"action": "unknown"}):
+            value["events"] = [invalid]
+            with self.assertRaises(parser.ParseError):
+                parser.parse_prefix(frame([change(value)]), 1)
+
     def test_utf16_japanese_emoji_redaction_and_source_hash(self):
         raw = frame([change()])
         result = parser.parse_prefix(raw)
