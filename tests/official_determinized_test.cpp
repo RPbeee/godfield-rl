@@ -7,6 +7,7 @@
 #include <iostream>
 #include <random>
 #include <set>
+#include <map>
 
 namespace {
 using namespace godfield::official;
@@ -444,12 +445,69 @@ void response_randomized() {
     check(accepted>500 && truths>500 && continued>150,"many random response worlds and complete continuations");
     std::cout<<"response_random_accepted="<<accepted<<" invalid="<<invalid<<" true_reconstructions="<<truths<<" continued="<<continued<<'\n';
 }
-void measure(unsigned games) {
+void own_disguise_worlds() {
+    // Exhaust the natural compatibility relation, including restore-valid
+    // identity source variants. The source actual must not select a prior.
+    unsigned tested=0;
+    for(const auto& actual:catalog()) for(const auto& face:catalog()) {
+        if(!match_dream_compatible(actual.id,face.id))continue;
+        auto state=scene({actual.id},{6,7});
+        state.players[0].curses={Curse::dream};state.players[0].items[0].fake_model=face.id;
+        auto m=fixture(state);auto identity=state;identity.players[0].items[0].model=face.id;
+        auto other=fixture(identity);
+        check(m.determinize_support(42,true)==Support::ok,"own opt-in support");
+        check(m.determinize_support(42)==Support::hidden_own_model,"legacy own support unchanged");
+        const auto saved=m.snapshot();
+        const std::array own{actual.id};
+        auto a=m.determinized(42,std::array<CardId,1>{8},own,99,true);
+        auto b=other.determinized(42,std::array<CardId,1>{8},own,99,true);
+        check(a.snapshot()==b.snapshot(),"own hidden actual leaked");
+        check(a.view(42)==m.view(42) && a.last_decision(42)==m.last_decision(42),"own view/decision changed");
+        Match restored;restored.restore(a.snapshot());
+        for(bool canonical:{false,true}) for(auto kind:m.legal_kinds()) {
+            const auto visit=[&](auto&& self,std::vector<ItemToken> prefix)->void {
+                auto node=m.legal_extensions(kind,prefix,{canonical});
+                check(a.legal_extensions(kind,prefix,{canonical})==node,"own complete legality tree changed");
+                for(auto t:node.next){auto next=prefix;next.push_back(t);self(self,std::move(next));}
+            };visit(visit,{});
+        }
+        check(m.snapshot()==saved,"own source mutated");++tested;
+    }
+    check(tested>100,"too few Dream compatibility pairs");
+    auto state=scene({6},{6,7,190});
+    state.players[1].curses={Curse::dream};state.players[1].items[0].fake_model=7;
+    auto m=fixture(state);m.step({42,CommandKind::play,{0},7});
+    auto w=m.determinized(7,std::array<CardId,1>{8},std::array<CardId,1>{8},123,true);
+    check(w.view(7)==m.view(7) && w.last_decision(7)==m.last_decision(7),"own response observation changed");
+    check(w.snapshot().batch->initial_state.players[1].items[0].model==8,"own anchor not replaced");
+    for(const auto& own:std::vector<std::vector<CardId>>{{},{120},{6,7}}) {
+        bool rejected=false;
+        try{(void)m.determinized(7,std::array<CardId,1>{8},own,123,true);}
+        catch(const MatchError& e){rejected=e.code==MatchErrorCode::invalid;}
+        check(rejected,"bad own assignment accepted");
+    }
+    auto ordered=scene({118,6},{8});ordered.players[0].curses={Curse::dream};
+    ordered.players[0].items[0].fake_model=123;ordered.players[0].items[1].fake_model=7;
+    auto source=fixture(ordered);
+    auto ordered_world=source.determinized(42,std::array<CardId,1>{6},std::array<CardId,2>{8,118},1,true);
+    check(ordered_world.snapshot().state.players[0].items[0].model==118
+            && ordered_world.snapshot().state.players[0].items[1].model==8,"public/physical assignment ordering confused");
+    // Exact legality is stricter for new own-assigned worlds than the legacy
+    // main-only 94+232 exception: a mismatch must reject the sampled world.
+    auto danger=scene({94,232,6});danger.players[0].curses={Curse::dream};danger.players[0].items[2].fake_model=7;
+    auto d=fixture(danger);bool mismatch=false;
+    try{(void)d.determinized(42,std::array<CardId,1>{209},std::array<CardId,1>{8},1,true);}
+    catch(const MatchError& e){mismatch=e.code==MatchErrorCode::invalid;}
+    check(mismatch,"own-assigned world accepted changed Danger mask");
+    std::cout<<"own compatibility pairs="<<tested<<'\n';
+}
+void measure(unsigned games, bool own=false) {
     constexpr std::array names{"ok","invalid_viewer","unsupported_players","not_main","not_actor","pending_work","reserved_gifts","replay_proof","hidden_status","hidden_confusion","hidden_own_model","response_special","response_random","response_history"};
     std::array<std::array<std::array<std::uint64_t,names.size()>,2>,2> counts{};
     std::array<std::array<std::uint64_t,5>,2> phases{};
     std::array<std::uint64_t,2> attempts{},invalid{},ns{},success_ns{},capacity_invalid{};
     std::array<std::uint64_t,3> newly_supported{};
+    std::array<std::map<std::string,unsigned>,2> details, errors;
     const auto cursed=[](const SnapshotState& state,PlayerId id,Curse c) {
         const auto& curses=find_player(state,id)->curses;
         return std::find(curses.begin(),curses.end(),c)!=curses.end();
@@ -462,8 +520,24 @@ void measure(unsigned games) {
             const auto& s=m.snapshot();const auto viewer=s.actor.value_or(s.pending_grant.value_or(s.owner));
             const auto seat=viewer==42?0:1; ++phases[seat][static_cast<unsigned>(s.phase)];
             if(s.phase==MatchPhase::main || s.phase==MatchPhase::response) {
-                const auto boundary=s.phase==MatchPhase::main?0:1;const auto support=m.determinize_support(viewer);
+                const auto boundary=s.phase==MatchPhase::main?0:1;const auto support=m.determinize_support(viewer,own);
                 ++counts[seat][boundary][static_cast<unsigned>(support)];
+                std::string detail=names[static_cast<unsigned>(support)];
+                if(support==Support::hidden_status) detail+="/viewer_fog";
+                if(support==Support::hidden_own_model) detail+="/viewer_dream";
+                if(support==Support::not_actor) detail+="/own_launch";
+                if(support==Support::response_special && s.batch) {
+                    const auto& b=*s.batch;
+                    detail+=b.guardian_action||b.guardian_payload_action?"/guardian":
+                        b.attack.kind==CommandKind::buy?"/buy":b.attack.kind==CommandKind::sell?"/sell":
+                        b.tick_processed?"/tick":b.phenomenon_action?"/phenomenon":
+                        b.fate_action?"/fate":b.devil_action?"/devil":"/other";
+                }
+                if(support==Support::response_random && s.batch)
+                    detail+=find_card(s.batch->models.front())->ability==Ability::danger?"/danger":"/bounce";
+                if(support==Support::response_history)
+                    detail+=s.batch && s.queue.front().redirects.size()!=s.batch->responses.size()?"/resolved_body":"/other";
+                ++details[boundary][detail];
                 if(boundary && support==Support::ok) {
                     const auto& b=*s.batch;const auto& base=*find_card(b.models.front());
                     if(base.ability==Ability::boost_hp_or_deal_damage) ++newly_supported[1];
@@ -478,9 +552,22 @@ void measure(unsigned games) {
                     for(std::size_t n=random()%(s.config.hand_limit-used+1);n;--n) models.push_back(catalog[random()%catalog.size()]);
                     auto sample_seed=random();++attempts[boundary];auto start=std::chrono::steady_clock::now();
                     bool success=true;
-                    try {(void)m.determinized(viewer,models,sample_seed);}
+                    try {
+                        std::vector<CardId> own_models;
+                        auto own_rng=sample_seed;
+                        if(own) for(const auto& h:m.view(viewer).board.hand) if(h.disguised) {
+                            std::vector<CardId> tickets;
+                            for(auto id:catalog) if(match_dream_compatible(id,h.face))
+                                for(int n=0;n<find_card(id)->gift_rate;++n)tickets.push_back(id);
+                            check(!tickets.empty(),"nonempty measured Dream prior");
+                            std::mt19937_64 draw(own_rng++);
+                            own_models.push_back(tickets[draw()%tickets.size()]);
+                        }
+                        if(own_models.empty()) (void)m.determinized(viewer,models,sample_seed);
+                        else (void)m.determinized(viewer,models,own_models,sample_seed);
+                    }
                     catch(const MatchError& e) {
-                        check(e.code==MatchErrorCode::invalid,"benchmark invalid only");++invalid[boundary];success=false;
+                        check(e.code==MatchErrorCode::invalid,"benchmark invalid only");++invalid[boundary];success=false;++errors[boundary][e.what()];
                         capacity_invalid[boundary]+=std::string_view(e.what())=="determinized launch inventory exceeds hand limit";
                     }
                     const auto elapsed=std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now()-start).count();
@@ -500,12 +587,17 @@ void measure(unsigned games) {
             for(unsigned i=0;i<names.size();++i) std::cout<<names[i]<<'='<<counts[seat][boundary][i]<<" ("<<std::fixed<<std::setprecision(4)<<100.*counts[seat][boundary][i]/total<<"%)\n";
         }
     }
+    for(unsigned b=0;b<2;++b) for(const auto& [name,n]:details[b])
+        std::cout<<"detail "<<(b?"response":"main")<<" "<<name<<"="<<n<<'\n';
+    for(unsigned b=0;b<2;++b) for(const auto& [name,n]:errors[b])
+        std::cout<<"invalid "<<(b?"response":"main")<<" "<<name<<"="<<n<<'\n';
     std::cout<<"newly_supported percentage="<<newly_supported[0]<<" gamble="<<newly_supported[1]<<" fog="<<newly_supported[2]<<'\n';
     for(unsigned b=0;b<2;++b) std::cout<<(b?"response":"main")<<" samples="<<attempts[b]<<" invalid="<<invalid[b]<<" capacity_invalid="<<capacity_invalid[b]<<" mean_us_success="<<1e-3*success_ns[b]/(attempts[b]-invalid[b])<<" mean_us_including_invalid="<<1e-3*ns[b]/attempts[b]<<'\n';
 }
 }
 int main(int argc,char** argv) {
+    if(argc==3 && std::string(argv[1])=="--measure-own") { measure(static_cast<unsigned>(std::stoul(argv[2])),true);return 0; }
     if(argc==3 && std::string(argv[1])=="--measure") { measure(static_cast<unsigned>(std::stoul(argv[2])));return 0; }
-    boundaries_and_assignment();normalized_tokens();future_rng();randomized();response_fixtures();chance_response_fixtures();response_randomized();
+    own_disguise_worlds();boundaries_and_assignment();normalized_tokens();future_rng();randomized();response_fixtures();chance_response_fixtures();response_randomized();
     std::cout<<"Determinized tests passed.\n";
 }

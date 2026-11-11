@@ -361,3 +361,35 @@ mismatches zero in both runs. Unlike the fixed-policy measurement above, those
 trajectories diverge after new searches; no strength conclusion is drawn.
 See the parent's `cpp/gfrl_core/search_env.md` for the complete skip breakdown,
 budgets and exact pre-/post-engine root-output checks.
+
+
+## Opt-in own Dream assignments
+
+The existing support/determinized calls keep their behavior. Search callers can
+use `determinize_support(viewer, true)` and
+`determinized(viewer, opponent_models, own_disguises, seed, normalize_tokens)`.
+`own_disguises` supplies one real gift model per disguised viewer card in
+`view(viewer).board.hand` order, including identity disguises. The public hand
+is sorted differently from the physical inventory: assignments are installed
+by token, preserving physical slot order, token, face and disguise presence.
+Missing, extra or incompatible assignments are invalid. Response assignments
+are installed in the launch anchor before ordinary journal replay.
+
+This entry point assigns all own disguised real models and never decides which
+to replace by inspecting whether actual equals face. It validates exact viewer
+view, last decision, visible ordered inventory, legal kinds and mask-tree
+invariants, including the existing 94+232 mortar exception. Mismatches are
+invalid samples, not permission to change observations. Restore validation is
+unchanged. Small-hand tests enumerate complete prefix trees in both canonical
+modes for every one of the 992 natural Dream compatibility pairs.
+
+Sampling policy belongs to the parent gfrl search loader: natural Dream
+compatibility conditioned on the public face, weighted by giftRate. No true
+own disguised model or original game RNG participates in that draw. The
+parent's `cpp/gfrl_core/search_env.md` describes the posterior approximation,
+leak/search regression tests and complete before/after coverage table.
+`--measure-own 1000` uses the same fixed-policy game streams as `--measure 1000`
+with the opt-in own assignments. Main eligibility grows 21,153→21,858 out of
+22,577; response eligibility grows 5,843→6,032 out of 7,339. Other first reasons
+and phase totals stay fixed. Both measurement modes print detailed rejection
+counts as well as per-seat counts and percentages.
