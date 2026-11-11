@@ -492,13 +492,12 @@ void own_disguise_worlds() {
     auto ordered_world=source.determinized(42,std::array<CardId,1>{6},std::array<CardId,2>{8,118},1,true);
     check(ordered_world.snapshot().state.players[0].items[0].model==118
             && ordered_world.snapshot().state.players[0].items[1].model==8,"public/physical assignment ordering confused");
-    // Exact legality is stricter for new own-assigned worlds than the legacy
-    // main-only 94+232 exception: a mismatch must reject the sampled world.
+    // A sampled enemy mortar may change only the known engine 94+232 branch.
+    // gfrl forbids that branch; determinization must retain the usable world.
     auto danger=scene({94,232,6});danger.players[0].curses={Curse::dream};danger.players[0].items[2].fake_model=7;
-    auto d=fixture(danger);bool mismatch=false;
-    try{(void)d.determinized(42,std::array<CardId,1>{209},std::array<CardId,1>{8},1,true);}
-    catch(const MatchError& e){mismatch=e.code==MatchErrorCode::invalid;}
-    check(mismatch,"own-assigned world accepted changed Danger mask");
+    auto d=fixture(danger);
+    auto dw=d.determinized(42,std::array<CardId,1>{209},std::array<CardId,1>{8},1,true);
+    check(dw.view(42)==d.view(42),"Danger world changed public view");
     std::cout<<"own compatibility pairs="<<tested<<'\n';
 }
 void measure(unsigned games, bool own=false) {

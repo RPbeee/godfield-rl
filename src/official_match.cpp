@@ -2281,8 +2281,8 @@ Match Match::determinized_impl(PlayerId viewer, std::span<const CardId> assignme
         // SelectionTree reads faces/used/disguised/order, public resources and
         // response context. Its only true-model predicates are call_phenomenon
         // at the base and mortar presence for the exact 94+232 exception.
-        // Check those invariants and that exception explicitly, avoiding an
-        // exponential enumeration of all discard/defense permutations.
+        // Check those invariants while allowing the known mortar exception,
+        // avoiding an exponential enumeration of discard/defense permutations.
         const auto& before=find_player(data_.state,viewer)->items;
         const auto& after=find_player(result.data_.state,viewer)->items;
         require(before.size()==after.size(), "determinized own inventory size differs");
@@ -2294,19 +2294,28 @@ Match Match::determinized_impl(PlayerId viewer, std::span<const CardId> assignme
             a.model=a.fake_model.value_or(a.model);b.model=b.fake_model.value_or(b.model);
             require(a==b, "determinized own visible inventory differs");
         }
+        // The engine retains the known 94+232 mortar-dependent exception.
+        // Compare all other extensions; policy clients may forbid that pair.
+        const auto comparable=[&](SelectionNode node, CommandKind kind, std::span<const ItemToken> prefix) {
+            bool danger=false, wide=false;
+            for(auto token:prefix) {
+                const auto face=face_model(*instance(*find_player(data_.state,viewer),token));
+                danger |= face==94; wide |= face==232;
+            }
+            if(kind==CommandKind::play) std::erase_if(node.next,[&](auto token) {
+                const auto face=face_model(*instance(*find_player(data_.state,viewer),token));
+                return (danger && face==232) || (wide && face==94);
+            });
+            return node;
+        };
         for (bool canonical : {false,true}) for (auto kind : legal_kinds()) {
             const auto root=legal_extensions(kind,{}, {canonical});
             require(result.legal_extensions(kind,{}, {canonical})==root, "determinized own mask differs");
             for(auto token:root.next) {
                 const std::array prefix{token};
-                const auto node=legal_extensions(kind,prefix,{canonical});
-                require(result.legal_extensions(kind,prefix,{canonical})==node, "determinized own prefix differs");
-                if(kind==CommandKind::play && face_model(*instance(*find_player(data_.state,viewer),token))==94)
-                    for(auto next:node.next) if(face_model(*instance(*find_player(data_.state,viewer),next))==232) {
-                        const std::array pair{token,next};
-                        require(result.legal_extensions(kind,pair,{canonical})==legal_extensions(kind,pair,{canonical}),
-                                "determinized own Danger mask differs");
-                    }
+                require(comparable(result.legal_extensions(kind,prefix,{canonical}),kind,prefix)
+                        ==comparable(legal_extensions(kind,prefix,{canonical}),kind,prefix),
+                        "determinized own prefix differs");
             }
         }
     }
