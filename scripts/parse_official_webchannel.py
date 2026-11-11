@@ -39,7 +39,7 @@ GAME_STRINGS = frozenset("""
     disease useDefenseItems removeCurses die endGame boostHP boostMP exchange
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
-    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss hit removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease
+    nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss hit removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease upgradeHeaven dealDarkDamage revive collectCPOfEverybody
     cold fever hell heaven darkcloud dream fog flash
     mercury venus earth mars jupiter saturn uranus neptune pluto moon
     viewer cpu
@@ -50,7 +50,7 @@ EVENT_ACTIONS = frozenset("""
     buy canNotBuy setBought useDevilItem removeSomething selfCurse redraw
     replaceItems safe block setGuardian attackByGuardian counterAttack
     nextAttack bounce reflect phenomenon setCurseOfEverybody danger miss hit
-    removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease
+    removeGuardian removeItems removeUsedMiracles sell pray takeCP boostCP boostCPOfEverybody upgradeDisease upgradeHeaven dealDarkDamage revive collectCPOfEverybody
 """.split())
 REDACTED_KEYS = frozenset({"userId", "updatedAt"})
 
@@ -199,6 +199,10 @@ def _validate_game_values(value, path="game", key=None):
     if isinstance(value, dict):
         try:
             allowed = GAME_KEYS | {"dyingPlayerIds"} if path == "game" else GAME_KEYS
+            if path == "game.events[]" and value.get("action") in ("counterAttack", "selfCurse"):
+                allowed = allowed | {"index"}
+            if path == "game.attacks[]":
+                allowed = allowed | {"hitRate"}
             if set(value) - allowed:
                 _error("unsupported_game_schema", _unknown(value, allowed, path))
             for child_key, child in value.items():
@@ -229,11 +233,35 @@ def _sanitize_game(game, viewer_id=None):
                     and type(item['modelId']) is int and 1 <= item['modelId'] <= 296
                     and type(item['fakeModelId']) is int and 0 <= item['fakeModelId'] <= 296
                     and type(item['used']) is bool)
+        def sale_item_ok(item):
+            return (isinstance(item, dict) and not set(item) - {'id','modelId','fakeModelId','used'}
+                    and type(item.get('modelId')) is int and 1 <= item['modelId'] <= 296
+                    and ('id' not in item or (type(item['id']) is int and item['id'] >= 0))
+                    and ('fakeModelId' not in item or (type(item['fakeModelId']) is int and 0 <= item['fakeModelId'] <= 296))
+                    and ('used' not in item or type(item['used']) is bool))
+        response_count = None
         for e in game['events']:
             if not isinstance(e, dict):
                 continue
             a = e.get('action'); valid = True
-            if a == 'pray':
+            if a == 'useDefenseItems' and isinstance(e.get('items'), list):
+                response_count = len(e['items'])
+            if a in ('counterAttack', 'selfCurse'):
+                # ks.k/a6 indexes the selected response cards, NOT attacks[].
+                # A receipt may begin after the selection marker: inventory cap
+                # is then the only known bound. Never infer from final hand.
+                bound = 18 if response_count is None else min(18, response_count)
+                valid = (set(e) == {'action'} or (set(e) == {'action','index'}
+                         and type(e['index']) is int and 0 <= e['index'] < bound))
+            elif a in ('upgradeHeaven', 'collectCPOfEverybody'):
+                valid = (set(e) == {'action','playerId'} and type(e['playerId']) is int
+                         and e['playerId'] in ids)
+            elif a == 'dealDarkDamage':
+                valid = set(e) == {'action','damage'} and type(e['damage']) is int
+            elif a == 'revive':
+                valid = (set(e) == {'action','playerId','item'} and type(e['playerId']) is int
+                         and e['playerId'] in ids and item_ok(e['item']))
+            elif a == 'pray':
                 valid = set(e) == {'action'}
             elif a in ('takeCP','boostCP','boostCPOfEverybody'):
                 valid = set(e) == {'action','cp'} and type(e['cp']) is int
@@ -242,8 +270,12 @@ def _sanitize_game(game, viewer_id=None):
                          and e['curse'] in ('cold','fever','hell','heaven')
                          and type(e['playerId']) is int and e['playerId'] in ids
                          and ('natural' not in e or type(e['natural']) is bool))
-            elif a == 'sell' and 'overflowItem' in e:
-                valid = set(e) == {'action','item','overflowItem'} and item_ok(e['item']) and item_ok(e['overflowItem'])
+            elif a == 'sell':
+                # A.to explicitly decodes null overflow as no eviction. Keep
+                # the existing compact commodity DTO, with typed optional keys.
+                valid = (set(e) in ({'action','item'}, {'action','item','overflowItem'})
+                         and sale_item_ok(e['item'])
+                         and (e.get('overflowItem') is None or item_ok(e['overflowItem'])))
             if not valid:
                 _error('unsupported_game_schema', _detail(e, 'game.events[]'))
     # Check exact event keys before redaction can erase an unexpected payload.
@@ -257,7 +289,8 @@ def _sanitize_game(game, viewer_id=None):
                             isinstance(item, dict) and set(item) != {"id", "modelId", "fakeModelId", "used"}
                             for item in event["items"]):
                         _error("unsupported_game_schema", _detail(event, "game.events[]"))
-                if set(event) != expected:
+                if (set(event) != expected and not (event["action"] == "removeItems"
+                        and set(event) == {"action", "items"})):
                     _error("unsupported_game_schema", _detail(event, "game.events[]"))
     game = _redact(game)
     if not isinstance(game, dict):
@@ -319,8 +352,9 @@ def _sanitize_game(game, viewer_id=None):
                 _error("unsupported_game_schema", _detail(event, "game.events[]"))
         if isinstance(event, dict) and event.get("action") in ("removeItems", "removeUsedMiracles"):
             # Inferred from kY: require every decoded field, with no coercion.
-            if (set(event) != {"action", "playerId", "items"}
-                    or type(event["playerId"]) is not int or event["playerId"] not in ids
+            if (set(event) not in ({"action", "playerId", "items"}, {"action", "items"})
+                    or ("playerId" in event and (type(event["playerId"]) is not int or event["playerId"] not in ids))
+                    or (event["action"] == "removeUsedMiracles" and "playerId" not in event)
                     or not isinstance(event["items"], list)
                     or any(not isinstance(item, dict)
                            or set(item) != {"id", "modelId", "fakeModelId", "used"}
@@ -330,6 +364,11 @@ def _sanitize_game(game, viewer_id=None):
                            or type(item["used"]) is not bool for item in event["items"])):
                 _error("unsupported_game_schema", _detail(event, "game.events[]"))
     for attack in game.get("attacks", []):
+        if isinstance(attack, dict) and "hitRate" in attack:
+            # Public attack DTO: integer percentage; zero means catalog fallback.
+            rate = attack["hitRate"]
+            if type(rate) is not int or not 0 <= rate <= 100:
+                _error("unsupported_game_schema", _detail(rate, "game.attacks[].hitRate"))
         if isinstance(attack, dict) and "buyingItemModelId" in attack:
             model = attack["buyingItemModelId"]
             if type(model) is not int or not 1 <= model <= 296:
@@ -347,18 +386,22 @@ def sanitize_game(game, viewer_id=None, *, lenient_events=False, replaced_events
     # Validate the entire authoritative state first. Only individual events may
     # be discarded; errors anywhere else retain the strict behavior.
     sanitized = _sanitize_game(dict(game, events=[]), viewer_id)
+    response = None
     for event in game["events"]:
         try:
             if (not isinstance(event, dict) or not isinstance(event.get("action"), str)
                     or event["action"] not in EVENT_ACTIONS):
                 _error("unsupported_game_schema")
-            checked = _sanitize_game(dict(game, events=[event]), viewer_id)
+            prefix = [response] if response is not None and event['action'] in ('counterAttack', 'selfCurse') else []
+            checked = _sanitize_game(dict(game, events=prefix + [event]), viewer_id)
         except ParseError:
             sanitized["events"].append({"action": "unknownEvent"})
             if replaced_events is not None:
                 replaced_events.append(_event_keys(event) if isinstance(event, dict) else {"event_keys": []})
         else:
-            sanitized["events"].extend(checked["events"])
+            sanitized["events"].append(checked["events"][-1])
+            if event['action'] == 'useDefenseItems':
+                response = event
     return sanitized
 
 
