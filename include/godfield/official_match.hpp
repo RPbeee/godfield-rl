@@ -615,7 +615,7 @@ public:
     void reset(std::span<const PlayerSetup> players, std::uint64_t seed);
     void load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed);
     void restore(const MatchSnapshot& snapshot); // Validates completely, then replaces atomically.
-    [[nodiscard]] DeterminizeSupport determinize_support(PlayerId viewer) const noexcept;
+    [[nodiscard]] DeterminizeSupport determinize_support(PlayerId viewer, bool assign_own_disguises = false) const noexcept;
     // Opponent's UNUSED real models as a multiset (empty is allowed).
     // Retains used items in their existing order, then appends fresh unused
     // items in ascending model order; input order never changes the world.
@@ -628,6 +628,10 @@ public:
     // Normalize tokens in the launch anchor before replay, discarding the hidden
     // allocator while preserving own/used/selected IDs and accounting bounds.
     [[nodiscard]] Match determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed, bool normalize_tokens = false) const;
+    // Real models in view(viewer).board.hand order for EVERY disguised slot, including
+    // identity disguises. Tokens/faces/order stay fixed. Never infer from truth.
+    [[nodiscard]] Match determinized(PlayerId viewer, std::span<const CardId> assignment,
+        std::span<const CardId> own_disguises, std::uint64_t seed, bool normalize_tokens = false) const;
     [[nodiscard]] const MatchSnapshot& snapshot() const noexcept { return data_; }
     [[nodiscard]] bool done() const noexcept { return data_.phase == MatchPhase::finished; }
     [[nodiscard]] bool gift_supported(CardId model) const noexcept;
@@ -687,6 +691,8 @@ public:
     [[nodiscard]] MatchView view(std::optional<PlayerId> viewer) const;
     [[nodiscard]] std::string observe(std::optional<PlayerId> viewer) const;
 private:
+    [[nodiscard]] Match determinized_impl(PlayerId viewer, std::span<const CardId> assignment,
+        std::optional<std::span<const CardId>> own_disguises, std::uint64_t seed, bool normalize_tokens) const;
     void apply_choice(const PlayerChoice& choice, std::uint64_t& chance_rng); // Only on a transaction copy.
     [[nodiscard]] Command sample_command(std::uint64_t& rng, bool allow_confused) const;
     MatchConfig config_;

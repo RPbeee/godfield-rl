@@ -142,7 +142,7 @@ The C++ API also supports `phase == response`, `actor == viewer`, and
 `owner != viewer`. The two-solo-player restriction and the main-path reason
 precedence/values are unchanged. New reasons are **appended**:
 `response_special=11`, `response_random=12`, `response_history=13`.
-The parent `search.py` `_SUPPORT` table does not yet contain them.
+The parent `search.py` `_SUPPORT` table contains all three reasons.
 
 Response precedence is invalid viewer, unsupported players, not actor,
 special work, random launch, resolved/nonreflection history, hidden status,
@@ -164,10 +164,9 @@ The following are excluded:
   ticked batches, grants, redraw/purchase/automatic result records; all five
   `*_proof`, `last_fate`, `last_devil`, and `last_item_shuffle` anchors.
   Buy and sell are excluded by requiring `attack.kind == play`.
-- Danger (including Wide) can inspect a hidden mortar or sample its target;
-  the HP gamble samples its launch sign. Ordinary percentage hits consume RNG,
-  except a publicly DarkCloud-forced hit. Fogged ordinary single-target launches
-  consume RNG even with only one enemy. All are `response_random`.
+- Danger (including Wide) can inspect a hidden mortar or sample its target and
+  remains `response_random`. Percentage hits, two-player Fog targets, and HP
+  gamble signs are supported as described below.
 - A response history must consist entirely of the currently pending frame's
   redirects, and each must end in reflection without any bounce. A bounce draw
   is rejected even if its outcome happens to equal a deterministic target.
@@ -183,7 +182,7 @@ The following are excluded:
 | `queue.redirect_rng` | Private future redirect validation state | Recreate from the seeded anchor; never retain original. |
 | `batch.initial_state.players[*].items` | Own inventory and opponent used/selected cards known; remaining opponent cards/count hidden | Keep used items and **all** opponent items referenced by launch/response tokens; replace every remaining item with sorted assignment and fresh tokens. No opponent unused old model/disguise survives. |
 | `batch.initial_state` other player/board fields | Public status and historical bookkeeping, with D6 Fog/confusion/own-disguise exclusions | Preserve; replay to current state. Reflection-only history does not resolve hidden bodies. |
-| `batch.attack`, `models`, `targets`, `cursor`, `responses`, `chance`, `random_hp_delta` | Public played cards, routing and past response order; no unused-hand dependency after rejecting Danger | Replay deterministic launch and journal; do not transplant derived state. |
+| `batch.attack`, `models`, `targets`, `cursor`, `responses`, `chance`, `random_hp_delta` | Public played cards, routing and past response order; no unused-hand dependency after rejecting Danger | Replay launch (conditioned on public outcomes where needed) and journal; do not transplant derived state. |
 | `batch` cumulative counters / `decisions` | Historical counts, not future gameplay secrets | Preserve anchor counts; replay increments. |
 | `batch.rng`, `next_token` | RNG hidden; tokens physical bookkeeping | Replace RNG with seed; allocate from source current `next_token`, and put advanced allocator in new anchor. |
 | `batch` special actions, guardian/tick cursors, supplied outcomes, grants/resolutions | May hold private plans/results or full old inventories | Reject as `response_special`. No external chance result is resampled; every such result-bearing boundary is excluded in this subset. |
@@ -210,10 +209,10 @@ catalog validation retain the main contract.
 
 Build a fresh main snapshot with `snapshot_from_anchor`, replace the inventory
 and **set anchor RNG to seed**, replay the launch and every recorded response,
-then run `restore()`'s full validation. Supported paths cannot consume game RNG;
-an explicit post-replay assertion also checks this. Consequently current RNG,
-batch RNG, and active `redirect_rng` all come from seed, with no original RNG
-copy remaining. Future distribution and redirects use the new stream. The
+then run `restore()`'s full validation. Ordinary deterministic paths keep the exact seed convention. Chance launches
+consume the fresh stream; their anchor is conditioned only on public results
+as described below. Current RNG, batch RNG, and active `redirect_rng` all come
+from the new seed, with no original RNG copy remaining. Future distribution and redirects use the new stream. The
 caller's external chance stream is untouched. No schema/version change is needed.
 
 The implementation checks exact `view(viewer)`, `last_decision(viewer)`, actor
@@ -277,23 +276,120 @@ were2.4982us and11.9150us respectively. Timing depends on machine load. Randomiz
 and continued191 response worlds to terminal/cutoff. Different seeds changed
 future gifts in125/128 response fixture pairs (main remains128/128).
 
-Parent integration caveat: its current `VecEnv::load_worlds()` renumbers only
-current opponent unused tokens and `next_token`, then calls `restore()`. On
-response worlds this leaves `batch.initial_state`/`batch.next_token` inconsistent,
-so `gfrl_search` fails with “self-play root failed loading”. The unchanged parent
-passes that C++ test against the original P3 engine. The next integration task
-must update that canonicalization together with `_SUPPORT`; no parent files
-are modified here.
+## Public chance launches (P3 remaining response work)
+
+The engine's public interface, rather than response mask differences, decides
+what is known:
+
+- **Percentage hit:** `next_action_effect` skips misses without creating a
+  response. Thus the existence of an ordinary pending percentage payload
+  publicly proves a hit. Its `hit_rate` is public, and `forced_hit` is projected
+  unless the initial target is fogged. Such viewer-Fog boundaries still fail
+  `hidden_status`. DarkCloud forcing is determined by public status. There is
+  no miss-response root to preserve in this subset.
+- **Fog single target:** the two-solo-player domain has exactly one enemy.
+  Replay still consumes the ordinary `bounded(rng, 1)` draw. The chosen target
+  is also published in `last_decision(viewer).target` and `PendingView.target`.
+- **202 sign:** `Match::view` assigns `pending.amount = frame.amount` without
+  hiding the sign, and gfrl encodes it as `amount / 99`. Both +10 and -10 are
+  therefore public at response time, even though their legal masks are equal.
+  Both signs must be preserved. No unpublished true sign is copied.
+
+No existing external chance-injection entry point handles ordinary weapon hits
+or 202. DarkCloud forcing changes the public forced flag and accounting, so it
+cannot be substituted for a normal hit. Instead `determinized` conditions a
+fresh launch RNG on the public hit and sign using rejection sampling. Try the
+requested seed first; on rejection use the next SplitMix64 output from a
+sampler initialized to that seed. Probe only the launch draws (including Fog's
+singleton draw), then execute the accepted ordinary launch exactly once. This
+avoids resolving rejected misses, including their gifts or token allocations.
+`restore()` independently replays the accepted anchor through the normal game
+rules. No snapshot format, game transition, learning, or collection path changes.
+The unobserved numeric roll and all future randomness come from the new seed.
+There is no rejection based on the true unused hand, original RNG, or private
+roll. Deterministic and previously supported DarkCloud launches are unchanged.
+
+Exact viewer view, last decision, actor inventory and legal kinds are still
+checked after reconstruction. Full prefix legality, both gamble signs, Fog plus
+202, all executable percentage launch cards, source immutability, full restore,
+future RNG variability, and equality from different hidden source hands/RNGs
+are covered by `official_determinized`. The parent C++ tests extend physical
+world/history/mask equality to these response roots; Python tests compare
+search choices and candidate evaluations under hidden source replacement.
+The frozen main-only search fixtures continue to check bitwise compatibility
+when `--search-response` is absent.
+
+Danger (94, including Wide) remains excluded because hidden mortar presence
+changes the body and target. Bounce, resolved-hit histories, special actions,
+viewer Fog, confusion and hidden own models retain their existing exclusions.
+
+### Current measurement
+
+Reproducible fixed-policy comparison: `godfield_official_determinized_tests
+--measure 1000`, default config, game seeds 0..999, policy=game+101,
+chance=game+203. The real games are not determinized or searched, so the
+before/after trajectories are identical; sample assignment RNG does not affect
+play. Counts (both seats combined):
+
+| Boundary / first reason | Before | After |
+| --- | ---: | ---: |
+| main starts / supported | 22,577 / 21,153 | 22,577 / 21,153 |
+| response total | 7,339 | 7,339 |
+| response supported | 5,204 (70.9088%) | 5,843 (79.6158%) |
+| response_random | 784 | 71 |
+| response_special | 643 | 643 |
+| response_history | 37 | 38 |
+| not_actor | 372 | 372 |
+| hidden_status | 142 | 183 |
+| hidden_own_model | 157 | 189 |
+
+All main first-reason counts and phase totals match exactly. Of the formerly
+random 784 roots, 639 (81.51%) are newly supported: percentage hits 444, 202
+signs 47 (including Fog overlap), singleton Fog 148. Another 74 now reach the
+existing hidden-status (41), hidden-own-model (32), or history (1) exclusions.
+Thus the changed reason counts are entirely within the previous random-launch
+subset. The remaining 71 are Danger/bounce. Response sample rejection remains
+physical capacity only (298 / 5,843 after, 290 / 5,204 before); no observation
+mismatch was observed. Timing is omitted because the runs shared CPU with tests
+and the M checkpoint evaluation.
+
+Final Release validation for this extension: parent CTest 17/17, standalone
+engine CTest 166/166, parent Python 262 passed / 1 skipped. The parent also ran
+40-game M-policy/AR-belief CPU comparisons: searched decisions 709/1,025 →
+917/1,084 (69.1707% → 84.5941%), random skips 28 → 9, invalid loads and real
+mismatches zero in both runs. Unlike the fixed-policy measurement above, those
+trajectories diverge after new searches; no strength conclusion is drawn.
+See the parent's `cpp/gfrl_core/search_env.md` for the complete skip breakdown,
+budgets and exact pre-/post-engine root-output checks.
 
 
-Final validation: standalone goodfield Release build and all165 CTest tests pass.
-The parent Release CMake build succeeds; CTest passes16/17, with only the
-response-world token canonicalization failure above. Parent pytest passes153,
-fails6, skips1: oracle-world loading, two noise-root diagnostics, and three
-exact pre-task-game/report expectations. The latter expect the old main-only
-search trigger sequence, which changes when response support becomes public.
-Against an isolated build of the original P3 goodfield, the same parent passes
-17/17 CTest and159 pytest tests (1 skipped). Parent production code, tests,
-C/Python APIs and snapshot version have not been changed. Consequently the
-requested parent-all-green completion criterion remains unmet until its
-response integration is updated.
+## Opt-in own Dream assignments
+
+The existing support/determinized calls keep their behavior. Search callers can
+use `determinize_support(viewer, true)` and
+`determinized(viewer, opponent_models, own_disguises, seed, normalize_tokens)`.
+`own_disguises` supplies one real gift model per disguised viewer card in
+`view(viewer).board.hand` order, including identity disguises. The public hand
+is sorted differently from the physical inventory: assignments are installed
+by token, preserving physical slot order, token, face and disguise presence.
+Missing, extra or incompatible assignments are invalid. Response assignments
+are installed in the launch anchor before ordinary journal replay.
+
+This entry point assigns all own disguised real models and never decides which
+to replace by inspecting whether actual equals face. It validates exact viewer
+view, last decision, visible ordered inventory, legal kinds and mask-tree
+invariants, including the existing 94+232 mortar exception. Mismatches are
+invalid samples, not permission to change observations. Restore validation is
+unchanged. Small-hand tests enumerate complete prefix trees in both canonical
+modes for every one of the 992 natural Dream compatibility pairs.
+
+Sampling policy belongs to the parent gfrl search loader: natural Dream
+compatibility conditioned on the public face, weighted by giftRate. No true
+own disguised model or original game RNG participates in that draw. The
+parent's `cpp/gfrl_core/search_env.md` describes the posterior approximation,
+leak/search regression tests and complete before/after coverage table.
+`--measure-own 1000` uses the same fixed-policy game streams as `--measure 1000`
+with the opt-in own assignments. Main eligibility grows 21,153→21,858 out of
+22,577; response eligibility grows 5,843→6,032 out of 7,339. Other first reasons
+and phase totals stay fixed. Both measurement modes print detailed rejection
+counts as well as per-seat counts and percentages.

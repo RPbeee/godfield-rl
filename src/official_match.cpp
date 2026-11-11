@@ -2110,7 +2110,7 @@ void Match::load_scene(SnapshotState state, PlayerId owner, std::uint64_t seed) 
     validate_snapshot(s); data_ = std::move(s);
 }
 void Match::restore(const MatchSnapshot& snapshot) { validate_snapshot(snapshot); auto s = snapshot; data_ = std::move(s); config_ = data_.config; }
-DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
+DeterminizeSupport Match::determinize_support(PlayerId viewer, bool assign_own_disguises) const noexcept {
     const auto& s = data_;
     const auto* own = find_player(s.state, viewer);
     if (!own) return DeterminizeSupport::invalid_viewer;
@@ -2131,10 +2131,7 @@ DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
         // Public launch cards/status determine these draws. Never inspect RNG
         // equality or the opponent's unplayed cards to decide support.
         const auto& base = *find_card(b.models.front());
-        const auto* launcher = find_player(b.initial_state, b.owner);
-        if (base.ability == Ability::danger || base.ability == Ability::boost_hp_or_deal_damage
-                || (base.hit_rate && !has_curse(*find_player(b.initial_state, viewer), Curse::darkcloud))
-                || (has_curse(*launcher, Curse::fog) && !base.hit_rate && !has_wide(b.models)))
+        if (base.ability == Ability::danger)
             return DeterminizeSupport::response_random;
         // An unresolved ordinary payload and reflection-only history cannot
         // resolve bodies, redraw, reserve counters/deaths, tick, or draw gifts.
@@ -2170,15 +2167,37 @@ DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
     if (has_curse(*own, Curse::fog)) return DeterminizeSupport::hidden_status;
     if (std::any_of(s.state.players.begin(), s.state.players.end(), [](const auto& p) { return p.confusion_count > 0; }))
         return DeterminizeSupport::hidden_confusion;
-    if (std::any_of(own->items.begin(), own->items.end(), [](const auto& item) {
+    if (!assign_own_disguises && std::any_of(own->items.begin(), own->items.end(), [](const auto& item) {
             return item.fake_model && *item.fake_model != item.model;
         })) return DeterminizeSupport::hidden_own_model;
     return DeterminizeSupport::ok;
 }
 Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, std::uint64_t seed, bool normalize_tokens) const {
-    if (determinize_support(viewer) != DeterminizeSupport::ok) unsupported("determinization is unsupported at this boundary");
+    return determinized_impl(viewer, assignment, std::nullopt, seed, normalize_tokens);
+}
+Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment,
+        std::span<const CardId> own_disguises, std::uint64_t seed, bool normalize_tokens) const {
+    return determinized_impl(viewer, assignment, own_disguises, seed, normalize_tokens);
+}
+Match Match::determinized_impl(PlayerId viewer, std::span<const CardId> assignment,
+        std::optional<std::span<const CardId>> own_disguises, std::uint64_t seed, bool normalize_tokens) const {
+    if (determinize_support(viewer, own_disguises.has_value()) != DeterminizeSupport::ok) unsupported("determinization is unsupported at this boundary");
     const bool response = data_.phase == MatchPhase::response;
     auto s = response ? snapshot_from_anchor(*data_.batch, config_) : data_;
+    auto& own = s.state.players[s.state.players.front().id == viewer ? 0 : 1];
+    if (own_disguises) {
+        std::size_t n=0;
+        for (const auto& current : view(viewer).board.hand) if (current.disguised) {
+            require(n < own_disguises->size(), "missing own disguise assignment");
+            const auto model=(*own_disguises)[n++];
+            require(gift_supported(model) && match_dream_disguise_supported(model, current.face),
+                    "incompatible own disguise assignment");
+            auto item=std::find_if(own.items.begin(),own.items.end(),[&](const auto& i){return i.token==current.token;});
+            require(item!=own.items.end() && item->fake_model==current.face, "own disguise missing in anchor");
+            item->model=model;
+        }
+        require(n == own_disguises->size(), "extra own disguise assignment");
+    }
     auto& other = s.state.players[s.state.players.front().id == viewer ? 1 : 0];
     // Only public, already selected cards survive in the opponent's anchor.
     // Consumed weapons no longer exist now; consumed miracles are retained used.
@@ -2211,21 +2230,85 @@ Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, s
     for (auto model : models) other.items.push_back({s.next_token++, model, {}, false});
     s.rng = seed; // Reset the anchor too: no real past RNG survives in a world.
     if (response) {
-        replay_launch(s, *data_.batch);
-        for (std::size_t i=0; i<data_.batch->responses.size(); ++i) replay_response(s, *data_.batch, i);
-        require(s.rng == seed, "supported response unexpectedly consumed game RNG");
+        const auto& journal = *data_.batch;
+        const auto& base = *find_card(journal.models.front());
+        const bool conditioned = base.hit_rate || base.ability == Ability::boost_hp_or_deal_damage;
+        if (conditioned) {
+            // An ordinary percentage miss has no response boundary: existence
+            // of this pending payload publicly proves a hit. HP gamble's sign
+            // is also public in PendingView.amount (even under Fog). Condition
+            // a fresh stream on those facts, never on the original RNG/roll.
+            // Rejection rather than transplanting a payload keeps restore's
+            // ordinary launch journal proof valid without changing game rules.
+            const auto amount = view(viewer).pending->amount;
+            auto sampler = seed;
+            for (;;) {
+                // Probe only launch draws. Executing a rejected miss would
+                // unnecessarily resolve gifts/ticks and could exhaust tokens.
+                auto probe = s.rng;
+                if (journal.attack.target && *journal.attack.target != journal.owner
+                        && has_curse(*find_player(s.state, journal.owner), Curse::fog)
+                        && !base.hit_rate && !has_wide(journal.models))
+                    (void)bounded(probe, 1); // exactly one enemy in this domain
+                const auto sign = base.ability == Ability::boost_hp_or_deal_damage
+                    ? (bounded(probe, 2) == 0 ? 10 : -10) : 0;
+                const bool hit = !base.hit_rate
+                    || has_curse(*find_player(s.state, viewer), Curse::darkcloud)
+                    || bounded(probe, 100) < static_cast<std::uint64_t>(base.hit_rate);
+                if (hit && (base.ability != Ability::boost_hp_or_deal_damage || sign == amount)) break;
+                s.rng = random(sampler);
+            }
+        }
+        replay_launch(s, journal);
+        for (std::size_t i=0; i<journal.responses.size(); ++i) replay_response(s, journal, i);
     }
     Match result = *this;
     result.restore(s);
     if (response) {
         require(result.view(viewer) == view(viewer), "determinized response observation differs");
         require(result.last_decision(viewer) == last_decision(viewer), "determinized response decision differs");
-        require(find_player(result.data_.state, viewer)->items == find_player(data_.state, viewer)->items,
+        require(own_disguises || find_player(result.data_.state, viewer)->items == find_player(data_.state, viewer)->items,
                 "determinized response actor inventory differs");
         // Response legality only uses the actor's items/MP/Flash and the active
         // payload's category/element/power (prepare/response_context). These are
         // covered by the exact view comparison; no opponent inventory is read.
         require(result.legal_kinds() == legal_kinds(), "determinized response kinds differ");
+    }
+    if (own_disguises) {
+        require(result.view(viewer)==view(viewer), "determinized own observation differs");
+        require(result.last_decision(viewer)==last_decision(viewer), "determinized own decision differs");
+        require(result.legal_kinds()==legal_kinds(), "determinized own kinds differ");
+        // SelectionTree reads faces/used/disguised/order, public resources and
+        // response context. Its only true-model predicates are call_phenomenon
+        // at the base and mortar presence for the exact 94+232 exception.
+        // Check those invariants and that exception explicitly, avoiding an
+        // exponential enumeration of all discard/defense permutations.
+        const auto& before=find_player(data_.state,viewer)->items;
+        const auto& after=find_player(result.data_.state,viewer)->items;
+        require(before.size()==after.size(), "determinized own inventory size differs");
+        for(std::size_t i=0;i<before.size();++i) {
+            auto a=before[i], b=after[i];
+            require((find_card(a.model)->ability==Ability::call_phenomenon)==
+                    (find_card(b.model)->ability==Ability::call_phenomenon)
+                    && (a.model==209)==(b.model==209), "determinized own legality predicate differs");
+            a.model=a.fake_model.value_or(a.model);b.model=b.fake_model.value_or(b.model);
+            require(a==b, "determinized own visible inventory differs");
+        }
+        for (bool canonical : {false,true}) for (auto kind : legal_kinds()) {
+            const auto root=legal_extensions(kind,{}, {canonical});
+            require(result.legal_extensions(kind,{}, {canonical})==root, "determinized own mask differs");
+            for(auto token:root.next) {
+                const std::array prefix{token};
+                const auto node=legal_extensions(kind,prefix,{canonical});
+                require(result.legal_extensions(kind,prefix,{canonical})==node, "determinized own prefix differs");
+                if(kind==CommandKind::play && face_model(*instance(*find_player(data_.state,viewer),token))==94)
+                    for(auto next:node.next) if(face_model(*instance(*find_player(data_.state,viewer),next))==232) {
+                        const std::array pair{token,next};
+                        require(result.legal_extensions(kind,pair,{canonical})==legal_extensions(kind,pair,{canonical}),
+                                "determinized own Danger mask differs");
+                    }
+            }
+        }
     }
     return result;
 }
