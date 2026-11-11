@@ -2131,10 +2131,7 @@ DeterminizeSupport Match::determinize_support(PlayerId viewer) const noexcept {
         // Public launch cards/status determine these draws. Never inspect RNG
         // equality or the opponent's unplayed cards to decide support.
         const auto& base = *find_card(b.models.front());
-        const auto* launcher = find_player(b.initial_state, b.owner);
-        if (base.ability == Ability::danger || base.ability == Ability::boost_hp_or_deal_damage
-                || (base.hit_rate && !has_curse(*find_player(b.initial_state, viewer), Curse::darkcloud))
-                || (has_curse(*launcher, Curse::fog) && !base.hit_rate && !has_wide(b.models)))
+        if (base.ability == Ability::danger)
             return DeterminizeSupport::response_random;
         // An unresolved ordinary payload and reflection-only history cannot
         // resolve bodies, redraw, reserve counters/deaths, tick, or draw gifts.
@@ -2211,9 +2208,37 @@ Match Match::determinized(PlayerId viewer, std::span<const CardId> assignment, s
     for (auto model : models) other.items.push_back({s.next_token++, model, {}, false});
     s.rng = seed; // Reset the anchor too: no real past RNG survives in a world.
     if (response) {
-        replay_launch(s, *data_.batch);
-        for (std::size_t i=0; i<data_.batch->responses.size(); ++i) replay_response(s, *data_.batch, i);
-        require(s.rng == seed, "supported response unexpectedly consumed game RNG");
+        const auto& journal = *data_.batch;
+        const auto& base = *find_card(journal.models.front());
+        const bool conditioned = base.hit_rate || base.ability == Ability::boost_hp_or_deal_damage;
+        if (conditioned) {
+            // An ordinary percentage miss has no response boundary: existence
+            // of this pending payload publicly proves a hit. HP gamble's sign
+            // is also public in PendingView.amount (even under Fog). Condition
+            // a fresh stream on those facts, never on the original RNG/roll.
+            // Rejection rather than transplanting a payload keeps restore's
+            // ordinary launch journal proof valid without changing game rules.
+            const auto amount = view(viewer).pending->amount;
+            auto sampler = seed;
+            for (;;) {
+                // Probe only launch draws. Executing a rejected miss would
+                // unnecessarily resolve gifts/ticks and could exhaust tokens.
+                auto probe = s.rng;
+                if (journal.attack.target && *journal.attack.target != journal.owner
+                        && has_curse(*find_player(s.state, journal.owner), Curse::fog)
+                        && !base.hit_rate && !has_wide(journal.models))
+                    (void)bounded(probe, 1); // exactly one enemy in this domain
+                const auto sign = base.ability == Ability::boost_hp_or_deal_damage
+                    ? (bounded(probe, 2) == 0 ? 10 : -10) : 0;
+                const bool hit = !base.hit_rate
+                    || has_curse(*find_player(s.state, viewer), Curse::darkcloud)
+                    || bounded(probe, 100) < static_cast<std::uint64_t>(base.hit_rate);
+                if (hit && (base.ability != Ability::boost_hp_or_deal_damage || sign == amount)) break;
+                s.rng = random(sampler);
+            }
+        }
+        replay_launch(s, journal);
+        for (std::size_t i=0; i<journal.responses.size(); ++i) replay_response(s, journal, i);
     }
     Match result = *this;
     result.restore(s);

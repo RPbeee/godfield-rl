@@ -71,6 +71,18 @@ void compare_legal(const Match& a, const Match& b) {
         }
     }
 }
+bool launch_draws(const MatchSnapshot& s) {
+    if(!s.batch)return false;
+    const auto& b=*s.batch;const auto& base=*find_card(b.models.front());
+    const auto cursed=[&](PlayerId id,Curse c) {
+        const auto& curses=find_player(b.initial_state,id)->curses;
+        return std::find(curses.begin(),curses.end(),c)!=curses.end();
+    };
+    return base.ability==Ability::boost_hp_or_deal_damage
+        || (base.hit_rate && !cursed(*s.actor,Curse::darkcloud))
+        || (cursed(b.owner,Curse::fog) && !base.hit_rate
+            && std::none_of(b.models.begin(),b.models.end(),[](auto id){return find_card(id)->ability==Ability::attack_every_enemy;}));
+}
 void verify(const Match& m, std::vector<CardId> models, std::uint64_t seed, bool legality=true) {
     const auto before=m.snapshot(); const auto viewer=*before.actor;
     auto world=m.determinized(viewer,models,seed);
@@ -93,7 +105,7 @@ void verify(const Match& m, std::vector<CardId> models, std::uint64_t seed, bool
     }
     std::sort(models.begin(),models.end());
     check(actual==models && new_used==old_used,"assignment multiset and used items preserved");
-    check(world.snapshot().rng==seed,"exact game RNG seed convention");
+    if (!launch_draws(before)) check(world.snapshot().rng==seed,"exact deterministic RNG seed convention");
     Match restored; restored.restore(world.snapshot());
     check(restored.snapshot()==world.snapshot(),"full restore validation roundtrip");
     check(m.snapshot()==before,"source snapshot unchanged"); ++comparisons;
@@ -233,7 +245,8 @@ void response_verify(const Match& m, const std::vector<CardId>& models, std::uin
     verify(m,models,seed);
     const auto viewer=*m.snapshot().actor;
     const auto w=m.determinized(viewer,models,seed);
-    check(w.snapshot().batch->rng==seed && w.snapshot().queue.front().redirect_rng==seed,"all launch RNG copies resampled");
+    check(w.snapshot().queue.front().redirect_rng==w.snapshot().rng,"redirect RNG follows rebuilt launch");
+    if(!launch_draws(m.snapshot())) check(w.snapshot().batch->rng==seed,"deterministic anchor uses exact seed");
     // Exhaust all response prefixes in these small fixtures, with both modes.
     if(m.snapshot().state.players[viewer==42?0:1].items.size()<=4) {
         for(bool canonical:{false,true}) {
@@ -293,12 +306,12 @@ void response_fixtures() {
     auto confused=scene({6});confused.players[1].confusion_count=1;f=fixture(confused);f.step({42,CommandKind::play,{0},7});rejected(f,7,Support::hidden_confusion);
     auto dream=scene({6},{19});dream.players[1].curses={Curse::dream};dream.players[1].items[0].fake_model=27;
     f=fixture(dream);f.step({42,CommandKind::play,{0},7});rejected(f,7,Support::hidden_own_model);
-    auto launcher_fog=scene({6});launcher_fog.players[0].curses={Curse::fog};f=fixture(launcher_fog);f.step({42,CommandKind::play,{0},7});rejected(f,7,Support::response_random);
+    auto launcher_fog=scene({6});launcher_fog.players[0].curses={Curse::fog};f=fixture(launcher_fog);f.step({42,CommandKind::play,{0},7});truth(f);response_verify(f,{7},81);
     for(const auto& c:catalog()) if(match_supported(c.id) && c.hit_rate && c.gift_rate) {
         f=fixture(scene({c.id}));
         for(std::uint64_t seed=0;seed<100;++seed) {
             f.load_scene(scene({c.id}),42,seed);f.step({42,CommandKind::play,{0},{}});
-            if(f.snapshot().phase==MatchPhase::response) {rejected(f,7,Support::response_random);break;}
+            if(f.snapshot().phase==MatchPhase::response) {truth(f);response_verify(f,{7},81);break;}
         }
         break;
     }
@@ -340,6 +353,68 @@ void response_fixtures() {
     check(changed>110,"response future gifts resampled");
     std::cout<<"response_future_gifts_differ="<<changed<<"/128\n";
 }
+
+void chance_response_fixtures() {
+    // Every percentage weapon, both HP gamble signs, and Fog + gamble.
+    std::vector<CardId> launches{202};
+    for (const auto& c:catalog()) if(match_supported(c.id) && c.hit_rate && c.gift_rate && can_start_main(c.id)) launches.push_back(c.id);
+    for (auto model:launches) for (bool fog:{false,true}) {
+        unsigned signs=0, tested=0;
+        for (std::uint64_t source_seed=0;source_seed<100 && tested<8;++source_seed) {
+            auto state=scene({model,19},{8});
+            state.players[0].mp=99;
+            if(fog) state.players[0].curses={Curse::fog};
+            auto m=fixture(state);m.load_scene(state,42,source_seed);
+            m.step({42,CommandKind::play,{0},find_card(model)->hit_rate?std::nullopt:std::optional<PlayerId>{7}});
+            if(m.snapshot().phase!=MatchPhase::response) continue;
+            check(m.determinize_support(7)==Support::ok,"chance response supported");
+            const auto public_view=m.view(7);
+            signs|=public_view.pending->amount>0?1:2;
+            response_verify(m,{6,7},91);truth(m);
+            auto w=m.determinized(7,std::vector<CardId>{6,7},91,true);
+            // Same public facts, different true hand, original RNG and its
+            // launch/redirect copies must generate exactly the same new world.
+            auto other=m.determinized(7,std::vector<CardId>{235},source_seed+111,true);
+            check(other.view(7)==public_view,"alternate source has identical public chance result");
+            check(w.snapshot()==other.determinized(7,std::vector<CardId>{6,7},91,true).snapshot(),"chance world leaks no source RNG/hand/roll");
+            unsigned different=0;
+            for(std::uint64_t seed=0;seed<32;++seed) {
+                auto fresh=m.determinized(7,std::vector<CardId>{6,7},seed,true);
+                check(fresh.view(7)==public_view,"public hit/target/sign preserved for every world seed");
+                different+=fresh.snapshot().rng!=w.snapshot().rng;
+            }
+            check(different>20,"chance future RNG varies independently");
+            ++tested;
+        }
+        check(tested>0,"chance launch exercised");
+        if(model==202) check(signs==3,"both public gamble signs exercised");
+    }
+    // Chance-conditioned anchors must also validate after a public reflection
+    // chain; redirect RNG is rebuilt rather than copied from either source.
+    for(auto model:launches) {
+        auto state=scene({model,190,19},{190,8});state.players[0].mp=99;
+        auto m=fixture(state);
+        for(std::uint64_t seed=0;;++seed) {
+            m.load_scene(state,42,seed);
+            m.step({42,CommandKind::play,{0},find_card(model)->hit_rate?std::nullopt:std::optional<PlayerId>{7}});
+            if(m.snapshot().phase==MatchPhase::response)break;
+        }
+        m.step({7,CommandKind::defend,{3},{}});
+        m.step({42,CommandKind::defend,{1},{}});
+        check(m.snapshot().batch->responses.size()==2,"chance reflection chain exercised");
+        truth(m);response_verify(m,{6},81);
+        auto other=m.determinized(7,std::vector<CardId>{235},711,true);
+        check(m.determinized(7,std::vector<CardId>{6},81,true).snapshot()
+            ==other.determinized(7,std::vector<CardId>{6},81,true).snapshot(),"reflected chance source RNG/hand leaked");
+    }
+    for(bool wide:{false,true}) {
+        auto state=wide?scene({94,232}):scene({94});state.players[0].mp=99;
+        auto m=fixture(state);
+        m.step({42,CommandKind::play,wide?std::vector<ItemToken>{0,1}:std::vector<ItemToken>{0},{}});
+        if(m.snapshot().phase==MatchPhase::response) rejected(m,7,Support::response_random);
+    }
+}
+
 void response_randomized() {
     std::mt19937_64 random(991);unsigned accepted=0,invalid=0,continued=0,truths=0;
     for(unsigned seed=0;seed<200;++seed) {
@@ -374,6 +449,11 @@ void measure(unsigned games) {
     std::array<std::array<std::array<std::uint64_t,names.size()>,2>,2> counts{};
     std::array<std::array<std::uint64_t,5>,2> phases{};
     std::array<std::uint64_t,2> attempts{},invalid{},ns{},success_ns{},capacity_invalid{};
+    std::array<std::uint64_t,3> newly_supported{};
+    const auto cursed=[](const SnapshotState& state,PlayerId id,Curse c) {
+        const auto& curses=find_player(state,id)->curses;
+        return std::find(curses.begin(),curses.end(),c)!=curses.end();
+    };
     std::mt19937_64 random(778);Match catalog_match;auto catalog=catalog_match.gift_catalog();
     for(unsigned seed=0;seed<games;++seed) {
         Match m;std::uint64_t p=seed+101,c=seed+203;
@@ -384,6 +464,13 @@ void measure(unsigned games) {
             if(s.phase==MatchPhase::main || s.phase==MatchPhase::response) {
                 const auto boundary=s.phase==MatchPhase::main?0:1;const auto support=m.determinize_support(viewer);
                 ++counts[seat][boundary][static_cast<unsigned>(support)];
+                if(boundary && support==Support::ok) {
+                    const auto& b=*s.batch;const auto& base=*find_card(b.models.front());
+                    if(base.ability==Ability::boost_hp_or_deal_damage) ++newly_supported[1];
+                    else if(base.hit_rate && !cursed(b.initial_state,viewer,Curse::darkcloud)) ++newly_supported[0];
+                    else if(!base.hit_rate && cursed(b.initial_state,b.owner,Curse::fog)
+                            && std::none_of(b.models.begin(),b.models.end(),[](auto id){return find_card(id)->ability==Ability::attack_every_enemy;})) ++newly_supported[2];
+                }
                 if(support==Support::ok && attempts[boundary]<10000) {
                     const auto& other=s.state.players[1-seat];
                     auto used=std::count_if(other.items.begin(),other.items.end(),[](auto i){return i.used;});
@@ -413,11 +500,12 @@ void measure(unsigned games) {
             for(unsigned i=0;i<names.size();++i) std::cout<<names[i]<<'='<<counts[seat][boundary][i]<<" ("<<std::fixed<<std::setprecision(4)<<100.*counts[seat][boundary][i]/total<<"%)\n";
         }
     }
+    std::cout<<"newly_supported percentage="<<newly_supported[0]<<" gamble="<<newly_supported[1]<<" fog="<<newly_supported[2]<<'\n';
     for(unsigned b=0;b<2;++b) std::cout<<(b?"response":"main")<<" samples="<<attempts[b]<<" invalid="<<invalid[b]<<" capacity_invalid="<<capacity_invalid[b]<<" mean_us_success="<<1e-3*success_ns[b]/(attempts[b]-invalid[b])<<" mean_us_including_invalid="<<1e-3*ns[b]/attempts[b]<<'\n';
 }
 }
 int main(int argc,char** argv) {
     if(argc==3 && std::string(argv[1])=="--measure") { measure(static_cast<unsigned>(std::stoul(argv[2])));return 0; }
-    boundaries_and_assignment();normalized_tokens();future_rng();randomized();response_fixtures();response_randomized();
+    boundaries_and_assignment();normalized_tokens();future_rng();randomized();response_fixtures();chance_response_fixtures();response_randomized();
     std::cout<<"Determinized tests passed.\n";
 }
